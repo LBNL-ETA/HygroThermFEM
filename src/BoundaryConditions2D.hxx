@@ -7,7 +7,7 @@ namespace FenestrationCommon {
   class CSquareMatrix;
 }
 
-namespace Conrad {
+namespace MoisThermFEM {
   
   class ILineLinear2D;
   

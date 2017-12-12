@@ -4,7 +4,7 @@
 #include <vector>
 #include <memory>
 
-namespace Conrad {
+namespace MoisThermFEM {
 
   struct LocalPoint2D;
   struct LocalPoint1D;

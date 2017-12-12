@@ -3,7 +3,7 @@
 #include <gtest/gtest.h>
 
 #include "Conrad2D.hxx"
-using namespace Conrad;
+using namespace MoisThermFEM;
 
 class TestExample2D_2 : public testing::Test {
 
@@ -75,7 +75,7 @@ EXPECT_EQ( solution.size(), correctSolution.size() );
 
 	for ( auto i = 0u; i < correctSolution.size(); ++i ) {
 		for ( auto j = 0u; j < correctSolution[ i ].size(); ++j ) {
-		EXPECT_NEAR( correctSolution[ i ][ j ], solution[ i ][ j ], 1e-6 );
+			EXPECT_NEAR( correctSolution[ i ][ j ], solution[ i ][ j ], 1e-6 );
 		}
 	}
 }

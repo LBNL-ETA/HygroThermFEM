@@ -2,7 +2,7 @@
 
 #include "Conrad2D.hxx"
 
-using namespace Conrad;
+using namespace MoisThermFEM;
 
 class TestConvectionBC2D : public testing::Test {
 
@@ -50,7 +50,7 @@ TEST_F( TestConvectionBC2D, TestIntegrationPoints )
 		}
 	}
 
-	auto R = aBc.rVector();
+	auto R = aBc.rightHandSideVector();
 
 	std::vector< double > correctR = { 12757.5, 12757.5 };
 

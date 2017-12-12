@@ -6,7 +6,7 @@
 
 #include "Node2D.hxx"
 
-namespace Conrad {
+namespace MoisThermFEM {
 
   ////////////////////////////////////////////////////////////////////////////
   //   QuadrilateralLinearGlobal2D

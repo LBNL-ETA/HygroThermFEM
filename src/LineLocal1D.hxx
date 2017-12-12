@@ -5,7 +5,7 @@
 
 #include "LocalShapeFunctions.hxx"
 
-namespace Conrad {
+namespace MoisThermFEM {
   
   class LineLinearLocal1D {
   public:

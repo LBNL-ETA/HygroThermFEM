@@ -4,7 +4,7 @@
 
 #include "Conrad2D.hxx"
 
-using namespace Conrad;
+using namespace MoisThermFEM;
 using namespace FenestrationCommon;
 
 class TestBoundaryConditions2D_test1 : public testing::Test {

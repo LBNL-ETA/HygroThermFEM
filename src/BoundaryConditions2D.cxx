@@ -5,7 +5,7 @@
 
 using namespace FenestrationCommon;
 
-namespace Conrad {
+namespace MoisThermFEM {
   
   BoundaryConditions2D::BoundaryConditions2D( std::vector< std::shared_ptr< ILineLinear2D > > const & t_BCs ) {
     
@@ -19,7 +19,7 @@ namespace Conrad {
     for( const auto& aBc : t_BCs ) {
       auto indexes = aBc->getNodeIndexes();
       auto matA = aBc->matrixA();
-      auto vecR = aBc->rVector();
+      auto vecR = aBc->rightHandSideVector();
       for( size_t i = 0; i < 2; ++i ) {
         for( size_t j = 0; j < 2; ++j ) {
           ( *m_MatrixA )[ indexes[ i ] - 1 ][ indexes[ j ] - 1 ] += matA[ i ][ j ];

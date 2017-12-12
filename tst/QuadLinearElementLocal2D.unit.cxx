@@ -6,7 +6,7 @@
 
 #include "Conrad2D.hxx"
 
-using namespace Conrad;
+using namespace MoisThermFEM;
 
 class TestQuadLinearElementLocal2D : public testing::Test {
 

@@ -1,7 +1,7 @@
 #include "BoundaryCondition2D.hxx"
 #include "NodePool.hxx"
 
-namespace Conrad {
+namespace MoisThermFEM {
   
   ////////////////////////////////////////////////////////
   // ConvectionBC
@@ -17,9 +17,9 @@ namespace Conrad {
     m_AirTemperature( t_AirTemperature ) {
 
     // Create matrix A and vector R
-    for( size_t i = 0; i < numOfIntegrationPoints(); ++i ) {
-      for( size_t j = 0; j < 2; ++j ) {
-        for( size_t k = 0; k < 2; ++k ) {
+    for( std::size_t i = 0; i < numOfIntegrationPoints(); ++i ) {
+      for( std::size_t j = 0; j < 2; ++j ) {
+        for( std::size_t k = 0; k < 2; ++k ) {
           m_matrixA[ j ][ k ] += m_ConvectionCoefficient * m_Determinant * Psi( i, j ) * Psi( i, k );
         }
         m_Rvector[ j ] += m_ConvectionCoefficient * m_Determinant * m_AirTemperature * Psi( i, j );

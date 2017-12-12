@@ -4,7 +4,7 @@
 #include "NodePool.hxx"
 #include "Node2D.hxx"
 
-namespace Conrad {
+namespace MoisThermFEM {
 
     NodePool &NodePool::Instance() {
         static NodePool m_Instance;

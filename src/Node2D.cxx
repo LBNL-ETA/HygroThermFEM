@@ -2,7 +2,7 @@
 
 #include "Node2D.hxx"
 
-namespace Conrad {
+namespace MoisThermFEM {
 
   ////////////////////////////////////////////////////////////////////////////
   //   LocalPoint1D
@@ -22,33 +22,33 @@ namespace Conrad {
 
   LocalPoint2D::LocalPoint2D( double const t_ksi, double const t_eta ) :
     ksi( t_ksi ), eta( t_eta ) {
-
-  };
+  }
   
   LocalPoint2D::LocalPoint2D( LocalPoint2D const & t_LocalPoint ) {
     ksi = t_LocalPoint.ksi;
     eta = t_LocalPoint.eta;
-  };
+  }
 
   ////////////////////////////////////////////////////////////////////////////
   //   Node2D
   ////////////////////////////////////////////////////////////////////////////
   
   Node2D::Node2D( 
-    size_t const t_NodeNumber, 
-    double const t_x, 
-    double const t_y, 
-    double const t_temperature ) :
-    nodeNumber( t_NodeNumber ), x( t_x ), y( t_y ), temperature( t_temperature ) {
+    std::size_t const t_NodeNumber,
+    const double t_x, 
+    const double t_y,
+		const double temperature ) : 
+		nodeNumber( t_NodeNumber ), x( t_x ), y( t_y ), temperature( temperature ) {
     
-  };
+  }
 
   Node2D::Node2D( Node2D const & t_Node ) {
     nodeNumber = t_Node.nodeNumber;
     x = t_Node.x;
     y = t_Node.y;
-    temperature = t_Node.temperature;
-  };
+		temperature = t_Node.temperature;
+  }
+
 
   ////////////////////////////////////////////////////////////////////////////
   //   INodesStorage
@@ -58,13 +58,13 @@ namespace Conrad {
 
   }
 
-  Node2D INodesStorage::getNode( size_t const Index ) const {
+  Node2D INodesStorage::getNode( std::size_t const Index ) const {
     assert( Index < m_Nodes.size() );
     return m_Nodes[ Index ];
   }
 
-  std::vector< size_t > INodesStorage::getNodeIndexes() const {
-    std::vector< size_t > indexes;
+  std::vector< std::size_t > INodesStorage::getNodeIndexes() const {
+    std::vector< std::size_t > indexes;
     for( const Node2D& aNode : m_Nodes ) {
       indexes.push_back( aNode.nodeNumber );
     }

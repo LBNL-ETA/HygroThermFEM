@@ -4,7 +4,7 @@
 
 #include "Conrad2D.hxx"
 
-using namespace Conrad;
+using namespace MoisThermFEM;
 
 class TestLinearIntegrationPointsTwoPointFormula1D : public testing::Test {
 

@@ -4,7 +4,7 @@
 
 #include "Node2D.hxx"
 
-namespace Conrad {
+namespace MoisThermFEM {
 
   struct Node2D;
   class LineNodes2D;
@@ -18,7 +18,7 @@ namespace Conrad {
       Node2D const & t_Node2 );
 
     std::vector< std::size_t > getNodeIndexes() const;
-    std::vector< double > rVector() const;
+    std::vector< double > rightHandSideVector() const;
     std::vector< std::vector< double > > matrixA() const;
 
   protected:

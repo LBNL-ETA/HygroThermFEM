@@ -2,7 +2,7 @@
 
 #include <vector>
 
-namespace Conrad {
+namespace MoisThermFEM {
   
   struct Node2D;
   
@@ -11,13 +11,13 @@ namespace Conrad {
     static NodePool& Instance();
     
     Node2D& createNode(
-      size_t const t_NodeNumber,
+      std::size_t const t_NodeNumber,
       double const t_x,
       double const t_y,
       double const t_temperature = 0 );
 
-    Node2D& getNode( size_t const Index );
-    size_t maxIndex() const;
+    Node2D& getNode( std::size_t const Index );
+    std::size_t maxIndex() const;
     std::vector< double > nodeTemperatures() const;
     void clear();
     

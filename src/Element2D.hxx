@@ -3,7 +3,7 @@
 #include "Node2D.hxx"
 #include "Quadrilateral2D.hxx"
 
-namespace Conrad {
+namespace MoisThermFEM {
 
     // Handles linear 2D element (4 nodes)
     class ElementLinear2D {

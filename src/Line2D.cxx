@@ -6,7 +6,7 @@
 #include "IntegrationPoints.hxx"
 #include "LineLocal1D.hxx"
 
-namespace Conrad {
+namespace MoisThermFEM {
 
   ILineLinear2D::ILineLinear2D( 
     Node2D const & t_Node1,
@@ -26,7 +26,7 @@ namespace Conrad {
     return m_Nodes.getNodeIndexes();
   }
 
-  std::vector< double > ILineLinear2D::rVector() const {
+  std::vector< double > ILineLinear2D::rightHandSideVector() const {
     return m_Rvector;
   }
 

@@ -5,7 +5,7 @@
 #include "Elements2D.hxx"
 #include "BoundaryConditions2D.hxx"
 
-namespace Conrad {
+namespace MoisThermFEM {
 
   class Elements2DLinear;
   class BoundaryConditions2D;

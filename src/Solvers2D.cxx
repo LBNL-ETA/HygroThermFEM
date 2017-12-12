@@ -7,7 +7,7 @@
 
 using namespace FenestrationCommon;
 
-namespace Conrad {
+namespace MoisThermFEM {
 
     /////////////////////////////////////////////////////////////////////////
     // ISolver2D
@@ -39,7 +39,7 @@ namespace Conrad {
     }
 
     void SteadyStateSolver2D::solve() {
-        CSquareMatrix &condMat = *m_Elements.conductivity();
+        CSquareMatrix &condMat = *m_Elements.thermalConductivity();
         CSquareMatrix &H = *m_BCs.matrixA();
 
         std::vector<double> B = m_BCs.vectorR();
@@ -79,7 +79,7 @@ namespace Conrad {
         // ublas::permutation_matrix< size_t > pm( A.size1() );
         // ublas::vector< double > y( size );
 
-        // vector< vector< double > > condMat = m_Elements.conductivity();
+        // vector< vector< double > > condMat = m_Elements.thermalConductivity();
         // vector< vector< double > > H = m_BCs.matrixA();
         auto RhoCp = *m_Elements.rhoCp();
         std::vector<double> M(size);
@@ -94,7 +94,7 @@ namespace Conrad {
 
         auto rBC = m_BCs.vectorR();
 
-        auto condMat = std::make_shared<CSquareMatrix>(*m_Elements.conductivity());
+        auto condMat = std::make_shared<CSquareMatrix>(*m_Elements.thermalConductivity());
         auto H = std::make_shared<CSquareMatrix>(*m_BCs.matrixA());
 
         condMat = condMat->add(*H);

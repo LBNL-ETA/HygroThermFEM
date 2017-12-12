@@ -5,7 +5,7 @@
 
 #include "LocalShapeFunctions.hxx"
 
-namespace Conrad {
+namespace MoisThermFEM {
   
   ////////////////////////////////////////////////////////////////////////////
   //   QuadrilateralLinearLocal2D

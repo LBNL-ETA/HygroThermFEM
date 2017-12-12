@@ -4,7 +4,7 @@
 
 using namespace FenestrationCommon;
 
-namespace Conrad {
+namespace MoisThermFEM {
 
   Elements2DLinear::Elements2DLinear( std::vector< ElementLinear2D > const & t_Elements ) {
 
@@ -29,7 +29,7 @@ namespace Conrad {
 
   }
 
-  std::shared_ptr< CSquareMatrix > Elements2DLinear::conductivity() const {
+  std::shared_ptr< CSquareMatrix > Elements2DLinear::thermalConductivity() const {
     return m_Conductivity;
   }
 

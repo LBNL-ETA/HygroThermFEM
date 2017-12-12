@@ -3,7 +3,7 @@
 
 #include "Conrad2D.hxx"
 
-using namespace Conrad;
+using namespace MoisThermFEM;
 
 class TestSingleElementMatrices2D : public testing::Test {
 

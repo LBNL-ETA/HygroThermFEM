@@ -2,7 +2,7 @@
 
 #include "Line2D.hxx"
 
-namespace Conrad {
+namespace MoisThermFEM {
   
   struct Node2D;
   

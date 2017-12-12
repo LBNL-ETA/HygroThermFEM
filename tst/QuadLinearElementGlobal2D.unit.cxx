@@ -4,7 +4,7 @@
 
 #include "Conrad2D.hxx"
 
-using namespace Conrad;
+using namespace MoisThermFEM;
 
 class TestQuadLinearElementGlobal2D : public testing::Test {
 

@@ -5,7 +5,7 @@
 #include "IntegrationPoints.hxx"
 #include "Node2D.hxx"
 
-namespace Conrad {
+namespace MoisThermFEM {
 
   ////////////////////////////////////////////////////////////////////////////
   //   IIntegrationPoints2D

@@ -4,7 +4,7 @@
 
 #include "Conrad2D.hxx"
 
-using namespace Conrad;
+using namespace MoisThermFEM;
 using namespace FenestrationCommon;
 
 class TestElements2D : public testing::Test {
@@ -47,7 +47,7 @@ TEST_F( TestElements2D, TestConductionMatrix )
 
 	auto elements = Elements2DLinear( vElements );
 
-	auto & condMat = *elements.conductivity();
+	auto & condMat = *elements.thermalConductivity();
 
 	std::vector< std::vector< double > > correctCondMat = {
 		{ 0.833333333, -0.583333333, 0.166666667, -0.416666667, 0, 0 },

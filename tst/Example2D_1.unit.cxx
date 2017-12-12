@@ -4,7 +4,7 @@
 
 #include "Conrad2D.hxx"
 
-using namespace Conrad;
+using namespace MoisThermFEM;
 
 class TestExample2D_1 : public testing::Test {
 

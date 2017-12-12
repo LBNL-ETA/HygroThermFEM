@@ -7,7 +7,7 @@
 #include "IntegrationPoints.hxx"
 #include "QuadrilateralLocal2D.hxx"
 
-namespace Conrad {
+namespace MoisThermFEM {
 
   ////////////////////////////////////////////////////////////////////////////
   //   QuadrilateralLinearGlobal2D

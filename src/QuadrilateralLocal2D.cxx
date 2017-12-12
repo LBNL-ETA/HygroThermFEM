@@ -2,7 +2,7 @@
 #include "Node2D.hxx"
 #include "IntegrationPoints.hxx"
 
-namespace Conrad {
+namespace MoisThermFEM {
 
   ////////////////////////////////////////////////////////////////////////////
   //   QuadElement2DLinearLocal::QuadLinearPoint2D
