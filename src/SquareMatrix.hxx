@@ -16,21 +16,21 @@ namespace FenestrationCommon {
     // set diagonal values from vector
     void setDiagonal( std::vector< double > const & t_Values );
     std::vector< double >& operator[]( size_t const index );
-    std::shared_ptr< CSquareMatrix > add( CSquareMatrix const & t_Matrix ) const;
-    std::shared_ptr< CSquareMatrix > addDiagonal( std::vector< double > const & t_Vector );
-    std::shared_ptr< CSquareMatrix > sub( CSquareMatrix const & t_Matrix ) const;
-    std::shared_ptr< CSquareMatrix > mult( CSquareMatrix const & t_Matrix ) const;
+    CSquareMatrix add( CSquareMatrix const & t_Matrix ) const;
+    CSquareMatrix addDiagonal( std::vector< double > const & t_Vector );
+		CSquareMatrix sub( CSquareMatrix const & t_Matrix ) const;
+    CSquareMatrix mult( CSquareMatrix const & t_Matrix ) const;
     // Matrix multiplication with vector
-    std::shared_ptr< std::vector< double > > multMxV( std::vector< double > const & t_Vector ) const;
+    std::vector< double > multMxV( std::vector< double > const & t_Vector ) const;
     // Matrix multiplication with vector
-    std::shared_ptr< std::vector< double > > multVxM( std::vector< double > const & t_Vector ) const;
+    std::vector< double > multVxM( std::vector< double > const & t_Vector ) const;
     void copyFrom( CSquareMatrix const & t_Matrix );
     // inverse matrix
-    std::shared_ptr< CSquareMatrix > inverse();
+    CSquareMatrix inverse();
 
   private:
     // LU decomposition of current matrix
-    std::shared_ptr< CSquareMatrix > LU();
+    CSquareMatrix LU() const;
 
     size_t m_Size;
     std::vector< std::vector < double > > m_Matrix;
