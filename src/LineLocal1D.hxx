@@ -17,7 +17,8 @@ namespace MoisThermFEM {
     LineLinearLocal1D();
     ~LineLinearLocal1D();
 
-    std::vector< std::shared_ptr< ILocalShapeFunctions1DLine > > m_Ksi;
+    std::vector< std::unique_ptr< ILocalShapeFunctions1DLine > > m_Ksi;
+		// std::vector< std::reference_wrapper< ILocalShapeFunctions1DLine > > m_Ksi;
 
     class LineLinearLocalShapeFunctions1D : public ILocalShapeFunctions1DLine {
     public:

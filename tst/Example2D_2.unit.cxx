@@ -50,10 +50,11 @@ TEST_F( TestExample2D_2, TestExample_1 )
 
 	// Create Boundary Conditions
 	auto const tSurface = 12;
+	
+	std::unique_ptr< ILineLinear2D > aBc1 = std::unique_ptr< TemperatureBC >( new TemperatureBC( node5, node6, tSurface ) );
 
-	const std::shared_ptr< ILineLinear2D > aBc1 = std::make_shared< TemperatureBC >( node5, node6, tSurface );
-
-	const std::vector< std::shared_ptr< ILineLinear2D > > vBc = { aBc1 };
+	std::vector< std::unique_ptr< ILineLinear2D > > vBc;
+	vBc.push_back( std::move( aBc1 ) );
 
 	const auto aBCs = BoundaryConditions2D( vBc );
 

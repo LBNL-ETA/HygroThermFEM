@@ -29,7 +29,7 @@ namespace MoisThermFEM {
   LineLinearLocal1D::LineLinearLocal1D() {
     std::vector< LocalPoint1D > aPoints = IntegrationPoints2D::Instance().getPoints1D();
     for( LocalPoint1D point : aPoints ) {
-      m_Ksi.push_back( std::make_shared< LineLinearLocalShapeFunctions1D >( point ) );
+			m_Ksi.push_back( std::unique_ptr< LineLinearLocalShapeFunctions1D > ( new LineLinearLocalShapeFunctions1D( point ) ) );
     }
   }
 

@@ -7,13 +7,13 @@ using namespace FenestrationCommon;
 
 namespace MoisThermFEM {
   
-  BoundaryConditions2D::BoundaryConditions2D( std::vector< std::shared_ptr< ILineLinear2D > > const & t_BCs ) {
+  BoundaryConditions2D::BoundaryConditions2D( std::vector< std::unique_ptr< ILineLinear2D > > const & t_BCs ) {
     
     // Size is kept in node pool
     auto maxIndex = NodePool::Instance().maxIndex();
 
     m_vectorR.resize( maxIndex );
-    m_MatrixA = std::make_shared< CSquareMatrix >( maxIndex );
+    m_MatrixA = std::move( std::unique_ptr< CSquareMatrix >( new CSquareMatrix( maxIndex ) ) );
 
     // Create full size matrices
     for( const auto& aBc : t_BCs ) {
@@ -29,8 +29,24 @@ namespace MoisThermFEM {
     }
   }
 
-  std::shared_ptr< CSquareMatrix > BoundaryConditions2D::matrixA() const {
-    return m_MatrixA;
+	BoundaryConditions2D::BoundaryConditions2D( const BoundaryConditions2D & other ) {
+		*this = other;
+	}
+
+	BoundaryConditions2D &
+	BoundaryConditions2D::operator=( const BoundaryConditions2D & other ) {
+		m_vectorR.clear();
+		for( auto & val: other.m_vectorR ) {
+			m_vectorR.push_back( val );
+		}
+
+		m_MatrixA.reset( new CSquareMatrix( *other.m_MatrixA ) );
+
+		return *this;
+	}
+
+	CSquareMatrix* BoundaryConditions2D::matrixA() const {
+    return m_MatrixA.get();
   }
 
   std::vector< double > BoundaryConditions2D::vectorR() const {

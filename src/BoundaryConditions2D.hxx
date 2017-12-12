@@ -13,13 +13,15 @@ namespace MoisThermFEM {
   
   class BoundaryConditions2D {
   public:
-    explicit BoundaryConditions2D( std::vector< std::shared_ptr< ILineLinear2D > > const & t_BCs );
+    explicit BoundaryConditions2D( std::vector< std::unique_ptr< ILineLinear2D > > const & t_BCs );
+		BoundaryConditions2D( const BoundaryConditions2D &other );
+		BoundaryConditions2D& operator=( const BoundaryConditions2D& other );
     
-    std::shared_ptr< FenestrationCommon::CSquareMatrix > matrixA() const;
+    FenestrationCommon::CSquareMatrix* matrixA() const;
     std::vector< double > vectorR() const;
       
   private:
-    std::shared_ptr< FenestrationCommon::CSquareMatrix > m_MatrixA;
+    std::unique_ptr< FenestrationCommon::CSquareMatrix > m_MatrixA;
     std::vector< double > m_vectorR;
   };
   

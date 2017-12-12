@@ -41,13 +41,15 @@ TEST_F( TestBoundaryConditions2D_test1, TestIntegrationPoints )
 	auto const hc1 = 20.0;
 	auto const Tair1 = 255.15;
 
-	std::shared_ptr< ILineLinear2D > aBC1 = std::make_shared< ConvectionBC >( node1, node2, hc1, Tair1 );
+	std::unique_ptr< ILineLinear2D > aBC1 = std::unique_ptr< ConvectionBC >( new ConvectionBC( node1, node2, hc1, Tair1 ) );
 
 	auto const hc2 = 2.4;
 	auto const Tair2 = 294.15;
 
-	std::shared_ptr< ILineLinear2D > aBC2 = std::make_shared< ConvectionBC >( node6, node5, hc2, Tair2 );
-	std::vector< std::shared_ptr< ILineLinear2D > > vBC = { aBC1, aBC2 };
+	std::unique_ptr< ILineLinear2D > aBC2 = std::unique_ptr< ConvectionBC >( new ConvectionBC( node6, node5, hc2, Tair2 ) );
+	std::vector< std::unique_ptr< ILineLinear2D > > vBC;
+	vBC.push_back( std::move( aBC1 ) );
+	vBC.push_back( std::move( aBC2 ) );
 
 	auto aBCs = BoundaryConditions2D( vBC );
 
