@@ -2,10 +2,7 @@
 
 #include <memory>
 #include "Element2D.hxx"
-
-namespace FenestrationCommon {
-  class CSquareMatrix;
-}
+#include "SquareMatrix.hxx"
 
 namespace MoisThermFEM {
   
@@ -13,12 +10,12 @@ namespace MoisThermFEM {
   public:
     explicit Elements2DLinear( std::vector< ElementLinear2D > const & t_Elements );
 
-    std::shared_ptr< FenestrationCommon::CSquareMatrix > thermalConductivity() const;
-    std::shared_ptr< FenestrationCommon::CSquareMatrix > rhoCp() const;
+    FenestrationCommon::CSquareMatrix& thermalConductivity();
+    FenestrationCommon::CSquareMatrix& rhoCp();
 
   private:
-    std::shared_ptr< FenestrationCommon::CSquareMatrix > m_Conductivity;
-    std::shared_ptr< FenestrationCommon::CSquareMatrix > m_RhoCp;
+    FenestrationCommon::CSquareMatrix m_Conductivity;
+    FenestrationCommon::CSquareMatrix m_RhoCp;
 
   };
   

@@ -151,8 +151,8 @@ namespace MoisThermFEM {
     ~IntegrationPoints2D();
 
     // Integration points in local coordinate system
-    std::shared_ptr< IIntegrationPoints2D > m_IntPoints2D;
-    std::shared_ptr< IIntegrationPoints1D > m_IntPoints1D;
+    std::unique_ptr< IIntegrationPoints2D > m_IntPoints2D;
+    std::unique_ptr< IIntegrationPoints1D > m_IntPoints1D;
 
   };
 

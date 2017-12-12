@@ -9,21 +9,21 @@ using namespace MoisThermFEM;
 class TestQuadrilateralIntegrationPointsTwoPointFormula2D : public testing::Test {
 
 private:
-	std::shared_ptr< IIntegrationPoints2D > m_IntPoints;
+	std::unique_ptr< IIntegrationPoints2D > m_IntPoints;
 
 protected:
 	void
 	SetUp() override
 	{
-		m_IntPoints = std::make_shared< TwoIntegrationPoint2D >();
+		m_IntPoints = std::unique_ptr< TwoIntegrationPoint2D >( new TwoIntegrationPoint2D() );
 		ASSERT_TRUE( m_IntPoints != nullptr );
 	}
 
 public:
-	std::shared_ptr< IIntegrationPoints2D >
+	IIntegrationPoints2D*
 	getIntPoints() const
 	{
-		return m_IntPoints;
+		return m_IntPoints.get();
 	};
 
 };

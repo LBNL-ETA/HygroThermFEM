@@ -8,20 +8,18 @@ using namespace FenestrationCommon;
 class TestLinearSolver1 : public testing::Test {
 
 private:
-	std::shared_ptr< CLinearSolver > m_Solver;
+	CLinearSolver m_Solver;
 
 protected:
 	void
 	SetUp() override
 	{
-		m_Solver = std::make_shared< CLinearSolver >();
-		ASSERT_TRUE( m_Solver != nullptr );
+		
 	}
 
 public:
-	std::shared_ptr< CLinearSolver >
-	GetSolver() const
-	{
+	CLinearSolver&
+	GetSolver()	{
 		return m_Solver;
 	}
 
@@ -40,7 +38,7 @@ TEST_F( TestLinearSolver1, Test1 )
 
 	std::vector< double > aVector = { 1, 3, 5 };
 
-	auto & aSolver = *GetSolver();
+	auto aSolver = GetSolver();
 
 	auto aSolution = aSolver.solveSystem( aMatrix, aVector );
 
@@ -64,7 +62,7 @@ TEST_F( TestLinearSolver1, Test2 )
 
 	std::vector< double > aVector = { 3163.241853, -73.479324, -67.913411, -1070.271453 };
 
-	auto aSolver = *GetSolver();
+	auto aSolver = GetSolver();
 
 	auto aSolution = aSolver.solveSystem( aMatrix, aVector );
 

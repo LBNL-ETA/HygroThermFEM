@@ -44,7 +44,7 @@ namespace MoisThermFEM {
   QuadrilateralLinearLocal2D::QuadrilateralLinearLocal2D() {
     auto aPoints = IntegrationPoints2D::Instance().getPoints2D();
     for( auto point : aPoints ) {
-      m_Ksi.push_back( std::make_shared< QuadLinearLocalShapeFunctions2D >( point ) );
+      m_Ksi.push_back( std::unique_ptr< QuadLinearLocalShapeFunctions2D >( new QuadLinearLocalShapeFunctions2D( point ) ) );
     }
   }
 

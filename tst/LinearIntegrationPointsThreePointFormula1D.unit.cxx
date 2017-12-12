@@ -9,21 +9,21 @@ using namespace MoisThermFEM;
 class TestLinearIntegrationPointsThreePointFormula1D : public testing::Test {
 
 private:
-	std::shared_ptr< IIntegrationPoints1D > m_IntPoints;
+	std::unique_ptr< IIntegrationPoints1D > m_IntPoints;
 
 protected:
 	void
 	SetUp() override
 	{
-		m_IntPoints = std::make_shared< ThreeIntegrationPoint1D >();
+		m_IntPoints = std::unique_ptr< ThreeIntegrationPoint1D >( new ThreeIntegrationPoint1D() );
 		ASSERT_TRUE( m_IntPoints != nullptr );
 	}
 
 public:
-	std::shared_ptr< IIntegrationPoints1D >
+	IIntegrationPoints1D*
 	getIntPoints() const
 	{
-		return m_IntPoints;
+		return m_IntPoints.get();
 	};
 
 };

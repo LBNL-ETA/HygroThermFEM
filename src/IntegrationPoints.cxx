@@ -189,16 +189,16 @@ namespace MoisThermFEM {
   void IntegrationPoints2D::setIntegrationFormula( IntegrationPointsFormula const t_Formula ) {
     switch( t_Formula ) {
     case IntegrationPointsFormula::OnePoint:
-      m_IntPoints2D = std::make_shared< SingleIntegrationPoint2D >();
-      m_IntPoints1D = std::make_shared< SingleIntegrationPoint1D >();
+      m_IntPoints2D = std::unique_ptr< SingleIntegrationPoint2D >( new SingleIntegrationPoint2D() );
+      m_IntPoints1D = std::unique_ptr< SingleIntegrationPoint1D >( new SingleIntegrationPoint1D() );
       break;
     case IntegrationPointsFormula::TwoPoints:
-      m_IntPoints2D = std::make_shared< TwoIntegrationPoint2D >();
-      m_IntPoints1D = std::make_shared< TwoIntegrationPoint1D >();
+      m_IntPoints2D = std::unique_ptr< TwoIntegrationPoint2D >( new TwoIntegrationPoint2D() );
+      m_IntPoints1D = std::unique_ptr< TwoIntegrationPoint1D >( new TwoIntegrationPoint1D() );
       break;
     case IntegrationPointsFormula::ThreePoints:
-      m_IntPoints2D = std::make_shared< ThreeIntegrationPoint2D >();
-      m_IntPoints1D = std::make_shared< ThreeIntegrationPoint1D >();
+      m_IntPoints2D = std::unique_ptr< ThreeIntegrationPoint2D >( new ThreeIntegrationPoint2D() );
+      m_IntPoints1D = std::unique_ptr< ThreeIntegrationPoint1D >( new ThreeIntegrationPoint1D() );
       break;
     default:
       assert("Incorrect selection of integration formula in IntegrationPoints2D::setIntegrationFormula.");
@@ -224,8 +224,8 @@ namespace MoisThermFEM {
 
   IntegrationPoints2D::IntegrationPoints2D() {
     // Two-point formula is default one
-    m_IntPoints2D = std::make_shared< TwoIntegrationPoint2D >();
-    m_IntPoints1D = std::make_shared< TwoIntegrationPoint1D >();
+    m_IntPoints2D = std::unique_ptr< TwoIntegrationPoint2D >( new TwoIntegrationPoint2D() );
+    m_IntPoints1D = std::unique_ptr< TwoIntegrationPoint1D >( new TwoIntegrationPoint1D() );
   }
 
   IntegrationPoints2D::~IntegrationPoints2D() {

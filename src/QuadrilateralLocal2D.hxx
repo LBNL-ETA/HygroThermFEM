@@ -29,7 +29,7 @@ namespace MoisThermFEM {
     ~QuadrilateralLinearLocal2D();
 
     // Shape functions for every integration point (at local coordinate system)
-    std::vector< std::shared_ptr< ILocalShapeFunctions2DQuadrilateral > > m_Ksi;
+    std::vector< std::unique_ptr< ILocalShapeFunctions2DQuadrilateral > > m_Ksi;
 
     // Class defines shape functions and its derivatives in local coordinate system
     // for quadrilateral linear element.

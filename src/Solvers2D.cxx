@@ -39,7 +39,7 @@ namespace MoisThermFEM {
     }
 
     void SteadyStateSolver2D::solve() {
-        CSquareMatrix &condMat = *m_Elements.thermalConductivity();
+        CSquareMatrix &condMat = m_Elements.thermalConductivity();
         CSquareMatrix &H = *m_BCs.matrixA();
 
         std::vector<double> B = m_BCs.vectorR();
@@ -81,7 +81,7 @@ namespace MoisThermFEM {
 
         // vector< vector< double > > condMat = m_Elements.thermalConductivity();
         // vector< vector< double > > H = m_BCs.matrixA();
-        auto RhoCp = *m_Elements.rhoCp();
+        auto RhoCp = m_Elements.rhoCp();
         std::vector<double> M(size);
 
         // Creates lump matrix
@@ -94,11 +94,11 @@ namespace MoisThermFEM {
 
         auto rBC = m_BCs.vectorR();
 
-        auto condMat = std::make_shared<CSquareMatrix>(*m_Elements.thermalConductivity());
+        auto condMat = m_Elements.thermalConductivity();
         auto H = std::make_shared<CSquareMatrix>(*m_BCs.matrixA());
 
-        condMat = condMat->add(*H);
-        condMat = condMat->addDiagonal(M);
+        condMat = *condMat.add( *H );
+        condMat = *condMat.addDiagonal(M);
 
         auto temperatures = NodePool::Instance().nodeTemperatures();
         std::vector<double> B(temperatures.size());
@@ -110,7 +110,7 @@ namespace MoisThermFEM {
             }
 
             CLinearSolver aSolver;
-            B = aSolver.solveSystem(*condMat, B);
+            B = aSolver.solveSystem( condMat, B );
 
             std::vector<double> aSolution(size);
             for (unsigned j = 0; j < size; ++j) {
