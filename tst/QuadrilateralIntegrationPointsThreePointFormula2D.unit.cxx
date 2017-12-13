@@ -1,8 +1,5 @@
 #include <memory>
-#include <cmath>
 #include <gtest/gtest.h>
-
-#include <memory>
 
 #include "Conrad2D.hxx"
 
@@ -34,11 +31,12 @@ TEST_F( TestQuadrilateralIntegrationPointsThreePointFormula2D, TestIntegrationPo
 {
 	SCOPED_TRACE( "Begin Test: Location and  weights for integration points." );
 
-	auto const nonZero = std::sqrt( 3.0 / 5.0 );
-	auto const zero = 0;
+	const auto nonZero = std::sqrt( 3.0 / 5.0 );
+	const auto zero = 0;
 
 	const auto aElement = getIntPoints();
 
+	/// Quadrilateral two dimensional element have nine intagration points.
 	std::vector< LocalPoint2D > correctPoints = {
 		LocalPoint2D( -nonZero, -nonZero ),
 		LocalPoint2D( nonZero, -nonZero ),
