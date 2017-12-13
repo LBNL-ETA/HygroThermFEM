@@ -34,15 +34,15 @@ namespace MoisThermFEM {
   ////////////////////////////////////////////////////////////////////////////
   
   Node2D::Node2D( 
-    std::size_t const t_NodeNumber,
+    const std::size_t t_NodeNumber,
     const double t_x, 
     const double t_y,
-		const double temperature ) : 
-		nodeNumber( t_NodeNumber ), x( t_x ), y( t_y ), temperature( temperature ) {
+		const double t_temperature ) : 
+		nodeNumber( t_NodeNumber ), x( t_x ), y( t_y ), temperature( t_temperature ) {
     
   }
 
-  Node2D::Node2D( Node2D const & t_Node ) {
+  Node2D::Node2D( const Node2D & t_Node ) {
     nodeNumber = t_Node.nodeNumber;
     x = t_Node.x;
     y = t_Node.y;
@@ -58,14 +58,17 @@ namespace MoisThermFEM {
 
   }
 
-  Node2D INodesStorage::getNode( std::size_t const Index ) const {
+	INodesStorage::INodesStorage( std::initializer_list< Node2D > t_Nodes ) : m_Nodes( t_Nodes ) {
+	}
+
+	Node2D INodesStorage::getNode( const std::size_t Index ) const {
     assert( Index < m_Nodes.size() );
     return m_Nodes[ Index ];
   }
 
   std::vector< std::size_t > INodesStorage::getNodeIndexes() const {
     std::vector< std::size_t > indexes;
-    for( const Node2D& aNode : m_Nodes ) {
+    for( const auto & aNode : m_Nodes ) {
       indexes.push_back( aNode.nodeNumber );
     }
     return indexes;
@@ -76,10 +79,9 @@ namespace MoisThermFEM {
   ////////////////////////////////////////////////////////////////////////////
 
   LineNodes2D::LineNodes2D( 
-    Node2D const & t_Node1, 
-    Node2D const & t_Node2 ) : INodesStorage() {
-    m_Nodes.push_back( t_Node1 );
-    m_Nodes.push_back( t_Node2 );
+    const Node2D & t_Node1, 
+    const Node2D & t_Node2 ) : INodesStorage( { t_Node1, t_Node2 } ) {
+    
   }
 
   ////////////////////////////////////////////////////////////////////////////
@@ -87,14 +89,11 @@ namespace MoisThermFEM {
   ////////////////////////////////////////////////////////////////////////////
 
   QuadrilateralNodes2D::QuadrilateralNodes2D( 
-    Node2D const & t_Node1, 
-    Node2D const & t_Node2, 
-    Node2D const & t_Node3, 
-    Node2D const & t_Node4 ) {
-    m_Nodes.push_back( t_Node1 );
-    m_Nodes.push_back( t_Node2 );
-    m_Nodes.push_back( t_Node3 );
-    m_Nodes.push_back( t_Node4 );
+    const Node2D & t_Node1, 
+    const Node2D & t_Node2, 
+    const Node2D & t_Node3, 
+		const Node2D & t_Node4 ) : INodesStorage( { t_Node1, t_Node2, t_Node3, t_Node4 } ) {
+    
   }
 
 }

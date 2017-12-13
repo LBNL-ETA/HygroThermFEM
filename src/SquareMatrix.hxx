@@ -8,6 +8,7 @@ namespace FenestrationCommon {
 
   class CSquareMatrix {
   public:
+		CSquareMatrix();
     explicit CSquareMatrix( size_t const aSize );
     size_t getSize() const;
     void setZeros();

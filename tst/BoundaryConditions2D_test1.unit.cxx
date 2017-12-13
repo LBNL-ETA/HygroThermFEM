@@ -53,7 +53,7 @@ TEST_F( TestBoundaryConditions2D_test1, TestIntegrationPoints )
 
 	auto aBCs = BoundaryConditions2D( vBC );
 
-	auto & H = *aBCs.matrixA();
+	auto H = aBCs.matrixA();
 
     std::vector< std::vector< double > > correctH = {
 	    { 33.33333333, 16.66666667, 0, 0, 0, 0 },

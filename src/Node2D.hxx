@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <initializer_list>
 
 namespace MoisThermFEM {
 
@@ -12,7 +13,7 @@ namespace MoisThermFEM {
   struct LocalPoint1D {
     explicit LocalPoint1D( double const t_ksi );
     LocalPoint1D( LocalPoint1D const & t_LocalPoint );
-    double ksi;
+    double ksi{ 0 };
 
   };
 
@@ -24,8 +25,8 @@ namespace MoisThermFEM {
   struct LocalPoint2D {
     LocalPoint2D( double const t_ksi, double const t_eta );
     LocalPoint2D( LocalPoint2D const & t_LocalPoint );
-    double ksi;
-    double eta;
+    double ksi{ 0 };
+    double eta{ 0 };
 
   };
 
@@ -36,13 +37,13 @@ namespace MoisThermFEM {
 
   // Defines nodal point in two dimensional cartesian space.
   struct Node2D {
-    Node2D( std::size_t const t_NodeNumber, double const t_x, double const t_y, const double temperature = 0 );
-    Node2D( Node2D const & t_Node );
+    Node2D( const std::size_t t_NodeNumber, const double t_x, const double t_y, const double t_temperature = 0 );
+    Node2D( const Node2D & t_Node );
 
-    std::size_t nodeNumber;
-    double x;
-    double y;
-		double temperature;
+    std::size_t nodeNumber { 0 };
+    double x { 0 };
+    double y { 0 };
+		double temperature { 0 };
   };
 
   ////////////////////////////////////////////////////////////////////////////
@@ -53,8 +54,9 @@ namespace MoisThermFEM {
 	class INodesStorage {
   public:
     INodesStorage();
+		INodesStorage( std::initializer_list< Node2D > t_Nodes );
 
-    Node2D getNode( std::size_t const Index ) const;
+    Node2D getNode( const std::size_t Index ) const;
     std::vector< std::size_t > getNodeIndexes() const;
 
   protected:
@@ -70,8 +72,8 @@ namespace MoisThermFEM {
   class LineNodes2D : public INodesStorage {
   public:
     LineNodes2D( 
-      Node2D const & t_Node1, 
-      Node2D const & t_Node2 );
+      const Node2D & t_Node1, 
+      const Node2D & t_Node2 );
 
   };
 
@@ -83,10 +85,10 @@ namespace MoisThermFEM {
 	class QuadrilateralNodes2D : public INodesStorage {
   public:
     QuadrilateralNodes2D(
-      Node2D const & t_Node1, 
-      Node2D const & t_Node2, 
-      Node2D const & t_Node3, 
-      Node2D const & t_Node4 );
+      const Node2D & t_Node1, 
+      const Node2D & t_Node2, 
+      const Node2D & t_Node3, 
+      const Node2D & t_Node4 );
   };
   
 }

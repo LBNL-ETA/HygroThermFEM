@@ -10,12 +10,13 @@ namespace MoisThermFEM {
   class LineNodes2D;
   class LineLinearLocal1D;
   
-  // Interface class for all boundary conditions
+  // Interface class for boundary conditions.
   class ILineLinear2D {
   public:
+		ILineLinear2D() = delete;
     ILineLinear2D( 
-      Node2D const & t_Node1, 
-      Node2D const & t_Node2 );
+      const Node2D & t_Node1, 
+      const Node2D & t_Node2 );
 
     std::vector< std::size_t > getNodeIndexes() const;
     std::vector< double > rightHandSideVector() const;
@@ -23,7 +24,7 @@ namespace MoisThermFEM {
 
   protected:
     static std::size_t numOfIntegrationPoints();
-    static double Psi( std::size_t const IntegrationPointIndex, std::size_t const Index );
+    static double psi( const std::size_t IntegrationPointIndex, const std::size_t Index );
 
     LineNodes2D m_Nodes;
     double m_Determinant;

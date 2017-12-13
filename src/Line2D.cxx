@@ -9,17 +9,12 @@
 namespace MoisThermFEM {
 
   ILineLinear2D::ILineLinear2D( 
-    Node2D const & t_Node1,
-    Node2D const & t_Node2 ) : m_Nodes( t_Node1, t_Node2 ) {
+    const Node2D & t_Node1,
+    const Node2D & t_Node2 ) : m_Nodes( t_Node1, t_Node2 ), m_Rvector( 2, 0 ), 
+		m_matrixA( 2, std::vector< double >( 2, 0 ) ) {
 
     m_Determinant = 0.5 * sqrt( pow( t_Node1.x - t_Node2.x, 2 ) + pow( t_Node1.y - t_Node2.y, 2 ) );
 
-    // This will just reserve correct room for vectors and matrices
-    m_Rvector.resize( 2 );
-    m_matrixA.resize( 2 );
-    for( auto i = 0u; i < m_matrixA.size(); ++i ) {
-      m_matrixA[ i ].resize( 2 );
-    }
   }
 
   std::vector< size_t > ILineLinear2D::getNodeIndexes() const {
@@ -38,7 +33,7 @@ namespace MoisThermFEM {
     return IntegrationPoints2D::Instance().count1D();
   }
 
-  double ILineLinear2D::Psi( size_t const IntegrationPointIndex, size_t const Index ) {
+  double ILineLinear2D::psi( const size_t IntegrationPointIndex, const size_t Index ) {
     return LineLinearLocal1D::Instance().Psi( IntegrationPointIndex, Index );
   }
 

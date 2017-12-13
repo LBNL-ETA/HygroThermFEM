@@ -16,8 +16,7 @@ protected:
 	void
 	TearDown() override
 	{
-		auto & nodePool = NodePool::Instance();
-		nodePool.clear();
+		NodePool::Instance().clear();
 	}
 
 };

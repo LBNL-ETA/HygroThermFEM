@@ -8,7 +8,7 @@ namespace MoisThermFEM {
   
   class Elements2DLinear {
   public:
-    explicit Elements2DLinear( std::vector< ElementLinear2D > const & t_Elements );
+    explicit Elements2DLinear( const std::vector< ElementLinear2D > & t_Elements );
 
     FenestrationCommon::CSquareMatrix& thermalConductivity();
     FenestrationCommon::CSquareMatrix& rhoCp();

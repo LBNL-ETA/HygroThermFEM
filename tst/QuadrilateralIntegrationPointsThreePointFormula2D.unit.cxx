@@ -17,7 +17,7 @@ protected:
 	void
 	SetUp() override
 	{
-		m_IntPoints = std::unique_ptr< ThreeIntegrationPoint2D >( new ThreeIntegrationPoint2D() );
+		m_IntPoints = fem::make_unique< ThreeIntegrationPoint2D >();
 		ASSERT_TRUE( m_IntPoints != nullptr );
 	}
 
@@ -52,15 +52,15 @@ TEST_F( TestQuadrilateralIntegrationPointsThreePointFormula2D, TestIntegrationPo
 	};
 
 	std::vector< double > correctWeights = {
-		5 / 9 * 5 / 9,
-		5 / 9 * 5 / 9,
-		5 / 9 * 5 / 9,
-		5 / 9 * 5 / 9,
-		5 / 9 * 8 / 9,
-		5 / 9 * 8 / 9,
-		5 / 9 * 8 / 9,
-		5 / 9 * 8 / 9,
-		8 / 9 * 8 / 9
+		8.0 / 9.0 * 8.0 / 9.0,
+		8.0 / 9.0 * 8.0 / 9.0,
+		8.0 / 9.0 * 8.0 / 9.0,
+		8.0 / 9.0 * 8.0 / 9.0,
+		5.0 / 9.0 * 8.0 / 9.0,
+		5.0 / 9.0 * 8.0 / 9.0,
+		5.0 / 9.0 * 8.0 / 9.0,
+		5.0 / 9.0 * 8.0 / 9.0,
+		5.0 / 9.0 * 5.0 / 9.0
 	};
 
 	auto points = aElement->getPoints();

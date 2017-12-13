@@ -5,11 +5,12 @@
 #include "SquareMatrix.hxx"
 
 namespace FenestrationCommon {
-  CSquareMatrix::CSquareMatrix( size_t const aSize ) {
-    m_Size = aSize;
-    m_Matrix.resize( m_Size );
-    for( unsigned i = 0; i < m_Size; ++i )
-      m_Matrix[ i ].resize( m_Size );
+	CSquareMatrix::CSquareMatrix() : CSquareMatrix( 0 ) {
+
+	}
+
+  CSquareMatrix::CSquareMatrix( size_t const aSize ) : m_Size( aSize ), 
+		m_Matrix( aSize, std::vector< double >( aSize, 0 ) ) {
   }
 
   size_t CSquareMatrix::getSize() const {

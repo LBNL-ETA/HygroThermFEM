@@ -40,10 +40,10 @@ namespace MoisThermFEM {
 
     void SteadyStateSolver2D::solve() {
         CSquareMatrix condMat = m_Elements.thermalConductivity();
-        CSquareMatrix &H = *m_BCs.matrixA();
+        CSquareMatrix H = m_BCs.matrixA();
 
         std::vector< double > B = m_BCs.vectorR();
-        condMat = condMat.add(H);
+        condMat = condMat.add( H );
 
         CLinearSolver aSolver;
         m_Solution = aSolver.solveSystem(condMat, B);
@@ -95,9 +95,9 @@ namespace MoisThermFEM {
         auto rBC = m_BCs.vectorR();
 
         auto condMat = m_Elements.thermalConductivity();
-        auto H = std::make_shared<CSquareMatrix>(*m_BCs.matrixA());
+				CSquareMatrix H { m_BCs.matrixA() };
 
-        condMat = condMat.add( *H );
+        condMat = condMat.add( H );
         condMat = condMat.addDiagonal(M);
 
         auto temperatures = NodePool::Instance().nodeTemperatures();

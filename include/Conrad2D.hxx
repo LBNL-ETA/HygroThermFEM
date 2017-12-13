@@ -12,3 +12,4 @@
 #include "../src/Solvers2D.hxx"
 #include "../src/SquareMatrix.hxx"
 #include "../src/LinearSolver.hxx"
+#include "../src/FEMunique.hxx"
