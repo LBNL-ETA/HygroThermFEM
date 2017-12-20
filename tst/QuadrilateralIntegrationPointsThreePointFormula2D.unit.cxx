@@ -1,5 +1,6 @@
 #include <memory>
 #include <gtest/gtest.h>
+#include <cmath>
 
 #include "Conrad2D.hxx"
 

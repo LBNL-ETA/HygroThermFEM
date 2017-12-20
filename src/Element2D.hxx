@@ -20,7 +20,7 @@ namespace MoisThermFEM {
 		IElementQuadrilateral2D( const Node2D & t_Node1, const Node2D & t_Node2, const Node2D & t_Node3,
 		                 const Node2D & t_Node4 );
 
-		std::vector< size_t > nodeIndexes() const;
+		std::vector< std::size_t > nodeIndexes() const;
 
 	protected:
 		QuadrilateralLinearGlobal2D m_Element;
@@ -77,7 +77,7 @@ namespace MoisThermFEM {
 
 	protected:
 		FenestrationCommon::SquareMatrix< double > calculateMatrixInIntegrationPoint(
-			const size_t t_IntegrationPointIndex ) const override;
+			const std::size_t t_IntegrationPointIndex ) const override;
 
 	};
 
@@ -94,14 +94,14 @@ namespace MoisThermFEM {
 
 		ElementThermalLinear2D( const ElementThermalLinear2D & t_Element );
 
-		std::vector< size_t > nodeIndexes() const;
+		std::vector< std::size_t > nodeIndexes() const;
 
 		FenestrationCommon::SquareMatrix< double > conductivity() const;
 		FenestrationCommon::SquareMatrix< double > rhoCp() const;
 
 	private:
-		IQLECapacitance2D m_Capacitance;
 		IQLEConductance2D m_Conductance;
+		IQLECapacitance2D m_Capacitance;
 	};
 
 }
