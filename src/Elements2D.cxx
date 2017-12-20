@@ -5,7 +5,7 @@ using namespace FenestrationCommon;
 
 namespace MoisThermFEM {
 
-	Elements2DLinear::Elements2DLinear( const std::vector< ElementLinear2D > & t_Elements )
+	Elements2DLinear::Elements2DLinear( const std::vector< ElementThermalLinear2D > & t_Elements )
 			: m_Conductivity( NodePool::Instance().maxIndex() ),
 			  m_RhoCp( NodePool::Instance().maxIndex() ) {
 
@@ -13,7 +13,7 @@ namespace MoisThermFEM {
 		for( const auto & aElement : t_Elements ) {
 			auto indexes = aElement.nodeIndexes();
 			auto conductivity = aElement.conductivity();
-			auto rhoCp = aElement.RhoCp();
+			auto rhoCp = aElement.rhoCp();
 			for( size_t i = 0; i < 4; ++i ) {
 				for( size_t j = 0; j < 4; ++j ) {
 					m_Conductivity[ indexes[ i ] - 1 ][ indexes[ j ] - 1 ] += conductivity[ i ][ j ];
@@ -24,11 +24,11 @@ namespace MoisThermFEM {
 
 	}
 
-	CSquareMatrix & Elements2DLinear::thermalConductivity() {
+	SquareMatrix< double > & Elements2DLinear::thermalConductivity() {
 		return m_Conductivity;
 	}
 
-	CSquareMatrix & Elements2DLinear::rhoCp() {
+	SquareMatrix< double > & Elements2DLinear::rhoCp() {
 		return m_RhoCp;
 	}
 

@@ -37,7 +37,7 @@ TEST_F( TestSingleElementMatrices2D, TestConductionMatrix )
 	auto const matRho = 1;
 	auto const matCp = 1;
 
-	auto aElem = ElementLinear2D( node1, node2, node3, node4, matCond, matRho, matCp );
+	auto aElem = ElementThermalLinear2D( node1, node2, node3, node4, matCond, matRho, matCp );
 
 	auto condMat = aElem.conductivity();
 
@@ -54,7 +54,7 @@ TEST_F( TestSingleElementMatrices2D, TestConductionMatrix )
 		}
 	}
 
-	auto rhoCpMat = aElem.RhoCp();
+	auto rhoCpMat = aElem.rhoCp();
 
 	std::vector< std::vector< double > > correctRhoCpMat = {
 		{ 5.555555556, 2.777777778, 1.388888889, 2.777777778 },

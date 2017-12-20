@@ -40,10 +40,10 @@ TEST_F( TestExample2D_1, TestExample_1 )
 	const double matCond = 1;
 
 	// Create elements
-	const auto el1 = ElementLinear2D( node3, node4, node2, node1, matCond );
-	const auto el2 = ElementLinear2D( node6, node4, node3, node5, matCond );
+	const auto el1 = ElementThermalLinear2D( node3, node4, node2, node1, matCond );
+	const auto el2 = ElementThermalLinear2D( node6, node4, node3, node5, matCond );
 
-	const std::vector< ElementLinear2D > vElements = { el1, el2 };
+	const std::vector< ElementThermalLinear2D > vElements = { el1, el2 };
 
 	const auto elements = Elements2DLinear( vElements );
 

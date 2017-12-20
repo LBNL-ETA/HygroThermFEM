@@ -37,7 +37,7 @@ namespace MoisThermFEM {
 		return *this;
 	}
 
-	CSquareMatrix BoundaryConditions2D::matrixA() const {
+	SquareMatrix< double > BoundaryConditions2D::matrixA() const {
 		return m_MatrixA;
 	}
 

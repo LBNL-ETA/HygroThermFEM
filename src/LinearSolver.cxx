@@ -12,8 +12,8 @@ namespace FenestrationCommon {
   
   }
 
-  std::vector< double > CLinearSolver::checkSingularity( CSquareMatrix& t_MatrixA ) const {
-    auto size = t_MatrixA.getSize();
+  std::vector< double > CLinearSolver::checkSingularity( SquareMatrix< double > & t_MatrixA ) const {
+    auto size = t_MatrixA.size();
     std::vector< double > vv;
 
     for( size_t i = 0 ; i < size; ++i ) {
@@ -33,10 +33,10 @@ namespace FenestrationCommon {
     return vv;
   }
 
-  std::vector< size_t > CLinearSolver::makeUpperTriangular( CSquareMatrix& t_MatrixA ) const {
+  std::vector< size_t > CLinearSolver::makeUpperTriangular( SquareMatrix< double > & t_MatrixA ) const {
     auto TINY = 1e-20;
 
-    auto size = int( t_MatrixA.getSize() );
+    auto size = int( t_MatrixA.size() );
     std::vector< size_t > index( size );
 
     auto vv = checkSingularity( t_MatrixA );
@@ -95,16 +95,16 @@ namespace FenestrationCommon {
   }
 
   std::vector< double > CLinearSolver::solveSystem(
-    CSquareMatrix t_MatrixA, 
+    SquareMatrix< double > t_MatrixA, 
     std::vector< double >& t_VectorB ) const {
 
-    if ( t_MatrixA.getSize() != t_VectorB.size() ) {
+    if ( t_MatrixA.size() != t_VectorB.size() ) {
       std::runtime_error( "Matrix and vector for system of linear equations are not same size." );
     }
 
     auto index = makeUpperTriangular( t_MatrixA );
 
-    auto size = int( t_MatrixA.getSize() );
+    auto size = int( t_MatrixA.size() );
 
     auto ii = -1;
     for( auto i = 0; i < size; ++i ) {

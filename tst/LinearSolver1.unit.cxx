@@ -30,7 +30,7 @@ TEST_F( TestLinearSolver1, Test1 )
 	SCOPED_TRACE( "Begin Test: Test Linear Solver (1) - Solving simple matrix." );
 
 	const auto size = 3;
-	CSquareMatrix aMatrix( size );
+	SquareMatrix< double > aMatrix( size );
 
 	aMatrix[ 0 ] = { 2, 1, 3 };
 	aMatrix[ 1 ] = { 2, 6, 8 };
@@ -52,7 +52,7 @@ TEST_F( TestLinearSolver1, Test2 )
 	SCOPED_TRACE( "Begin Test: Test Linear Solver (2) - Solving simple matrix." );
 
 	const auto size = 4;
-	CSquareMatrix aMatrix( size );
+	SquareMatrix< double > aMatrix( size );
 
 	// This set-up is from fortran tarcog example
 	aMatrix[ 0 ] = { 32817.2867004354, 1, 0, -32808.3972386696 };

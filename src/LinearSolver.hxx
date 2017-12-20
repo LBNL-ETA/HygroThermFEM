@@ -4,21 +4,21 @@
 #include <memory>
 #include <vector>
 
-namespace FenestrationCommon {
+#include "SquareMatrix.hxx"
 
-  class CSquareMatrix;
+namespace FenestrationCommon {
 
   class CLinearSolver {
   public:
     CLinearSolver();
 
     std::vector< double > solveSystem( 
-      FenestrationCommon::CSquareMatrix t_MatrixA, 
-      std::vector< double >& t_VectorB ) const;
+      FenestrationCommon::SquareMatrix< double > t_MatrixA, 
+      std::vector< double > & t_VectorB ) const;
 
   private:
-    std::vector< double > checkSingularity( CSquareMatrix& t_MatrixA ) const;
-    std::vector< size_t > makeUpperTriangular( CSquareMatrix& t_MatrixA ) const;
+    std::vector< double > checkSingularity( SquareMatrix< double > & t_MatrixA ) const;
+    std::vector< size_t > makeUpperTriangular( SquareMatrix< double > & t_MatrixA ) const;
 
   };
 }

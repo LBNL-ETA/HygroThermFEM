@@ -41,12 +41,12 @@ TEST_F( TestBoundaryConditions2D_test1, TestIntegrationPoints )
 	auto const hc1 = 20.0;
 	auto const Tair1 = 255.15;
 
-	std::unique_ptr< ILineLinear2D > aBC1 = std::unique_ptr< ConvectionBC >( new ConvectionBC( node1, node2, hc1, Tair1 ) );
+	std::unique_ptr< ILineLinear2D > aBC1 = fem::make_unique< ConvectionBC >( node1, node2, hc1, Tair1 );
 
 	auto const hc2 = 2.4;
 	auto const Tair2 = 294.15;
 
-	std::unique_ptr< ILineLinear2D > aBC2 = std::unique_ptr< ConvectionBC >( new ConvectionBC( node6, node5, hc2, Tair2 ) );
+	std::unique_ptr< ILineLinear2D > aBC2 = fem::make_unique< ConvectionBC >( node6, node5, hc2, Tair2 );
 	std::vector< std::unique_ptr< ILineLinear2D > > vBC;
 	vBC.push_back( std::move( aBC1 ) );
 	vBC.push_back( std::move( aBC2 ) );
@@ -63,7 +63,7 @@ TEST_F( TestBoundaryConditions2D_test1, TestIntegrationPoints )
 	    { 0, 0, 0, 0, 4, 2 },
 	    { 0, 0, 0, 0, 2, 4 }
 	};
-    EXPECT_EQ( correctH.size(), H.getSize() );
+    EXPECT_EQ( correctH.size(), H.size() );
 
 	for ( auto i = 0u; i < correctH.size(); ++i ) {
         for ( auto j = 0u; j < correctH.size(); ++j ) {

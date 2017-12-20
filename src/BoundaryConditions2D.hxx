@@ -17,12 +17,12 @@ namespace MoisThermFEM {
 
 		BoundaryConditions2D & operator=( const BoundaryConditions2D & other );
 
-		FenestrationCommon::CSquareMatrix matrixA() const;
+		FenestrationCommon::SquareMatrix< double > matrixA() const;
 
 		std::vector< double > vectorR() const;
 
 	private:
-		FenestrationCommon::CSquareMatrix m_MatrixA;
+		FenestrationCommon::SquareMatrix< double > m_MatrixA;
 		std::vector< double > m_vectorR;
 	};
 
