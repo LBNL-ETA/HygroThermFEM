@@ -33,9 +33,9 @@ TEST_F( TestSingleElementMatrices2D, TestConductionMatrix )
 	const auto node3 = nodePool.createNode( 3, 15, 0 );
 	const auto node4 = nodePool.createNode( 4, 15, 5 );
 
-	auto const matCond = 1;
-	auto const matRho = 1;
-	auto const matCp = 1;
+	const auto matCond = 1.0;
+	const auto matRho = 1.0;
+	const auto matCp = 1.0;
 
 	auto aElem = ElementThermalLinear2D( node1, node2, node3, node4, matCond, matRho, matCp );
 

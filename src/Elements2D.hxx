@@ -6,9 +6,11 @@
 
 namespace MoisThermFEM {
   
-  class Elements2DLinear {
+	// Container class to hold onto thermal conductivity and heat capacity for 
+	// all nodes in the domain.
+  class ElementsThermalLinear2D {
   public:
-    explicit Elements2DLinear( const std::vector< ElementThermalLinear2D > & t_Elements );
+    explicit ElementsThermalLinear2D( const std::vector< ElementThermalLinear2D > & t_Elements );
 
     FenestrationCommon::SquareMatrix< double > & thermalConductivity();
     FenestrationCommon::SquareMatrix< double > & rhoCp();

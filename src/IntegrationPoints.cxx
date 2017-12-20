@@ -225,8 +225,6 @@ namespace MoisThermFEM {
 		m_IntPoints1D = fem::make_unique< TwoIntegrationPoint1D >();
 	}
 
-	IntegrationPoints2D::~IntegrationPoints2D() {
-
-	}
+	IntegrationPoints2D::~IntegrationPoints2D() = default;
 
 }

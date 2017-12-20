@@ -15,7 +15,7 @@ protected:
 	void
 	SetUp() override
 	{
-		m_IntPoints = std::unique_ptr< ThreeIntegrationPoint1D >( new ThreeIntegrationPoint1D() );
+		m_IntPoints = fem::make_unique< ThreeIntegrationPoint1D >();
 		ASSERT_TRUE( m_IntPoints != nullptr );
 	}
 

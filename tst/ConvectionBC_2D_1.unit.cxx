@@ -6,7 +6,7 @@
 
 using namespace MoisThermFEM;
 
-class TestExample2D_1 : public testing::Test {
+class ConvectionBC_2D_1 : public testing::Test {
 
 protected:
 	void
@@ -23,7 +23,7 @@ protected:
 
 };
 
-TEST_F( TestExample2D_1, TestExample_1 )
+TEST_F( ConvectionBC_2D_1, TestExample_1 )
 {
 	SCOPED_TRACE( "Begin Test: Two elements example with simple conduction." );
 
@@ -43,20 +43,20 @@ TEST_F( TestExample2D_1, TestExample_1 )
 	const auto el1 = ElementThermalLinear2D( node3, node4, node2, node1, matCond );
 	const auto el2 = ElementThermalLinear2D( node6, node4, node3, node5, matCond );
 
-	const std::vector< ElementThermalLinear2D > vElements = { el1, el2 };
+	const std::vector< ElementThermalLinear2D > vElements { el1, el2 };
 
-	const auto elements = Elements2DLinear( vElements );
+	const auto elements = ElementsThermalLinear2D( vElements );
 
 	// Create Boundary Conditions
 	auto const hc1 = 20.0;
 	auto const tair1 = -18.0;
 
-	std::unique_ptr< ILineLinear2D > aBc1 = std::unique_ptr< ConvectionBC >( new ConvectionBC( node1, node2, hc1, tair1 ) );
+	std::unique_ptr< ILineLinear2D > aBc1 = fem::make_unique< ConvectionBC >( node1, node2, hc1, tair1 );
 
 	auto const hc2 = 2.4;
 	auto const tair2 = 21.0;
 
-	std::unique_ptr< ILineLinear2D > aBc2 = std::unique_ptr< ConvectionBC >( new ConvectionBC( node6, node5, hc2, tair2 ) );
+	std::unique_ptr< ILineLinear2D > aBc2 = fem::make_unique< ConvectionBC >( node6, node5, hc2, tair2 );
 	std::vector< std::unique_ptr< ILineLinear2D > > vBc;
 	vBc.push_back( std::move( aBc1 ) );
 	vBc.push_back( std::move( aBc2 ) );

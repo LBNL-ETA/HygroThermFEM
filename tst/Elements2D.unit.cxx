@@ -45,7 +45,7 @@ TEST_F( TestElements2D, TestConductionMatrix )
 
 	const std::vector< ElementThermalLinear2D > vElements = { el1, el2 };
 
-	auto elements = Elements2DLinear( vElements );
+	auto elements = ElementsThermalLinear2D( vElements );
 
 	auto condMat = elements.thermalConductivity();
 

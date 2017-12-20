@@ -15,7 +15,7 @@ protected:
 	void
 	SetUp() override
 	{
-		m_IntPoints = std::unique_ptr< TwoIntegrationPoint1D >( new TwoIntegrationPoint1D() );
+		m_IntPoints = fem::make_unique< TwoIntegrationPoint1D >();
 		ASSERT_TRUE( m_IntPoints != nullptr );
 	}
 

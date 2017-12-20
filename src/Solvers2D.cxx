@@ -13,7 +13,7 @@ namespace MoisThermFEM {
     // ISolver2D
     /////////////////////////////////////////////////////////////////////////
 
-    ISolver2D::ISolver2D(Elements2DLinear const &t_Elements, BoundaryConditions2D const &t_BCs) :
+    ISolver2D::ISolver2D(ElementsThermalLinear2D const &t_Elements, BoundaryConditions2D const &t_BCs) :
             m_Elements(t_Elements), m_BCs(t_BCs), m_Solved(false) {
 
     }
@@ -23,7 +23,7 @@ namespace MoisThermFEM {
     /////////////////////////////////////////////////////////////////////////
 
     SteadyStateSolver2D::SteadyStateSolver2D(
-            Elements2DLinear const &t_Elements,
+            ElementsThermalLinear2D const &t_Elements,
             BoundaryConditions2D const &t_BCs) :
             ISolver2D(t_Elements, t_BCs) {
 
@@ -55,7 +55,7 @@ namespace MoisThermFEM {
     /////////////////////////////////////////////////////////////////////////
 
     TransientSolver2D::TransientSolver2D(
-            Elements2DLinear const &t_Elements,
+            ElementsThermalLinear2D const &t_Elements,
             BoundaryConditions2D const &t_BCs,
             double const DTemp,
             size_t const NTimeSteps) :

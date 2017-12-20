@@ -5,23 +5,21 @@
 #include "Conrad2D.hxx"
 using namespace MoisThermFEM;
 
-class TestExample2D_2 : public testing::Test {
+class TemperatureBC_2D_1 : public testing::Test {
 
 protected:
 	void
-	SetUp() override
-	{
+	SetUp() override {
 	}
 
 	void
-	TearDown() override
-	{
+	TearDown() override {
 		NodePool::Instance().clear();
 	}
 
 };
 
-TEST_F( TestExample2D_2, TestExample_1 )
+TEST_F( TemperatureBC_2D_1, TestExample_1 )
 {
 	SCOPED_TRACE( "Begin Test: Two elements example with tranzient." );
 
@@ -43,14 +41,14 @@ TEST_F( TestExample2D_2, TestExample_1 )
 	const auto el1 = ElementThermalLinear2D( node3, node4, node2, node1, matCond, matRho, matCp );
 	const auto el2 = ElementThermalLinear2D( node6, node4, node3, node5, matCond, matRho, matCp );
 
-	const std::vector< ElementThermalLinear2D > vElements = { el1, el2 };
+	const std::vector< ElementThermalLinear2D > vElements { el1, el2 };
 
-	const auto elements = Elements2DLinear( vElements );
+	const auto elements = ElementsThermalLinear2D( vElements );
 
 	// Create Boundary Conditions
 	auto const tSurface = 12;
 	
-	std::unique_ptr< ILineLinear2D > aBc1 = std::unique_ptr< TemperatureBC >( new TemperatureBC( node5, node6, tSurface ) );
+	std::unique_ptr< ILineLinear2D > aBc1 = fem::make_unique< TemperatureBC >( node5, node6, tSurface );
 
 	std::vector< std::unique_ptr< ILineLinear2D > > vBc;
 	vBc.push_back( std::move( aBc1 ) );
