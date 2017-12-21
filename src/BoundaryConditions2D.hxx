@@ -1,7 +1,7 @@
 #pragma once
 
 #include <vector>
-#include <memory>
+#include <functional>
 
 #include "SquareMatrix.hxx"
 
@@ -11,7 +11,7 @@ namespace MoisThermFEM {
 
 	class BoundaryConditions2D {
 	public:
-		explicit BoundaryConditions2D( const std::vector< std::unique_ptr< ILineLinear2D > > & t_BCs );
+		explicit BoundaryConditions2D( const std::vector< std::reference_wrapper< const ILineLinear2D > > t_BCs );
 
 		BoundaryConditions2D( const BoundaryConditions2D & other );
 

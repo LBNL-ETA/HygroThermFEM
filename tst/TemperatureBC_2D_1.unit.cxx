@@ -3,6 +3,7 @@
 #include <gtest/gtest.h>
 
 #include "Conrad2D.hxx"
+#include <functional>
 using namespace MoisThermFEM;
 
 class TemperatureBC_2D_1 : public testing::Test {
@@ -46,13 +47,13 @@ TEST_F( TemperatureBC_2D_1, TestExample_1 )
 	const auto elements = ElementsThermalLinear2D( vElements );
 
 	// Create Boundary Conditions
-	auto const tSurface = 12;
+	auto const tSurface = 12.0;
 	
-	std::unique_ptr< ILineLinear2D > aBc1 = fem::make_unique< TemperatureBC >( node5, node6, tSurface );
+	const TemperatureBC aBc1{ node5, node6, tSurface };
 
-	std::vector< std::unique_ptr< ILineLinear2D > > vBc;
-	vBc.push_back( std::move( aBc1 ) );
+	const std::vector< std::reference_wrapper< const ILineLinear2D > > vBc{ aBc1 };
 
+	// It is possible directly to pass { aBc1 } to the constructor
 	const auto aBCs = BoundaryConditions2D( vBc );
 
 	const auto dTemp = 0.5;
