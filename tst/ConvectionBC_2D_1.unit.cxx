@@ -51,17 +51,17 @@ TEST_F( ConvectionBC_2D_1, TestExample_1 )
 	auto const hc1 = 20.0;
 	auto const tair1 = -18.0;
 
-	std::unique_ptr< ILineLinear2D > aBc1 = fem::make_unique< ConvectionBC >( node1, node2, hc1, tair1 );
+	const ConvectionBC aBc1 { node1, node2, hc1, tair1 };
 
 	auto const hc2 = 2.4;
 	auto const tair2 = 21.0;
 
-	std::unique_ptr< ILineLinear2D > aBc2 = fem::make_unique< ConvectionBC >( node6, node5, hc2, tair2 );
-	std::vector< std::unique_ptr< ILineLinear2D > > vBc;
-	vBc.push_back( std::move( aBc1 ) );
-	vBc.push_back( std::move( aBc2 ) );
+	const ConvectionBC aBc2{ node6, node5, hc2, tair2 };
 
-	const auto aBCs = BoundaryConditions2D( vBc );
+	// Either pass this or initializer list as given bellow
+	// std::vector< std::reference_wrapper< ILineLinear2D > > vBc { aBc1, aBc2 };
+
+	const auto aBCs = BoundaryConditions2D( { aBc1, aBc2 } );
 
 	auto aSolver = SteadyStateSolver2D( elements, aBCs );
 
