@@ -18,6 +18,7 @@ else()
 endif()
 
 if( BUILD_TESTING )
+	set(google_disable_pthreads ON)
 	# include(CMakeLists-GTest.txt)
 	configure_file(CMakeLists.txt.in ${CMAKE_BINARY_DIR}/googletest-download/CMakeLists.txt)
 	execute_process(COMMAND ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}" .
