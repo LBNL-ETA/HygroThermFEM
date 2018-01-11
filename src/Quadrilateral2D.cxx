@@ -24,7 +24,7 @@ namespace MoisThermFEM {
     auto& aElement = IntegrationPoints2D::Instance();
     auto numOfPoints = aElement.count2D();
     for( unsigned i = 0; i < numOfPoints; ++i ) {
-      m_GaussPoints.push_back( GaussPoint2DGlobal( t_Node1, t_Node2, t_Node3, t_Node4, i ) );
+      m_GaussPoints.emplace_back( t_Node1, t_Node2, t_Node3, t_Node4, i );
     }
     
   }
@@ -93,18 +93,18 @@ namespace MoisThermFEM {
 
     for( unsigned i = 0; i < 4; ++i ) {
       auto aNode = node[ i ].get();
-      m_Xg += aNode.x * aElement.Psi( Index, i );
-      m_Yg += aNode.y * aElement.Psi( Index, i );
+      m_Xg += aNode.X() * aElement.Psi( Index, i );
+      m_Yg += aNode.Y() * aElement.Psi( Index, i );
 
-      dxdksi += aNode.x * aElement.PsiDKsi( Index, i );
-      dydksi += aNode.y * aElement.PsiDKsi( Index, i );
-      dxdeta += aNode.x * aElement.PsiDEta( Index, i );
-      dydeta += aNode.y * aElement.PsiDEta( Index, i );
+      dxdksi += aNode.X() * aElement.PsiDKsi( Index, i );
+      dydksi += aNode.Y() * aElement.PsiDKsi( Index, i );
+      dxdeta += aNode.X() * aElement.PsiDEta( Index, i );
+      dydeta += aNode.Y() * aElement.PsiDEta( Index, i );
 
-      j11 += aNode.x * aElement.PsiDKsi( Index, i );
-      j12 += aNode.y * aElement.PsiDKsi( Index, i );
-      j21 += aNode.x * aElement.PsiDEta( Index, i );
-      j22 += aNode.y * aElement.PsiDEta( Index, i );
+      j11 += aNode.X() * aElement.PsiDKsi( Index, i );
+      j12 += aNode.Y() * aElement.PsiDKsi( Index, i );
+      j21 += aNode.X() * aElement.PsiDEta( Index, i );
+      j22 += aNode.Y() * aElement.PsiDEta( Index, i );
     }
 
     m_JacobiDet = j11 * j22 - j21 * j12;

@@ -9,6 +9,8 @@ namespace MoisThermFEM {
   struct LocalPoint2D;
   struct LocalPoint1D;
 
+	// Virtual class used in strategy pattern to define number of points for numerical integration
+	// in one dimensional space
   ////////////////////////////////////////////////////////////////////////////
   //   IIntegrationPoints1D
   ////////////////////////////////////////////////////////////////////////////
@@ -30,7 +32,8 @@ namespace MoisThermFEM {
   //   IIntegrationPoints2D
   ////////////////////////////////////////////////////////////////////////////
 
-  // Virtual class used in strategy pattern to define number of points of integration
+  // Virtual class used in strategy pattern to define number of points for numerical integration
+	// in two dimensional space
   class IIntegrationPoints2D {
   public:
     virtual ~IIntegrationPoints2D() = default;

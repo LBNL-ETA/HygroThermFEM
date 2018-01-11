@@ -33,8 +33,8 @@ namespace MoisThermFEM {
 	TemperatureBC::TemperatureBC( Node2D & t_Node1, Node2D & t_Node2,
 	                              const double t_NodeTemperatures ) : ConvectionBC( t_Node1, t_Node2,
 			1e18, t_NodeTemperatures ) {
-		t_Node1.temperature = t_NodeTemperatures;
-		t_Node2.temperature = t_NodeTemperatures;
+		t_Node1.setProperty( Prop::temperature, t_NodeTemperatures );
+		t_Node2.setProperty( Prop::temperature, t_NodeTemperatures );
 	}
 
 }
