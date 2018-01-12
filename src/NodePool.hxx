@@ -15,14 +15,12 @@ namespace MoisThermFEM {
 		// Node2D & getNode( std::size_t const Index );
 
 		std::size_t maxIndex() const;
-
 		std::vector< double > nodeProperties( Prop t_Prop ) const;
 
 		void clear();
 
 	private:
 		NodePool() = default;
-
 		~NodePool() = default;
 
 		std::vector< Node2D > m_Nodes;

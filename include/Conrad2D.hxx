@@ -1,4 +1,5 @@
 #include "../src/Node2D.hxx"
+#include "../src/Material.hxx"
 #include "../src/Element2D.hxx"
 #include "../src/Elements2D.hxx"
 #include "../src/QuadrilateralLocal2D.hxx"

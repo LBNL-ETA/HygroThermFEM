@@ -16,7 +16,7 @@ namespace MoisThermFEM {
 
 		LocalPoint1D( const LocalPoint1D & t_LocalPoint );
 
-		double ksi{ 0 };
+		double ksi { 0 };
 
 	};
 
@@ -30,8 +30,8 @@ namespace MoisThermFEM {
 
 		LocalPoint2D( const LocalPoint2D & t_LocalPoint );
 
-		double ksi{ 0 };
-		double eta{ 0 };
+		double ksi { 0 };
+		double eta { 0 };
 
 	};
 
@@ -45,12 +45,11 @@ namespace MoisThermFEM {
 	class Property {
 	public:
 		explicit Property( const double t_Temperature = 0, const double t_Humidity = 0,
-		          const double t_Pressure = 101325 );
+											 const double t_Pressure = 101325 );
 
 		Property( const Property & other );
 
 		Property & operator=( const Property & other );
-
 
 		double getValue( Prop t_Property ) const;
 		void setValue( Prop t_Property, double t_Value );
@@ -69,7 +68,7 @@ namespace MoisThermFEM {
 	class Node2D {
 	public:
 		Node2D( const std::size_t t_NodeNumber, const double t_x, const double t_y,
-		        const Property & t_Property );
+						const Property & t_Property );
 
 		Node2D( const Node2D & t_Node );
 
@@ -82,12 +81,13 @@ namespace MoisThermFEM {
 		double Y() const;
 
 		double getProperty( Prop t_Property ) const;
+
 		void setProperty( Prop t_Property, double t_value );
 
 	private:
-		std::size_t m_NodeNumber{ 0 };
-		double m_x{ 0 };
-		double m_y{ 0 };
+		std::size_t m_NodeNumber { 0 };
+		double m_x { 0 };
+		double m_y { 0 };
 
 		Property m_Property;
 
@@ -118,7 +118,7 @@ namespace MoisThermFEM {
 	////////////////////////////////////////////////////////////////////////////
 
 	// Class that store nodes which are part of some boundary conditions
-	class LineNodes2D: public INodesStorage {
+	class LineNodes2D : public INodesStorage {
 	public:
 		LineNodes2D( const Node2D & t_Node1, const Node2D & t_Node2 );
 
@@ -129,10 +129,10 @@ namespace MoisThermFEM {
 	////////////////////////////////////////////////////////////////////////////
 
 	// Class that store nodal data which are part of elements
-	class QuadrilateralNodes2D: public INodesStorage {
+	class QuadrilateralNodes2D : public INodesStorage {
 	public:
 		QuadrilateralNodes2D( const Node2D & t_Node1, const Node2D & t_Node2, const Node2D & t_Node3,
-		                      const Node2D & t_Node4 );
+													const Node2D & t_Node4 );
 	};
 
 }
