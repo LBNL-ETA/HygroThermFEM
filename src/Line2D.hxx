@@ -7,8 +7,6 @@
 
 namespace MoisThermFEM {
 
-	struct Node2D;
-
 	class LineNodes2D;
 
 	class LineLinearLocal1D;

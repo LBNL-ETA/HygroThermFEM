@@ -1,5 +1,4 @@
 #include "BoundaryCondition2D.hxx"
-#include "NodePool.hxx"
 
 namespace MoisThermFEM {
 
