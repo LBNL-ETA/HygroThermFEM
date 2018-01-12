@@ -44,7 +44,7 @@ namespace MoisThermFEM {
 
 	class Property {
 	public:
-		Property( const double t_Temperature = 0, const double t_Humidity = 0,
+		explicit Property( const double t_Temperature = 0, const double t_Humidity = 0,
 		          const double t_Pressure = 101325 );
 
 		Property( const Property & other );
