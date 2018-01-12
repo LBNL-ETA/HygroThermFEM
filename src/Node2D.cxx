@@ -31,46 +31,18 @@ namespace MoisThermFEM {
 	}
 
 	////////////////////////////////////////////////////////////////////////////
-	//  Properties
-	////////////////////////////////////////////////////////////////////////////
-
-	Property::Property( const double t_Temperature, const double t_Humidity,
-	                    const double t_Pressure ) {
-		m_Property[ Prop::temperature ] = t_Temperature;
-		m_Property[ Prop::humidity ] = t_Humidity;
-		m_Property[ Prop::pressure ] = t_Pressure;
-	}
-
-	double Property::getValue( Prop t_Property ) const {
-		return m_Property.at( t_Property );
-	}
-
-	Property::Property( const Property & other ) : m_Property( other.m_Property ) {
-
-	}
-
-	Property & Property::operator=( const Property & other ) {
-		m_Property = other.m_Property;
-		return *this;
-	}
-
-	void Property::setValue( Prop t_Property, double t_Value ) {
-		m_Property[ t_Property ] = t_Value;
-	}
-
-	////////////////////////////////////////////////////////////////////////////
 	//   Node2D
 	////////////////////////////////////////////////////////////////////////////
 
 	Node2D::Node2D( const std::size_t t_NodeNumber, const double t_x, const double t_y,
-	                const Property & t_Property )
-			: m_NodeNumber( t_NodeNumber ), m_x( t_x ), m_y( t_y ), m_Property( t_Property ) {
+	                const State & t_State )
+			: m_NodeNumber( t_NodeNumber ), m_x( t_x ), m_y( t_y ), m_State( t_State ) {
 
 	}
 
 	Node2D::Node2D( const Node2D & t_Node )
 			: m_NodeNumber( t_Node.m_NodeNumber ), m_x( t_Node.m_x ), m_y( t_Node.m_y ),
-			  m_Property( t_Node.m_Property ) {
+			  m_State( t_Node.m_State ) {
 
 	}
 
@@ -78,7 +50,7 @@ namespace MoisThermFEM {
 		m_NodeNumber = other.m_NodeNumber;
 		m_x = other.m_x;
 		m_y = other.m_y;
-		m_Property = other.m_Property;
+		m_State = other.m_State;
 
 		return *this;
 	}
@@ -95,12 +67,12 @@ namespace MoisThermFEM {
 		return m_y;
 	}
 
-	double Node2D::getProperty( Prop t_Property ) const {
-		return m_Property.getValue( t_Property );
+	double Node2D::getProperty( Property t_Property ) const {
+		return m_State.getValue( t_Property );
 	}
 
-	void Node2D::setProperty( Prop t_Property, double t_value ) {
-		m_Property.setValue( t_Property, t_value );
+	void Node2D::setProperty( Property t_Property, double t_value ) {
+		m_State.setValue( t_Property, t_value );
 	}
 
 	////////////////////////////////////////////////////////////////////////////

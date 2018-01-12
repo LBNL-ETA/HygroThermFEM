@@ -11,7 +11,7 @@ namespace MoisThermFEM {
 	}
 
 	Node2D & NodePool::createNode( const std::size_t t_NodeNumber, const double t_x, const double t_y,
-	                               const Property & t_Prop ) {
+	                               const State & t_Prop ) {
 		auto aNode = Node2D( t_NodeNumber, t_x, t_y, t_Prop );
 		m_Nodes.push_back( aNode );
 		return m_Nodes.back();
@@ -29,10 +29,10 @@ namespace MoisThermFEM {
 		return aNode.getNodeNumber();
 	}
 
-	std::vector< double > NodePool::nodeProperties( Prop t_Prop ) const {
+	std::vector< double > NodePool::nodeProperties( Property t_Property ) const {
 		std::vector< double > aVector;
 		for( const Node2D & aNode : m_Nodes ) {
-			aVector.push_back( aNode.getProperty( t_Prop ) );
+			aVector.push_back( aNode.getProperty( t_Property ) );
 		}
 		return aVector;
 	}

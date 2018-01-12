@@ -27,12 +27,12 @@ TEST_F( TemperatureBC_2D_1, TestExample_1 ) {
 	// Enter nodes. Arguments are: node number, x-coordinate, y-coordinate, initial temperature
 	auto & nodePool = NodePool::Instance();
 
-	const auto node1 = nodePool.createNode( 1, 15, 5, Property( 100, 0 ) );
-	const auto node2 = nodePool.createNode( 2, 15, 0, Property( 100, 0 ) );
-	const auto node3 = nodePool.createNode( 3, 5, 5, Property( 100, 0 ) );
-	const auto node4 = nodePool.createNode( 4, 5, 0, Property( 100, 0 ) );
-	auto node5 = nodePool.createNode( 5, 0, 5, Property( 100, 0 ) );
-	auto node6 = nodePool.createNode( 6, 0, 0, Property( 100, 0 ) );
+	const auto node1 = nodePool.createNode( 1, 15, 5, State( 100, 0 ) );
+	const auto node2 = nodePool.createNode( 2, 15, 0, State( 100, 0 ) );
+	const auto node3 = nodePool.createNode( 3, 5, 5, State( 100, 0 ) );
+	const auto node4 = nodePool.createNode( 4, 5, 0, State( 100, 0 ) );
+	auto node5 = nodePool.createNode( 5, 0, 5, State( 100, 0 ) );
+	auto node6 = nodePool.createNode( 6, 0, 0, State( 100, 0 ) );
 
 	const auto matCond = 100;
 	const auto matRho = 15;

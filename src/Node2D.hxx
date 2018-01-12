@@ -4,6 +4,8 @@
 #include <initializer_list>
 #include <map>
 
+#include "State.hxx"
+
 namespace MoisThermFEM {
 
 	////////////////////////////////////////////////////////////////////////////
@@ -36,39 +38,14 @@ namespace MoisThermFEM {
 	};
 
 	////////////////////////////////////////////////////////////////////////////
-	//  Properties
-	////////////////////////////////////////////////////////////////////////////
-	enum class Prop {
-		temperature, humidity, pressure
-	};
-
-	class Property {
-	public:
-		explicit Property( const double t_Temperature = 0, const double t_Humidity = 0,
-											 const double t_Pressure = 101325 );
-
-		Property( const Property & other );
-
-		Property & operator=( const Property & other );
-
-		double getValue( Prop t_Property ) const;
-		void setValue( Prop t_Property, double t_Value );
-
-	private:
-		std::map< Prop, double > m_Property;
-
-	};
-
-
-	////////////////////////////////////////////////////////////////////////////
-	//   Node2D
+	///   Node2D
 	////////////////////////////////////////////////////////////////////////////
 
 	// Defines nodal point in two dimensional cartesian space.
 	class Node2D {
 	public:
 		Node2D( const std::size_t t_NodeNumber, const double t_x, const double t_y,
-						const Property & t_Property );
+						const State & t_State );
 
 		Node2D( const Node2D & t_Node );
 
@@ -80,16 +57,16 @@ namespace MoisThermFEM {
 
 		double Y() const;
 
-		double getProperty( Prop t_Property ) const;
+		double getProperty( Property t_State ) const;
 
-		void setProperty( Prop t_Property, double t_value );
+		void setProperty( Property t_State, double t_value );
 
 	private:
 		std::size_t m_NodeNumber { 0 };
 		double m_x { 0 };
 		double m_y { 0 };
 
-		Property m_Property;
+		State m_State;
 
 	};
 

@@ -98,7 +98,7 @@ namespace MoisThermFEM {
 		condMat = condMat.add( H );
 		condMat = condMat.addDiagonal( M );
 
-		auto temperatures = NodePool::Instance().nodeProperties( Prop::temperature );
+		auto temperatures = NodePool::Instance().nodeProperties( Property::temperature );
 		std::vector< double > B( temperatures.size() );
 
 		for ( unsigned i = 0; i < m_NSteps; ++i ) {
