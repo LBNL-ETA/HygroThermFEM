@@ -1,8 +1,7 @@
-#include <assert.h>
+#include <cassert>
 #include <algorithm>
 
 #include "NodePool.hxx"
-#include "Node2D.hxx"
 
 namespace MoisThermFEM {
 
@@ -12,16 +11,16 @@ namespace MoisThermFEM {
 	}
 
 	Node2D & NodePool::createNode( const std::size_t t_NodeNumber, const double t_x, const double t_y,
-	                               const double t_temperature ) {
-		auto aNode = Node2D( t_NodeNumber, t_x, t_y, t_temperature );
+	                               const Property & t_Prop ) {
+		auto aNode = Node2D( t_NodeNumber, t_x, t_y, t_Prop );
 		m_Nodes.push_back( aNode );
 		return m_Nodes.back();
 	}
 
-	Node2D & NodePool::getNode( const size_t Index ) {
-		assert( Index < m_Nodes.size() );
-		return m_Nodes[ Index ];
-	}
+	// Node2D & NodePool::getNode( const size_t Index ) {
+	// 	assert( Index < m_Nodes.size() );
+	// 	return m_Nodes[ Index ];
+	// }
 
 	size_t NodePool::maxIndex() const {
 		Node2D aNode = *max_element( m_Nodes.begin(), m_Nodes.end(),

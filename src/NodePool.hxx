@@ -1,20 +1,18 @@
 #pragma once
 
 #include <vector>
+#include "Node2D.hxx"
 
 namespace MoisThermFEM {
-
-	struct Node2D;
-	enum class Prop;
 
 	class NodePool {
 	public:
 		static NodePool & Instance();
 
-		Node2D & createNode( std::size_t const t_NodeNumber, double const t_x, double const t_y,
-		                     double const t_temperature = 0 );
+		Node2D & createNode( const std::size_t t_NodeNumber, const double t_x, const double t_y,
+		                     const Property & t_Prop = Property() );
 
-		Node2D & getNode( std::size_t const Index );
+		// Node2D & getNode( std::size_t const Index );
 
 		std::size_t maxIndex() const;
 
