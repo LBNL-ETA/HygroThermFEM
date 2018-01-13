@@ -4,13 +4,11 @@
 
 namespace MoisThermFEM {
 
-	////////////////////////////////////////////////////////////////////////////
-	///  State
-	////////////////////////////////////////////////////////////////////////////
 	enum class Property {
 		temperature, humidity, pressure
 	};
 
+	// Simple class to hold state variables
 	class State {
 	public:
 		explicit State( const double t_Temperature = 0, const double t_Humidity = 0,
@@ -20,8 +18,8 @@ namespace MoisThermFEM {
 
 		State & operator=( const State & other );
 
-		double getValue( Property t_Property ) const;
-		void setValue( Property t_Property, double t_Value );
+		double getValue( const Property t_Property ) const;
+		void setValue( const Property t_Property, const double t_Value );
 
 	private:
 		std::map< Property, double > m_Property;

@@ -24,7 +24,7 @@ namespace MoisThermFEM {
 	//  IQLEMatrix2D
 	//////////////////////////////////////////////////////////////////////////////
 	IQLEMatrix2D::IQLEMatrix2D( const double t_Value ) : 
-		m_Matrix( numOfQadrilateralNodes ), m_Value( t_Value ) {
+		m_Matrix( numOfQuadrilateralNodes ), m_Value( t_Value ) {
 		
 	}
 
@@ -58,7 +58,7 @@ namespace MoisThermFEM {
 	SquareMatrix< double > IQLEConductance2D::calculateMatrixInIntegrationPoint(
 		const size_t t_IntegrationPointIndex) const {
 		
-		SquareMatrix< double > aMatrix( numOfQadrilateralNodes );
+		SquareMatrix< double > aMatrix( numOfQuadrilateralNodes );
 
 		auto DPsiDx = m_Element.DPsiDx( t_IntegrationPointIndex );
 		auto DPsiDy = m_Element.DPsiDy( t_IntegrationPointIndex );
@@ -84,7 +84,7 @@ namespace MoisThermFEM {
 
 	SquareMatrix< double > IQLECapacitance2D::calculateMatrixInIntegrationPoint(
 		const size_t t_IntegrationPointIndex ) const {
-		SquareMatrix< double > aMatrix( numOfQadrilateralNodes );
+		SquareMatrix< double > aMatrix( numOfQuadrilateralNodes );
 
 		auto & aElement = QuadrilateralLinearLocal2D::Instance();
 

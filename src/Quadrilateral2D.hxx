@@ -1,5 +1,4 @@
-#ifndef QUADRILATERAL2D_H_9ea233f0_7531_4750_a6fc_eab6807003bf
-#define QUADRILATERAL2D_H_9ea233f0_7531_4750_a6fc_eab6807003bf
+#pragma once
 
 #include <vector>
 #include <memory>
@@ -30,9 +29,6 @@ namespace MoisThermFEM {
     std::vector< double > DPsiDy( size_t const IntPointIndex ) const;
 
     double det( size_t const IntPointIndex ) const;
-
-    // Element nodes
-    std::vector< Node2D > getNodes() const;
 
   private:
     QuadrilateralNodes2D m_Nodes;
@@ -77,5 +73,3 @@ namespace MoisThermFEM {
   };
   
 }
-
-#endif

@@ -14,8 +14,8 @@ namespace MoisThermFEM {
 			auto indexes = aElement.nodeIndexes();
 			auto conductivity = aElement.conductivity();
 			auto rhoCp = aElement.rhoCp();
-			for( size_t i = 0; i < numOfQadrilateralNodes; ++i ) {
-				for( size_t j = 0; j < numOfQadrilateralNodes; ++j ) {
+			for( size_t i = 0; i < numOfQuadrilateralNodes; ++i ) {
+				for( size_t j = 0; j < numOfQuadrilateralNodes; ++j ) {
 					m_Conductivity[ indexes[ i ] - 1 ][ indexes[ j ] - 1 ] += conductivity[ i ][ j ];
 					m_RhoCp[ indexes[ i ] - 1 ][ indexes[ j ] - 1 ] += rhoCp[ i ][ j ];
 				}

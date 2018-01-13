@@ -13,10 +13,6 @@ namespace MoisThermFEM {
 		m_Property[ Property::pressure ] = t_Pressure;
 	}
 
-	double State::getValue( Property t_Property ) const {
-		return m_Property.at( t_Property );
-	}
-
 	State::State( const State & other ) : m_Property( other.m_Property ) {
 
 	}
@@ -26,7 +22,11 @@ namespace MoisThermFEM {
 		return *this;
 	}
 
-	void State::setValue( Property t_Property, double t_Value ) {
+	double State::getValue( const Property t_Property ) const {
+		return m_Property.at( t_Property );
+	}
+
+	void State::setValue( const Property t_Property, const double t_Value ) {
 		m_Property[ t_Property ] = t_Value;
 	}
 
