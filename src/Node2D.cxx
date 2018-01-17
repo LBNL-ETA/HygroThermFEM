@@ -1,6 +1,7 @@
 #include <assert.h>
 
 #include "Node2D.hxx"
+#include "State.hxx"
 
 namespace MoisThermFEM {
 
