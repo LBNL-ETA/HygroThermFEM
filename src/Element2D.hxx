@@ -88,7 +88,7 @@ namespace MoisThermFEM {
 	//////////////////////////////////////////////////////////////////////////////
 
 	/// Class that handles creation of conductance and capacitance matrices in linear
-	/// 2D world. This class will be inhertied by multple governing equations since
+	/// 2D world. This class will be used by multple governing equations since
 	/// basis of matrix creation are identical with only difference in what coefficients
 	/// are passed
 	class IElementLinear2D {
@@ -111,11 +111,19 @@ namespace MoisThermFEM {
 	//////////////////////////////////////////////////////////////////////////////
 
 	// Handles linear 2D element (4 nodes)
-	class ElementThermalLinear2D : public IElementLinear2D {
+	class ElementLinear2D {
 	public:
-		ElementThermalLinear2D( const Node2D & t_Node1, const Node2D & t_Node2, const Node2D & t_Node3,
+		ElementLinear2D( const Node2D & t_Node1, const Node2D & t_Node2, const Node2D & t_Node3,
 		                 const Node2D & t_Node4, const double t_Cond = 1, const double t_Rho = 1,
 		                 const double t_Cp = 1 );
+
+		std::vector< std::size_t > nodeIndexes() const;
+
+		FenestrationCommon::SquareMatrix< double > thermalConductanceMatrix() const;
+		FenestrationCommon::SquareMatrix< double > thermalCapacitanceMatrix() const;
+
+	private:
+		IElementLinear2D m_ThermalElement;
 
 	};
 

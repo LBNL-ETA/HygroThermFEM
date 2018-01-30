@@ -8,12 +8,12 @@ using namespace FenestrationCommon;
 namespace MoisThermFEM {
 
 	BoundaryConditions2D::BoundaryConditions2D(
-			const std::vector< std::reference_wrapper< const ILineLinear2D > > t_BCs ) : m_MatrixA(
+			const std::vector< std::reference_wrapper< const ILineLinear2D > > & t_BCs ) : m_MatrixA(
 			NodePool::Instance().maxIndex() ), m_vectorR( NodePool::Instance().maxIndex() ) {
 
 		// Create full size matrices
 		for( const auto & aBc : t_BCs ) {
-			auto bc = aBc.get();
+			const auto & bc = aBc.get();
 			auto indexes = bc.getNodeIndexes();
 			auto matA = bc.matrixA();
 			auto vecR = bc.rightHandSideVector();

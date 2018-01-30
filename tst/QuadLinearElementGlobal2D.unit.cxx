@@ -37,14 +37,14 @@ TEST_F( TestQuadLinearElementGlobal2D, TestIntegrationPoint1 ) {
     /////////////////////////////////////////////////////////
     //    Integration Point 1
     /////////////////////////////////////////////////////////
-    auto intPointIndex = 0;
-    auto xg = aElement.xg( intPointIndex );
-    auto yg = aElement.yg( intPointIndex );
+    const size_t intPointIndex1 = 0;
+    auto xg = aElement.xg( intPointIndex1 );
+    auto yg = aElement.yg( intPointIndex1 );
 
     EXPECT_NEAR( 1.056624327, xg, 1e-6 );
     EXPECT_NEAR( 1.056624327, yg, 1e-6 );
 
-    auto dPsiDx = aElement.DPsiDx( intPointIndex );
+    auto dPsiDx = aElement.DPsiDx( intPointIndex1 );
     std::vector< double > correctDPsiDx = { -0.157735027, 0.157735027, 0.042264973, -0.042264973 };
 
     EXPECT_EQ( dPsiDx.size(), correctDPsiDx.size() );
@@ -53,7 +53,7 @@ TEST_F( TestQuadLinearElementGlobal2D, TestIntegrationPoint1 ) {
         EXPECT_NEAR( correctDPsiDx[ i ], dPsiDx[ i ], 1e-6 );
     }
 
-    auto DPsiDy = aElement.DPsiDy( intPointIndex );
+    auto DPsiDy = aElement.DPsiDy( intPointIndex1 );
     std::vector< double > correctDPsiDy = { -0.157735027, -0.042264973, 0.042264973, 0.157735027 };
 
     EXPECT_EQ( DPsiDy.size(), correctDPsiDy.size() );
@@ -65,14 +65,14 @@ TEST_F( TestQuadLinearElementGlobal2D, TestIntegrationPoint1 ) {
     /////////////////////////////////////////////////////////
     //    Integration Point 2
     /////////////////////////////////////////////////////////
-    intPointIndex = 1;
-    xg = aElement.xg( intPointIndex );
-    yg = aElement.yg( intPointIndex );
+    const size_t intPointIndex2 = 1;
+    xg = aElement.xg( intPointIndex2 );
+    yg = aElement.yg( intPointIndex2 );
 
     EXPECT_NEAR( 3.943375673, xg, 1e-6 );
     EXPECT_NEAR( 1.056624327, yg, 1e-6 );
 
-    dPsiDx = aElement.DPsiDx( intPointIndex );
+    dPsiDx = aElement.DPsiDx( intPointIndex2 );
     correctDPsiDx = { -0.157735027, 0.157735027, 0.042264973, -0.042264973 };
 
     EXPECT_EQ( dPsiDx.size(), correctDPsiDx.size() );
@@ -81,7 +81,7 @@ TEST_F( TestQuadLinearElementGlobal2D, TestIntegrationPoint1 ) {
         EXPECT_NEAR( correctDPsiDx[ i ], dPsiDx[ i ], 1e-6 );
     }
 
-    DPsiDy = aElement.DPsiDy( intPointIndex );
+    DPsiDy = aElement.DPsiDy( intPointIndex2 );
     correctDPsiDy = { -0.042264973, -0.157735027, 0.157735027, 0.042264973 };
 
     EXPECT_EQ( DPsiDy.size(), correctDPsiDy.size() );
@@ -93,14 +93,14 @@ TEST_F( TestQuadLinearElementGlobal2D, TestIntegrationPoint1 ) {
     /////////////////////////////////////////////////////////
     //    Integration Point 3
     /////////////////////////////////////////////////////////
-    intPointIndex = 2;
-    xg = aElement.xg( intPointIndex );
-    yg = aElement.yg( intPointIndex );
+    const size_t intPointIndex3 = 2;
+    xg = aElement.xg( intPointIndex3 );
+    yg = aElement.yg( intPointIndex3 );
 
     EXPECT_NEAR( 3.943375673, xg, 1e-6 );
     EXPECT_NEAR( 3.943375673, yg, 1e-6 );
 
-    dPsiDx = aElement.DPsiDx( intPointIndex );
+    dPsiDx = aElement.DPsiDx( intPointIndex3 );
     correctDPsiDx = { -0.042264973, 0.042264973, 0.157735027, -0.157735027 };
 
     EXPECT_EQ( dPsiDx.size(), correctDPsiDx.size() );
@@ -109,7 +109,7 @@ TEST_F( TestQuadLinearElementGlobal2D, TestIntegrationPoint1 ) {
         EXPECT_NEAR( correctDPsiDx[ i ], dPsiDx[ i ], 1e-6 );
     }
 
-    DPsiDy = aElement.DPsiDy( intPointIndex );
+    DPsiDy = aElement.DPsiDy( intPointIndex3 );
     correctDPsiDy = { -0.042264973, -0.157735027, 0.157735027, 0.042264973 };
 
     EXPECT_EQ( DPsiDy.size(), correctDPsiDy.size() );
@@ -121,14 +121,14 @@ TEST_F( TestQuadLinearElementGlobal2D, TestIntegrationPoint1 ) {
     /////////////////////////////////////////////////////////
     //    Integration Point 4
     /////////////////////////////////////////////////////////
-    intPointIndex = 3;
-    xg = aElement.xg( intPointIndex );
-    yg = aElement.yg( intPointIndex );
+    const size_t intPointIndex4 = 3;
+    xg = aElement.xg( intPointIndex4 );
+    yg = aElement.yg( intPointIndex4 );
 
     EXPECT_NEAR( 1.056624327, xg, 1e-6 );
     EXPECT_NEAR( 3.943375673, yg, 1e-6 );
 
-    dPsiDx = aElement.DPsiDx( intPointIndex );
+    dPsiDx = aElement.DPsiDx( intPointIndex4 );
     correctDPsiDx = { -0.042264973, 0.042264973, 0.157735027, -0.157735027 };
 
     EXPECT_EQ( dPsiDx.size(), correctDPsiDx.size() );
@@ -137,7 +137,7 @@ TEST_F( TestQuadLinearElementGlobal2D, TestIntegrationPoint1 ) {
         EXPECT_NEAR( correctDPsiDx[ i ], dPsiDx[ i ], 1e-6 );
     }
 
-    DPsiDy = aElement.DPsiDy( intPointIndex );
+    DPsiDy = aElement.DPsiDy( intPointIndex4 );
     correctDPsiDy = { -0.157735027, -0.042264973, 0.042264973, 0.157735027 };
 
     EXPECT_EQ( DPsiDy.size(), correctDPsiDy.size() );

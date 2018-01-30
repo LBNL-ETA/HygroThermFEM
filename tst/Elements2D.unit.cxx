@@ -37,14 +37,15 @@ TEST_F( TestElements2D, TestConductionMatrix ) {
 
     const double matCond = 1;
 
-    const auto el1 = ElementThermalLinear2D( node3, node4, node2, node1, matCond );
-    const auto el2 = ElementThermalLinear2D( node6, node4, node3, node5, matCond );
+    const auto el1 = ElementLinear2D( node3, node4, node2, node1, matCond );
+    const auto el2 = ElementLinear2D( node6, node4, node3, node5, matCond );
 
-    const std::vector< ElementThermalLinear2D > vElements = { el1, el2 };
+    const std::vector< ElementLinear2D > vElements{ el1, el2 };
 
-    auto elements = ElementsThermalLinear2D( vElements );
 
-    auto condMat = elements.conductanceMatrix();
+    auto elements = ElementsLinear2D( vElements );
+
+    auto condMat = elements.thermalConductanceMatrix();
 
     std::vector< std::vector< double > > correctCondMat = {
             { 0.833333333,  -0.583333333, 0.166666667,  -0.416666667, 0,            0 },

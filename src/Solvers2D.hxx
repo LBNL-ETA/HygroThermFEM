@@ -7,7 +7,7 @@
 
 namespace MoisThermFEM {
 
-  class ElementsThermalLinear2D;
+  class ElementsLinear2D;
   class BoundaryConditions2D;
 
   /////////////////////////////////////////////////////////////////////////
@@ -18,13 +18,13 @@ namespace MoisThermFEM {
   public:
     virtual ~ISolver2D() = default;
     ISolver2D( 
-      ElementsThermalLinear2D const & t_Elements, 
+      ElementsLinear2D const & t_Elements,
       BoundaryConditions2D const & t_BCs );
 
     virtual void solve() = 0;
 
   protected:
-    ElementsThermalLinear2D m_Elements;
+    ElementsLinear2D m_Elements;
     BoundaryConditions2D m_BCs;
     bool m_Solved;
   };
@@ -36,7 +36,7 @@ namespace MoisThermFEM {
   class SteadyStateSolver2D : public ISolver2D {
   public:
     SteadyStateSolver2D( 
-      ElementsThermalLinear2D const & t_Elements, 
+      ElementsLinear2D const & t_Elements,
       BoundaryConditions2D const & t_BCs );
 
     std::vector< double > solution();
@@ -54,10 +54,10 @@ namespace MoisThermFEM {
   class TransientSolver2D : public ISolver2D {
   public:
     TransientSolver2D( 
-      ElementsThermalLinear2D const & t_Elements,
-      BoundaryConditions2D const & t_BCs,
-      double const DTemp,
-      size_t const NTimeSteps );
+      const ElementsLinear2D & t_Elements,
+      const BoundaryConditions2D & t_BCs,
+      const double DTime,
+      const std::size_t NTimeSteps );
 
     std::vector< std::vector< double > > solution();
 
@@ -65,8 +65,8 @@ namespace MoisThermFEM {
 
   private:
     std::vector< std::vector< double > > m_Solution;
-    double const m_DTemp;
-    size_t const m_NSteps;
+    const double m_DTime;
+    const std::size_t m_NSteps;
   };
   
 }

@@ -6,14 +6,13 @@
 
 namespace MoisThermFEM {
   
-	// Container class to hold onto thermal conductanceMatrix and heat capacity for
-	// all nodes in the domain.
-  class ElementsThermalLinear2D {
+	// Container class to hold all elements connected into global matrix
+  class ElementsLinear2D {
   public:
-    explicit ElementsThermalLinear2D( const std::vector< ElementThermalLinear2D > & t_Elements );
+    explicit ElementsLinear2D( const std::vector< ElementLinear2D > & t_Elements );
 
-    FenestrationCommon::SquareMatrix< double > & conductanceMatrix();
-    FenestrationCommon::SquareMatrix< double > & capacitanceMatrix();
+    FenestrationCommon::SquareMatrix< double > & thermalConductanceMatrix();
+    FenestrationCommon::SquareMatrix< double > & thermalCapacitanceMatrix();
 
   private:
     FenestrationCommon::SquareMatrix< double > m_Conductance;

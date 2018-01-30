@@ -13,7 +13,7 @@ namespace MoisThermFEM {
 	// ISolver2D
 	/////////////////////////////////////////////////////////////////////////
 
-	ISolver2D::ISolver2D( ElementsThermalLinear2D const & t_Elements,
+	ISolver2D::ISolver2D( ElementsLinear2D const & t_Elements,
 												BoundaryConditions2D const & t_BCs )
 			: m_Elements( t_Elements ), m_BCs( t_BCs ), m_Solved( false ) {
 
@@ -23,7 +23,7 @@ namespace MoisThermFEM {
 	// SteadyStateSolver2D
 	/////////////////////////////////////////////////////////////////////////
 
-	SteadyStateSolver2D::SteadyStateSolver2D( ElementsThermalLinear2D const & t_Elements,
+	SteadyStateSolver2D::SteadyStateSolver2D( ElementsLinear2D const & t_Elements,
 																						BoundaryConditions2D const & t_BCs )
 			: ISolver2D( t_Elements, t_BCs ) {
 
@@ -39,7 +39,7 @@ namespace MoisThermFEM {
 	}
 
 	void SteadyStateSolver2D::solve() {
-		auto condMat = m_Elements.conductanceMatrix();
+		auto condMat = m_Elements.thermalConductanceMatrix();
 		auto H = m_BCs.matrixA();
 
 		auto B = m_BCs.vectorR();
@@ -54,10 +54,10 @@ namespace MoisThermFEM {
 	// TransientSolver2D
 	/////////////////////////////////////////////////////////////////////////
 
-	TransientSolver2D::TransientSolver2D( ElementsThermalLinear2D const & t_Elements,
-																				BoundaryConditions2D const & t_BCs, double const DTemp,
-																				size_t const NTimeSteps )
-			: ISolver2D( t_Elements, t_BCs ), m_DTemp( DTemp ), m_NSteps( NTimeSteps ) {
+	TransientSolver2D::TransientSolver2D( const ElementsLinear2D & t_Elements,
+																				const BoundaryConditions2D & t_BCs, const double DTemp,
+																				const std::size_t NTimeSteps )
+			: ISolver2D( t_Elements, t_BCs ), m_DTime( DTemp ), m_NSteps( NTimeSteps ) {
 
 	}
 
@@ -77,26 +77,26 @@ namespace MoisThermFEM {
 		// ublas::permutation_matrix< size_t > pm( A.size1() );
 		// ublas::vector< double > y( size );
 
-		// vector< vector< double > > condMat = m_Elements.conductanceMatrix();
+		// vector< vector< double > > conductanceMatrix = m_Elements.thermalConductanceMatrix();
 		// vector< vector< double > > H = m_BCs.matrixA();
-		auto RhoCp = m_Elements.capacitanceMatrix();
+		auto capacitanceMatrix = m_Elements.thermalCapacitanceMatrix();
 		std::vector< double > M( size );
 
 		// Creates lump matrix
 		for ( size_t i = 0; i < size; ++i ) {
 			for ( size_t j = 0; j < size; ++j ) {
-				M[ i ] += RhoCp[ i ][ j ];
+				M[ i ] += capacitanceMatrix[ i ][ j ];
 			}
-			M[ i ] /= m_DTemp;
+			M[ i ] /= m_DTime;
 		}
 
 		auto rBC = m_BCs.vectorR();
 
-		auto condMat = m_Elements.conductanceMatrix();
+		auto conductanceMatrix = m_Elements.thermalConductanceMatrix();
 		auto H{ m_BCs.matrixA() };
 
-		condMat = condMat.add( H );
-		condMat = condMat.addDiagonal( M );
+		conductanceMatrix = conductanceMatrix.add( H );
+		conductanceMatrix = conductanceMatrix.addDiagonal( M );
 
 		auto temperatures = NodePool::Instance().nodeProperties( Property::temperature );
 		std::vector< double > B( temperatures.size() );
@@ -107,7 +107,7 @@ namespace MoisThermFEM {
 			}
 
 			CLinearSolver aSolver;
-			B = aSolver.solveSystem( condMat, B );
+			B = aSolver.solveSystem( conductanceMatrix, B );
 
 			std::vector< double > aSolution( size );
 			for ( unsigned j = 0; j < size; ++j ) {

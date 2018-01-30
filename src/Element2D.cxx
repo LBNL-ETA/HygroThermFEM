@@ -126,14 +126,28 @@ namespace MoisThermFEM {
 	}
 
 	//////////////////////////////////////////////////////////////////////////////
-	//  ElementThermalLinear2D
+	///  ElementThermalLinear2D
 	//////////////////////////////////////////////////////////////////////////////
 
-	ElementThermalLinear2D::ElementThermalLinear2D( const Node2D & t_Node1, const Node2D & t_Node2,
+	ElementLinear2D::ElementLinear2D( const Node2D & t_Node1, const Node2D & t_Node2,
 	                                  const Node2D & t_Node3, const Node2D & t_Node4,
 	                                  const double t_Cond, const double t_Rho, const double t_Cp ) :
-		IElementLinear2D( t_Node1, t_Node2, t_Node3, t_Node4, t_Cond, t_Cp * t_Rho ) {
+		m_ThermalElement( t_Node1, t_Node2, t_Node3, t_Node4, t_Cond, t_Cp * t_Rho ) {
 
+	}
+
+	std::vector< std::size_t > ElementLinear2D::nodeIndexes() const {
+		return m_ThermalElement.nodeIndexes();
+	}
+
+	FenestrationCommon::SquareMatrix< double >
+	ElementLinear2D::thermalConductanceMatrix() const {
+		return m_ThermalElement.conductanceMatrix();
+	}
+
+	FenestrationCommon::SquareMatrix< double >
+	ElementLinear2D::thermalCapacitanceMatrix() const {
+		return m_ThermalElement.capacitanceMatrix();
 	}
 
 }

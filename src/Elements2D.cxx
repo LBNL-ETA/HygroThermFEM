@@ -5,30 +5,30 @@ using namespace FenestrationCommon;
 
 namespace MoisThermFEM {
 
-	ElementsThermalLinear2D::ElementsThermalLinear2D( const std::vector< ElementThermalLinear2D > & t_Elements )
+	ElementsLinear2D::ElementsLinear2D( const std::vector< ElementLinear2D > & t_Elements )
 			: m_Conductance( NodePool::Instance().maxIndex() ),
 			  m_Capacitance( NodePool::Instance().maxIndex() ) {
 
-		// now copy matrices into global matrix
-		for( const auto & aElement : t_Elements ) {
+		// now integrate element matrices into global matrix
+		for( const auto aElement : t_Elements ) {
 			auto indexes = aElement.nodeIndexes();
-			auto conductivity = aElement.conductanceMatrix();
-			auto rhoCp = aElement.capacitanceMatrix();
+			auto conductance = aElement.thermalConductanceMatrix();
+			auto capacitance = aElement.thermalCapacitanceMatrix();
 			for( size_t i = 0; i < numOfQuadrilateralNodes; ++i ) {
 				for( size_t j = 0; j < numOfQuadrilateralNodes; ++j ) {
-					m_Conductance[ indexes[ i ] - 1 ][ indexes[ j ] - 1 ] += conductivity[ i ][ j ];
-					m_Capacitance[ indexes[ i ] - 1 ][ indexes[ j ] - 1 ] += rhoCp[ i ][ j ];
+					m_Conductance[ indexes[ i ] - 1 ][ indexes[ j ] - 1 ] += conductance[ i ][ j ];
+					m_Capacitance[ indexes[ i ] - 1 ][ indexes[ j ] - 1 ] += capacitance[ i ][ j ];
 				}
 			}
 		}
 
 	}
 
-	SquareMatrix< double > & ElementsThermalLinear2D::conductanceMatrix() {
+	SquareMatrix< double > & ElementsLinear2D::thermalConductanceMatrix() {
 		return m_Conductance;
 	}
 
-	SquareMatrix< double > & ElementsThermalLinear2D::capacitanceMatrix() {
+	SquareMatrix< double > & ElementsLinear2D::thermalCapacitanceMatrix() {
 		return m_Capacitance;
 	}
 
