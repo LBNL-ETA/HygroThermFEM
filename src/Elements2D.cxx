@@ -32,4 +32,21 @@ namespace MoisThermFEM {
 		return m_Capacitance;
 	}
 
+	std::vector< double > ElementsLinear2D::getLumpedMass( const double DTime ) {
+		auto size = m_Capacitance.size();
+
+		std::vector< double > M( size );
+
+		// Creates lump matrix
+		for ( size_t i = 0; i < size; ++i ) {
+			for ( size_t j = 0; j < size; ++j ) {
+				M[ i ] += m_Capacitance[ i ][ j ];
+			}
+			M[ i ] /= DTime;
+		}
+
+		return M;
+	}
+
+
 }

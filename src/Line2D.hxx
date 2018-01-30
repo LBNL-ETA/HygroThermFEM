@@ -8,20 +8,17 @@
 namespace MoisThermFEM {
 
 	class LineNodes2D;
-
 	class LineLinearLocal1D;
 
 	// Interface class for boundary conditions.
 	class ILineLinear2D {
 	public:
 		ILineLinear2D() = delete;
-
 		ILineLinear2D( const Node2D & t_Node1, const Node2D & t_Node2 );
 
 		std::vector< std::size_t > getNodeIndexes() const;
 
 		std::vector< double > rightHandSideVector() const;
-
 		FenestrationCommon::SquareMatrix< double > matrixA() const;
 
 	protected:

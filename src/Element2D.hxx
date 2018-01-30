@@ -4,7 +4,7 @@
 #include "Quadrilateral2D.hxx"
 #include "SquareMatrix.hxx"
 
-namespace MoisThermFEM {	
+namespace MoisThermFEM {
 
 	// Constant that holds number of nodes in certain elements
 	const std::size_t numOfQuadrilateralNodes = 4;
@@ -18,7 +18,7 @@ namespace MoisThermFEM {
 		virtual ~IElementQuadrilateral2D() = default;
 
 		IElementQuadrilateral2D( const Node2D & t_Node1, const Node2D & t_Node2, const Node2D & t_Node3,
-		                 const Node2D & t_Node4 );
+														 const Node2D & t_Node4 );
 
 		std::vector< std::size_t > nodeIndexes() const;
 
@@ -44,8 +44,8 @@ namespace MoisThermFEM {
 		void integrate();
 
 	protected:
-		virtual FenestrationCommon::SquareMatrix< double > calculateMatrixInIntegrationPoint( 
-			const std::size_t t_IntegrationPointIndex ) const = 0;
+		virtual FenestrationCommon::SquareMatrix< double > calculateMatrixInIntegrationPoint(
+				const std::size_t t_IntegrationPointIndex ) const = 0;
 
 		FenestrationCommon::SquareMatrix< double > m_Matrix;
 		const double m_Value;
@@ -59,11 +59,11 @@ namespace MoisThermFEM {
 	class QLEConductance2D : public IElementQuadrilateral2D, public IQLEMatrix2D {
 	public:
 		QLEConductance2D( const Node2D & t_Node1, const Node2D & t_Node2, const Node2D & t_Node3,
-		                 const Node2D & t_Node4, const double t_Value );
+											const Node2D & t_Node4, const double t_Value );
 
 	protected:
 		FenestrationCommon::SquareMatrix< double > calculateMatrixInIntegrationPoint(
-			const std::size_t t_IntegrationPointIndex ) const override;
+				const std::size_t t_IntegrationPointIndex ) const override;
 
 	};
 
@@ -75,11 +75,11 @@ namespace MoisThermFEM {
 	class QLECapacitance2D : public IElementQuadrilateral2D, public IQLEMatrix2D {
 	public:
 		QLECapacitance2D( const Node2D & t_Node1, const Node2D & t_Node2, const Node2D & t_Node3,
-		                 const Node2D & t_Node4, const double t_Value );
+											const Node2D & t_Node4, const double t_Value );
 
 	protected:
 		FenestrationCommon::SquareMatrix< double > calculateMatrixInIntegrationPoint(
-			const std::size_t t_IntegrationPointIndex ) const override;
+				const std::size_t t_IntegrationPointIndex ) const override;
 
 	};
 
@@ -94,7 +94,8 @@ namespace MoisThermFEM {
 	class IElementLinear2D {
 	public:
 		IElementLinear2D( const Node2D & t_Node1, const Node2D & t_Node2, const Node2D & t_Node3,
-											const Node2D & t_Node4, const double t_Conductance, const double t_Capacitance );
+											const Node2D & t_Node4, const double t_Conductance,
+											const double t_Capacitance );
 
 		std::vector< std::size_t > nodeIndexes() const;
 
@@ -114,8 +115,8 @@ namespace MoisThermFEM {
 	class ElementLinear2D {
 	public:
 		ElementLinear2D( const Node2D & t_Node1, const Node2D & t_Node2, const Node2D & t_Node3,
-		                 const Node2D & t_Node4, const double t_Cond = 1, const double t_Rho = 1,
-		                 const double t_Cp = 1 );
+										 const Node2D & t_Node4, const double t_Cond = 1, const double t_Rho = 1,
+										 const double t_Cp = 1 );
 
 		std::vector< std::size_t > nodeIndexes() const;
 

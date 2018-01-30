@@ -72,9 +72,15 @@ TEST_F( TemperatureBC_2D_1, TestExample_1 ) {
 	const auto dTime = 3600;
 	const auto nSteps = 4;
 
-	auto aSolver = TransientSolver2D( elements, aBCs, dTime, nSteps );
+	Domain domain{ elements, aBCs };
 
-	auto solution = aSolver.solution();
+	auto temperatures = NodePool::Instance().nodeProperties( Property::temperature );
+	std::vector< std::vector< double > > solution;
+
+	for ( unsigned i = 0; i < nSteps; ++i ) {
+		temperatures = domain.transient( temperatures, dTime );
+		solution.push_back( temperatures );
+	}
 
 	std::vector< std::vector< double > > correctSolution = {
 			{ 83.64609365, 83.64609365, 61.65791323, 61.65791323, 12, 12 },
