@@ -13,22 +13,22 @@ namespace MoisThermFEM {
   class QuadrilateralLinearGlobal2D {
   public:
     QuadrilateralLinearGlobal2D( 
-      Node2D const & t_Node1,
-      Node2D const & t_Node2,
-      Node2D const & t_Node3,
-      Node2D const & t_Node4 );
+      const Node2D & t_Node1,
+      const Node2D & t_Node2,
+      const Node2D & t_Node3,
+      const Node2D & t_Node4 );
 
     QuadrilateralLinearGlobal2D( const QuadrilateralLinearGlobal2D& t_Element );
 
     // Coordinates of integration (Gauss) point in global coordinate system
-    double xg( size_t const IntPointIndex ) const;
-    double yg( size_t const IntPointIndex ) const;
+    double xg( const size_t IntPointIndex ) const;
+    double yg( const size_t IntPointIndex ) const;
 
     // Shape function derivatives in global coordinate system
-    std::vector< double > DPsiDx( size_t const IntPointIndex ) const;
-    std::vector< double > DPsiDy( size_t const IntPointIndex ) const;
+    std::vector< double > DPsiDx( const size_t IntPointIndex ) const;
+    std::vector< double > DPsiDy( const size_t IntPointIndex ) const;
 
-    double det( size_t const IntPointIndex ) const;
+    double det( const size_t IntPointIndex ) const;
 
   private:
     QuadrilateralNodes2D m_Nodes;
@@ -42,11 +42,11 @@ namespace MoisThermFEM {
     public:
       // Nodes represent global coordinates and Index is the index of integration point
       GaussPoint2DGlobal( 
-        Node2D const & t_Node1,
-        Node2D const & t_Node2,
-        Node2D const & t_Node3,
-        Node2D const & t_Node4,
-        size_t const Index );
+        const Node2D & t_Node1,
+        const Node2D & t_Node2,
+        const Node2D & t_Node3,
+        const Node2D & t_Node4,
+        const size_t Index );
 
       size_t getIndex() const;
 

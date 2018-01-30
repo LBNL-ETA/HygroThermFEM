@@ -69,10 +69,10 @@ TEST_F( TemperatureBC_2D_1, TestExample_1 ) {
 	// It is possible directly to pass { aBc1 } to the constructor
 	const auto aBCs = BoundaryConditions2D( vBc );
 
-	const auto dTemp = 3600;
+	const auto dTime = 3600;
 	const auto nSteps = 4;
 
-	auto aSolver = TransientSolver2D( elements, aBCs, dTemp, nSteps );
+	auto aSolver = TransientSolver2D( elements, aBCs, dTime, nSteps );
 
 	auto solution = aSolver.solution();
 

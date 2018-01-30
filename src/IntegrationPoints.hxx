@@ -139,7 +139,7 @@ namespace MoisThermFEM {
   class IntegrationPoints2D {
   public:
     static IntegrationPoints2D& Instance();
-    void setIntegrationFormula( IntegrationPointsFormula const t_Formula );
+    void setIntegrationFormula( const IntegrationPointsFormula t_Formula );
     
     // Get integration points
     std::vector< LocalPoint2D > getPoints2D() const;

@@ -44,7 +44,7 @@ TEST_F( TestElements2D, TestConductionMatrix ) {
 
     auto elements = ElementsThermalLinear2D( vElements );
 
-    auto condMat = elements.thermalConductivity();
+    auto condMat = elements.conductanceMatrix();
 
     std::vector< std::vector< double > > correctCondMat = {
             { 0.833333333,  -0.583333333, 0.166666667,  -0.416666667, 0,            0 },

@@ -39,7 +39,7 @@ namespace MoisThermFEM {
 	}
 
 	void SteadyStateSolver2D::solve() {
-		auto condMat = m_Elements.thermalConductivity();
+		auto condMat = m_Elements.conductanceMatrix();
 		auto H = m_BCs.matrixA();
 
 		auto B = m_BCs.vectorR();
@@ -77,9 +77,9 @@ namespace MoisThermFEM {
 		// ublas::permutation_matrix< size_t > pm( A.size1() );
 		// ublas::vector< double > y( size );
 
-		// vector< vector< double > > condMat = m_Elements.thermalConductivity();
+		// vector< vector< double > > condMat = m_Elements.conductanceMatrix();
 		// vector< vector< double > > H = m_BCs.matrixA();
-		auto RhoCp = m_Elements.rhoCp();
+		auto RhoCp = m_Elements.capacitanceMatrix();
 		std::vector< double > M( size );
 
 		// Creates lump matrix
@@ -92,7 +92,7 @@ namespace MoisThermFEM {
 
 		auto rBC = m_BCs.vectorR();
 
-		auto condMat = m_Elements.thermalConductivity();
+		auto condMat = m_Elements.conductanceMatrix();
 		auto H{ m_BCs.matrixA() };
 
 		condMat = condMat.add( H );

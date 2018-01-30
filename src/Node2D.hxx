@@ -48,17 +48,14 @@ namespace MoisThermFEM {
 						const State & t_State );
 
 		Node2D( const Node2D & t_Node );
-
 		Node2D & operator=( const Node2D & other );
 
 		size_t getNodeNumber() const;
 
 		double X() const;
-
 		double Y() const;
 
 		double getProperty( Property t_State ) const;
-
 		void setProperty( Property t_State, double t_value );
 
 	private:

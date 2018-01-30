@@ -40,7 +40,8 @@ namespace MoisThermFEM {
 
 		FenestrationCommon::SquareMatrix< double > getMatrix() const;
 
-		void calculate();
+		// Integrate matrix over all points of integration
+		void integrate();
 
 	protected:
 		virtual FenestrationCommon::SquareMatrix< double > calculateMatrixInIntegrationPoint( 
@@ -51,13 +52,13 @@ namespace MoisThermFEM {
 	};
 
 	//////////////////////////////////////////////////////////////////////////////
-	///  IQLEConductance2D
+	///  QLEConductance2D
 	//////////////////////////////////////////////////////////////////////////////
 
 	// Class to handle conductance matrix in global coordinate system
-	class IQLEConductance2D : public IElementQuadrilateral2D, public IQLEMatrix2D {
+	class QLEConductance2D : public IElementQuadrilateral2D, public IQLEMatrix2D {
 	public:
-		IQLEConductance2D( const Node2D & t_Node1, const Node2D & t_Node2, const Node2D & t_Node3,
+		QLEConductance2D( const Node2D & t_Node1, const Node2D & t_Node2, const Node2D & t_Node3,
 		                 const Node2D & t_Node4, const double t_Value );
 
 	protected:
@@ -67,19 +68,42 @@ namespace MoisThermFEM {
 	};
 
 	//////////////////////////////////////////////////////////////////////////////
-	///  IQLECapacitance2D
+	///  QLECapacitance2D
 	//////////////////////////////////////////////////////////////////////////////
 
 	// Class to handle capacitance matrix in global coordinate system
-	class IQLECapacitance2D : public IElementQuadrilateral2D, public IQLEMatrix2D {
+	class QLECapacitance2D : public IElementQuadrilateral2D, public IQLEMatrix2D {
 	public:
-		IQLECapacitance2D( const Node2D & t_Node1, const Node2D & t_Node2, const Node2D & t_Node3,
+		QLECapacitance2D( const Node2D & t_Node1, const Node2D & t_Node2, const Node2D & t_Node3,
 		                 const Node2D & t_Node4, const double t_Value );
 
 	protected:
 		FenestrationCommon::SquareMatrix< double > calculateMatrixInIntegrationPoint(
 			const std::size_t t_IntegrationPointIndex ) const override;
 
+	};
+
+	//////////////////////////////////////////////////////////////////////////////
+	///  IElementlLinear2D
+	//////////////////////////////////////////////////////////////////////////////
+
+	/// Class that handles creation of conductance and capacitance matrices in linear
+	/// 2D world. This class will be inhertied by multple governing equations since
+	/// basis of matrix creation are identical with only difference in what coefficients
+	/// are passed
+	class IElementLinear2D {
+	public:
+		IElementLinear2D( const Node2D & t_Node1, const Node2D & t_Node2, const Node2D & t_Node3,
+											const Node2D & t_Node4, const double t_Conductance, const double t_Capacitance );
+
+		std::vector< std::size_t > nodeIndexes() const;
+
+		FenestrationCommon::SquareMatrix< double > conductanceMatrix() const;
+		FenestrationCommon::SquareMatrix< double > capacitanceMatrix() const;
+
+	private:
+		QLEConductance2D m_Conductance;
+		QLECapacitance2D m_Capacitance;
 	};
 
 	//////////////////////////////////////////////////////////////////////////////
@@ -87,22 +111,12 @@ namespace MoisThermFEM {
 	//////////////////////////////////////////////////////////////////////////////
 
 	// Handles linear 2D element (4 nodes)
-	class ElementThermalLinear2D {
+	class ElementThermalLinear2D : public IElementLinear2D {
 	public:
 		ElementThermalLinear2D( const Node2D & t_Node1, const Node2D & t_Node2, const Node2D & t_Node3,
-		                 const Node2D & t_Node4, const double t_Cond, const double t_Rho = 1,
+		                 const Node2D & t_Node4, const double t_Cond = 1, const double t_Rho = 1,
 		                 const double t_Cp = 1 );
 
-		ElementThermalLinear2D( const ElementThermalLinear2D & t_Element );
-
-		std::vector< std::size_t > nodeIndexes() const;
-
-		FenestrationCommon::SquareMatrix< double > conductivity() const;
-		FenestrationCommon::SquareMatrix< double > rhoCp() const;
-
-	private:
-		IQLEConductance2D m_Conductance;
-		IQLECapacitance2D m_Capacitance;
 	};
 
 }
