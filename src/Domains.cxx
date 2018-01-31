@@ -10,7 +10,7 @@ namespace MoisThermFEM {
 			: m_Elements( m_Elements ), m_BCs( m_BCs ) {}
 
 	FenestrationCommon::SquareMatrix< double > Domain::steadyStateLeftHandSide() {
-		auto condMat = m_Elements.thermalConductanceMatrix();
+		auto condMat = m_Elements.conductanceMatrix();
 		auto H = m_BCs.matrixA();
 		condMat = condMat.add( H );
 
@@ -23,7 +23,7 @@ namespace MoisThermFEM {
 
 	FenestrationCommon::SquareMatrix< double > Domain::transientLeftHandSide( const double t_DTime ) {
 		std::vector< double > M = m_Elements.getLumpedMass( t_DTime );
-		auto conductanceMatrix = m_Elements.thermalConductanceMatrix();
+		auto conductanceMatrix = m_Elements.conductanceMatrix();
 		conductanceMatrix = conductanceMatrix.addDiagonal( M );
 		conductanceMatrix = conductanceMatrix.add( m_BCs.matrixA() );
 

@@ -117,6 +117,19 @@ namespace FenestrationCommon {
 			return aMatrix;
 		}
 
+		SquareMatrix mult( const double t_Value ) const {
+
+			SquareMatrix aMatrix{ m_size };
+
+			for( unsigned i = 0; i < m_size; ++i ) {
+				for( unsigned k = 0; k < m_size; ++k ) {
+					aMatrix[ i ][ k ] += t_Value * m_Matrix[ i ][ k ];
+				}
+			}
+
+			return aMatrix;
+		}
+
 	protected:
 		std::vector< std::vector< T > > m_Matrix;
 		std::size_t m_size;

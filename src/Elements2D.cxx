@@ -5,17 +5,18 @@ using namespace FenestrationCommon;
 
 namespace MoisThermFEM {
 
-	ElementsLinear2D::ElementsLinear2D( const std::vector< ElementLinear2D > & t_Elements )
+	ElementsLinear2D::ElementsLinear2D(
+			const std::vector< std::reference_wrapper< const IElementLinear2D > > & t_Elements )
 			: m_Conductance( NodePool::Instance().maxIndex() ),
-			  m_Capacitance( NodePool::Instance().maxIndex() ) {
+				m_Capacitance( NodePool::Instance().maxIndex() ) {
 
 		// now integrate element matrices into global matrix
-		for( const auto aElement : t_Elements ) {
+		for ( const IElementLinear2D & aElement : t_Elements ) {
 			auto indexes = aElement.nodeIndexes();
-			auto conductance = aElement.thermalConductanceMatrix();
-			auto capacitance = aElement.thermalCapacitanceMatrix();
-			for( size_t i = 0; i < numOfQuadrilateralNodes; ++i ) {
-				for( size_t j = 0; j < numOfQuadrilateralNodes; ++j ) {
+			auto conductance = aElement.conductanceMatrix();
+			auto capacitance = aElement.capacitanceMatrix();
+			for ( size_t i = 0; i < numOfQuadrilateralNodes; ++i ) {
+				for ( size_t j = 0; j < numOfQuadrilateralNodes; ++j ) {
 					m_Conductance[ indexes[ i ] - 1 ][ indexes[ j ] - 1 ] += conductance[ i ][ j ];
 					m_Capacitance[ indexes[ i ] - 1 ][ indexes[ j ] - 1 ] += capacitance[ i ][ j ];
 				}
@@ -24,13 +25,13 @@ namespace MoisThermFEM {
 
 	}
 
-	SquareMatrix< double > & ElementsLinear2D::thermalConductanceMatrix() {
+	SquareMatrix< double > & ElementsLinear2D::conductanceMatrix() {
 		return m_Conductance;
 	}
 
-	SquareMatrix< double > & ElementsLinear2D::thermalCapacitanceMatrix() {
-		return m_Capacitance;
-	}
+//	SquareMatrix< double > & ElementsLinear2D::thermalCapacitanceMatrix() {
+//		return m_Capacitance;
+//	}
 
 	std::vector< double > ElementsLinear2D::getLumpedMass( const double DTime ) {
 		auto size = m_Capacitance.size();

@@ -1,5 +1,5 @@
 #include "BoundaryConditions2D.hxx"
-#include "Line2D.hxx"
+#include "IBCLine2D.hxx"
 #include "NodePool.hxx"
 #include "SquareMatrix.hxx"
 
@@ -8,7 +8,7 @@ using namespace FenestrationCommon;
 namespace MoisThermFEM {
 
 	BoundaryConditions2D::BoundaryConditions2D(
-			const std::vector< std::reference_wrapper< const ILineLinear2D > > & t_BCs ) : m_MatrixA(
+			const std::vector< std::reference_wrapper< const IBCLinear2D > > & t_BCs ) : m_MatrixA(
 			NodePool::Instance().maxIndex() ), m_vectorR( NodePool::Instance().maxIndex() ) {
 
 		// Create full size matrices

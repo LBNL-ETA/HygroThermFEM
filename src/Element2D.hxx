@@ -102,7 +102,7 @@ namespace MoisThermFEM {
 		FenestrationCommon::SquareMatrix< double > conductanceMatrix() const;
 		FenestrationCommon::SquareMatrix< double > capacitanceMatrix() const;
 
-	private:
+	protected:
 		Node2D m_Node1;
 		Node2D m_Node2;
 		Node2D m_Node3;
@@ -116,19 +116,11 @@ namespace MoisThermFEM {
 	//////////////////////////////////////////////////////////////////////////////
 
 	// Handles linear 2D element (4 nodes)
-	class ElementLinear2D {
+	class ElementThermalLinear2D : public IElementLinear2D {
 	public:
-		ElementLinear2D( const Node2D & t_Node1, const Node2D & t_Node2, const Node2D & t_Node3,
+		ElementThermalLinear2D( const Node2D & t_Node1, const Node2D & t_Node2, const Node2D & t_Node3,
 										 const Node2D & t_Node4, const double t_Cond = 1, const double t_Rho = 1,
 										 const double t_Cp = 1 );
-
-		std::vector< std::size_t > nodeIndexes() const;
-
-		FenestrationCommon::SquareMatrix< double > thermalConductanceMatrix() const;
-		FenestrationCommon::SquareMatrix< double > thermalCapacitanceMatrix() const;
-
-	private:
-		IElementLinear2D m_ThermalElement;
 
 	};
 

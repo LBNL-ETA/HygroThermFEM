@@ -1,9 +1,7 @@
 #include <memory>
-#include <stdexcept>
 #include <gtest/gtest.h>
 
 #include "Conrad2D.hxx"
-#include <functional>
 
 using namespace MoisThermFEM;
 
@@ -52,10 +50,10 @@ TEST_F( TemperatureBC_2D_1, TestExample_1 ) {
 	const auto matCp = 850;
 
 	// Create elements
-	const auto el1 = ElementLinear2D( node3, node4, node2, node1, matCond, matRho, matCp );
-	const auto el2 = ElementLinear2D( node6, node4, node3, node5, matCond, matRho, matCp );
+	const auto el1 = ElementThermalLinear2D( node3, node4, node2, node1, matCond, matRho, matCp );
+	const auto el2 = ElementThermalLinear2D( node6, node4, node3, node5, matCond, matRho, matCp );
 
-	const std::vector< ElementLinear2D > vElements{ el1, el2 };
+	const std::vector< std::reference_wrapper< const IElementLinear2D > > vElements{ el1, el2 };
 
 	const auto elements = ElementsLinear2D( vElements );
 
@@ -64,7 +62,7 @@ TEST_F( TemperatureBC_2D_1, TestExample_1 ) {
 
 	const TemperatureBC aBc1{ node5, node6, tSurface };
 
-	const std::vector< std::reference_wrapper< const ILineLinear2D > > vBc{ aBc1 };
+	const std::vector< std::reference_wrapper< const IBCLinear2D > > vBc{ aBc1 };
 
 	// It is possible directly to pass { aBc1 } to the constructor
 	const auto aBCs = BoundaryConditions2D( vBc );

@@ -1,5 +1,4 @@
 #include <memory>
-#include <stdexcept>
 #include <gtest/gtest.h>
 
 #include "Conrad2D.hxx"
@@ -37,10 +36,10 @@ TEST_F( ConvectionBC_2D_1, TestExample_1 ) {
 	const double matCond = 1;
 
 	// Create elements
-	const auto el1 = ElementLinear2D( node3, node4, node2, node1, matCond );
-	const auto el2 = ElementLinear2D( node6, node4, node3, node5, matCond );
+	const auto el1 = ElementThermalLinear2D( node3, node4, node2, node1, matCond );
+	const auto el2 = ElementThermalLinear2D( node6, node4, node3, node5, matCond );
 
-	const std::vector< ElementLinear2D > vElements { el1, el2 };
+	const std::vector< std::reference_wrapper< const IElementLinear2D > > vElements{ el1, el2 };
 
 	const ElementsLinear2D elements{ vElements };
 
@@ -48,15 +47,15 @@ TEST_F( ConvectionBC_2D_1, TestExample_1 ) {
 	const auto hc1 = 20.0;
 	const auto tair1 = -18.0;
 
-	const ConvectionBC aBc1 { node1, node2, hc1, tair1 };
+	const ConvectionBC aBc1{ node1, node2, hc1, tair1 };
 
 	const auto hc2 = 2.4;
 	const auto tair2 = 21.0;
 
-	const ConvectionBC aBc2 { node6, node5, hc2, tair2 };
+	const ConvectionBC aBc2{ node6, node5, hc2, tair2 };
 
 	// Either pass this or initializer list as given bellow
-	// std::vector< std::reference_wrapper< ILineLinear2D > > vBc { aBc1, aBc2 };
+	// std::vector< std::reference_wrapper< IBCLinear2D > > vBc { aBc1, aBc2 };
 
 	const auto aBCs = BoundaryConditions2D( { aBc1, aBc2 } );
 

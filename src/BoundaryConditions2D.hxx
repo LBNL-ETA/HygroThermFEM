@@ -7,12 +7,12 @@
 
 namespace MoisThermFEM {
 
-	class ILineLinear2D;
+	class IBCLinear2D;
 
 	class BoundaryConditions2D {
 	public:
 		explicit BoundaryConditions2D(
-				const std::vector< std::reference_wrapper< const ILineLinear2D > > & t_BCs );
+				const std::vector< std::reference_wrapper< const IBCLinear2D > > & t_BCs );
 
 		BoundaryConditions2D( const BoundaryConditions2D & other );
 		BoundaryConditions2D & operator=( const BoundaryConditions2D & other );

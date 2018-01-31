@@ -71,7 +71,7 @@ namespace MoisThermFEM {
 	//   INodesStorage
 	////////////////////////////////////////////////////////////////////////////
 
-	// Interface class that holds all node data in single storage
+	// Interface that holds all node data in single storage
 	class INodesStorage {
 	public:
 		INodesStorage() = default;
@@ -91,7 +91,7 @@ namespace MoisThermFEM {
 	//   LineNodes2D
 	////////////////////////////////////////////////////////////////////////////
 
-	// Class that store nodes which are part of some boundary conditions
+	// Class that store nodes which are part of some boundary conditions in 2D
 	class LineNodes2D : public INodesStorage {
 	public:
 		LineNodes2D( const Node2D & t_Node1, const Node2D & t_Node2 );

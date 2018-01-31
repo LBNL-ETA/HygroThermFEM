@@ -6,7 +6,7 @@
 #include "../src/QuadrilateralLocal2D.hxx"
 #include "../src/Quadrilateral2D.hxx"
 #include "../src/IntegrationPoints.hxx"
-#include "../src/Line2D.hxx"
+#include "../src/IBCLine2D.hxx"
 #include "../src/LineLocal1D.hxx"
 #include "../src/NodePool.hxx"
 #include "../src/BoundaryCondition2D.hxx"
