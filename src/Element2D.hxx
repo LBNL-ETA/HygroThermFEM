@@ -84,11 +84,11 @@ namespace MoisThermFEM {
 	};
 
 	//////////////////////////////////////////////////////////////////////////////
-	///  IElementlLinear2D
+	///  IElementLinear2D
 	//////////////////////////////////////////////////////////////////////////////
 
 	/// Class that handles creation of conductance and capacitance matrices in linear
-	/// 2D world. This class will be used by multple governing equations since
+	/// 2D world. This class will be used by multiple governing equations since
 	/// basis of matrix creation are identical with only difference in what coefficients
 	/// are passed
 	class IElementLinear2D {
@@ -103,8 +103,12 @@ namespace MoisThermFEM {
 		FenestrationCommon::SquareMatrix< double > capacitanceMatrix() const;
 
 	private:
-		QLEConductance2D m_Conductance;
-		QLECapacitance2D m_Capacitance;
+		Node2D m_Node1;
+		Node2D m_Node2;
+		Node2D m_Node3;
+		Node2D m_Node4;
+		double m_Conductance;
+		double m_Capacitance;
 	};
 
 	//////////////////////////////////////////////////////////////////////////////

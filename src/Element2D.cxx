@@ -16,9 +16,9 @@ namespace MoisThermFEM {
 
 	}
 
-	std::vector<size_t>	IElementQuadrilateral2D::nodeIndexes() const {
+/*	std::vector<size_t>	IElementQuadrilateral2D::nodeIndexes() const {
 		return m_ElementNodes.getNodeIndexes();
-	}
+	}*/
 
 	//////////////////////////////////////////////////////////////////////////////
 	//  IQLEMatrix2D
@@ -56,7 +56,7 @@ namespace MoisThermFEM {
 	}
 
 	SquareMatrix< double > QLEConductance2D::calculateMatrixInIntegrationPoint(
-		const size_t t_IntegrationPointIndex) const {
+		const size_t t_IntegrationPointIndex ) const {
 		
 		SquareMatrix< double > aMatrix( numOfQuadrilateralNodes );
 
@@ -107,22 +107,26 @@ namespace MoisThermFEM {
 	IElementLinear2D::IElementLinear2D( const Node2D & t_Node1, const Node2D & t_Node2,
 																			const Node2D & t_Node3, const Node2D & t_Node4,
 																			const double t_Conductance, const double t_Capacitance ) :
-		m_Conductance( t_Node1, t_Node2, t_Node3, t_Node4, t_Conductance ),
-		m_Capacitance( t_Node1, t_Node2, t_Node3, t_Node4, t_Capacitance ) {
-		m_Conductance.integrate();
-		m_Capacitance.integrate();
+		m_Node1( t_Node1 ), m_Node2( t_Node2 ), m_Node3( t_Node3 ), m_Node4( t_Node4 ),
+		m_Conductance( t_Conductance ), m_Capacitance( t_Capacitance ) {
+
 	}
 
 	std::vector< size_t > IElementLinear2D::nodeIndexes() const {
-		return m_Conductance.nodeIndexes();
+		QLEConductance2D aMatrix( m_Node1, m_Node2, m_Node3, m_Node4, m_Conductance );
+		return aMatrix.nodeIndexes();
 	}
 
 	SquareMatrix< double > IElementLinear2D::conductanceMatrix() const {
-		return m_Conductance.getMatrix();
+		QLEConductance2D aMatrix( m_Node1, m_Node2, m_Node3, m_Node4, m_Conductance );
+		aMatrix.integrate();
+		return aMatrix.getMatrix();
 	}
 
 	SquareMatrix< double > IElementLinear2D::capacitanceMatrix() const {
-		return m_Capacitance.getMatrix();
+		QLECapacitance2D aMatrix( m_Node1, m_Node2, m_Node3, m_Node4, m_Capacitance );
+		aMatrix.integrate();
+		return aMatrix.getMatrix();
 	}
 
 	//////////////////////////////////////////////////////////////////////////////
