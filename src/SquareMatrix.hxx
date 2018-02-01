@@ -106,9 +106,9 @@ namespace FenestrationCommon {
 
 			SquareMatrix aMatrix{ m_size };
 
-			for ( unsigned i = 0; i < m_size; ++i ) {
-				for ( unsigned k = 0; k < m_size; ++k ) {
-					for ( unsigned j = 0; j < t_Matrix.m_size; ++j ) {
+			for ( auto i = 0u; i < m_size; ++i ) {
+				for ( auto k = 0u; k < m_size; ++k ) {
+					for ( auto j = 0u; j < t_Matrix.m_size; ++j ) {
 						aMatrix[ i ][ j ] =
 								aMatrix[ i ][ j ] + m_Matrix[ i ][ k ] * t_Matrix.m_Matrix[ k ][ j ];
 					}
@@ -122,8 +122,8 @@ namespace FenestrationCommon {
 
 			SquareMatrix aMatrix{ m_size };
 
-			for ( unsigned i = 0; i < m_size; ++i ) {
-				for ( unsigned k = 0; k < m_size; ++k ) {
+			for ( auto i = 0u; i < m_size; ++i ) {
+				for ( auto k = 0u; k < m_size; ++k ) {
 					aMatrix[ i ][ k ] += t_Value * m_Matrix[ i ][ k ];
 				}
 			}

@@ -1,15 +1,17 @@
 #include <cmath>
+#include <algorithm>
 
 #include "Domains.hxx"
 #include "NodePool.hxx"
 #include "LinearSolver.hxx"
+#include "Common.hxx"
 
 using FenestrationCommon::CLinearSolver;
 
 namespace MoisThermFEM {
 
 	Domain::Domain( const ElementsLinear2D & t_Elements, const BoundaryConditions2D & t_BCs )
-			: m_Elements( t_Elements ), m_BCs( t_BCs ), m_Linear( false ) {}// m_Linear( t_BCs.isLinear() ) {}
+			: m_Elements( t_Elements ), m_BCs( t_BCs ), m_Linear( t_BCs.isLinear() ) {}
 
 	FenestrationCommon::SquareMatrix< double > Domain::steadyStateLeftHandSide() {
 		auto condMat = m_Elements.conductanceMatrix();
@@ -68,24 +70,29 @@ namespace MoisThermFEM {
 		if( m_Linear ) {
 			solution = aSolver.solveSystem( A, B );
 		} else {
-			auto currentIterationValues = currentTimestepValues;
+			solution = currentTimestepValues;
 
 			auto error = std::numeric_limits< double >::max();
 
-			while( error > 1e-5 ) {
-				auto temp = A.multMxV( currentIterationValues );
-				/// B = B - temp
+			size_t numOfIterations = 0;
+
+			while( error > ConvergenceError ) {
+				auto temp = A.multMxV( solution );
+				/// temp = B - temp
 				std::transform( B.begin(), B.end(), temp.begin(),
-												temp.begin(), std::plus< double >() );
+												temp.begin(), std::minus< double >() );
 
-				solution = aSolver.solveSystem( A, B );
+				auto dU = aSolver.solveSystem( A, temp );
 
-				error = norm( solution );
+				error = norm( dU );
 
-				std::transform( currentIterationValues.begin(), currentIterationValues.end(),
+				std::transform( dU.begin(), dU.end(),
 												solution.begin(),
 												solution.begin(), std::plus< double >() );
-
+				++numOfIterations;
+				if( numOfIterations > MaxIterations ) {
+					throw std::runtime_error("Solution failed to converge.");
+				}
 			}
 
 		}
