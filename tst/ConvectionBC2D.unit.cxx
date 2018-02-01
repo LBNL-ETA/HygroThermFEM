@@ -32,7 +32,7 @@ TEST_F( TestConvectionBC2D, TestIntegrationPoints ) {
 
     auto aBc = ConvectionBC( node1, node2, hc, tAir );
 
-    auto h = aBc.matrixA();
+    auto h = aBc.H_Matrix();
 
     std::vector< std::vector< double > > correctH = { { 33.33333333, 16.66666667 },
                                                       { 16.66666667, 33.33333333 } };
@@ -44,7 +44,7 @@ TEST_F( TestConvectionBC2D, TestIntegrationPoints ) {
         }
     }
 
-    auto R = aBc.rightHandSideVector();
+    auto R = aBc.R_Vector();
 
     std::vector< double > correctR = { 12757.5, 12757.5 };
 

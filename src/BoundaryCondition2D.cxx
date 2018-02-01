@@ -15,7 +15,7 @@ namespace MoisThermFEM {
 
 	}
 
-	std::vector< double > ConvectionBC::rightHandSideVector( bool Linear ) const {
+	std::vector< double > ConvectionBC::R_Vector() const {
 		std::vector< double > A;
 		std::transform( m_PsiVector.begin(), m_PsiVector.end(), std::back_inserter( A ),
 										std::bind1st( std::multiplies< double >(),
@@ -24,7 +24,7 @@ namespace MoisThermFEM {
 		return A;
 	}
 
-	FenestrationCommon::SquareMatrix< double > ConvectionBC::matrixA( bool Linear ) const {
+	FenestrationCommon::SquareMatrix< double > ConvectionBC::H_Matrix() const {
 		return m_PsiPsiMatrix.mult( m_ConvectionCoefficient );
 	}
 

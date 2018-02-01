@@ -5,7 +5,7 @@
 namespace MoisThermFEM {
 
 	////////////////////////////////////////////////////////
-	// ConvectionBC
+	/// ConvectionBC
 	////////////////////////////////////////////////////////
 
 	class ConvectionBC : public IBCLinear2D {
@@ -13,8 +13,8 @@ namespace MoisThermFEM {
 		ConvectionBC( const Node2D & t_Node1, const Node2D & t_Node2,
 									const double t_ConvectionCoefficient, const double t_AirTemperature );
 
-		virtual std::vector< double > rightHandSideVector( bool Linear = true ) const override;
-		virtual FenestrationCommon::SquareMatrix< double > matrixA( bool Linear = true ) const override;
+		virtual std::vector< double > R_Vector() const override;
+		virtual FenestrationCommon::SquareMatrix< double > H_Matrix() const override;
 
 	protected:
 		const double m_ConvectionCoefficient;
@@ -23,7 +23,7 @@ namespace MoisThermFEM {
 	};
 
 	////////////////////////////////////////////////////////
-	// TemperatureBC
+	/// TemperatureBC
 	////////////////////////////////////////////////////////
 
 	// TemperatureBC will be just special case of convection BC with huge value
@@ -31,7 +31,6 @@ namespace MoisThermFEM {
 	class TemperatureBC : public ConvectionBC {
 	public:
 		TemperatureBC( Node2D & t_Node1, Node2D & t_Node2, const double t_NodeTemperatures );
-
 		TemperatureBC( Node2D & t_Node1, Node2D & t_Node2, const double t_Temp1, const double t_Temp2 );
 	};
 

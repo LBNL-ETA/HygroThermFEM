@@ -49,7 +49,7 @@ TEST_F( TestBoundaryConditions2D_test1, TestIntegrationPoints ) {
     // It is possible directly to pass { aBC1, aBC2 } to the constructor
     auto aBCs = BoundaryConditions2D( vBC );
 
-    auto H = aBCs.matrixA();
+    auto H = aBCs.HMatrix();
 
     std::vector< std::vector< double > > correctH = {
             { 33.33333333, 16.66666667, 0, 0, 0, 0 },
@@ -67,7 +67,7 @@ TEST_F( TestBoundaryConditions2D_test1, TestIntegrationPoints ) {
         }
     }
 
-    auto R = aBCs.vectorR();
+    auto R = aBCs.RVector();
 
     std::vector< double > correctR = { 12757.5, 12757.5, 0, 0, 1764.9, 1764.9 };
 

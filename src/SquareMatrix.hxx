@@ -4,23 +4,23 @@
 #include <stdexcept>
 
 namespace FenestrationCommon {
-	
+
 	//////////////////////////////////////////////////////////////////////////////
 	// Square matrices
 	//////////////////////////////////////////////////////////////////////////////
-	template< class T >
+	template < class T >
 	class SquareMatrix {
 	public:
 		explicit SquareMatrix( const std::size_t size ) :
-			m_Matrix( size, std::vector< T >( size, 0 ) ), m_size( size )	{
-			
+				m_Matrix( size, std::vector< T >( size, 0 ) ), m_size( size ) {
+
 		}
 
 		std::vector< std::vector< T > > getMatrix() const {
 			return m_Matrix;
 		}
 
-		std::vector< T >& operator[]( const std::size_t index ) {
+		std::vector< T > & operator[]( const std::size_t index ) {
 			return m_Matrix[ index ];
 		}
 
@@ -29,8 +29,8 @@ namespace FenestrationCommon {
 		}
 
 		void setZeros() {
-			for( unsigned i = 0; i < m_size; ++i ) {
-				for( unsigned j = 0; j < m_size; ++j ) {
+			for ( unsigned i = 0; i < m_size; ++i ) {
+				for ( unsigned j = 0; j < m_size; ++j ) {
 					m_Matrix[ i ][ j ] = 0;
 				}
 			}
@@ -38,17 +38,17 @@ namespace FenestrationCommon {
 
 		void setIdentity() {
 			setZeros();
-			for( unsigned i = 0; i < m_size; ++i ) {
+			for ( unsigned i = 0; i < m_size; ++i ) {
 				m_Matrix[ i ][ i ] = 1;
 			}
 		}
 
 		void setDiagonal( const std::vector< T > & t_Values ) {
 			if( t_Values.size() != m_size ) {
-				throw std::runtime_error("Supplied vector size mismatch matrix size");
+				throw std::runtime_error( "Supplied vector size mismatch matrix size" );
 			}
 			setZeros();
-			for( unsigned i = 0; i < m_size; ++i ) {
+			for ( unsigned i = 0; i < m_size; ++i ) {
 				m_Matrix[ i ][ i ] = t_Values[ i ];
 			}
 		}
@@ -59,8 +59,8 @@ namespace FenestrationCommon {
 			}
 
 			SquareMatrix aMatrix{ m_size };
-			for( unsigned i = 0; i < m_size; ++i ) {
-				for( unsigned j = 0; j < m_size; ++j ) {
+			for ( unsigned i = 0; i < m_size; ++i ) {
+				for ( unsigned j = 0; j < m_size; ++j ) {
 					aMatrix[ i ][ j ] = m_Matrix[ i ][ j ];
 				}
 				aMatrix[ i ][ i ] += t_Vector[ i ];
@@ -71,12 +71,12 @@ namespace FenestrationCommon {
 
 		SquareMatrix add( const SquareMatrix & t_Matrix ) const {
 			if( m_size != t_Matrix.m_size ) {
-				throw std::runtime_error("Matrices must be identical in size.");
+				throw std::runtime_error( "Matrices must be identical in size." );
 			}
 
 			SquareMatrix aMatrix{ m_size };
-			for( unsigned i = 0; i < m_size; ++i ) {
-				for( unsigned j = 0; j < t_Matrix.size(); ++j ) {
+			for ( unsigned i = 0; i < m_size; ++i ) {
+				for ( unsigned j = 0; j < t_Matrix.size(); ++j ) {
 					aMatrix[ i ][ j ] = m_Matrix[ i ][ j ] + t_Matrix.m_Matrix[ i ][ j ];
 				}
 			}
@@ -86,12 +86,12 @@ namespace FenestrationCommon {
 
 		SquareMatrix sub( const SquareMatrix & t_Matrix ) const {
 			if( m_size != t_Matrix.m_size ) {
-				throw std::runtime_error("Matrices must be identical in size.");
+				throw std::runtime_error( "Matrices must be identical in size." );
 			}
 
 			SquareMatrix aMatrix{ m_size };
-			for( size_t i = 0; i < m_size; ++i ) {
-				for( size_t j = 0; j < t_Matrix.m_size; ++j ) {
+			for ( size_t i = 0; i < m_size; ++i ) {
+				for ( size_t j = 0; j < t_Matrix.m_size; ++j ) {
 					aMatrix[ i ][ j ] = m_Matrix[ i ][ j ] - t_Matrix.m_Matrix[ i ][ j ];
 				}
 			}
@@ -99,17 +99,18 @@ namespace FenestrationCommon {
 			return aMatrix;
 		}
 
-    SquareMatrix mult( const SquareMatrix & t_Matrix ) const {
+		SquareMatrix mult( const SquareMatrix & t_Matrix ) const {
 			if( m_size != t_Matrix.m_size ) {
-				throw std::runtime_error("Matrices must be identical in size.");
+				throw std::runtime_error( "Matrices must be identical in size." );
 			}
 
 			SquareMatrix aMatrix{ m_size };
 
-			for( unsigned i = 0; i < m_size; ++i ) {
-				for( unsigned k = 0; k < m_size; ++k ) {
-					for( unsigned j = 0; j < t_Matrix.m_size; ++j ) {
-						aMatrix[ i ][ j ] = aMatrix[ i ][ j ] + m_Matrix[ i ][ k ] * t_Matrix.m_Matrix[ k ][ j ];
+			for ( unsigned i = 0; i < m_size; ++i ) {
+				for ( unsigned k = 0; k < m_size; ++k ) {
+					for ( unsigned j = 0; j < t_Matrix.m_size; ++j ) {
+						aMatrix[ i ][ j ] =
+								aMatrix[ i ][ j ] + m_Matrix[ i ][ k ] * t_Matrix.m_Matrix[ k ][ j ];
 					}
 				}
 			}
@@ -121,13 +122,28 @@ namespace FenestrationCommon {
 
 			SquareMatrix aMatrix{ m_size };
 
-			for( unsigned i = 0; i < m_size; ++i ) {
-				for( unsigned k = 0; k < m_size; ++k ) {
+			for ( unsigned i = 0; i < m_size; ++i ) {
+				for ( unsigned k = 0; k < m_size; ++k ) {
 					aMatrix[ i ][ k ] += t_Value * m_Matrix[ i ][ k ];
 				}
 			}
 
 			return aMatrix;
+		}
+
+		std::vector< double > multMxV( const std::vector< double > & t_Vector ) {
+			if( m_size != t_Vector.size() ) {
+				throw std::runtime_error(
+						"Vector and matrix have different sizes. Multiplication operation cannot be performed." );
+			}
+			std::vector< double > multV( m_size );
+			for( auto i = 0u; i <  m_size; ++i ) {
+				for( auto j = 0u; j <  m_size; ++j ) {
+					multV[ i ] += m_Matrix[ i ][ j ] * t_Vector[ j ];
+				}
+			}
+
+			return multV;
 		}
 
 	protected:
