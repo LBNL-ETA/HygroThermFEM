@@ -186,7 +186,7 @@ namespace MoisThermFEM {
 		return m_Instance;
 	}
 
-	void IntegrationPoints2D::setIntegrationFormula( IntegrationPointsFormula const t_Formula ) {
+	void IntegrationPoints2D::setIntegrationFormula( const IntegrationPointsFormula t_Formula ) {
 		switch( t_Formula ) {
 			case IntegrationPointsFormula::OnePoint:
 				m_IntPoints2D = fem::make_unique< SingleIntegrationPoint2D >();

@@ -1,24 +1,29 @@
 #pragma once
 
 #include <memory>
+#include <functional>
 #include "Element2D.hxx"
 #include "SquareMatrix.hxx"
 
 namespace MoisThermFEM {
-  
-	// Container class to hold onto thermal conductivity and heat capacity for 
-	// all nodes in the domain.
-  class ElementsThermalLinear2D {
-  public:
-    explicit ElementsThermalLinear2D( const std::vector< ElementThermalLinear2D > & t_Elements );
 
-    FenestrationCommon::SquareMatrix< double > & thermalConductivity();
-    FenestrationCommon::SquareMatrix< double > & rhoCp();
+	/// Container class to hold all elements connected into global matrix. This is only for elements
+	/// and not for boundary conditions
+	class ElementsLinear2D {
+	public:
+		explicit ElementsLinear2D(
+				const std::vector< std::reference_wrapper< const IElementLinear2D > > & t_Elements );
 
-  private:
-    FenestrationCommon::SquareMatrix< double > m_Conductivity;
-    FenestrationCommon::SquareMatrix< double > m_RhoCp;
+		FenestrationCommon::SquareMatrix< double > & conductanceMatrix();
+		// FenestrationCommon::SquareMatrix< double > & thermalCapacitanceMatrix();
 
-  };
-  
+		/// Creates lumped mass matrix that includes time derivative
+		std::vector< double > getLumpedMass( const double DTime );
+
+	private:
+		FenestrationCommon::SquareMatrix< double > m_Conductance;
+		FenestrationCommon::SquareMatrix< double > m_Capacitance;
+
+	};
+
 }

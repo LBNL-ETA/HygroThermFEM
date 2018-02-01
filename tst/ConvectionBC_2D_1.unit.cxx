@@ -1,5 +1,4 @@
 #include <memory>
-#include <stdexcept>
 #include <gtest/gtest.h>
 
 #include "Conrad2D.hxx"
@@ -10,26 +9,23 @@ class ConvectionBC_2D_1 : public testing::Test {
 
 protected:
 	void
-	SetUp() override
-	{
+	SetUp() override {
 	}
 
 	void
-	TearDown() override
-	{
+	TearDown() override {
 		auto & nodePool = NodePool::Instance();
 		nodePool.clear();
 	}
 
 };
 
-TEST_F( ConvectionBC_2D_1, TestExample_1 )
-{
+TEST_F( ConvectionBC_2D_1, TestExample_1 ) {
 	SCOPED_TRACE( "Begin Test: Two elements example with simple conduction." );
 
 	// Enter nodes. Arguments are: node number, x-coordinate, y-coordinate
 	auto & nodePool = NodePool::Instance();
-	
+
 	const auto node1 = nodePool.createNode( 1, 15, 5 );
 	const auto node2 = nodePool.createNode( 2, 15, 0 );
 	const auto node3 = nodePool.createNode( 3, 5, 5 );
@@ -43,31 +39,32 @@ TEST_F( ConvectionBC_2D_1, TestExample_1 )
 	const auto el1 = ElementThermalLinear2D( node3, node4, node2, node1, matCond );
 	const auto el2 = ElementThermalLinear2D( node6, node4, node3, node5, matCond );
 
-	const std::vector< ElementThermalLinear2D > vElements { el1, el2 };
+	const std::vector< std::reference_wrapper< const IElementLinear2D > > vElements{ el1, el2 };
 
-	const auto elements = ElementsThermalLinear2D( vElements );
+	const ElementsLinear2D elements{ vElements };
 
 	// Create Boundary Conditions
-	auto const hc1 = 20.0;
-	auto const tair1 = -18.0;
+	const auto hc1 = 20.0;
+	const auto tair1 = -18.0;
 
-	const ConvectionBC aBc1 { node1, node2, hc1, tair1 };
+	const ConvectionBC aBc1{ node1, node2, hc1, tair1 };
 
-	auto const hc2 = 2.4;
-	auto const tair2 = 21.0;
+	const auto hc2 = 2.4;
+	const auto tair2 = 21.0;
 
 	const ConvectionBC aBc2{ node6, node5, hc2, tair2 };
 
 	// Either pass this or initializer list as given bellow
-	// std::vector< std::reference_wrapper< ILineLinear2D > > vBc { aBc1, aBc2 };
+	// std::vector< std::reference_wrapper< IBCLinear2D > > vBc { aBc1, aBc2 };
 
 	const auto aBCs = BoundaryConditions2D( { aBc1, aBc2 } );
 
-	auto aSolver = SteadyStateSolver2D( elements, aBCs );
+	Domain domain{ elements, aBCs };
 
-	auto solution = aSolver.solution();
+	auto solution = domain.steadyState();
 
-	std::vector< double > correctSolution = { -17.87392241, -17.87392241, 7.341594828, 7.341594828, 19.94935345, 19.94935345 };
+	std::vector< double > correctSolution = { -17.87392241, -17.87392241, 7.341594828, 7.341594828,
+																						19.94935345, 19.94935345 };
 
 	EXPECT_EQ( solution.size(), correctSolution.size() );
 

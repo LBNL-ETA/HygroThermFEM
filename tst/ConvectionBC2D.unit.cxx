@@ -7,56 +7,50 @@ using namespace MoisThermFEM;
 class TestConvectionBC2D : public testing::Test {
 
 protected:
-	void
-	SetUp() override
-	{
-	}
+    void SetUp() override {
+    }
 
-	void
-	TearDown() override
-	{
-		auto & nodePool = NodePool::Instance();
-		nodePool.clear();
-	}
+    void TearDown() override {
+        auto & nodePool = NodePool::Instance();
+        nodePool.clear();
+    }
 
 };
 
-TEST_F( TestConvectionBC2D, TestIntegrationPoints )
-{
-	SCOPED_TRACE( "Begin Test: Convection boundary condition." );
+TEST_F( TestConvectionBC2D, TestIntegrationPoints ) {
 
-	// Enter nodes. Arguments are: node number, x-coordinate, y-coordinate
-	auto & nodePool = NodePool::Instance();
+    SCOPED_TRACE( "Begin Test: Convection boundary condition." );
 
-	const auto node1 = nodePool.createNode( 1, 15, 5 );
-	const auto node2 = nodePool.createNode( 2, 15, 0 );
+// Enter nodes. Arguments are: node number, x-coordinate, y-coordinate
+    auto & nodePool = NodePool::Instance();
 
-	const auto hc = 20.0;
-	const auto tAir = 255.15;
+    const auto node1 = nodePool.createNode( 1, 15, 5 );
+    const auto node2 = nodePool.createNode( 2, 15, 0 );
 
-	auto aBc = ConvectionBC( node1, node2, hc, tAir );
+    const auto hc = 20.0;
+    const auto tAir = 255.15;
 
-	auto h = aBc.matrixA();
+    auto aBc = ConvectionBC( node1, node2, hc, tAir );
 
-	std::vector< std::vector< double > > correctH = {
-		{ 33.33333333, 16.66666667 },
-		{ 16.66666667, 33.33333333 }
-	};
-	EXPECT_EQ( correctH.size(), h.size() );
+    auto h = aBc.H_Matrix();
 
-	for ( auto i = 0u; i < correctH.size(); ++i ) {
-		for ( auto j = 0u; j < correctH.size(); ++j ) {
-			EXPECT_NEAR( correctH[ i ][ j ], h[ i ][ j ], 1e-6 );
-		}
-	}
+    std::vector< std::vector< double > > correctH = { { 33.33333333, 16.66666667 },
+                                                      { 16.66666667, 33.33333333 } };
+    EXPECT_EQ( correctH.size(), h.size() );
 
-	auto R = aBc.rightHandSideVector();
+    for ( auto i = 0u; i < correctH.size(); ++i ) {
+        for ( auto j = 0u; j < correctH.size(); ++j ) {
+            EXPECT_NEAR( correctH[ i ][ j ], h[ i ][ j ], 1e-6 );
+        }
+    }
 
-	std::vector< double > correctR = { 12757.5, 12757.5 };
+    auto R = aBc.R_Vector();
 
-	EXPECT_EQ( R.size(), correctR.size() );
+    std::vector< double > correctR = { 12757.5, 12757.5 };
 
-	for ( auto i = 0u; i < correctR.size(); ++i ) {
-		EXPECT_NEAR( correctR[ i ], R[ i ], 1e-6 );
-	}
+    EXPECT_EQ( R.size(), correctR.size() );
+
+    for ( auto i = 0u; i < correctR.size(); ++i ) {
+        EXPECT_NEAR( correctR[ i ], R[ i ], 1e-6 );
+    }
 }

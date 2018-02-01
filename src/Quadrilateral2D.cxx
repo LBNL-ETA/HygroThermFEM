@@ -14,17 +14,17 @@ namespace MoisThermFEM {
   ////////////////////////////////////////////////////////////////////////////
 
   QuadrilateralLinearGlobal2D::QuadrilateralLinearGlobal2D( 
-    Node2D const & t_Node1,
-    Node2D const & t_Node2,
-    Node2D const & t_Node3,
-    Node2D const & t_Node4 ) :
+    const Node2D & t_Node1,
+    const Node2D & t_Node2,
+    const Node2D & t_Node3,
+    const Node2D & t_Node4 ) :
     m_Nodes( t_Node1, t_Node2, t_Node3, t_Node4 ) {
 
     // Setting up gauss points in global coordinate system
     auto& aElement = IntegrationPoints2D::Instance();
     auto numOfPoints = aElement.count2D();
     for( unsigned i = 0; i < numOfPoints; ++i ) {
-      m_GaussPoints.push_back( GaussPoint2DGlobal( t_Node1, t_Node2, t_Node3, t_Node4, i ) );
+      m_GaussPoints.emplace_back( t_Node1, t_Node2, t_Node3, t_Node4, i );
     }
     
   }
@@ -37,27 +37,27 @@ namespace MoisThermFEM {
     }
   }
 
-  double QuadrilateralLinearGlobal2D::xg( size_t const IntPointIndex ) const {
+  double QuadrilateralLinearGlobal2D::xg( const size_t IntPointIndex ) const {
     assert( IntPointIndex < m_GaussPoints.size() );
     return m_GaussPoints[ IntPointIndex ].xg();
   }
 
-  double QuadrilateralLinearGlobal2D::yg( size_t const IntPointIndex ) const {
+  double QuadrilateralLinearGlobal2D::yg( const size_t IntPointIndex ) const {
     assert( IntPointIndex < m_GaussPoints.size() );
     return m_GaussPoints[ IntPointIndex ].yg();
   }
 
-  std::vector< double > QuadrilateralLinearGlobal2D::DPsiDx( size_t const IntPointIndex ) const {
+  std::vector< double > QuadrilateralLinearGlobal2D::DPsiDx( const size_t IntPointIndex ) const {
     assert( IntPointIndex < m_GaussPoints.size() );
     return m_GaussPoints[ IntPointIndex ].getDPsiDx();
   }
 
-  std::vector< double > QuadrilateralLinearGlobal2D::DPsiDy( size_t const IntPointIndex ) const {
+  std::vector< double > QuadrilateralLinearGlobal2D::DPsiDy( const size_t IntPointIndex ) const {
     assert( IntPointIndex < m_GaussPoints.size() );
     return m_GaussPoints[ IntPointIndex ].getDPsiDy();
   }
 
-  double QuadrilateralLinearGlobal2D::det( size_t const IntPointIndex ) const {
+  double QuadrilateralLinearGlobal2D::det( const size_t IntPointIndex ) const {
     assert( IntPointIndex < m_GaussPoints.size() );
     return m_GaussPoints[ IntPointIndex ].det();
   }
@@ -67,11 +67,11 @@ namespace MoisThermFEM {
   ////////////////////////////////////////////////////////////////////////////
 
   QuadrilateralLinearGlobal2D::GaussPoint2DGlobal::GaussPoint2DGlobal( 
-    Node2D const & t_Node1, 
-    Node2D const & t_Node2,
-    Node2D const & t_Node3,
-    Node2D const & t_Node4,
-    size_t const Index ) : 
+    const Node2D & t_Node1,
+    const Node2D & t_Node2,
+    const Node2D & t_Node3,
+    const Node2D & t_Node4,
+    const size_t Index ) :
     m_Index( Index ), m_Xg( 0 ), m_Yg( 0 ) {
 
     std::vector< std::reference_wrapper< const Node2D > > node = { t_Node1, t_Node2, t_Node3, t_Node4 };
@@ -93,23 +93,23 @@ namespace MoisThermFEM {
 
     for( unsigned i = 0; i < 4; ++i ) {
       auto aNode = node[ i ].get();
-      m_Xg += aNode.x * aElement.Psi( Index, i );
-      m_Yg += aNode.y * aElement.Psi( Index, i );
+      m_Xg += aNode.X() * aElement.Psi( Index, i );
+      m_Yg += aNode.Y() * aElement.Psi( Index, i );
 
-      dxdksi += aNode.x * aElement.PsiDKsi( Index, i );
-      dydksi += aNode.y * aElement.PsiDKsi( Index, i );
-      dxdeta += aNode.x * aElement.PsiDEta( Index, i );
-      dydeta += aNode.y * aElement.PsiDEta( Index, i );
+      dxdksi += aNode.X() * aElement.PsiDKsi( Index, i );
+      dydksi += aNode.Y() * aElement.PsiDKsi( Index, i );
+      dxdeta += aNode.X() * aElement.PsiDEta( Index, i );
+      dydeta += aNode.Y() * aElement.PsiDEta( Index, i );
 
-      j11 += aNode.x * aElement.PsiDKsi( Index, i );
-      j12 += aNode.y * aElement.PsiDKsi( Index, i );
-      j21 += aNode.x * aElement.PsiDEta( Index, i );
-      j22 += aNode.y * aElement.PsiDEta( Index, i );
+      j11 += aNode.X() * aElement.PsiDKsi( Index, i );
+      j12 += aNode.Y() * aElement.PsiDKsi( Index, i );
+      j21 += aNode.X() * aElement.PsiDEta( Index, i );
+      j22 += aNode.Y() * aElement.PsiDEta( Index, i );
     }
 
     m_JacobiDet = j11 * j22 - j21 * j12;
 
-    // calculate inverse matrix now
+    // integrate inverse matrix now
     j11 = j11 / m_JacobiDet;
     j22 = j22 / m_JacobiDet;
     j12 = -j12 / m_JacobiDet;

@@ -1,31 +1,29 @@
 #pragma once
 
 #include <vector>
+#include "Node2D.hxx"
 
 namespace MoisThermFEM {
-  
-  struct Node2D;
-  
-  class NodePool {
-  public:
-    static NodePool& Instance();
-    
-    Node2D& createNode(
-      std::size_t const t_NodeNumber,
-      double const t_x,
-      double const t_y,
-      double const t_temperature = 0 );
 
-    Node2D& getNode( std::size_t const Index );
-    std::size_t maxIndex() const;
-    std::vector< double > nodeTemperatures() const;
-    void clear();
-    
-  private:
-    NodePool();
-    ~NodePool();
-    
-    std::vector< Node2D > m_Nodes;
-  };
-  
+	class NodePool {
+	public:
+		static NodePool & Instance();
+
+		Node2D & createNode( const std::size_t t_NodeNumber, const double t_x, const double t_y,
+		                     const State & t_Prop = State() );
+
+		// Node2D & getNode( std::size_t const Index );
+
+		std::size_t maxIndex() const;
+		std::vector< double > nodeProperties( Property t_Property ) const;
+
+		void clear();
+
+	private:
+		NodePool() = default;
+		~NodePool() = default;
+
+		std::vector< Node2D > m_Nodes;
+	};
+
 }

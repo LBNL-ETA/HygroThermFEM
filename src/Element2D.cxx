@@ -24,7 +24,7 @@ namespace MoisThermFEM {
 	//  IQLEMatrix2D
 	//////////////////////////////////////////////////////////////////////////////
 	IQLEMatrix2D::IQLEMatrix2D( const double t_Value ) : 
-		m_Matrix( numOfQadrilateralNodes ), m_Value( t_Value ) {
+		m_Matrix( numOfQuadrilateralNodes ), m_Value( t_Value ) {
 		
 	}
 
@@ -32,7 +32,7 @@ namespace MoisThermFEM {
 		return m_Matrix;
 	}
 
-	void IQLEMatrix2D::calculate() {
+	void IQLEMatrix2D::integrate() {
 		const auto count = IntegrationPoints2D::Instance().count2D();
 
 		for( unsigned i = 0; i < count; ++i ) {
@@ -46,19 +46,19 @@ namespace MoisThermFEM {
 	}
 
 	//////////////////////////////////////////////////////////////////////////////
-	//  IQLEConductance2D
+	//  QLEConductance2D
 	//////////////////////////////////////////////////////////////////////////////
 
-	IQLEConductance2D::IQLEConductance2D( const Node2D & t_Node1, const Node2D & t_Node2, 
+	QLEConductance2D::QLEConductance2D( const Node2D & t_Node1, const Node2D & t_Node2,
 		const Node2D & t_Node3, const Node2D & t_Node4, const double t_Value) : 
 		IElementQuadrilateral2D( t_Node1, t_Node2, t_Node3, t_Node4 ), IQLEMatrix2D( t_Value ) {
 		
 	}
 
-	SquareMatrix< double > IQLEConductance2D::calculateMatrixInIntegrationPoint(
-		const size_t t_IntegrationPointIndex) const {
+	SquareMatrix< double > QLEConductance2D::calculateMatrixInIntegrationPoint(
+		const size_t t_IntegrationPointIndex ) const {
 		
-		SquareMatrix< double > aMatrix( numOfQadrilateralNodes );
+		SquareMatrix< double > aMatrix( numOfQuadrilateralNodes );
 
 		auto DPsiDx = m_Element.DPsiDx( t_IntegrationPointIndex );
 		auto DPsiDy = m_Element.DPsiDy( t_IntegrationPointIndex );
@@ -74,17 +74,17 @@ namespace MoisThermFEM {
 	}
 
 	//////////////////////////////////////////////////////////////////////////////
-	//  IQLECapacitance2D
+	//  QLECapacitance2D
 	//////////////////////////////////////////////////////////////////////////////
 
-	IQLECapacitance2D::IQLECapacitance2D( const Node2D & t_Node1, const Node2D & t_Node2, 
+	QLECapacitance2D::QLECapacitance2D( const Node2D & t_Node1, const Node2D & t_Node2,
 		const Node2D & t_Node3, const Node2D & t_Node4, const double t_Value ) :
 		IElementQuadrilateral2D( t_Node1, t_Node2, t_Node3, t_Node4 ), IQLEMatrix2D( t_Value ) {
 	}
 
-	SquareMatrix< double > IQLECapacitance2D::calculateMatrixInIntegrationPoint(
+	SquareMatrix< double > QLECapacitance2D::calculateMatrixInIntegrationPoint(
 		const size_t t_IntegrationPointIndex ) const {
-		SquareMatrix< double > aMatrix( numOfQadrilateralNodes );
+		SquareMatrix< double > aMatrix( numOfQuadrilateralNodes );
 
 		auto & aElement = QuadrilateralLinearLocal2D::Instance();
 
@@ -101,33 +101,43 @@ namespace MoisThermFEM {
 	}
 
 	//////////////////////////////////////////////////////////////////////////////
-	//  ElementThermalLinear2D
+	///  IElementlLinear2D
+	//////////////////////////////////////////////////////////////////////////////
+
+	IElementLinear2D::IElementLinear2D( const Node2D & t_Node1, const Node2D & t_Node2,
+																			const Node2D & t_Node3, const Node2D & t_Node4,
+																			const double t_Conductance, const double t_Capacitance ) :
+		m_Node1( t_Node1 ), m_Node2( t_Node2 ), m_Node3( t_Node3 ), m_Node4( t_Node4 ),
+		m_Conductance( t_Conductance ), m_Capacitance( t_Capacitance ) {
+
+	}
+
+	std::vector< size_t > IElementLinear2D::nodeIndexes() const {
+		QLEConductance2D aMatrix( m_Node1, m_Node2, m_Node3, m_Node4, m_Conductance );
+		return aMatrix.nodeIndexes();
+	}
+
+	SquareMatrix< double > IElementLinear2D::conductanceMatrix() const {
+		QLEConductance2D aMatrix( m_Node1, m_Node2, m_Node3, m_Node4, m_Conductance );
+		aMatrix.integrate();
+		return aMatrix.getMatrix();
+	}
+
+	SquareMatrix< double > IElementLinear2D::capacitanceMatrix() const {
+		QLECapacitance2D aMatrix( m_Node1, m_Node2, m_Node3, m_Node4, m_Capacitance );
+		aMatrix.integrate();
+		return aMatrix.getMatrix();
+	}
+
+	//////////////////////////////////////////////////////////////////////////////
+	///  ElementThermalLinear2D
 	//////////////////////////////////////////////////////////////////////////////
 
 	ElementThermalLinear2D::ElementThermalLinear2D( const Node2D & t_Node1, const Node2D & t_Node2,
 	                                  const Node2D & t_Node3, const Node2D & t_Node4,
 	                                  const double t_Cond, const double t_Rho, const double t_Cp ) :
-		m_Conductance( t_Node1, t_Node2, t_Node3, t_Node4, t_Cond ),
-		m_Capacitance( t_Node1, t_Node2, t_Node3, t_Node4, t_Cp * t_Rho )	{
-		m_Capacitance.calculate();
-		m_Conductance.calculate();
-	}
+		IElementLinear2D( t_Node1, t_Node2, t_Node3, t_Node4, t_Cond, t_Cp * t_Rho ) {
 
-	ElementThermalLinear2D::ElementThermalLinear2D( const ElementThermalLinear2D & t_Element ) : 
-		m_Conductance( t_Element.m_Conductance ), m_Capacitance( t_Element.m_Capacitance ) {
-		
-	}
-
-	std::vector< size_t > ElementThermalLinear2D::nodeIndexes() const {
-		return m_Conductance.nodeIndexes();
-	}
-
-	SquareMatrix< double > ElementThermalLinear2D::conductivity() const {
-		return m_Conductance.getMatrix();
-	}
-
-	SquareMatrix< double > ElementThermalLinear2D::rhoCp() const {
-		return m_Capacitance.getMatrix();
 	}
 
 }
