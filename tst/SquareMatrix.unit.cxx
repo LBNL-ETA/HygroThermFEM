@@ -4,15 +4,7 @@
 #include "Conrad2D.hxx"
 
 using FenestrationCommon::SquareMatrix;
-
-/////////////////////////////////////////////////////////////////////////////////////
-/// Transient heat transfer example on Sandstone specimen using data from database
-///   Lumped mass matrix
-///   Time-step 1 hour
-///   Six nodes block at initial temperatures in nodes of 100 degrees
-///   Initial temperature boundary conditions at nodes 5 and 6 are 12 degrees
-///   Solution achieved with linear solver (no iterations required in this case
-/////////////////////////////////////////////////////////////////////////////////////
+using FenestrationCommon::Vector;
 
 class SquareMatrixTest : public testing::Test {
 
@@ -124,7 +116,7 @@ TEST_F( SquareMatrixTest, TestMultiplicationWithVectors ) {
 	SquareMatrix< double > a{ { 1, 2 },
 														{ 3, 4 } };
 
-	std::vector< double > b{ 6, 7 };
+	Vector< double > b{ 6, 7 };
 
 	auto result = a * b;
 
@@ -139,7 +131,7 @@ TEST_F( SquareMatrixTest, TestMultiplicationWithVectors ) {
 	/// Now test inverse multiplication
 	result = b * a;
 
-	std::vector< double > correctInverse{ 27, 40 };
+	Vector< double > correctInverse{ 27, 40 };
 
 	EXPECT_EQ( correctInverse.size(), result.size() );
 

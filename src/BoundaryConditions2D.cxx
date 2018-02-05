@@ -9,7 +9,7 @@ namespace MoisThermFEM {
 
 	BoundaryConditions2D::BoundaryConditions2D(
 			const std::vector< std::reference_wrapper< const IBCLinear2D > > & t_BCs ) : m_HMatrix(
-			NodePool::Instance().maxIndex() ), m_RVector( NodePool::Instance().maxIndex() ), m_Linear(
+			NodePool::Instance().maxIndex() ), m_RVector( NodePool::Instance().maxIndex(), 0 ), m_Linear(
 			true ) {
 
 		// Create full size matrices
@@ -29,7 +29,7 @@ namespace MoisThermFEM {
 	}
 
 	BoundaryConditions2D::BoundaryConditions2D( const BoundaryConditions2D & other ) : m_HMatrix(
-			NodePool::Instance().maxIndex() ) {
+			NodePool::Instance().maxIndex() ), m_RVector( 0, 0 ) {
 		*this = other;
 	}
 
@@ -44,7 +44,7 @@ namespace MoisThermFEM {
 		return m_HMatrix;
 	}
 
-	std::vector< double > BoundaryConditions2D::RVector() const {
+	FenestrationCommon::Vector< double > BoundaryConditions2D::RVector() const {
 		return m_RVector;
 	}
 

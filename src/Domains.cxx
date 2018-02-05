@@ -42,7 +42,7 @@ namespace MoisThermFEM {
 		auto size = NodePool::Instance().maxIndex();
 		auto Rs = m_BCs.RVector();
 
-		for ( unsigned j = 0; j < size; ++j ) {
+		for ( auto j = 0u; j < size; ++j ) {
 			B[ j ] = t_PreviousSolution[ j ] * M[ j ] + Rs[ j ];
 		}
 
@@ -77,7 +77,7 @@ namespace MoisThermFEM {
 			size_t numOfIterations = 0;
 
 			while( error > ConvergenceError ) {
-				auto temp = A.multMxV( solution );
+				auto temp = A * solution;
 				/// temp = B - temp
 				std::transform( B.begin(), B.end(), temp.begin(),
 												temp.begin(), std::minus< double >() );

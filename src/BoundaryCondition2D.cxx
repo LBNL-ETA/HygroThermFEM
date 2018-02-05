@@ -16,17 +16,12 @@ namespace MoisThermFEM {
 
 	}
 
-	std::vector< double > ConvectionBC::R_Vector() const {
-		std::vector< double > A;
-		std::transform( m_PsiVector.begin(), m_PsiVector.end(), std::back_inserter( A ),
-										std::bind1st( std::multiplies< double >(),
-																	m_ConvectionCoefficient *
-																	m_AirTemperature ) );
-		return A;
+	FenestrationCommon::Vector< double > ConvectionBC::R_Vector() const {
+		return m_PsiVector * m_ConvectionCoefficient * m_AirTemperature;
 	}
 
 	FenestrationCommon::SquareMatrix< double > ConvectionBC::H_Matrix() const {
-		return m_PsiPsiMatrix.mult( m_ConvectionCoefficient );
+		return m_PsiPsiMatrix * m_ConvectionCoefficient;
 	}
 
 	////////////////////////////////////////////////////////

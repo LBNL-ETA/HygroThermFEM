@@ -13,7 +13,7 @@ namespace MoisThermFEM {
 		ConvectionBC( const Node2D & t_Node1, const Node2D & t_Node2,
 									const double t_ConvectionCoefficient, const double t_AirTemperature );
 
-		virtual std::vector< double > R_Vector() const override;
+		virtual FenestrationCommon::Vector< double > R_Vector() const override;
 		virtual FenestrationCommon::SquareMatrix< double > H_Matrix() const override;
 
 	protected:

@@ -4,6 +4,7 @@
 
 #include "SquareMatrix.hxx"
 #include "Node2D.hxx"
+#include "Vector.hxx"
 
 namespace MoisThermFEM {
 
@@ -24,7 +25,7 @@ namespace MoisThermFEM {
 		/// derivative. Reason for keeping them separate is that matrix equation for non-linear case
 		/// need to know what matrices are coming from coefficients derivative, because they will be on
 		/// left hand side, next to unknown.
-		virtual std::vector< double > R_Vector() const = 0;
+		virtual FenestrationCommon::Vector< double > R_Vector() const = 0;
 		virtual FenestrationCommon::SquareMatrix< double > H_Matrix() const = 0;
 
 		/// In first pass just return zero for all boundary conditions. This means that coefficients
@@ -48,7 +49,7 @@ namespace MoisThermFEM {
 
 		/// Vector that is base for all boundary conditions. It needs to be modified for
 		/// coefficients and that will depend on type of boundary conditions
-		std::vector< double > m_PsiVector;
+		FenestrationCommon::Vector< double > m_PsiVector;
 		///std::vector< double > m_Rvector; // Right hand-side vector
 		///FenestrationCommon::SquareMatrix< double > m_matrixA; // Left hand-side matrix
 

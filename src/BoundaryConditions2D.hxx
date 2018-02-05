@@ -18,13 +18,13 @@ namespace MoisThermFEM {
 		BoundaryConditions2D & operator=( const BoundaryConditions2D & other );
 
 		FenestrationCommon::SquareMatrix< double > HMatrix() const;
-		std::vector< double > RVector() const;
+		FenestrationCommon::Vector< double > RVector() const;
 
 		bool isLinear() const;
 
 	private:
 		FenestrationCommon::SquareMatrix< double > m_HMatrix;
-		std::vector< double > m_RVector;
+		FenestrationCommon::Vector< double > m_RVector;
 		bool m_Linear;
 	};
 
