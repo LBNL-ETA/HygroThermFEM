@@ -16,6 +16,11 @@ namespace FenestrationCommon {
 
 		}
 
+		explicit SquareMatrix( const std::initializer_list< std::vector< T > > & t_input ) : m_Matrix(
+				t_input ), m_size( m_Matrix.size() ) {
+		}
+
+
 		std::vector< std::vector< T > > getMatrix() const {
 			return m_Matrix;
 		}
@@ -53,7 +58,7 @@ namespace FenestrationCommon {
 			}
 		}
 
-		SquareMatrix addDiagonal( const std::vector< double > & t_Vector ) {
+		SquareMatrix addDiagonal( const std::vector< T > & t_Vector ) {
 			if( m_size != t_Vector.size() ) {
 				std::runtime_error( "Matrix and vector have different sizes." );
 			}
@@ -67,6 +72,21 @@ namespace FenestrationCommon {
 			}
 
 			return aMatrix;
+		}
+
+		SquareMatrix< T >
+		operator+( const SquareMatrix< T > & rhs ) {
+			if( rhs.m_size != m_size ) {
+				throw std::runtime_error( "Matrices must be identical in size." );
+			}
+
+			for ( unsigned i = 0; i < m_size; ++i ) {
+				for ( unsigned j = 0; j < m_size; ++j ) {
+					m_Matrix[ i ][ j ] = m_Matrix[ i ][ j ] + rhs.m_Matrix[ i ][ j ];
+				}
+			}
+
+			return *this;
 		}
 
 		SquareMatrix add( const SquareMatrix & t_Matrix ) const {
@@ -118,7 +138,7 @@ namespace FenestrationCommon {
 			return aMatrix;
 		}
 
-		SquareMatrix mult( const double t_Value ) const {
+		SquareMatrix mult( const T t_Value ) const {
 
 			SquareMatrix aMatrix{ m_size };
 
@@ -131,14 +151,14 @@ namespace FenestrationCommon {
 			return aMatrix;
 		}
 
-		std::vector< double > multMxV( const std::vector< double > & t_Vector ) {
+		std::vector< T > multMxV( const std::vector< T > & t_Vector ) {
 			if( m_size != t_Vector.size() ) {
 				throw std::runtime_error(
 						"Vector and matrix have different sizes. Multiplication operation cannot be performed." );
 			}
-			std::vector< double > multV( m_size );
-			for( auto i = 0u; i <  m_size; ++i ) {
-				for( auto j = 0u; j <  m_size; ++j ) {
+			std::vector< T > multV( m_size );
+			for ( auto i = 0u; i < m_size; ++i ) {
+				for ( auto j = 0u; j < m_size; ++j ) {
 					multV[ i ] += m_Matrix[ i ][ j ] * t_Vector[ j ];
 				}
 			}
