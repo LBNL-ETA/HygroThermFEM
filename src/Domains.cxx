@@ -16,7 +16,7 @@ namespace MoisThermFEM {
 	FenestrationCommon::SquareMatrix< double > Domain::steadyStateLeftHandSide() {
 		auto condMat = m_Elements.conductanceMatrix();
 		auto H = m_BCs.HMatrix();
-		condMat = condMat.add( H );
+		condMat = condMat +  H;
 
 		return condMat;
 	}
@@ -29,7 +29,7 @@ namespace MoisThermFEM {
 		std::vector< double > M = m_Elements.getLumpedMass( t_DTime );
 		auto conductanceMatrix = m_Elements.conductanceMatrix();
 		conductanceMatrix = conductanceMatrix.addDiagonal( M );
-		conductanceMatrix = conductanceMatrix.add( m_BCs.HMatrix() );
+		conductanceMatrix = conductanceMatrix + m_BCs.HMatrix();
 
 		return conductanceMatrix;
 	}

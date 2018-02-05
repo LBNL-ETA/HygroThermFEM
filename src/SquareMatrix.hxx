@@ -20,11 +20,6 @@ namespace FenestrationCommon {
 				t_input ), m_size( m_Matrix.size() ) {
 		}
 
-
-		std::vector< std::vector< T > > getMatrix() const {
-			return m_Matrix;
-		}
-
 		std::vector< T > & operator[]( const std::size_t index ) {
 			return m_Matrix[ index ];
 		}
@@ -63,7 +58,7 @@ namespace FenestrationCommon {
 				std::runtime_error( "Matrix and vector have different sizes." );
 			}
 
-			SquareMatrix aMatrix{ m_size };
+			SquareMatrix aMatrix { m_size };
 			for ( unsigned i = 0; i < m_size; ++i ) {
 				for ( unsigned j = 0; j < m_size; ++j ) {
 					aMatrix[ i ][ j ] = m_Matrix[ i ][ j ];
@@ -74,7 +69,7 @@ namespace FenestrationCommon {
 			return aMatrix;
 		}
 
-		SquareMatrix< T >
+		SquareMatrix< T > &
 		operator+( const SquareMatrix< T > & rhs ) {
 			if( rhs.m_size != m_size ) {
 				throw std::runtime_error( "Matrices must be identical in size." );
@@ -89,34 +84,19 @@ namespace FenestrationCommon {
 			return *this;
 		}
 
-		SquareMatrix add( const SquareMatrix & t_Matrix ) const {
-			if( m_size != t_Matrix.m_size ) {
+		SquareMatrix< T > &
+		operator-( const SquareMatrix< T > & rhs ) {
+			if( rhs.m_size != m_size ) {
 				throw std::runtime_error( "Matrices must be identical in size." );
 			}
 
-			SquareMatrix aMatrix{ m_size };
 			for ( unsigned i = 0; i < m_size; ++i ) {
-				for ( unsigned j = 0; j < t_Matrix.size(); ++j ) {
-					aMatrix[ i ][ j ] = m_Matrix[ i ][ j ] + t_Matrix.m_Matrix[ i ][ j ];
+				for ( unsigned j = 0; j < m_size; ++j ) {
+					m_Matrix[ i ][ j ] = m_Matrix[ i ][ j ] - rhs.m_Matrix[ i ][ j ];
 				}
 			}
 
-			return aMatrix;
-		}
-
-		SquareMatrix sub( const SquareMatrix & t_Matrix ) const {
-			if( m_size != t_Matrix.m_size ) {
-				throw std::runtime_error( "Matrices must be identical in size." );
-			}
-
-			SquareMatrix aMatrix{ m_size };
-			for ( size_t i = 0; i < m_size; ++i ) {
-				for ( size_t j = 0; j < t_Matrix.m_size; ++j ) {
-					aMatrix[ i ][ j ] = m_Matrix[ i ][ j ] - t_Matrix.m_Matrix[ i ][ j ];
-				}
-			}
-
-			return aMatrix;
+			return *this;
 		}
 
 		SquareMatrix mult( const SquareMatrix & t_Matrix ) const {
@@ -124,7 +104,7 @@ namespace FenestrationCommon {
 				throw std::runtime_error( "Matrices must be identical in size." );
 			}
 
-			SquareMatrix aMatrix{ m_size };
+			SquareMatrix aMatrix { m_size };
 
 			for ( auto i = 0u; i < m_size; ++i ) {
 				for ( auto k = 0u; k < m_size; ++k ) {
@@ -138,9 +118,78 @@ namespace FenestrationCommon {
 			return aMatrix;
 		}
 
+		SquareMatrix< T > operator*( const SquareMatrix< T > & rhs ) {
+			if( m_size != rhs.size() ) {
+				throw std::runtime_error( "Matrices must be identical in size." );
+			}
+
+			SquareMatrix< T > temp( m_size );
+
+			for ( auto i = 0u; i < m_size; ++i ) {
+				for ( auto k = 0u; k < m_size; ++k ) {
+					for ( auto j = 0u; j < m_size; ++j ) {
+						temp[ i ][ j ] = temp[ i ][ j ] + m_Matrix[ i ][ k ] * rhs.m_Matrix[ k ][ j ];
+					}
+				}
+			}
+
+			return temp;
+		}
+
+		friend SquareMatrix< T >
+		operator*( const SquareMatrix< T > & lhs, const double t_Value ) {
+
+			SquareMatrix aMatrix { lhs.size() };
+
+			for ( auto i = 0u; i < lhs.size(); ++i ) {
+				for ( auto k = 0u; k < lhs.size(); ++k ) {
+					aMatrix[ i ][ k ] += t_Value * lhs.m_Matrix[ i ][ k ];
+				}
+			}
+
+			return aMatrix;
+		}
+
+		friend SquareMatrix< T >
+		operator*( const double t_Value, const SquareMatrix< T > & lhs ) {
+			return lhs * t_Value;
+		}
+
+		friend std::vector< T >
+		operator*( const std::vector< T > & t_vector, const SquareMatrix & t_matrix ) {
+			if( t_vector.size() != t_matrix.size() ) {
+				throw std::runtime_error( "Vector and matrix have incompatible sizes." );
+			}
+
+			std::vector< T > multV( t_vector.size() );
+			for ( auto i = 0u; i < t_vector.size(); ++i ) {
+				for ( auto j = 0u; j < t_vector.size(); ++j ) {
+					multV[ i ] += t_matrix.m_Matrix[ j ][ i ] * t_vector[ j ];
+				}
+			}
+
+			return multV;
+		}
+
+		friend std::vector< T >
+		operator*( const SquareMatrix & t_matrix, const std::vector< T > & t_vector ) {
+			if( t_vector.size() != t_matrix.size() ) {
+				throw std::runtime_error( "Vector and matrix have incompatible sizes." );
+			}
+
+			std::vector< T > multV( t_vector.size() );
+			for ( auto i = 0u; i < t_vector.size(); ++i ) {
+				for ( auto j = 0u; j < t_vector.size(); ++j ) {
+					multV[ i ] += t_matrix.m_Matrix[ i ][ j ] * t_vector[ j ];
+				}
+			}
+
+			return multV;
+		}
+
 		SquareMatrix mult( const T t_Value ) const {
 
-			SquareMatrix aMatrix{ m_size };
+			SquareMatrix aMatrix { m_size };
 
 			for ( auto i = 0u; i < m_size; ++i ) {
 				for ( auto k = 0u; k < m_size; ++k ) {
