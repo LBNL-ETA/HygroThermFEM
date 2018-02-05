@@ -9,6 +9,8 @@ namespace MoisThermFEM {
 
 	class IBCLinear2D;
 
+	/// Container for all boundary conditions. Its responsibility is to create matrix and vector of
+	/// all boundary conditions.
 	class BoundaryConditions2D {
 	public:
 		explicit BoundaryConditions2D(

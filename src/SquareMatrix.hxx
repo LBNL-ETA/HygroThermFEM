@@ -144,14 +144,14 @@ namespace FenestrationCommon {
 				throw std::runtime_error( "Vector and matrix have incompatible sizes." );
 			}
 
-			std::vector< T > multV( t_vector.size() );
+			std::vector< T > result( t_vector.size() );
 			for ( auto i = 0u; i < t_vector.size(); ++i ) {
 				for ( auto j = 0u; j < t_vector.size(); ++j ) {
-					multV[ i ] += t_matrix.m_Matrix[ j ][ i ] * t_vector[ j ];
+					result[ i ] += t_matrix.m_Matrix[ j ][ i ] * t_vector[ j ];
 				}
 			}
 
-			return multV;
+			return result;
 		}
 
 		friend FenestrationCommon::Vector< T >
@@ -160,14 +160,14 @@ namespace FenestrationCommon {
 				throw std::runtime_error( "Vector and matrix have incompatible sizes." );
 			}
 
-			std::vector< T > multV( t_vector.size() );
+			std::vector< T > result( t_vector.size() );
 			for ( auto i = 0u; i < t_vector.size(); ++i ) {
 				for ( auto j = 0u; j < t_vector.size(); ++j ) {
-					multV[ i ] += t_matrix.m_Matrix[ i ][ j ] * t_vector[ j ];
+					result[ i ] += t_matrix.m_Matrix[ i ][ j ] * t_vector[ j ];
 				}
 			}
 
-			return multV;
+			return result;
 		}
 
 	protected:
