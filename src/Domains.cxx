@@ -18,7 +18,7 @@ namespace MoisThermFEM {
 		auto H = m_BCs.HMatrix();
 		condMat = condMat + H;
 
-		return std::move( condMat );
+		return condMat;
 	}
 
 	FenestrationCommon::Vector< double > Domain::steadyStateRightHandSide() {
@@ -31,7 +31,7 @@ namespace MoisThermFEM {
 		conductanceMatrix = conductanceMatrix.addDiagonal( M );
 		conductanceMatrix = conductanceMatrix + m_BCs.HMatrix();
 
-		return std::move( conductanceMatrix );
+		return conductanceMatrix;
 	}
 
 	FenestrationCommon::Vector< double >
@@ -42,7 +42,7 @@ namespace MoisThermFEM {
 
 		auto B = t_PreviousSolution * M + Rs;
 
-		return std::move( B );
+		return B;
 	}
 
 	std::vector< double > Domain::steadyState() {
@@ -90,7 +90,7 @@ namespace MoisThermFEM {
 
 		}
 
-		return std::move( solution );
+		return solution;
 	}
 
 	double Domain::norm( const std::vector< double > & t_vector ) {

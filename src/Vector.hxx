@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <functional>
 #include <stdexcept>
 #include <algorithm>
 
@@ -17,7 +18,7 @@ namespace FenestrationCommon {
 
 		friend Vector< T > operator+( const Vector< T > & lhs, const Vector< T > & rhs ) {
 			if( rhs.size() != lhs.size() ) {
-				throw std::runtime_error( "Matrices must be identical in size." );
+				throw std::runtime_error( "Vectors must be identical in size." );
 			}
 
 			Vector< T > result( rhs.size(), 0 );
@@ -29,7 +30,7 @@ namespace FenestrationCommon {
 
 		friend Vector< T > operator-( const Vector< T > & lhs, const Vector< T > & rhs ) {
 			if( rhs.size() != lhs.size() ) {
-				throw std::runtime_error( "Matrices must be identical in size." );
+				throw std::runtime_error( "Vectors must be identical in size." );
 			}
 
 			Vector< T > result ( rhs.size(), 0 );
@@ -41,7 +42,7 @@ namespace FenestrationCommon {
 
 		friend Vector< T > operator*( const Vector< T > & lhs, const Vector< T > & rhs ) {
 			if( rhs.size() != lhs.size() ) {
-				throw std::runtime_error( "Matrices must be identical in size." );
+				throw std::runtime_error( "Vectors must be identical in size." );
 			}
 
 			Vector< T > result ( rhs.size(), 0 );

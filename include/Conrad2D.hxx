@@ -16,3 +16,5 @@
 #include "../src/LinearSolver.hxx"
 #include "../src/FEMunique.hxx"
 #include "../src/Domains.hxx"
+#include "../src/Curve.hxx"
+#include "../src/Interpolator.hxx"
