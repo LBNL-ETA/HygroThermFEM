@@ -11,7 +11,7 @@ namespace MoisThermFEM {
 	class LineNodes2D;
 	class LineLinearLocal1D;
 
-	// Interface class for boundary conditions.
+	// Interface class for boundary conditions in linear 2D finite elements.
 	class IBCLinear2D {
 	public:
 		IBCLinear2D() = delete;
@@ -50,8 +50,6 @@ namespace MoisThermFEM {
 		/// Vector that is base for all boundary conditions. It needs to be modified for
 		/// coefficients and that will depend on type of boundary conditions
 		FenestrationCommon::Vector< double > m_PsiVector;
-		///std::vector< double > m_Rvector; // Right hand-side vector
-		///FenestrationCommon::SquareMatrix< double > m_matrixA; // Left hand-side matrix
 
 	};
 

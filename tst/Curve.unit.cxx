@@ -40,7 +40,7 @@ TEST_F( CurveTest, TestTabularLogarithmic ) {
 	const FenestrationCommon::Curve curve( { { 1, 10 },
 																					 { 2, 20 },
 																					 { 3, 30 } },
-																				 FenestrationCommon::Interpolator::Logarithmic );
+																				 FenestrationCommon::Interpolation::Logarithmic );
 
 	double interpolationPoint = 2.5;
 
@@ -65,6 +65,42 @@ TEST_F( CurveTest, TestConstantCurve ) {
 	EXPECT_NEAR( 5, result, 1e-6 );
 
 	result = cons.firstDerivative( interpolationPoint );
+
+	EXPECT_NEAR( 0, result, 1e-6 );
+
+}
+
+TEST_F( CurveTest, TestTabularOutOfRangeBack ) {
+	SCOPED_TRACE( "Begin Test: Test tabular out of range." );
+	const FenestrationCommon::Curve curve{ { 1, 10 },
+																				 { 2, 20 },
+																				 { 3, 30 } };
+
+	double interpolationPoint = 3.5;
+
+	auto result = curve.value( interpolationPoint );
+
+	EXPECT_NEAR( 30, result, 1e-6 );
+
+	result = curve.firstDerivative( interpolationPoint );
+
+	EXPECT_NEAR( 0, result, 1e-6 );
+
+}
+
+TEST_F( CurveTest, TestTabularOutOfRangeFront ) {
+	SCOPED_TRACE( "Begin Test: Test tabular out of range." );
+	const FenestrationCommon::Curve curve{ { 1, 10 },
+																				 { 2, 20 },
+																				 { 3, 30 } };
+
+	double interpolationPoint = 0.5;
+
+	auto result = curve.value( interpolationPoint );
+
+	EXPECT_NEAR( 10, result, 1e-6 );
+
+	result = curve.firstDerivative( interpolationPoint );
 
 	EXPECT_NEAR( 0, result, 1e-6 );
 

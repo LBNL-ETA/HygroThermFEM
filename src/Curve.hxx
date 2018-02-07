@@ -19,10 +19,10 @@ namespace FenestrationCommon {
 	class Curve : public ICurve {
 	public:
 		Curve( const std::vector< std::pair< double, double > > & values,
-					 const Interpolator interpolator = Interpolator::Linear );
+					 const Interpolator interpolator = Interpolation::Linear );
 
 		Curve( const std::initializer_list< std::pair< double, double > > & list,
-					 const Interpolator interpolator = Interpolator::Linear );
+					 const Interpolator interpolator = Interpolation::Linear );
 
 		double value( const double t_position ) const override;
 

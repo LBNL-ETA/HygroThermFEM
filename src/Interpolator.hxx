@@ -1,50 +1,33 @@
 #pragma once
 
 #include <utility>
+#include <map>
+#include <functional>
 
 namespace FenestrationCommon {
 
-	enum class Interpolator { Linear, Logarithmic };
-
-	class IInterpolator {
-	public:
-		IInterpolator() = default;
-
-		virtual double interpolate( const std::pair< double, double > & t_point1,
-						const std::pair< double, double > & t_point2,
-						const double t_position ) const = 0;
-
-	protected:
-		double f(const std::pair< double, double > & t_point1,
-						 const std::pair< double, double > & t_point2,
-						 const double t_position) const;
+	enum class Interpolation {
+		Linear, Logarithmic
 	};
 
-	class LinearInt : public IInterpolator {
+	class Interpolator {
 	public:
-		LinearInt() = default;
+		Interpolator( const Interpolation t_interpolation );
 
 		double interpolate( const std::pair< double, double > & t_point1,
 												const std::pair< double, double > & t_point2,
-												const double t_position ) const override;
+												const double t_position ) const;
 
-	};
+	private:
+		double f( const std::pair< double, double > & t_point1,
+							const std::pair< double, double > & t_point2,
+							const double t_position ) const;
 
-	class LogarithmicInt : public IInterpolator {
-	public:
-		LogarithmicInt() = default;
+		std::map< Interpolation, std::function< double( const std::pair< double, double > & t_point1,
+																									 const std::pair< double, double > & t_point2,
+																									 const double t_position ) > > m_Functions;
 
-		double interpolate( const std::pair< double, double > & t_point1,
-												const std::pair< double, double > & t_point2,
-												const double t_position ) const override;
-	};
-
-	class InterpolatorFactory {
-	public:
-
-		static std::unique_ptr< IInterpolator > getInterpolator( const Interpolator t_Interpolator );
-
-
+		Interpolation m_Interpolation;
 	};
 
 

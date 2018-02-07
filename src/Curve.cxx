@@ -22,11 +22,14 @@ namespace FenestrationCommon {
 														[ & ]( std::pair< double, double > val ) {
 															return val.first > t_position;
 														} );
-		auto pt2 = *it;
-		--it;
-		auto pt1 = *it;
-		return InterpolatorFactory::getInterpolator( m_Interpolator )->interpolate( pt1, pt2,
-																																								t_position );
+
+		auto pt2 = it == m_Curve.end() ? m_Curve.back() : *it;
+		if( it != m_Curve.begin() ) {
+			--it;
+		}
+		auto pt1 = it == m_Curve.begin() ? m_Curve.front() : *it;
+
+		return m_Interpolator.interpolate( pt1, pt2, t_position );
 	}
 
 	Constant::Constant( const double value ) : ICurve(), m_Value( value ) {}
