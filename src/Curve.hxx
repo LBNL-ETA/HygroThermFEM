@@ -29,9 +29,31 @@ namespace FenestrationCommon {
 	protected:
 		std::vector< std::pair< double, double > > m_Curve;
 		Interpolator m_Interpolator;
+
+		virtual std::pair< std::pair< double, double >, std::pair< double, double>>
+		getInterpolationPoints(
+				std::vector< std::pair< double, double > >::const_iterator & it ) const;
 	};
 
-	/// Simple constant
+	/// Class that behaves like suction curve. It is standard (linear or logarithmic) interpolation
+	/// except for the results in first range where curve will return constant value equal to the
+	/// first point
+	class SuctionCurve : public Curve {
+	public:
+		SuctionCurve( const std::vector< std::pair< double, double>> & values,
+									const Interpolator & interpolator = Interpolation::Logarithmic );
+
+		SuctionCurve( const std::initializer_list< std::pair< double, double>> & list,
+									const Interpolator & interpolator );
+
+	protected:
+		std::pair< std::pair< double, double >, std::pair< double, double > >
+		getInterpolationPoints(
+				std::vector< std::pair< double, double > >::const_iterator & it ) const override;
+
+	};
+
+	/// Simple constant curve.
 	class Constant : public ICurve {
 	public:
 		Constant( const double value );
