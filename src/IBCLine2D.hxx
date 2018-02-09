@@ -8,6 +8,8 @@
 
 namespace MoisThermFEM {
 
+	const std::size_t numOfBCNodes = 2;
+
 	class LineNodes2D;
 	class LineLinearLocal1D;
 
@@ -30,14 +32,18 @@ namespace MoisThermFEM {
 
 		/// In first pass just return zero for all boundary conditions. This means that coefficients
 		/// derivative will not be taken into account.
-		FenestrationCommon::SquareMatrix< double > D_HMatrix() const;
+		virtual FenestrationCommon::SquareMatrix< double > D_HMatrix();
 
 		bool isLinear() const;
 
 	protected:
+
 		static std::size_t numOfIntegrationPoints();
 
 		static double psi( const std::size_t IntegrationPointIndex, const std::size_t Index );
+
+		double getIntegratedProperty( const Property t_Property ) const;
+		double getIntegratedDeltaProperty( const Property t_Property ) const;
 
 		LineNodes2D m_Nodes;
 		double m_Determinant;

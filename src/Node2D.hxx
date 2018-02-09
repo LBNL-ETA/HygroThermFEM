@@ -55,8 +55,10 @@ namespace MoisThermFEM {
 		double X() const;
 		double Y() const;
 
-		double getProperty( Property t_State ) const;
-		void setProperty( Property t_State, double t_value );
+		double getProperty( const Property t_Property,
+												const Iteration t_Iteration = Iteration::Current ) const;
+		void setProperty( const Property t_Property, double t_value );
+		double getDeltaProperty( const Property t_Property ) const;
 
 	private:
 		std::size_t m_NodeNumber { 0 };
@@ -79,6 +81,8 @@ namespace MoisThermFEM {
 		INodesStorage( std::initializer_list< Node2D > t_Nodes );
 
 		Node2D getNode( const std::size_t Index ) const;
+
+		Node2D operator[]( const std::size_t index ) const;
 
 		std::vector< std::size_t > getNodeIndexes() const;
 

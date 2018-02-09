@@ -41,9 +41,18 @@ namespace MoisThermFEM {
 	class BlackBodyRadiationBC : public IBCLinear2D {
 	public:
 		BlackBodyRadiationBC( const Node2D & t_Node1, const Node2D & t_Node2,
-													const double t_Emissivity );
+													const double t_Emissivity, const double t_RadiationTemperature );
+
+		FenestrationCommon::SquareMatrix< double > D_HMatrix() override;
 
 	private:
+		/// Radiative convective coefficient that needs to be calculated based on current temperatures
+		FenestrationCommon::Vector< double > HRadiative() const;
+
+		/// First derivative of radiative convection coefficient
+		FenestrationCommon::Vector< double > DHRadiative() const;
+
+		double m_RadiationTemperature;
 		double m_Emissivity;
 	};
 

@@ -40,10 +40,10 @@ namespace FenestrationCommon {
 	/// first point
 	class SuctionCurve : public Curve {
 	public:
-		SuctionCurve( const std::vector< std::pair< double, double>> & values,
+		SuctionCurve( const std::vector< std::pair< double, double > > & values,
 									const Interpolator & interpolator = Interpolation::Logarithmic );
 
-		SuctionCurve( const std::initializer_list< std::pair< double, double>> & list,
+		SuctionCurve( const std::initializer_list< std::pair< double, double > > & list,
 									const Interpolator & interpolator );
 
 	protected:

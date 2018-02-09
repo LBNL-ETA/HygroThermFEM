@@ -1,3 +1,4 @@
+#include <algorithm>
 #include "Curve.hxx"
 
 namespace FenestrationCommon {
@@ -7,7 +8,7 @@ namespace FenestrationCommon {
 		double val1 = value( t_position );
 		double val2 = value( t_position + small );
 		return ( val2 - val1 ) / small;
-	};
+	}
 
 	Curve::Curve( const std::vector< std::pair< double, double > > & values,
 								const Interpolator interpolator ) : m_Curve( values ),

@@ -68,12 +68,16 @@ namespace MoisThermFEM {
 		return m_y;
 	}
 
-	double Node2D::getProperty( Property t_Property ) const {
-		return m_State.getValue( t_Property );
+	double Node2D::getProperty( const Property t_Property, const Iteration t_Iteration ) const {
+		return m_State.getValue( t_Property, t_Iteration );
 	}
 
-	void Node2D::setProperty( Property t_Property, double t_value ) {
+	void Node2D::setProperty( const Property t_Property, double t_value ) {
 		m_State.setValue( t_Property, t_value );
+	}
+
+	double Node2D::getDeltaProperty( const Property t_Property ) const {
+		return m_State.getDeltaValue( t_Property );
 	}
 
 	////////////////////////////////////////////////////////////////////////////
@@ -95,6 +99,13 @@ namespace MoisThermFEM {
 			indexes.push_back( aNode.getNodeNumber() );
 		}
 		return indexes;
+	}
+
+	Node2D INodesStorage::operator[]( const std::size_t index ) const {
+		if( index >= m_Nodes.size() ) {
+			throw std::overflow_error("Index is higher than number of nodes.");
+		}
+		return m_Nodes[ index ];
 	}
 
 	////////////////////////////////////////////////////////////////////////////

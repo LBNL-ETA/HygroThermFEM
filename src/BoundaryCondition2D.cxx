@@ -48,8 +48,51 @@ namespace MoisThermFEM {
 	////////////////////////////////////////////////////////
 
 	BlackBodyRadiationBC::BlackBodyRadiationBC( const Node2D & t_Node1, const Node2D & t_Node2,
-																							const double t_Emissivity )
-			: IBCLinear2D( t_Node1,
-										 t_Node2,
-										 true ), m_Emissivity( t_Emissivity ) {}
+																							const double t_Emissivity,
+																							const double t_RadiationTemperature )
+			: IBCLinear2D( t_Node1, t_Node2, false ), m_RadiationTemperature { t_RadiationTemperature },
+				m_Emissivity { t_Emissivity } {}
+
+	FenestrationCommon::Vector< double > BlackBodyRadiationBC::HRadiative() const {
+		FenestrationCommon::Vector< double > result( numOfBCNodes, 0 );
+		for ( std::size_t j = 0; j < numOfBCNodes; ++j ) {
+			double T = m_Nodes[ j ].getProperty( Property::temperature );
+			result[ j ] = ( T + m_RadiationTemperature ) *
+										( std::pow( T, 2 ) + std::pow( m_RadiationTemperature, 2 ) );
+		}
+		return result;
+	}
+
+	FenestrationCommon::Vector< double > BlackBodyRadiationBC::DHRadiative() const {
+		FenestrationCommon::Vector< double > result( numOfBCNodes, 0 );
+		for ( std::size_t j = 0; j < numOfBCNodes; ++j ) {
+			double T = m_Nodes[ j ].getProperty( Property::temperature );
+			result[ j ] = ( 3 * std::pow( T, 2 ) + 2 * m_RadiationTemperature * T +
+											std::pow( m_RadiationTemperature, 2 ) );
+		}
+		return result;
+	}
+
+	FenestrationCommon::SquareMatrix< double > BlackBodyRadiationBC::D_HMatrix() {
+		double integratedTemperature = getIntegratedProperty( Property::temperature );
+		double integratedDeltaTemperature = getIntegratedDeltaProperty( Property::temperature );
+
+		auto DhT = DHRadiative() * integratedTemperature;
+		auto DhDt = DHRadiative() * integratedDeltaTemperature;
+		auto VRadiation = DHRadiative() * m_RadiationTemperature;
+
+		FenestrationCommon::SquareMatrix< double > C{ numOfBCNodes };
+		FenestrationCommon::SquareMatrix< double > D{ numOfBCNodes };
+		FenestrationCommon::SquareMatrix< double > E{ numOfBCNodes };
+
+		for( auto i = 0u; i < numOfBCNodes; ++i ) {
+			for( auto j = 0u; j < numOfBCNodes; ++j ) {
+				C[ i ][ j ] = m_PsiPsiMatrix[ i ][ j ] * DhT[ i ];
+				D[ i ][ j ] = m_PsiPsiMatrix[ i ][ j ] * DhDt[ i ];
+				E[ i ][ j ] = m_PsiPsiMatrix[ i ][ j ] * VRadiation[ i ];
+			}
+		}
+
+		return C + D + E;
+	}
 }
