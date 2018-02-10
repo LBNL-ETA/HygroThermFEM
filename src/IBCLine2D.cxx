@@ -46,8 +46,7 @@ namespace MoisThermFEM {
 		return m_Linear;
 	}
 
-	FenestrationCommon::SquareMatrix< double > IBCLinear2D::D_HMatrix() {
-		//TODO: Return zero matrix for now
+	FenestrationCommon::SquareMatrix< double > IBCLinear2D::D_HMatrix() const {
 		return SquareMatrix< double >( 2 );
 	}
 
@@ -55,7 +54,7 @@ namespace MoisThermFEM {
 		double sum { 0 };
 		for ( std::size_t i = 0; i < numOfIntegrationPoints(); ++i ) {
 			for ( std::size_t j = 0; j < numOfBCNodes; ++j ) {
-				sum += m_Nodes[ j ].getProperty( t_Property ) + psi( i, j );
+				sum += m_Nodes[ j ].getProperty( t_Property ) * psi( i, j );
 			}
 		}
 		return sum;
@@ -65,10 +64,17 @@ namespace MoisThermFEM {
 		double sum { 0 };
 		for ( std::size_t i = 0; i < numOfIntegrationPoints(); ++i ) {
 			for ( std::size_t j = 0; j < numOfBCNodes; ++j ) {
-				sum += m_Nodes[ j ].getDeltaProperty( t_Property ) + psi( i, j );
+				sum += m_Nodes[ j ].getDeltaProperty( t_Property ) * psi( i, j );
 			}
 		}
 		return sum;
+	}
+
+	Node2D & IBCLinear2D::getNode( const std::size_t index ) {
+		if( index > numOfBCNodes ) {
+			throw std::runtime_error("Index out of range.");
+		}
+		return m_Nodes.getNode( index );
 	}
 
 }

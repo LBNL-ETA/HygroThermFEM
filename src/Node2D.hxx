@@ -80,7 +80,7 @@ namespace MoisThermFEM {
 
 		INodesStorage( std::initializer_list< Node2D > t_Nodes );
 
-		Node2D getNode( const std::size_t Index ) const;
+		Node2D & getNode( const std::size_t Index );
 
 		Node2D operator[]( const std::size_t index ) const;
 

@@ -20,6 +20,7 @@ namespace MoisThermFEM {
 		IBCLinear2D( const Node2D & t_Node1, const Node2D & t_Node2, const bool t_Linear = true );
 
 		std::vector< std::size_t > getNodeIndexes() const;
+		Node2D & getNode( const std::size_t index );
 
 		/// Every boundary condition will return matrices and vectors. There are two type of matrices.
 		/// First one is called H matrix and will include sum of all matrices that do not have first
@@ -32,7 +33,7 @@ namespace MoisThermFEM {
 
 		/// In first pass just return zero for all boundary conditions. This means that coefficients
 		/// derivative will not be taken into account.
-		virtual FenestrationCommon::SquareMatrix< double > D_HMatrix();
+		virtual FenestrationCommon::SquareMatrix< double > D_HMatrix() const;
 
 		bool isLinear() const;
 

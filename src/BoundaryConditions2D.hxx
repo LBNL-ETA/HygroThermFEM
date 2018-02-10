@@ -14,19 +14,18 @@ namespace MoisThermFEM {
 	class BoundaryConditions2D {
 	public:
 		explicit BoundaryConditions2D(
-				const std::vector< std::reference_wrapper< const IBCLinear2D > > & t_BCs );
-
-		BoundaryConditions2D( const BoundaryConditions2D & other );
-		BoundaryConditions2D & operator=( const BoundaryConditions2D & other );
+				std::vector< std::reference_wrapper< IBCLinear2D > > & t_BCs );
 
 		FenestrationCommon::SquareMatrix< double > HMatrix() const;
+		FenestrationCommon::SquareMatrix< double >DHMatrix() const;
 		FenestrationCommon::Vector< double > RVector() const;
 
 		bool isLinear() const;
 
+		void updateNodeTemperatures( const std::vector< double > & temperatures );
+
 	private:
-		FenestrationCommon::SquareMatrix< double > m_HMatrix;
-		FenestrationCommon::Vector< double > m_RVector;
+		std::vector< std::reference_wrapper< IBCLinear2D > > m_BCs;
 		bool m_Linear;
 	};
 

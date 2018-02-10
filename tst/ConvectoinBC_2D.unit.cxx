@@ -38,13 +38,13 @@ TEST_F( TestBoundaryConditions2D_test1, TestIntegrationPoints ) {
     auto const hc1 = 20.0;
     auto const Tair1 = 255.15;
 
-    const ConvectionBC aBC1{ node1, node2, hc1, Tair1 };
+    ConvectionBC aBC1{ node1, node2, hc1, Tair1 };
 
     auto const hc2 = 2.4;
     auto const Tair2 = 294.15;
 
-    const ConvectionBC aBC2{ node6, node5, hc2, Tair2 };
-    const std::vector< std::reference_wrapper< const IBCLinear2D > > vBC{ aBC1, aBC2 };
+    ConvectionBC aBC2{ node6, node5, hc2, Tair2 };
+    std::vector< std::reference_wrapper< IBCLinear2D > > vBC{ aBC1, aBC2 };
 
     // It is possible directly to pass { aBC1, aBC2 } to the constructor
     auto aBCs = BoundaryConditions2D( vBC );

@@ -55,12 +55,28 @@ namespace FenestrationCommon {
 			}
 		}
 
+		SquareMatrix< T >
+		mmultRows( const Vector< T > & t_vector ) const {
+			if( m_Matrix.size() != t_vector.size() ) {
+				throw std::runtime_error("Matrix and vector must have same sizes.");
+			}
+
+			SquareMatrix< T > result{ m_Matrix.size() };
+
+			for( auto i = 0u; i < t_vector.size(); ++i ) {
+				for( auto j = 0u; j < t_vector.size(); ++j ) {
+					result[ i ][ j ] = m_Matrix[ i ][ j ] * t_vector[ i ];
+				}
+			}
+			return result;
+		}
+
 		SquareMatrix addDiagonal( const std::vector< T > & t_Vector ) {
 			if( m_size != t_Vector.size() ) {
 				std::runtime_error( "Matrix and vector have different sizes." );
 			}
 
-			SquareMatrix aMatrix { m_size };
+			SquareMatrix aMatrix{ m_size };
 			for ( auto i = 0u; i < m_size; ++i ) {
 				for ( auto j = 0u; j < m_size; ++j ) {
 					aMatrix[ i ][ j ] = m_Matrix[ i ][ j ];
@@ -84,6 +100,11 @@ namespace FenestrationCommon {
 			}
 
 			return *this;
+		}
+
+		SquareMatrix< T > &
+		operator+=( const SquareMatrix< T > & rhs ) {
+			return operator+( rhs );
 		}
 
 		SquareMatrix< T > &
@@ -122,7 +143,7 @@ namespace FenestrationCommon {
 		friend SquareMatrix< T >
 		operator*( const SquareMatrix< T > & lhs, const double t_Value ) {
 
-			SquareMatrix aMatrix { lhs.size() };
+			SquareMatrix aMatrix{ lhs.size() };
 
 			for ( auto i = 0u; i < lhs.size(); ++i ) {
 				for ( auto k = 0u; k < lhs.size(); ++k ) {

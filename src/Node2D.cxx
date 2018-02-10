@@ -88,7 +88,7 @@ namespace MoisThermFEM {
 			: m_Nodes( t_Nodes ) {
 	}
 
-	Node2D INodesStorage::getNode( const std::size_t Index ) const {
+	Node2D & INodesStorage::getNode( const std::size_t Index ) {
 		assert( Index < m_Nodes.size() );
 		return m_Nodes[ Index ];
 	}

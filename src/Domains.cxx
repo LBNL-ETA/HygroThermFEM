@@ -26,21 +26,22 @@ namespace MoisThermFEM {
 	}
 
 	FenestrationCommon::SquareMatrix< double > Domain::transientM_K_H_Matrix( const double t_DTime ) {
-		std::vector< double > M = m_Elements.getLumpedMass( t_DTime );
-		auto conductanceMatrix = m_Elements.conductanceMatrix();
-		conductanceMatrix = conductanceMatrix.addDiagonal( M );
-		conductanceMatrix = conductanceMatrix + m_BCs.HMatrix();
+		auto M = m_Elements.getLumpedMass( t_DTime );
+		auto M_K_H = m_Elements.conductanceMatrix();
+		M_K_H = M_K_H.addDiagonal( M );
+		M_K_H += m_BCs.HMatrix();
+		M_K_H += m_BCs.DHMatrix();
 
-		return conductanceMatrix;
+		return M_K_H;
 	}
 
 	FenestrationCommon::Vector< double >
 	Domain::transientMT_R_Vector( std::vector< double > & t_PreviousSolution,
 																const double t_DTime ) {
-		FenestrationCommon::Vector< double > M = m_Elements.getLumpedMass( t_DTime );
-		auto Rs = m_BCs.RVector();
+		FenestrationCommon::Vector< double > M{ m_Elements.getLumpedMass( t_DTime ) };
+		auto R = m_BCs.RVector();
 
-		auto B = t_PreviousSolution * M + Rs;
+		auto B = t_PreviousSolution * M + R;
 
 		return B;
 	}
@@ -54,8 +55,8 @@ namespace MoisThermFEM {
 	std::vector< double >
 	Domain::transient( std::vector< double > & currentStateValues, const double t_DTime ) {
 
-		auto B = transientMT_R_Vector( currentStateValues, t_DTime );
 		auto A = transientM_K_H_Matrix( t_DTime );
+		auto B = transientMT_R_Vector( currentStateValues, t_DTime );
 
 		CLinearSolver aSolver;
 
@@ -83,6 +84,12 @@ namespace MoisThermFEM {
 												solution.begin(), std::plus< double >() );
 
 				++numOfIterations;
+
+				m_BCs.updateNodeTemperatures( solution );
+
+				A = transientM_K_H_Matrix( t_DTime );
+				B = transientMT_R_Vector( currentStateValues, t_DTime );
+
 				if( numOfIterations > MaxIterations ) {
 					throw std::runtime_error( "Solution failed to converge." );
 				}

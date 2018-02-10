@@ -43,7 +43,10 @@ namespace MoisThermFEM {
 		BlackBodyRadiationBC( const Node2D & t_Node1, const Node2D & t_Node2,
 													const double t_Emissivity, const double t_RadiationTemperature );
 
-		FenestrationCommon::SquareMatrix< double > D_HMatrix() override;
+		virtual FenestrationCommon::Vector< double > R_Vector() const override;
+		virtual FenestrationCommon::SquareMatrix< double > H_Matrix() const override;
+
+		FenestrationCommon::SquareMatrix< double > D_HMatrix() const override;
 
 	private:
 		/// Radiative convective coefficient that needs to be calculated based on current temperatures
