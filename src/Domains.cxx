@@ -30,7 +30,6 @@ namespace MoisThermFEM {
 		auto M_K_H = m_Elements.conductanceMatrix();
 		M_K_H = M_K_H.addDiagonal( M );
 		M_K_H += m_BCs.HMatrix();
-		M_K_H += m_BCs.DHMatrix();
 
 		return M_K_H;
 	}
@@ -75,7 +74,10 @@ namespace MoisThermFEM {
 				auto temp = A * solution;
 				temp = B - temp;
 
-				auto dU = aSolver.solveSystem( A, temp );
+				auto DH = transientDH_Matrix( );
+				DH = A + DH;
+
+				auto dU = aSolver.solveSystem( DH, temp );
 
 				error = norm( dU );
 
@@ -109,5 +111,9 @@ namespace MoisThermFEM {
 		result = std::pow( result, 0.5 );
 
 		return result;
+	}
+
+	FenestrationCommon::SquareMatrix< double > Domain::transientDH_Matrix() {
+		return m_BCs.DHMatrix();;
 	}
 }
