@@ -47,17 +47,16 @@ TEST_F( ConvectionBC_2D_1, TestExample_1 ) {
 	const auto hc1 = 20.0;
 	const auto tair1 = -18.0;
 
-	const ConvectionBC aBc1{ node1, node2, hc1, tair1 };
+	ConvectionBC aBc1{ node1, node2, hc1, tair1 };
 
 	const auto hc2 = 2.4;
 	const auto tair2 = 21.0;
 
-	const ConvectionBC aBc2{ node6, node5, hc2, tair2 };
+	ConvectionBC aBc2{ node6, node5, hc2, tair2 };
 
-	// Either pass this or initializer list as given bellow
-	// std::vector< std::reference_wrapper< IBCLinear2D > > vBc { aBc1, aBc2 };
+	std::vector< std::reference_wrapper< IBCLinear2D > > vBc { aBc1, aBc2 };
 
-	const auto aBCs = BoundaryConditions2D( { aBc1, aBc2 } );
+	BoundaryConditions2D aBCs{ vBc };
 
 	Domain domain{ elements, aBCs };
 

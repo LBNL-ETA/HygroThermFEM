@@ -14,22 +14,23 @@ namespace MoisThermFEM {
 		/// Calculates steady state solution
 		std::vector< double > steadyState();
 
-		/// Calculates next timestep value
+		/// Calculates next timestep value from current values
 		std::vector< double >
-		transient( std::vector< double > & currentTimestepValues, const double t_DTime );
+		transient( std::vector< double > & currentStateValues, const double t_DTime );
 
 	protected:
 
 		FenestrationCommon::SquareMatrix< double > steadyStateLeftHandSide();
-		std::vector< double > steadyStateRightHandSide();
+		FenestrationCommon::Vector< double > steadyStateRightHandSide();
 
 		/// In matrix equations some structures are showing up in both (linear and nonlinear) cases
 		/// and those matrix operations are separated into functions.
 		/// This function retrieves M+K+H matrix
 		FenestrationCommon::SquareMatrix< double > transientM_K_H_Matrix( const double t_DTime );
+		/// FenestrationCommon::SquareMatrix< double > transientDH_Matrix();
 
 		/// This function retrieves M*U+R vector (where U is state variable)
-		std::vector< double >
+		FenestrationCommon::Vector< double >
 		transientMT_R_Vector( std::vector< double > & t_PreviousSolution, const double t_DTime );
 
 		/// Returns norm of vector. Necessary to estimate current error.

@@ -8,6 +8,10 @@ namespace MoisThermFEM {
 		temperature, humidity, pressure
 	};
 
+	enum class Iteration {
+		Current, Previous
+	};
+
 	// Simple class to hold state variables
 	class State {
 	public:
@@ -18,11 +22,12 @@ namespace MoisThermFEM {
 
 		State & operator=( const State & other );
 
-		double getValue( const Property t_Property ) const;
+		double getValue( const Property t_Property, const Iteration t_Iteration = Iteration::Current ) const;
 		void setValue( const Property t_Property, const double t_Value );
+		double getDeltaValue( const Property t_Property ) const;
 
 	private:
-		std::map< Property, double > m_Property;
+		std::map< Iteration, std::map< Property, double > > m_Property;
 
 	};
 

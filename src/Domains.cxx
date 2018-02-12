@@ -16,52 +16,46 @@ namespace MoisThermFEM {
 	FenestrationCommon::SquareMatrix< double > Domain::steadyStateLeftHandSide() {
 		auto condMat = m_Elements.conductanceMatrix();
 		auto H = m_BCs.HMatrix();
-		condMat = condMat.add( H );
+		condMat = condMat + H;
 
 		return condMat;
 	}
 
-	std::vector< double > Domain::steadyStateRightHandSide() {
+	FenestrationCommon::Vector< double > Domain::steadyStateRightHandSide() {
 		return m_BCs.RVector();
 	}
 
 	FenestrationCommon::SquareMatrix< double > Domain::transientM_K_H_Matrix( const double t_DTime ) {
-		std::vector< double > M = m_Elements.getLumpedMass( t_DTime );
-		auto conductanceMatrix = m_Elements.conductanceMatrix();
-		conductanceMatrix = conductanceMatrix.addDiagonal( M );
-		conductanceMatrix = conductanceMatrix.add( m_BCs.HMatrix() );
+		auto M = m_Elements.getLumpedMass( t_DTime );
+		auto M_K_H = m_Elements.conductanceMatrix();
+		M_K_H = M_K_H.addDiagonal( M );
+		M_K_H += m_BCs.HMatrix();
 
-		return conductanceMatrix;
+		return M_K_H;
 	}
 
-	std::vector< double > Domain::transientMT_R_Vector( std::vector< double > & t_PreviousSolution,
-																											const double t_DTime ) {
-		std::vector< double > M = m_Elements.getLumpedMass( t_DTime );
-		std::vector< double > B( t_PreviousSolution.size() );
+	FenestrationCommon::Vector< double >
+	Domain::transientMT_R_Vector( std::vector< double > & t_PreviousSolution,
+																const double t_DTime ) {
+		FenestrationCommon::Vector< double > M{ m_Elements.getLumpedMass( t_DTime ) };
+		auto R = m_BCs.RVector();
 
-		auto size = NodePool::Instance().maxIndex();
-		auto Rs = m_BCs.RVector();
-
-		for ( unsigned j = 0; j < size; ++j ) {
-			B[ j ] = t_PreviousSolution[ j ] * M[ j ] + Rs[ j ];
-		}
+		auto B = t_PreviousSolution * M + R;
 
 		return B;
 	}
 
 	std::vector< double > Domain::steadyState() {
 		auto B = steadyStateRightHandSide();
-
 		CLinearSolver aSolver;
-
 		return aSolver.solveSystem( steadyStateLeftHandSide(), B );
 	}
 
 	std::vector< double >
-	Domain::transient( std::vector< double > & currentTimestepValues, const double t_DTime ) {
+	Domain::transient( std::vector< double > & currentStateValues, const double t_DTime ) {
 
-		auto B = transientMT_R_Vector( currentTimestepValues, t_DTime );
 		auto A = transientM_K_H_Matrix( t_DTime );
+		auto B = transientMT_R_Vector( currentStateValues, t_DTime );
 
 		CLinearSolver aSolver;
 
@@ -70,17 +64,23 @@ namespace MoisThermFEM {
 		if( m_Linear ) {
 			solution = aSolver.solveSystem( A, B );
 		} else {
-			solution = currentTimestepValues;
+			solution = currentStateValues;
 
 			auto error = std::numeric_limits< double >::max();
 
 			size_t numOfIterations = 0;
 
-			while( error > ConvergenceError ) {
-				auto temp = A.multMxV( solution );
-				/// temp = B - temp
-				std::transform( B.begin(), B.end(), temp.begin(),
-												temp.begin(), std::minus< double >() );
+			while ( error > ConvergenceError ) {
+				auto temp = A * solution;
+				temp = B - temp;
+
+				/// Seems that DH can be avoided. Same solution is achieved faster without it. Topaz does
+				/// have this implementation. Will keep it commented in case we want to test it in future
+				/// when new kind of boundary conditions are introduced (Simon)
+				/// auto DH = transientDH_Matrix( );
+				/// DH = A + DH;
+
+				/// auto dU = aSolver.solveSystem( DH, temp );
 
 				auto dU = aSolver.solveSystem( A, temp );
 
@@ -89,9 +89,16 @@ namespace MoisThermFEM {
 				std::transform( dU.begin(), dU.end(),
 												solution.begin(),
 												solution.begin(), std::plus< double >() );
+
 				++numOfIterations;
+
+				m_BCs.updateNodeTemperatures( solution );
+
+				A = transientM_K_H_Matrix( t_DTime );
+				B = transientMT_R_Vector( currentStateValues, t_DTime );
+
 				if( numOfIterations > MaxIterations ) {
-					throw std::runtime_error("Solution failed to converge.");
+					throw std::runtime_error( "Solution failed to converge." );
 				}
 			}
 
@@ -101,7 +108,7 @@ namespace MoisThermFEM {
 	}
 
 	double Domain::norm( const std::vector< double > & t_vector ) {
-		double result{ 0 };
+		double result { 0 };
 		std::for_each( t_vector.begin(), t_vector.end(), [ & ]( double n ) {
 			result += n * n;
 		} );
@@ -110,4 +117,8 @@ namespace MoisThermFEM {
 
 		return result;
 	}
+
+	/// FenestrationCommon::SquareMatrix< double > Domain::transientDH_Matrix() {
+	/// 	return m_BCs.DHMatrix();;
+	/// }
 }

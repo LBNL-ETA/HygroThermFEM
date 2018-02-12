@@ -1,7 +1,9 @@
 #include <algorithm>
 #include <functional>
+#include <cmath>
 
 #include "BoundaryCondition2D.hxx"
+#include "Common.hxx"
 
 namespace MoisThermFEM {
 
@@ -16,17 +18,12 @@ namespace MoisThermFEM {
 
 	}
 
-	std::vector< double > ConvectionBC::R_Vector() const {
-		std::vector< double > A;
-		std::transform( m_PsiVector.begin(), m_PsiVector.end(), std::back_inserter( A ),
-										std::bind1st( std::multiplies< double >(),
-																	m_ConvectionCoefficient *
-																	m_AirTemperature ) );
-		return A;
+	FenestrationCommon::Vector< double > ConvectionBC::R_Vector() const {
+		return m_PsiVector * m_ConvectionCoefficient * m_AirTemperature;
 	}
 
 	FenestrationCommon::SquareMatrix< double > ConvectionBC::H_Matrix() const {
-		return m_PsiPsiMatrix.mult( m_ConvectionCoefficient );
+		return m_PsiPsiMatrix * m_ConvectionCoefficient;
 	}
 
 	////////////////////////////////////////////////////////
@@ -53,8 +50,53 @@ namespace MoisThermFEM {
 	////////////////////////////////////////////////////////
 
 	BlackBodyRadiationBC::BlackBodyRadiationBC( const Node2D & t_Node1, const Node2D & t_Node2,
-																							const double t_Emissivity )
-			: IBCLinear2D( t_Node1,
-										 t_Node2,
-										 true ), m_Emissivity( t_Emissivity ) {}
+																							const double t_Emissivity,
+																							const double t_RadiationTemperature )
+			: IBCLinear2D( t_Node1, t_Node2, false ), m_RadiationTemperature{ t_RadiationTemperature },
+				m_Emissivity{ t_Emissivity } {}
+
+	FenestrationCommon::Vector< double > BlackBodyRadiationBC::HRadiative() const {
+		FenestrationCommon::Vector< double > result( numOfBCNodes, 0 );
+		for ( std::size_t j = 0; j < numOfBCNodes; ++j ) {
+			double T = m_Nodes[ j ].getProperty( Property::temperature );
+			result[ j ] = ( T + m_RadiationTemperature ) *
+										( std::pow( T, 2 ) + std::pow( m_RadiationTemperature, 2 ) ) *
+										Constants::STEFANBOLTZMANN * m_Emissivity;
+		}
+		return result;
+	}
+
+	/// FenestrationCommon::Vector< double > BlackBodyRadiationBC::DHRadiative() const {
+	/// 	FenestrationCommon::Vector< double > result( numOfBCNodes, 0 );
+	/// 	for ( std::size_t j = 0; j < numOfBCNodes; ++j ) {
+	/// 		double T = m_Nodes[ j ].getProperty( Property::temperature );
+	/// 		result[ j ] = ( 3 * std::pow( T, 2 ) + 2 * m_RadiationTemperature * T +
+	/// 										std::pow( m_RadiationTemperature, 2 ) ) * Constants::STEFANBOLTZMANN *
+	/// 									m_Emissivity;
+	/// 	}
+	/// 	return result;
+	/// }
+
+	/// FenestrationCommon::SquareMatrix< double > BlackBodyRadiationBC::D_HMatrix() const {
+	/// 	double integratedTemperature = getIntegratedProperty( Property::temperature );
+	/// 	double integratedDeltaTemperature = getIntegratedDeltaProperty( Property::temperature );
+///
+	/// 	auto DhT = DHRadiative() * integratedTemperature;
+	/// 	auto DhDt = DHRadiative() * integratedDeltaTemperature;
+	/// 	auto VRadiation = DHRadiative() * m_RadiationTemperature;
+///
+	/// 	auto C = m_PsiPsiMatrix.mmultRows( DhT );
+	/// 	auto D = m_PsiPsiMatrix.mmultRows( DhDt );
+	/// 	auto E = m_PsiPsiMatrix.mmultRows( VRadiation );
+///
+	/// 	return C + D + E;
+	/// }
+
+	FenestrationCommon::Vector< double > BlackBodyRadiationBC::R_Vector() const {
+		return m_PsiVector * HRadiative() * m_RadiationTemperature;
+	}
+
+	FenestrationCommon::SquareMatrix< double > BlackBodyRadiationBC::H_Matrix() const {
+		return m_PsiPsiMatrix.mmultRows( HRadiative() );
+	}
 }

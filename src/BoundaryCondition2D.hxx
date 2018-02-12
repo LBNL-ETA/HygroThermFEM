@@ -13,7 +13,7 @@ namespace MoisThermFEM {
 		ConvectionBC( const Node2D & t_Node1, const Node2D & t_Node2,
 									const double t_ConvectionCoefficient, const double t_AirTemperature );
 
-		virtual std::vector< double > R_Vector() const override;
+		virtual FenestrationCommon::Vector< double > R_Vector() const override;
 		virtual FenestrationCommon::SquareMatrix< double > H_Matrix() const override;
 
 	protected:
@@ -41,9 +41,22 @@ namespace MoisThermFEM {
 	class BlackBodyRadiationBC : public IBCLinear2D {
 	public:
 		BlackBodyRadiationBC( const Node2D & t_Node1, const Node2D & t_Node2,
-													const double t_Emissivity );
+													const double t_Emissivity, const double t_RadiationTemperature );
+
+		virtual FenestrationCommon::Vector< double > R_Vector() const override;
+		virtual FenestrationCommon::SquareMatrix< double > H_Matrix() const override;
+
+		/// DHMatrix seems unnecessary for now. Solution did converge without it.
+		/// FenestrationCommon::SquareMatrix< double > D_HMatrix() const override;
 
 	private:
+		/// Radiative convective coefficient that needs to be calculated based on current temperatures
+		FenestrationCommon::Vector< double > HRadiative() const;
+
+		/// First derivative of radiative convection coefficient
+		/// FenestrationCommon::Vector< double > DHRadiative() const;
+
+		double m_RadiationTemperature;
 		double m_Emissivity;
 	};
 
