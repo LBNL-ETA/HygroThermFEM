@@ -31,9 +31,8 @@ namespace MoisThermFEM {
 		virtual FenestrationCommon::Vector< double > R_Vector() const = 0;
 		virtual FenestrationCommon::SquareMatrix< double > H_Matrix() const = 0;
 
-		/// In first pass just return zero for all boundary conditions. This means that coefficients
-		/// derivative will not be taken into account.
-		virtual FenestrationCommon::SquareMatrix< double > D_HMatrix() const;
+		/// DHMatrix seems unnecessary because solution will converge anyway.
+		/// virtual FenestrationCommon::SquareMatrix< double > D_HMatrix() const;
 
 		bool isLinear() const;
 

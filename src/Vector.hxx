@@ -21,7 +21,7 @@ namespace FenestrationCommon {
 				throw std::runtime_error( "Vectors must be identical in size." );
 			}
 
-			Vector< T > result( rhs.size(), 0 );
+			Vector< T > result( rhs.size(), 0.0 );
 			std::transform( rhs.begin(), rhs.end(), lhs.begin(), result.begin(),
 											std::plus< T >() );
 
@@ -33,7 +33,7 @@ namespace FenestrationCommon {
 				throw std::runtime_error( "Vectors must be identical in size." );
 			}
 
-			Vector< T > result ( rhs.size(), 0 );
+			Vector< T > result( rhs.size(), 0 );
 			std::transform( lhs.begin(), lhs.end(), rhs.begin(), result.begin(),
 											std::minus< T >() );
 
@@ -45,7 +45,7 @@ namespace FenestrationCommon {
 				throw std::runtime_error( "Vectors must be identical in size." );
 			}
 
-			Vector< T > result ( rhs.size(), 0 );
+			Vector< T > result( rhs.size(), 0 );
 			std::transform( lhs.begin(), lhs.end(), rhs.begin(), result.begin(),
 											std::multiplies< T >() );
 

@@ -27,7 +27,7 @@ namespace MoisThermFEM {
 		/// and those matrix operations are separated into functions.
 		/// This function retrieves M+K+H matrix
 		FenestrationCommon::SquareMatrix< double > transientM_K_H_Matrix( const double t_DTime );
-		FenestrationCommon::SquareMatrix< double > transientDH_Matrix();
+		/// FenestrationCommon::SquareMatrix< double > transientDH_Matrix();
 
 		/// This function retrieves M*U+R vector (where U is state variable)
 		FenestrationCommon::Vector< double >

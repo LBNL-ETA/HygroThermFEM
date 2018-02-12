@@ -46,9 +46,9 @@ namespace MoisThermFEM {
 		return m_Linear;
 	}
 
-	FenestrationCommon::SquareMatrix< double > IBCLinear2D::D_HMatrix() const {
-		return SquareMatrix< double >( 2 );
-	}
+	/// FenestrationCommon::SquareMatrix< double > IBCLinear2D::D_HMatrix() const {
+	/// 	return SquareMatrix< double >( 2 );
+	/// }
 
 	double IBCLinear2D::getIntegratedProperty( const Property t_Property ) const {
 		double sum { 0 };

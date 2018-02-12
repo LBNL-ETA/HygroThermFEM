@@ -18,7 +18,7 @@ namespace MoisThermFEM {
 		// FenestrationCommon::SquareMatrix< double > & thermalCapacitanceMatrix();
 
 		/// Creates lumped mass matrix that includes time derivative
-		std::vector< double > getLumpedMass( const double DTime );
+		FenestrationCommon::Vector< double > getLumpedMass( const double DTime );
 
 	private:
 		FenestrationCommon::SquareMatrix< double > m_Conductance;

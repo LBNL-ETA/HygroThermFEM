@@ -46,14 +46,15 @@ namespace MoisThermFEM {
 		virtual FenestrationCommon::Vector< double > R_Vector() const override;
 		virtual FenestrationCommon::SquareMatrix< double > H_Matrix() const override;
 
-		FenestrationCommon::SquareMatrix< double > D_HMatrix() const override;
+		/// DHMatrix seems unnecessary for now. Solution did converge without it.
+		/// FenestrationCommon::SquareMatrix< double > D_HMatrix() const override;
 
 	private:
 		/// Radiative convective coefficient that needs to be calculated based on current temperatures
 		FenestrationCommon::Vector< double > HRadiative() const;
 
 		/// First derivative of radiative convection coefficient
-		FenestrationCommon::Vector< double > DHRadiative() const;
+		/// FenestrationCommon::Vector< double > DHRadiative() const;
 
 		double m_RadiationTemperature;
 		double m_Emissivity;

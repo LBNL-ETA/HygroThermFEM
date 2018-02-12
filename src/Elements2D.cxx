@@ -33,10 +33,10 @@ namespace MoisThermFEM {
 //		return m_Capacitance;
 //	}
 
-	std::vector< double > ElementsLinear2D::getLumpedMass( const double DTime ) {
+	Vector< double > ElementsLinear2D::getLumpedMass( const double DTime ) {
 		auto size = m_Capacitance.size();
 
-		std::vector< double > M( size );
+		FenestrationCommon::Vector< double > M( size, 0 );
 
 		// Creates lump matrix
 		for ( size_t i = 0; i < size; ++i ) {

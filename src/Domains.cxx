@@ -74,10 +74,15 @@ namespace MoisThermFEM {
 				auto temp = A * solution;
 				temp = B - temp;
 
-				auto DH = transientDH_Matrix( );
-				DH = A + DH;
+				/// Seems that DH can be avoided. Same solution is achieved faster without it. Topaz does
+				/// have this implementation. Will keep it commented in case we want to test it in future
+				/// when new kind of boundary conditions are introduced (Simon)
+				/// auto DH = transientDH_Matrix( );
+				/// DH = A + DH;
 
-				auto dU = aSolver.solveSystem( DH, temp );
+				/// auto dU = aSolver.solveSystem( DH, temp );
+
+				auto dU = aSolver.solveSystem( A, temp );
 
 				error = norm( dU );
 
@@ -113,7 +118,7 @@ namespace MoisThermFEM {
 		return result;
 	}
 
-	FenestrationCommon::SquareMatrix< double > Domain::transientDH_Matrix() {
-		return m_BCs.DHMatrix();;
-	}
+	/// FenestrationCommon::SquareMatrix< double > Domain::transientDH_Matrix() {
+	/// 	return m_BCs.DHMatrix();;
+	/// }
 }
