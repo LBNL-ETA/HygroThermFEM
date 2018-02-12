@@ -1,8 +1,12 @@
 #pragma once
 
+#include <memory>
+
 #include "Node2D.hxx"
 #include "Quadrilateral2D.hxx"
 #include "SquareMatrix.hxx"
+#include "Material.hxx"
+#include "Curve.hxx"
 
 namespace MoisThermFEM {
 
@@ -94,12 +98,14 @@ namespace MoisThermFEM {
 	class IElementLinear2D {
 	public:
 		IElementLinear2D( const Node2D & t_Node1, const Node2D & t_Node2, const Node2D & t_Node3,
-											const Node2D & t_Node4, const double t_Conductance,
-											const double t_Capacitance );
+											const Node2D & t_Node4,
+											std::unique_ptr< FenestrationCommon::ICurve > t_Conductance,
+											std::unique_ptr< FenestrationCommon::ICurve > t_Capacitance );
 
 		std::vector< std::size_t > nodeIndexes() const;
 
 		FenestrationCommon::SquareMatrix< double > conductanceMatrix() const;
+
 		FenestrationCommon::SquareMatrix< double > capacitanceMatrix() const;
 
 	protected:
@@ -107,20 +113,19 @@ namespace MoisThermFEM {
 		Node2D m_Node2;
 		Node2D m_Node3;
 		Node2D m_Node4;
-		double m_Conductance;
-		double m_Capacitance;
+		const std::unique_ptr< FenestrationCommon::ICurve > m_Conductance;
+		const std::unique_ptr< FenestrationCommon::ICurve > m_Capacitance;
 	};
 
 	//////////////////////////////////////////////////////////////////////////////
 	///  ElementThermalLinear2D
 	//////////////////////////////////////////////////////////////////////////////
 
-	// Handles linear 2D element (4 nodes)
+	/// Handles linear 2D element (4 nodes)
 	class ElementThermalLinear2D : public IElementLinear2D {
 	public:
 		ElementThermalLinear2D( const Node2D & t_Node1, const Node2D & t_Node2, const Node2D & t_Node3,
-										 const Node2D & t_Node4, const double t_Cond = 1, const double t_Rho = 1,
-										 const double t_Cp = 1 );
+														const Node2D & t_Node4, const Material & mat );
 
 	};
 

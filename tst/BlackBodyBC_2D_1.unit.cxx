@@ -24,6 +24,7 @@ protected:
 	void
 	TearDown() override {
 		NodePool::Instance().clear();
+		MaterialPool::Instance().clear();
 	}
 
 };
@@ -33,6 +34,7 @@ TEST_F( BlackBodyBC_2D_1, TestExample_1 ) {
 
 	// Enter nodes. Arguments are: node number, x-coordinate, y-coordinate, initial temperature
 	auto & nodePool = NodePool::Instance();
+	auto & materialPool = MaterialPool::Instance();
 
 	// same temperature in every node (humidity and pressure irrelevant for this example)
 	auto state = State( 0, 0, 101325 );
@@ -44,14 +46,37 @@ TEST_F( BlackBodyBC_2D_1, TestExample_1 ) {
 	auto node5 = nodePool.createNode( 5, 0, 0.05, state );
 	auto node6 = nodePool.createNode( 6, 0, 0, state );
 
-	// Coattaer Sandstone from database
-	const auto matCond = 1.8;
-	const auto matRho = 2050;
-	const auto matCp = 850;
+	auto & material = materialPool.createMaterial(
+			"Cottaer Sandstone",
+			2050, /// density
+			0.22, /// porosity
+			850,  /// specific heat capacity (dry)
+			1.8,  /// thermal conductivity (dry)
+			15,   /// diffusion resistance factor
+			{ { 0,   0 },  /// liquid transportation coefficient
+				{ 27,  1E-8 },
+				{ 45,  1.1E-8 },
+				{ 90,  2E-8 },
+				{ 126, 3.5E-8 },
+				{ 144, 5E-8 },
+				{ 162, 1E-7 },
+				{ 171, 2E-7 },
+				{ 180, 7E-7 } },
+			{ { 0,     0 },   /// sorption curve
+				{ 0.5,   5.3 },
+				{ 0.65,  8.4 },
+				{ 0.8,   12 },
+				{ 0.93,  17 },
+				{ 0.95,  25 },
+				{ 0.99,  63 },
+				{ 0.995, 83 },
+				{ 0.999, 120 },
+				{ 1,     180 } }
+	);
 
 	// Create elements
-	const auto el1 = ElementThermalLinear2D( node3, node4, node2, node1, matCond, matRho, matCp );
-	const auto el2 = ElementThermalLinear2D( node6, node4, node3, node5, matCond, matRho, matCp );
+	const ElementThermalLinear2D el1{ node3, node4, node2, node1, material };
+	const ElementThermalLinear2D el2{ node6, node4, node3, node5, material };
 
 	const std::vector< std::reference_wrapper< const IElementLinear2D > > vElements{ el1, el2 };
 
@@ -66,7 +91,7 @@ TEST_F( BlackBodyBC_2D_1, TestExample_1 ) {
 	std::vector< std::reference_wrapper< IBCLinear2D > > vBc{ aBc1 };
 
 	// It is possible directly to pass { aBc1 } to the constructor
-	const auto aBCs = BoundaryConditions2D( vBc );
+	const BoundaryConditions2D aBCs{ vBc };
 
 	const auto dTime = 3600;
 	const auto nSteps = 4;

@@ -9,7 +9,7 @@ namespace FenestrationCommon {
 	/// Interface for curves. Satisfies basic need for value and first derivative.
 	class ICurve {
 	public:
-		virtual double value( const double t_position ) const = 0;
+		virtual double value( const double t_position = 0 ) const = 0;
 
 		virtual double firstDerivative( const double t_position ) const final;
 	};
@@ -58,7 +58,7 @@ namespace FenestrationCommon {
 	public:
 		Constant( const double value );
 
-		double value( const double t_position = 0 ) const override;
+		double value( const double t_position ) const override;
 
 	private:
 		double m_Value;

@@ -55,7 +55,7 @@ if( MSVC )
   add_definitions( "/wd4996" )
 endif()
 
-add_library( ${target_name} STATIC ${SOURCES}  )
+add_library( ${target_name} STATIC ${SOURCES} src/MaterialPool.cxx src/MaterialPool.hxx)
 
 set_target_properties( ${target_name} PROPERTIES LINKER_LANGUAGE CXX )
 

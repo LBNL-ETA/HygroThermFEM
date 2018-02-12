@@ -18,3 +18,4 @@
 #include "../src/Domains.hxx"
 #include "../src/Curve.hxx"
 #include "../src/Interpolator.hxx"
+#include "../src/MaterialPool.hxx"

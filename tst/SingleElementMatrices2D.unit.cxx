@@ -15,6 +15,7 @@ protected:
     void
     TearDown() override {
         NodePool::Instance().clear();
+        MaterialPool::Instance().clear();
     }
 
 };
@@ -24,17 +25,42 @@ TEST_F( TestSingleElementMatrices2D, TestConductionMatrix ) {
 
     // Enter nodes. Arguments are: node number, x-coordinate, y-coordinate
     auto & nodePool = NodePool::Instance();
+    auto & materialPool = MaterialPool::Instance();
 
     const auto node1 = nodePool.createNode( 1, 5, 5 );
     const auto node2 = nodePool.createNode( 2, 5, 0 );
     const auto node3 = nodePool.createNode( 3, 15, 0 );
     const auto node4 = nodePool.createNode( 4, 15, 5 );
 
-    const auto matCond = 1.0;
-    const auto matRho = 1.0;
-    const auto matCp = 1.0;
+    auto & material = materialPool.createMaterial(
+        "Test Material",
+        1, /// density
+        0.22, /// porosity
+        1,  /// specific heat capacity (dry)
+        1,  /// thermal conductivity (dry)
+        15,   /// diffusion resistance factor
+        { { 0,   0 },  /// liquid transportation coefficient
+          { 27,  1E-8 },
+          { 45,  1.1E-8 },
+          { 90,  2E-8 },
+          { 126, 3.5E-8 },
+          { 144, 5E-8 },
+          { 162, 1E-7 },
+          { 171, 2E-7 },
+          { 180, 7E-7 } },
+        { { 0,     0 },   /// sorption curve
+          { 0.5,   5.3 },
+          { 0.65,  8.4 },
+          { 0.8,   12 },
+          { 0.93,  17 },
+          { 0.95,  25 },
+          { 0.99,  63 },
+          { 0.995, 83 },
+          { 0.999, 120 },
+          { 1,     180 } }
+    );
 
-    auto aElem = ElementThermalLinear2D( node1, node2, node3, node4, matCond, matRho, matCp );
+    const ElementThermalLinear2D aElem{ node1, node2, node3, node4, material };
 
     auto condMat = aElem.conductanceMatrix();
 
