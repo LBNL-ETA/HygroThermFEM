@@ -30,7 +30,7 @@ namespace FenestrationCommon {
 		std::vector< std::pair< double, double > > m_Curve;
 		Interpolator m_Interpolator;
 
-		virtual std::pair< std::pair< double, double >, std::pair< double, double>>
+		virtual std::pair< std::pair< double, double >, std::pair< double, double > >
 		getInterpolationPoints(
 				std::vector< std::pair< double, double > >::const_iterator & it ) const;
 	};
@@ -58,7 +58,7 @@ namespace FenestrationCommon {
 	public:
 		Constant( const double value );
 
-		double value( const double t_position ) const override;
+		double value( const double t_position = 0 ) const override;
 
 	private:
 		double m_Value;
