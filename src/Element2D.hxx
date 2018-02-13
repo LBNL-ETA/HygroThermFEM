@@ -1,8 +1,12 @@
 #pragma once
 
+#include <memory>
+
 #include "Node2D.hxx"
 #include "Quadrilateral2D.hxx"
 #include "SquareMatrix.hxx"
+#include "Material.hxx"
+#include "Curve.hxx"
 
 namespace MoisThermFEM {
 
@@ -24,7 +28,6 @@ namespace MoisThermFEM {
 
 	protected:
 		QuadrilateralLinearGlobal2D m_Element;
-		QuadrilateralNodes2D m_ElementNodes;
 	};
 
 	//////////////////////////////////////////////////////////////////////////////
@@ -36,7 +39,8 @@ namespace MoisThermFEM {
 	// capacitance and conductance matrices have different form)
 	class IQLEMatrix2D {
 	public:
-		IQLEMatrix2D( const double t_Value );
+		IQLEMatrix2D( const double t_Value1, const double t_Value2, const double t_Value3,
+									const double t_Value4 );
 
 		FenestrationCommon::SquareMatrix< double > getMatrix() const;
 
@@ -48,7 +52,7 @@ namespace MoisThermFEM {
 				const std::size_t t_IntegrationPointIndex ) const = 0;
 
 		FenestrationCommon::SquareMatrix< double > m_Matrix;
-		const double m_Value;
+		const std::vector< double > m_Values;
 	};
 
 	//////////////////////////////////////////////////////////////////////////////
@@ -58,8 +62,11 @@ namespace MoisThermFEM {
 	// Class to handle conductance matrix in global coordinate system
 	class QLEConductance2D : public IElementQuadrilateral2D, public IQLEMatrix2D {
 	public:
-		QLEConductance2D( const Node2D & t_Node1, const Node2D & t_Node2, const Node2D & t_Node3,
-											const Node2D & t_Node4, const double t_Value );
+		QLEConductance2D(
+				const Node2D & t_Node1, const Node2D & t_Node2, const Node2D & t_Node3,
+				const Node2D & t_Node4, const double t_Value1, const double t_Value2,
+				const double t_Value3,
+				const double t_Value4 );
 
 	protected:
 		FenestrationCommon::SquareMatrix< double > calculateMatrixInIntegrationPoint(
@@ -75,7 +82,9 @@ namespace MoisThermFEM {
 	class QLECapacitance2D : public IElementQuadrilateral2D, public IQLEMatrix2D {
 	public:
 		QLECapacitance2D( const Node2D & t_Node1, const Node2D & t_Node2, const Node2D & t_Node3,
-											const Node2D & t_Node4, const double t_Value );
+											const Node2D & t_Node4, const double t_Value1, const double t_Value2,
+											const double t_Value3,
+											const double t_Value4 );
 
 	protected:
 		FenestrationCommon::SquareMatrix< double > calculateMatrixInIntegrationPoint(
@@ -91,13 +100,10 @@ namespace MoisThermFEM {
 	/// 2D world. This class will be used by multiple governing equations since
 	/// basis of matrix creation are identical with only difference in what coefficients
 	/// are passed
-	class IElementLinear2D {
+	class IElementLinear2D : public IElementQuadrilateral2D {
 	public:
 		IElementLinear2D( const Node2D & t_Node1, const Node2D & t_Node2, const Node2D & t_Node3,
-											const Node2D & t_Node4, const double t_Conductance,
-											const double t_Capacitance );
-
-		std::vector< std::size_t > nodeIndexes() const;
+											const Node2D & t_Node4, const Property t_property );
 
 		FenestrationCommon::SquareMatrix< double > conductanceMatrix() const;
 		FenestrationCommon::SquareMatrix< double > capacitanceMatrix() const;
@@ -107,20 +113,22 @@ namespace MoisThermFEM {
 		Node2D m_Node2;
 		Node2D m_Node3;
 		Node2D m_Node4;
-		double m_Conductance;
-		double m_Capacitance;
+
+		/// TODO: This did not work with reference_wrapper and it should. Check later.
+		std::vector< std::unique_ptr< FenestrationCommon::ICurve > > m_Conductance;
+		std::vector< std::unique_ptr< FenestrationCommon::ICurve > > m_Capacitance;
+		const Property m_Property;
 	};
 
 	//////////////////////////////////////////////////////////////////////////////
 	///  ElementThermalLinear2D
 	//////////////////////////////////////////////////////////////////////////////
 
-	// Handles linear 2D element (4 nodes)
+	/// Handles linear 2D element (4 nodes)
 	class ElementThermalLinear2D : public IElementLinear2D {
 	public:
 		ElementThermalLinear2D( const Node2D & t_Node1, const Node2D & t_Node2, const Node2D & t_Node3,
-										 const Node2D & t_Node4, const double t_Cond = 1, const double t_Rho = 1,
-										 const double t_Cp = 1 );
+														const Node2D & t_Node4, const Material & mat );
 
 	};
 

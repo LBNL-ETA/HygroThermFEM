@@ -1,23 +1,53 @@
 #pragma once
 
 #include <vector>
+#include <memory>
+#include <string>
+
+#include "Curve.hxx"
+
 
 namespace MoisThermFEM {
 
-	struct Material {
+	class Material {
+
+		friend class MaterialPool;
+
+	public:
 		Material() = delete;
-		Material( double Density, double Porosity, double HeatCapacity, double ThermalConductivity,
+
+		std::string name() const;
+
+		double density() const;
+
+		double heatCapacity() const;
+
+		double porosity() const;
+
+		double thermalConductivity() const;
+
+		double diffusionResistanceFactor() const;
+
+		double liquidTransportationCoefficient( const double t_value ) const;
+
+		double sorption( const double t_value ) const;
+
+	private:
+		/// Create material by using MaterialPool.
+		Material( const std::string & Name, double Density, double Porosity, double HeatCapacity,
+							double ThermalConductivity,
 							double DiffusionResistanceFactor,
-							const std::vector< std::pair< double, double > > & LiquidTransportCoefficient,
+							const std::vector< std::pair< double, double > > & LiquidTransportCurve,
 							const std::vector< std::pair< double, double > > & SorptionCurve );
 
-		double Density;
-		double Porosity;
-		double HeatCapacity;
-		double ThermalConductivity;
-		double DiffusionResistanceFactor;
-		std::vector< std::pair< double, double > > LiquidTransportCoefficient;
-		std::vector< std::pair< double, double > > SorptionCurve;
+		std::string m_Name;
+		double m_Density;
+		double m_Porosity;
+		double m_HeatCapacity;
+		double m_ThermalConductivity;
+		double m_DiffusionResistanceFactor;
+		std::unique_ptr< FenestrationCommon::Curve > m_LiquidTransportCoefficient;
+		std::unique_ptr< FenestrationCommon::Curve > m_SorptionCurve;
 	};
 
 }

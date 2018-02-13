@@ -9,7 +9,7 @@ namespace FenestrationCommon {
 	/// Interface for curves. Satisfies basic need for value and first derivative.
 	class ICurve {
 	public:
-		virtual double value( const double t_position ) const = 0;
+		virtual double value( const double t_position = 0 ) const = 0;
 
 		virtual double firstDerivative( const double t_position ) const final;
 	};
@@ -30,7 +30,7 @@ namespace FenestrationCommon {
 		std::vector< std::pair< double, double > > m_Curve;
 		Interpolator m_Interpolator;
 
-		virtual std::pair< std::pair< double, double >, std::pair< double, double>>
+		virtual std::pair< std::pair< double, double >, std::pair< double, double > >
 		getInterpolationPoints(
 				std::vector< std::pair< double, double > >::const_iterator & it ) const;
 	};

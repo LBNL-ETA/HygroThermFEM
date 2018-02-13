@@ -30,6 +30,8 @@ namespace MoisThermFEM {
 
     double det( const size_t IntPointIndex ) const;
 
+    std::vector< std::size_t > nodeIndexes() const;
+
   private:
     QuadrilateralNodes2D m_Nodes;
 
