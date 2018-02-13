@@ -21,7 +21,7 @@ protected:
 };
 
 TEST_F( ConvectionBC_2D_1, TestExample_1 ) {
-	SCOPED_TRACE( "Begin Test: Two elements example with simple conduction." );
+	SCOPED_TRACE( "Begin Test: Two elementsCreator example with simple conduction." );
 
 	// Enter nodes. Arguments are: node number, x-coordinate, y-coordinate
 	auto & nodePool = NodePool::Instance();
@@ -62,30 +62,20 @@ TEST_F( ConvectionBC_2D_1, TestExample_1 ) {
 				{ 1,     180 } }
 	);
 
-	// Create elements
-	const ElementThermalLinear2D el1{ node3, node4, node2, node1, material };
-	const ElementThermalLinear2D el2{ node6, node4, node3, node5, material };
+	Domain domain;
 
-	const std::vector< std::reference_wrapper< const IElementLinear2D > > vElements{ el1, el2 };
-
-	const ElementsLinear2D elements{ vElements };
+	domain.elementsCreator().createThermalElement( node3, node4, node2, node1, material );
+	domain.elementsCreator().createThermalElement( node6, node4, node3, node5, material );
 
 	// Create Boundary Conditions
 	const auto hc1 = 20.0;
 	const auto tair1 = -18.0;
 
-	ConvectionBC aBc1{ node1, node2, hc1, tair1 };
-
 	const auto hc2 = 2.4;
 	const auto tair2 = 21.0;
 
-	ConvectionBC aBc2{ node6, node5, hc2, tair2 };
-
-	std::vector< std::reference_wrapper< IBCLinear2D > > vBc { aBc1, aBc2 };
-
-	BoundaryConditions2D aBCs{ vBc };
-
-	Domain domain{ elements, aBCs };
+	domain.boundariesCreator().createConvectionBC( node1, node2, hc1, tair1 );
+	domain.boundariesCreator().createConvectionBC( node6, node5, hc2, tair2 );
 
 	auto solution = domain.steadyState();
 

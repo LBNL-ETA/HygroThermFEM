@@ -63,14 +63,12 @@ TEST_F( TestElements2D, TestConductionMatrix ) {
           { 1,     180 } }
     );
 
-    const ElementThermalLinear2D el1{ node3, node4, node2, node1, material };
-    const ElementThermalLinear2D el2{ node6, node4, node3, node5, material };
+		Domain domain;
 
-    const std::vector< std::reference_wrapper< const IElementLinear2D > > vElements{ el1, el2 };
+		domain.elementsCreator().createThermalElement(node3, node4, node2, node1, material);
+		domain.elementsCreator().createThermalElement(node6, node4, node3, node5, material);
 
-    auto elements = ElementsLinear2D( vElements );
-
-    auto condMat = elements.conductanceMatrix();
+    auto condMat = domain.elementsCreator().conductanceMatrix();
 
     std::vector< std::vector< double > > correctCondMat = {
             { 0.833333333,  -0.583333333, 0.166666667,  -0.416666667, 0,            0 },

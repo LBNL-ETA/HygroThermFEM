@@ -1,7 +1,6 @@
-#include <assert.h>
+#include <cassert>
 
 #include "Node2D.hxx"
-#include "State.hxx"
 
 namespace MoisThermFEM {
 
@@ -39,21 +38,6 @@ namespace MoisThermFEM {
 	                const State & t_State )
 			: m_NodeNumber( t_NodeNumber ), m_x( t_x ), m_y( t_y ), m_State( t_State ) {
 
-	}
-
-	Node2D::Node2D( const Node2D & t_Node )
-			: m_NodeNumber( t_Node.m_NodeNumber ), m_x( t_Node.m_x ), m_y( t_Node.m_y ),
-			  m_State( t_Node.m_State ) {
-
-	}
-
-	Node2D & Node2D::operator=( const Node2D & other ) {
-		m_NodeNumber = other.m_NodeNumber;
-		m_x = other.m_x;
-		m_y = other.m_y;
-		m_State = other.m_State;
-
-		return *this;
 	}
 
 	size_t Node2D::getNodeNumber() const {
@@ -113,7 +97,7 @@ namespace MoisThermFEM {
 	////////////////////////////////////////////////////////////////////////////
 
 	LineNodes2D::LineNodes2D( const Node2D & t_Node1, const Node2D & t_Node2 )
-			: INodesStorage( { t_Node1, t_Node2 } ) {
+			: INodesStorage{ t_Node1, t_Node2 } {
 
 	}
 

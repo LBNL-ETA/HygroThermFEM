@@ -1,7 +1,8 @@
 #pragma once
 
 #include "Elements2D.hxx"
-#include "BoundaryConditions2D.hxx"
+#include "BoundaryCondition2DFactory.hxx"
+#include "Element2DFactory.hxx"
 
 namespace MoisThermFEM {
 
@@ -9,7 +10,7 @@ namespace MoisThermFEM {
 	/// Pressure governing equations.
 	class Domain {
 	public:
-		Domain( const ElementsLinear2D & m_Elements, const BoundaryConditions2D & m_BCs );
+		Domain() = default;
 
 		/// Calculates steady state solution
 		std::vector< double > steadyState();
@@ -17,6 +18,9 @@ namespace MoisThermFEM {
 		/// Calculates next timestep value from current values
 		std::vector< double >
 		transient( std::vector< double > & currentStateValues, const double t_DTime );
+
+		BoundaryCondition2DFactory & boundariesCreator();
+		Element2DFactory & elementsCreator();
 
 	protected:
 
@@ -36,9 +40,10 @@ namespace MoisThermFEM {
 		/// Returns norm of vector. Necessary to estimate current error.
 		static double norm( const std::vector< double > & t_vector );
 
-		ElementsLinear2D m_Elements;
-		BoundaryConditions2D m_BCs;
-		bool m_Linear;
+		bool isLinear() const;
+
+		Element2DFactory m_Elements;
+		BoundaryCondition2DFactory m_BCs;
 	};
 
 }

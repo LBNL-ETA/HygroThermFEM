@@ -10,7 +10,7 @@
 
 namespace MoisThermFEM {
 
-	// Constant that holds number of nodes in certain elements
+	// Constant that holds number of nodes in certain elementsCreator
 	const std::size_t numOfQuadrilateralNodes = 4;
 
 	//////////////////////////////////////////////////////////////////////////////

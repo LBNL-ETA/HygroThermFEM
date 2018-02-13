@@ -30,7 +30,7 @@ protected:
 };
 
 TEST_F( TemperatureBC_2D_1, TestExample_1 ) {
-	SCOPED_TRACE( "Begin Test: Two elements example with transient." );
+	SCOPED_TRACE( "Begin Test: Two elementsCreator example with transient." );
 
 	// Enter nodes. Arguments are: node number, x-coordinate, y-coordinate, initial temperature
 	auto & nodePool = NodePool::Instance();
@@ -74,28 +74,19 @@ TEST_F( TemperatureBC_2D_1, TestExample_1 ) {
 				{ 1,     180 } }
 	);
 
-	// Create elements
-	const ElementThermalLinear2D el1{ node3, node4, node2, node1, material };
-	const ElementThermalLinear2D el2{ node6, node4, node3, node5, material };
+	Domain domain;
 
-	const std::vector< std::reference_wrapper< const IElementLinear2D > > vElements{ el1, el2 };
-
-	const auto elements = ElementsLinear2D( vElements );
+	domain.elementsCreator().createThermalElement( node3, node4, node2, node1, material );
+	domain.elementsCreator().createThermalElement( node6, node4, node3, node5, material );
 
 	// Create Boundary Conditions
 	const auto tSurface = 12.0;
 
-	TemperatureBC aBc1{ node5, node6, tSurface };
-
-	std::vector< std::reference_wrapper< IBCLinear2D > > vBc{ aBc1 };
-
-	// It is possible directly to pass { aBc1 } to the constructor
-	const BoundaryConditions2D aBCs{ vBc };
+	domain.boundariesCreator().createTemperatureBC( node5, node6, tSurface );
 
 	const auto dTime = 3600;
 	const auto nSteps = 4;
 
-	Domain domain{ elements, aBCs };
 
 	auto temperatures = NodePool::Instance().nodeProperties( Property::temperature );
 	std::vector< std::vector< double > > solution;

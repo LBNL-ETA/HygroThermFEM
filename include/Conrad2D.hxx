@@ -19,3 +19,5 @@
 #include "../src/Curve.hxx"
 #include "../src/Interpolator.hxx"
 #include "../src/MaterialPool.hxx"
+#include "../src/BoundaryCondition2DFactory.hxx"
+#include "../src/Element2DFactory.hxx"

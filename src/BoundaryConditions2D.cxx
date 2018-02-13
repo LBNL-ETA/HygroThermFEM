@@ -1,26 +1,23 @@
 #include "BoundaryConditions2D.hxx"
-#include "IBCLine2D.hxx"
 #include "NodePool.hxx"
-#include "SquareMatrix.hxx"
 
 using namespace FenestrationCommon;
 
 namespace MoisThermFEM {
 
-	BoundaryConditions2D::BoundaryConditions2D(
-			std::vector< std::reference_wrapper< IBCLinear2D > > & t_BCs ) :
-			m_BCs( t_BCs ), m_Linear( true ) {
-		for ( const auto & aBc : m_BCs ) {
-			m_Linear = m_Linear && aBc.get().isLinear();
-		}
-	}
+	/// BoundaryConditions2D::BoundaryConditions2D(
+	/// 		std::vector< std::reference_wrapper< IBCLinear2D > > & t_BCs ) :
+	/// 		m_BCs( t_BCs ), m_Linear( true ) {
+	/// 	for ( const auto & aBc : m_BCs ) {
+	/// 		m_Linear = m_Linear && aBc.get().isLinear();
+	/// 	}
+	/// }
 
 	SquareMatrix< double > BoundaryConditions2D::HMatrix() const {
 		FenestrationCommon::SquareMatrix< double > result{ NodePool::Instance().maxIndex() };
 		for ( const auto & aBc : m_BCs ) {
-			const auto & bc = aBc.get();
-			auto indexes = bc.getNodeIndexes();
-			auto matH = bc.H_Matrix();
+			auto indexes = aBc->getNodeIndexes();
+			auto matH = aBc->H_Matrix();
 			for ( size_t i = 0; i < 2; ++i ) {
 				for ( size_t j = 0; j < 2; ++j ) {
 					result[ indexes[ i ] - 1 ][ indexes[ j ] - 1 ] += matH[ i ][ j ];
@@ -34,9 +31,8 @@ namespace MoisThermFEM {
 		FenestrationCommon::Vector< double > result( NodePool::Instance().maxIndex(), 0 );
 		// Create full size matrices
 		for ( const auto & aBc : m_BCs ) {
-			const auto & bc = aBc.get();
-			auto indexes = bc.getNodeIndexes();
-			auto vecR = bc.R_Vector();
+			auto indexes = aBc->getNodeIndexes();
+			auto vecR = aBc->R_Vector();
 			for ( size_t i = 0; i < 2; ++i ) {
 				result[ indexes[ i ] - 1 ] += vecR[ i ];
 			}
@@ -65,9 +61,8 @@ namespace MoisThermFEM {
 
 	void BoundaryConditions2D::updateNodeTemperatures( const std::vector< double > & temperatures ) {
 		for ( auto & aBc : m_BCs ) {
-			auto & bc = aBc.get();
 			for( auto i = 0u; i < numOfBCNodes; ++i ) {
-				auto & node = bc.getNode( i );
+				auto & node = aBc->getNode( i );
 				auto index = node.getNodeNumber();
 				node.setProperty( Property::temperature, temperatures[ index - 1 ] );
 			}
