@@ -113,6 +113,8 @@ namespace MoisThermFEM {
 		Node2D m_Node2;
 		Node2D m_Node3;
 		Node2D m_Node4;
+
+		/// TODO: This did not work with reference_wrapper and it should. Check later.
 		std::vector< std::unique_ptr< FenestrationCommon::ICurve > > m_Conductance;
 		std::vector< std::unique_ptr< FenestrationCommon::ICurve > > m_Capacitance;
 		const Property m_Property;
