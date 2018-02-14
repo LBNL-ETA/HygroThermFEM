@@ -14,6 +14,7 @@ namespace MoisThermFEM {
 									const double t_ConvectionCoefficient, const double t_AirTemperature );
 
 		virtual FenestrationCommon::Vector< double > R_Vector() const override;
+
 		virtual FenestrationCommon::SquareMatrix< double > H_Matrix() const override;
 
 	protected:
@@ -31,6 +32,7 @@ namespace MoisThermFEM {
 	class TemperatureBC : public ConvectionBC {
 	public:
 		TemperatureBC( Node2D & t_Node1, Node2D & t_Node2, const double t_NodeTemperatures );
+
 		TemperatureBC( Node2D & t_Node1, Node2D & t_Node2, const double t_Temp1, const double t_Temp2 );
 	};
 
@@ -44,6 +46,7 @@ namespace MoisThermFEM {
 													const double t_Emissivity, const double t_RadiationTemperature );
 
 		virtual FenestrationCommon::Vector< double > R_Vector() const override;
+
 		virtual FenestrationCommon::SquareMatrix< double > H_Matrix() const override;
 
 		/// DHMatrix seems unnecessary for now. Solution did converge without it.
@@ -62,7 +65,20 @@ namespace MoisThermFEM {
 
 
 	/////////////////////////////////////////////////////
-	///
+	/// MoistureBC
 	/////////////////////////////////////////////////////
+	class MoistureBC : public IBCLinear2D {
+	public:
+		MoistureBC( const Node2D & t_Node1, const Node2D & t_Node2,
+								const double t_ConvectiveCoefficient, const double t_AirHumidity );
+
+		virtual FenestrationCommon::Vector< double > R_Vector() const override;
+
+		virtual FenestrationCommon::SquareMatrix< double > H_Matrix() const override;
+
+	private:
+		double m_ConvectiveCoefficient;
+		double m_AirHumidity;
+	};
 
 }

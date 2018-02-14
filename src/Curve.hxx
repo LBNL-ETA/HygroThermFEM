@@ -44,7 +44,7 @@ namespace FenestrationCommon {
 									const Interpolator & interpolator = Interpolation::Logarithmic );
 
 		SuctionCurve( const std::initializer_list< std::pair< double, double > > & list,
-									const Interpolator & interpolator );
+									const Interpolator & interpolator = Interpolation::Logarithmic );
 
 	protected:
 		std::pair< std::pair< double, double >, std::pair< double, double > >

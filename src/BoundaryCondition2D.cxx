@@ -99,4 +99,25 @@ namespace MoisThermFEM {
 	FenestrationCommon::SquareMatrix< double > BlackBodyRadiationBC::H_Matrix() const {
 		return m_PsiPsiMatrix.mmultRows( HRadiative() );
 	}
+
+	/////////////////////////////////////////////////////
+	/// MoistureBC
+	/////////////////////////////////////////////////////
+
+	MoistureBC::MoistureBC( const Node2D & t_Node1, const Node2D & t_Node2,
+													const double t_ConvectiveCoefficient, const double t_AirHumidity ) :
+			IBCLinear2D( t_Node1, t_Node2 ), m_ConvectiveCoefficient( t_ConvectiveCoefficient ),
+			m_AirHumidity( t_AirHumidity ) {
+
+	}
+
+	FenestrationCommon::Vector< double > MoistureBC::R_Vector() const {
+		auto coeff = m_ConvectiveCoefficient * m_AirHumidity / ( Constants::Density_AIR * Constants::Cp_Air );
+		return m_PsiVector * coeff;
+	}
+
+	FenestrationCommon::SquareMatrix< double > MoistureBC::H_Matrix() const {
+		auto coeff = m_ConvectiveCoefficient / ( Constants::Density_AIR * Constants::Cp_Air );
+		return m_PsiPsiMatrix * coeff;
+	}
 }

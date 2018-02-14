@@ -164,6 +164,7 @@ namespace MoisThermFEM {
 																									const Node2D & t_Node3, const Node2D & t_Node4,
 																									const Material & mat ) :
 			IElementLinear2D( t_Node1, t_Node2, t_Node3, t_Node4, Property::temperature ) {
+		/// Note that this works for non-porous material with constant properties.
 		m_Conductance.push_back(
 				fem::make_unique< FenestrationCommon::Constant >( mat.thermalConductivity() ) );
 		m_Capacitance.push_back(

@@ -124,7 +124,7 @@ namespace MoisThermFEM {
 	///  ElementThermalLinear2D
 	//////////////////////////////////////////////////////////////////////////////
 
-	/// Handles linear 2D element (4 nodes)
+	/// Thermal properties
 	class ElementThermalLinear2D : public IElementLinear2D {
 	public:
 		ElementThermalLinear2D( const Node2D & t_Node1, const Node2D & t_Node2, const Node2D & t_Node3,

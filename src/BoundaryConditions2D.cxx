@@ -1,5 +1,6 @@
 #include "BoundaryConditions2D.hxx"
 #include "NodePool.hxx"
+#include "IBCLine2D.hxx"
 
 using namespace FenestrationCommon;
 
