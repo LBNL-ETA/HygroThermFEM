@@ -6,7 +6,7 @@
 #include "Quadrilateral2D.hxx"
 #include "SquareMatrix.hxx"
 #include "Material.hxx"
-#include "Curve.hxx"
+#include "Functions.hxx"
 
 namespace MoisThermFEM {
 
@@ -115,8 +115,9 @@ namespace MoisThermFEM {
 		Node2D m_Node4;
 
 		/// TODO: This did not work with reference_wrapper and it should. Check later.
-		std::vector< std::unique_ptr< FenestrationCommon::ICurve > > m_Conductance;
-		std::vector< std::unique_ptr< FenestrationCommon::ICurve > > m_Capacitance;
+		/// Reminder: Introduce pair of curve pointer and Property so that curve knows what to use
+		std::vector< std::unique_ptr< FenestrationCommon::IFunction > > m_Conductance;
+		std::vector< std::unique_ptr< FenestrationCommon::IFunction > > m_Capacitance;
 		const Property m_Property;
 	};
 

@@ -1,5 +1,5 @@
 #include "Material.hxx"
-#include "Curve.hxx"
+#include "Functions.hxx"
 #include "FEMunique.hxx"
 
 namespace MoisThermFEM {
@@ -13,7 +13,7 @@ namespace MoisThermFEM {
 			m_DiffusionResistanceFactor( DiffusionResistanceFactor ),
 			m_LiquidTransportCoefficient(
 					fem::make_unique< FenestrationCommon::SuctionCurve >( LiquidTransportCurve ) ),
-			m_SorptionCurve( fem::make_unique< FenestrationCommon::Curve >( SorptionCurve ) ) {}
+			m_SorptionCurve( fem::make_unique< FenestrationCommon::FirstDerivativeCurve >( SorptionCurve ) ) {}
 
 	double Material::density() const {
 		return m_Density;
@@ -40,7 +40,7 @@ namespace MoisThermFEM {
 	}
 
 	double Material::sorption( const double t_value ) const {
-		return m_SorptionCurve->firstDerivative( t_value );
+		return m_SorptionCurve->value( t_value );
 	}
 
 	std::string Material::name() const {

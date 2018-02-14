@@ -127,7 +127,7 @@ namespace MoisThermFEM {
 
 	SquareMatrix< double > IElementLinear2D::conductanceMatrix() const {
 		FenestrationCommon::SquareMatrix< double > result{ numOfQuadrilateralNodes };
-		for ( const std::unique_ptr< FenestrationCommon::ICurve > & cond : m_Conductance ) {
+		for ( const std::unique_ptr< FenestrationCommon::IFunction > & cond : m_Conductance ) {
 			auto value1 = cond->value( m_Node1.getProperty( m_Property ) );
 			auto value2 = cond->value( m_Node2.getProperty( m_Property ) );
 			auto value3 = cond->value( m_Node3.getProperty( m_Property ) );
@@ -143,7 +143,7 @@ namespace MoisThermFEM {
 
 	SquareMatrix< double > IElementLinear2D::capacitanceMatrix() const {
 		FenestrationCommon::SquareMatrix< double > result{ numOfQuadrilateralNodes };
-		for ( const std::unique_ptr< FenestrationCommon::ICurve > & cap : m_Capacitance ) {
+		for ( const std::unique_ptr< FenestrationCommon::IFunction > & cap : m_Capacitance ) {
 			auto value1 = cap->value( m_Node1.getProperty( m_Property ) );
 			auto value2 = cap->value( m_Node2.getProperty( m_Property ) );
 			auto value3 = cap->value( m_Node3.getProperty( m_Property ) );

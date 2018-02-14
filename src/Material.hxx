@@ -4,7 +4,7 @@
 #include <memory>
 #include <string>
 
-#include "Curve.hxx"
+#include "Functions.hxx"
 
 
 namespace MoisThermFEM {
@@ -46,8 +46,8 @@ namespace MoisThermFEM {
 		double m_HeatCapacity;
 		double m_ThermalConductivity;
 		double m_DiffusionResistanceFactor;
-		std::unique_ptr< FenestrationCommon::Curve > m_LiquidTransportCoefficient;
-		std::unique_ptr< FenestrationCommon::Curve > m_SorptionCurve;
+		std::unique_ptr< FenestrationCommon::TabularFunction > m_LiquidTransportCoefficient;
+		std::unique_ptr< FenestrationCommon::FirstDerivativeCurve > m_SorptionCurve;
 	};
 
 }

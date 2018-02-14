@@ -16,7 +16,7 @@
 #include "../src/LinearSolver.hxx"
 #include "../src/FEMunique.hxx"
 #include "../src/Domains.hxx"
-#include "../src/Curve.hxx"
+#include "../src/Functions.hxx"
 #include "../src/Interpolator.hxx"
 #include "../src/MaterialPool.hxx"
 #include "../src/BoundaryCondition2DFactory.hxx"
