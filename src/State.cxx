@@ -40,4 +40,8 @@ namespace MoisThermFEM {
 					 m_Property.at( Iteration::Previous ).at( t_Property );
 	}
 
+	const std::map< Property, double > & State::getCurrentValues() const {
+		return m_Property.at( Iteration::Current );
+	}
+
 }

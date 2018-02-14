@@ -19,9 +19,9 @@ protected:
 
 TEST_F( CurveTest, TestTabularLinear ) {
 	SCOPED_TRACE( "Begin Test: Test tabular linear curve." );
-	const FenestrationCommon::TabularFunction curve{ { 1, 10 },
-																				 { 2, 20 },
-																				 { 3, 30 } };
+	const MoisThermFEM::TabularFunction curve{ { 1, 10 },
+																									 { 2, 20 },
+																									 { 3, 30 } };
 
 	double interpolationPoint = 2.5;
 
@@ -33,7 +33,7 @@ TEST_F( CurveTest, TestTabularLinear ) {
 
 TEST_F( CurveTest, TestFirstDerivative ) {
 	SCOPED_TRACE( "Begin Test: Test first derivative of tabular linear curve." );
-	const FenestrationCommon::FirstDerivativeCurve curve{ { 1, 10 },
+	const MoisThermFEM::FirstDerivativeCurve curve{ { 1, 10 },
 																												{ 2, 20 },
 																												{ 3, 30 } };
 
@@ -46,10 +46,10 @@ TEST_F( CurveTest, TestFirstDerivative ) {
 
 TEST_F( CurveTest, TestTabularLogarithmic ) {
 	SCOPED_TRACE( "Begin Test: Test tabular logarithmic curve." );
-	const FenestrationCommon::TabularFunction curve( { { 1, 10 },
-																					 { 2, 20 },
-																					 { 3, 30 } },
-																				 FenestrationCommon::Interpolation::Logarithmic );
+	const MoisThermFEM::TabularFunction curve( { { 1, 10 },
+																										 { 2, 20 },
+																										 { 3, 30 } },
+																									 FenestrationCommon::Interpolation::Logarithmic );
 
 	double interpolationPoint = 2.5;
 
@@ -61,7 +61,7 @@ TEST_F( CurveTest, TestTabularLogarithmic ) {
 
 TEST_F( CurveTest, TestSuctionCurve ) {
 	SCOPED_TRACE( "Begin Test: Test suction curve." );
-	const FenestrationCommon::SuctionCurve curve( { { 1, 10 },
+	const MoisThermFEM::SuctionCurve curve( { { 1, 10 },
 																									{ 2, 20 },
 																									{ 3, 30 } } );
 
@@ -84,7 +84,7 @@ TEST_F( CurveTest, TestSuctionCurve ) {
 
 TEST_F( CurveTest, TestConstantCurve ) {
 	SCOPED_TRACE( "Begin Test: Test tabular logarithmic curve." );
-	const FenestrationCommon::Constant cons( 5 );
+	const MoisThermFEM::Constant cons( 5 );
 
 	double interpolationPoint = 2.5;
 	auto result = cons.value( interpolationPoint );
@@ -94,9 +94,9 @@ TEST_F( CurveTest, TestConstantCurve ) {
 
 TEST_F( CurveTest, TestTabularOutOfRangeBack ) {
 	SCOPED_TRACE( "Begin Test: Test tabular out of range." );
-	const FenestrationCommon::TabularFunction curve{ { 1, 10 },
-																				 { 2, 20 },
-																				 { 3, 30 } };
+	const MoisThermFEM::TabularFunction curve{ { 1, 10 },
+																									 { 2, 20 },
+																									 { 3, 30 } };
 
 	double interpolationPoint = 3.5;
 	auto result = curve.value( interpolationPoint );
@@ -106,12 +106,28 @@ TEST_F( CurveTest, TestTabularOutOfRangeBack ) {
 
 TEST_F( CurveTest, TestTabularOutOfRangeFront ) {
 	SCOPED_TRACE( "Begin Test: Test tabular out of range." );
-	const FenestrationCommon::TabularFunction curve{ { 1, 10 },
-																				 { 2, 20 },
-																				 { 3, 30 } };
+	const MoisThermFEM::TabularFunction curve{ { 1, 10 },
+																									 { 2, 20 },
+																									 { 3, 30 } };
 
 	double interpolationPoint = 0.5;
 	auto result = curve.value( interpolationPoint );
 	EXPECT_NEAR( 10, result, 1e-6 );
+
+}
+
+TEST_F( CurveTest, TestComposition1 ) {
+	SCOPED_TRACE( "Begin Test: Compostion of two functions." );
+	std::unique_ptr< MoisThermFEM::IFunction > cons = fem::make_unique< MoisThermFEM::Constant >(
+			5 );
+	const MoisThermFEM::TabularFunction tabular( { { 1, 10 },
+																											 { 2, 20 },
+																											 { 3, 30 } }, cons );
+
+	double interpolationPoint = 2.5;
+
+	auto result = tabular.value( interpolationPoint );
+
+	EXPECT_NEAR( 125, result, 1e-6 );
 
 }

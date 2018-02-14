@@ -46,8 +46,8 @@ namespace MoisThermFEM {
 		double m_HeatCapacity;
 		double m_ThermalConductivity;
 		double m_DiffusionResistanceFactor;
-		std::unique_ptr< FenestrationCommon::TabularFunction > m_LiquidTransportCoefficient;
-		std::unique_ptr< FenestrationCommon::FirstDerivativeCurve > m_SorptionCurve;
+		std::unique_ptr< MoisThermFEM::TabularFunction > m_LiquidTransportCoefficient;
+		std::unique_ptr< MoisThermFEM::FirstDerivativeCurve > m_SorptionCurve;
 	};
 
 }

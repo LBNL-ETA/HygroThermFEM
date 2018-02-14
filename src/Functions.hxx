@@ -4,13 +4,13 @@
 
 #include "Interpolator.hxx"
 
-namespace FenestrationCommon {
+namespace MoisThermFEM {
 
 	//////////////////////////////////////////////////////////////////
 	///  IFunction
 	//////////////////////////////////////////////////////////////////
 
-	/// Interface for curves.
+	/// Interface for functions
 	class IFunction {
 	public:
 		virtual double value( const double t_position = 0 ) const = 0;
@@ -45,10 +45,12 @@ namespace FenestrationCommon {
 	class Constant : public IDecoratingFunction {
 	public:
 		Constant( const double value );
+
 		Constant( const double value, std::unique_ptr< IFunction > & t_Curve );
 
 	private:
 		double getValue( const double t_position = 0 ) const override;
+
 		double m_Value;
 	};
 
@@ -61,22 +63,22 @@ namespace FenestrationCommon {
 	class TabularFunction : public IDecoratingFunction {
 	public:
 		TabularFunction( const std::vector< std::pair< double, double > > & values,
-					 Interpolator interpolator = Interpolation::Linear );
+										 FenestrationCommon::Interpolator interpolator = FenestrationCommon::Interpolation::Linear );
 
 		TabularFunction( const std::initializer_list< std::pair< double, double > > & list,
-					 Interpolator interpolator = Interpolation::Linear );
+										 FenestrationCommon::Interpolator interpolator = FenestrationCommon::Interpolation::Linear );
 
 		TabularFunction( const std::vector< std::pair< double, double > > & values,
-					 std::unique_ptr< IFunction > & t_Curve,
-					 Interpolator interpolator = Interpolation::Linear );
+										 std::unique_ptr< IFunction > & t_Curve,
+										 FenestrationCommon::Interpolator interpolator = FenestrationCommon::Interpolation::Linear );
 
 		TabularFunction( const std::initializer_list< std::pair< double, double > > & list,
-					 std::unique_ptr< IFunction > & t_Curve,
-					 Interpolator interpolator = Interpolation::Linear );
+										 std::unique_ptr< IFunction > & t_Curve,
+										 FenestrationCommon::Interpolator interpolator = FenestrationCommon::Interpolation::Linear );
 
 	protected:
 		std::vector< std::pair< double, double > > m_Curve;
-		Interpolator m_Interpolator;
+		FenestrationCommon::Interpolator m_Interpolator;
 
 		double getValue( const double t_position ) const override;
 
@@ -95,18 +97,18 @@ namespace FenestrationCommon {
 	class SuctionCurve : public TabularFunction {
 	public:
 		SuctionCurve( const std::vector< std::pair< double, double > > & values,
-									const Interpolator & interpolator = Interpolation::Logarithmic );
+									const FenestrationCommon::Interpolator & interpolator = FenestrationCommon::Interpolation::Logarithmic );
 
 		SuctionCurve( const std::initializer_list< std::pair< double, double > > & list,
-									const Interpolator & interpolator = Interpolation::Logarithmic );
+									const FenestrationCommon::Interpolator & interpolator = FenestrationCommon::Interpolation::Logarithmic );
 
 		SuctionCurve( const std::vector< std::pair< double, double > > & values,
 									std::unique_ptr< IFunction > & t_Curve,
-									const Interpolator & interpolator = Interpolation::Logarithmic );
+									const FenestrationCommon::Interpolator & interpolator = FenestrationCommon::Interpolation::Logarithmic );
 
 		SuctionCurve( const std::initializer_list< std::pair< double, double > > & list,
 									std::unique_ptr< IFunction > & t_Curve,
-									const Interpolator & interpolator = Interpolation::Logarithmic );
+									const FenestrationCommon::Interpolator & interpolator = FenestrationCommon::Interpolation::Logarithmic );
 
 	protected:
 		std::pair< std::pair< double, double >, std::pair< double, double > >
@@ -122,21 +124,22 @@ namespace FenestrationCommon {
 
 	public:
 		FirstDerivativeCurve( const std::vector< std::pair< double, double > > & values,
-					 const Interpolator interpolator = Interpolation::Linear );
+													const FenestrationCommon::Interpolator interpolator = FenestrationCommon::Interpolation::Linear );
 
 		FirstDerivativeCurve( const std::initializer_list< std::pair< double, double > > & list,
-					 const Interpolator interpolator = Interpolation::Linear );
+													const FenestrationCommon::Interpolator interpolator = FenestrationCommon::Interpolation::Linear );
 
 		FirstDerivativeCurve( const std::vector< std::pair< double, double > > & values,
-					 std::unique_ptr< IFunction > & t_Curve,
-					 const Interpolator interpolator = Interpolation::Linear );
+													std::unique_ptr< IFunction > & t_Curve,
+													const FenestrationCommon::Interpolator interpolator = FenestrationCommon::Interpolation::Linear );
 
 		FirstDerivativeCurve( const std::initializer_list< std::pair< double, double > > & list,
-					 std::unique_ptr< IFunction > & t_Curve,
-					 const Interpolator interpolator = Interpolation::Linear );
+													std::unique_ptr< IFunction > & t_Curve,
+													const FenestrationCommon::Interpolator interpolator = FenestrationCommon::Interpolation::Linear );
 
 	private:
 		double getValue( const double t_position ) const override;
+
 		virtual double firstDerivative( const double t_position ) const final;
 
 	};

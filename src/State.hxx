@@ -26,6 +26,8 @@ namespace MoisThermFEM {
 		void setValue( const Property t_Property, const double t_Value );
 		double getDeltaValue( const Property t_Property ) const;
 
+		const std::map< Property, double > & getCurrentValues() const;
+
 	private:
 		std::map< Iteration, std::map< Property, double > > m_Property;
 

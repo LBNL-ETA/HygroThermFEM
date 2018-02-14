@@ -1,7 +1,7 @@
 #include <algorithm>
 #include "Functions.hxx"
 
-namespace FenestrationCommon {
+namespace MoisThermFEM {
 
 
 	//////////////////////////////////////////////////////////////////
@@ -25,8 +25,7 @@ namespace FenestrationCommon {
 	Constant::Constant( const double value ) : IDecoratingFunction(), m_Value( value ) {}
 
 	double Constant::getValue( const double ) const {
-		auto result = m_Value;
-		return result;
+		return m_Value;
 	}
 
 	Constant::Constant( const double value, std::unique_ptr< IFunction > & t_Curve )
@@ -40,18 +39,18 @@ namespace FenestrationCommon {
 	//////////////////////////////////////////////////////////////////
 
 	TabularFunction::TabularFunction( const std::vector< std::pair< double, double > > & values,
-																		Interpolator interpolator )
+																		FenestrationCommon::Interpolator interpolator )
 			: IDecoratingFunction(), m_Curve( values ),
 				m_Interpolator( std::move( interpolator ) ) {}
 
 	TabularFunction::TabularFunction(
 			const std::initializer_list< std::pair< double, double > > & list,
-			Interpolator interpolator ) : IDecoratingFunction(), m_Curve( list ),
+			FenestrationCommon::Interpolator interpolator ) : IDecoratingFunction(), m_Curve( list ),
 																		m_Interpolator( std::move( interpolator ) ) {}
 
 	TabularFunction::TabularFunction( const std::vector< std::pair< double, double > > & values,
 																		std::unique_ptr< IFunction > & t_Curve,
-																		Interpolator interpolator )
+																		FenestrationCommon::Interpolator interpolator )
 			: IDecoratingFunction( t_Curve ), m_Curve( values ),
 				m_Interpolator( std::move( interpolator ) ) {
 
@@ -59,7 +58,7 @@ namespace FenestrationCommon {
 
 	TabularFunction::TabularFunction(
 			const std::initializer_list< std::pair< double, double > > & list,
-			std::unique_ptr< IFunction > & t_Curve, Interpolator interpolator ) :
+			std::unique_ptr< IFunction > & t_Curve, FenestrationCommon::Interpolator interpolator ) :
 			IDecoratingFunction( t_Curve ), m_Curve( list ), m_Interpolator( std::move( interpolator ) ) {
 
 	}
@@ -92,27 +91,27 @@ namespace FenestrationCommon {
 	//////////////////////////////////////////////////////////////////
 
 	SuctionCurve::SuctionCurve( const std::vector< std::pair< double, double > > & values,
-															const Interpolator & interpolator ) : TabularFunction( values,
+															const FenestrationCommon::Interpolator & interpolator ) : TabularFunction( values,
 																																										 interpolator ) {
 
 	}
 
 	SuctionCurve::SuctionCurve( const std::initializer_list< std::pair< double, double > > & list,
-															const Interpolator & interpolator ) : TabularFunction( list,
+															const FenestrationCommon::Interpolator & interpolator ) : TabularFunction( list,
 																																										 interpolator ) {
 
 	}
 
 	SuctionCurve::SuctionCurve( const std::initializer_list< std::pair< double, double > > & list,
 															std::unique_ptr< IFunction > & t_Curve,
-															const Interpolator & interpolator ) : TabularFunction( list, t_Curve,
+															const FenestrationCommon::Interpolator & interpolator ) : TabularFunction( list, t_Curve,
 																																										 interpolator ) {
 
 	}
 
 	SuctionCurve::SuctionCurve( const std::vector< std::pair< double, double > > & values,
 															std::unique_ptr< IFunction > & t_Curve,
-															const Interpolator & interpolator ) : TabularFunction( values,
+															const FenestrationCommon::Interpolator & interpolator ) : TabularFunction( values,
 																																										 t_Curve,
 																																										 interpolator ) {
 
@@ -140,27 +139,27 @@ namespace FenestrationCommon {
 	//////////////////////////////////////////////////////////////////
 
 	FirstDerivativeCurve::FirstDerivativeCurve(
-			const std::vector< std::pair< double, double > > & values, const Interpolator interpolator )
+			const std::vector< std::pair< double, double > > & values, const FenestrationCommon::Interpolator interpolator )
 			: TabularFunction( values, interpolator ) {
 
 	}
 
 	FirstDerivativeCurve::FirstDerivativeCurve(
 			const std::initializer_list< std::pair< double, double > > & list,
-			const Interpolator interpolator ) : TabularFunction( list, interpolator ) {
+			const FenestrationCommon::Interpolator interpolator ) : TabularFunction( list, interpolator ) {
 
 	}
 
 	FirstDerivativeCurve::FirstDerivativeCurve(
 			const std::vector< std::pair< double, double > > & values,
-			std::unique_ptr< IFunction > & t_Curve, const Interpolator interpolator ) :
+			std::unique_ptr< IFunction > & t_Curve, const FenestrationCommon::Interpolator interpolator ) :
 			TabularFunction( values, t_Curve, interpolator ) {
 
 	}
 
 	FirstDerivativeCurve::FirstDerivativeCurve(
 			const std::initializer_list< std::pair< double, double > > & list,
-			std::unique_ptr< IFunction > & t_Curve, const Interpolator interpolator ) :
+			std::unique_ptr< IFunction > & t_Curve, const FenestrationCommon::Interpolator interpolator ) :
 			TabularFunction( list, t_Curve, interpolator ) {
 
 	}
