@@ -190,7 +190,7 @@ namespace MoisThermFEM {
 						new MoisThermFEM::TabularFunction( mat.sorptionCurve(), Property::humidity ) );
 
 		/// Calls sorption curve at 100% humidity to get maximum water content
-		auto maxWaterContent = mat.sorption( State( 0, 1, 0 ) );
+		auto maxWaterContent = waterContent->value( State( 0, 1, 0 ) );
 
 		std::unique_ptr< MoisThermFEM::IFunction > waterFill = fem::make_unique< MoisThermFEM::Constant >(
 				mat.porosity() / maxWaterContent, waterContent );
@@ -215,7 +215,7 @@ namespace MoisThermFEM {
 		/// Creating capacitance function
 		/////////////////////////////////////////////////////////////
 		m_Capacitance.push_back(
-				fem::make_unique< MoisThermFEM::TabularFunction >( mat.sorptionCurve(),
+				fem::make_unique< MoisThermFEM::FirstDerivativeFunction >( mat.sorptionCurve(),
 																													 Property::humidity ) );
 	}
 }

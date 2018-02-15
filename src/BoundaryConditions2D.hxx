@@ -6,10 +6,10 @@
 
 #include "SquareMatrix.hxx"
 #include "FEMunique.hxx"
+#include "State.hxx"
+#include "IBCLine2D.hxx"
 
 namespace MoisThermFEM {
-
-	class IBCLinear2D;
 
 	/// Container for all boundary conditions. Its responsibility is to create matrix and vector of
 	/// all boundary conditions.
@@ -25,7 +25,7 @@ namespace MoisThermFEM {
 
 		bool isLinear() const;
 
-		void updateNodeTemperatures( const std::vector< double > & temperatures );
+		void updateNodeValues( const std::vector< double > & values, const Property property );
 
 	protected:
 		std::vector< std::unique_ptr< IBCLinear2D > > m_BCs;

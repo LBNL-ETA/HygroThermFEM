@@ -9,6 +9,10 @@ using FenestrationCommon::CLinearSolver;
 
 namespace MoisThermFEM {
 
+	Domain::Domain( const Property property ) : m_Property( property ) {
+
+	}
+
 	FenestrationCommon::SquareMatrix< double > Domain::steadyStateLeftHandSide() {
 		auto condMat = m_Elements.conductanceMatrix();
 		auto H = m_BCs.HMatrix();
@@ -88,7 +92,7 @@ namespace MoisThermFEM {
 
 				++numOfIterations;
 
-				m_BCs.updateNodeTemperatures( solution );
+				m_BCs.updateNodeValues( solution, m_Property );
 
 				A = transientM_K_H_Matrix( t_DTime );
 				B = transientMT_R_Vector( currentStateValues, t_DTime );

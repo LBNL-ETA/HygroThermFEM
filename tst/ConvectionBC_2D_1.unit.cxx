@@ -62,7 +62,7 @@ TEST_F( ConvectionBC_2D_1, TestExample_1 ) {
 				{ 1,     180 } }
 	);
 
-	Domain domain;
+	Domain domain{ Property::temperature };
 
 	domain.elementsCreator().createThermalElement( node3, node4, node2, node1, material );
 	domain.elementsCreator().createThermalElement( node6, node4, node3, node5, material );

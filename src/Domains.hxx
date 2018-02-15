@@ -10,7 +10,7 @@ namespace MoisThermFEM {
 	/// Pressure governing equations.
 	class Domain {
 	public:
-		Domain() = default;
+		Domain( const Property property );
 
 		/// Calculates steady state solution
 		std::vector< double > steadyState();
@@ -44,6 +44,7 @@ namespace MoisThermFEM {
 
 		Element2DFactory m_Elements;
 		BoundaryCondition2DFactory m_BCs;
+		Property m_Property;
 	};
 
 }
