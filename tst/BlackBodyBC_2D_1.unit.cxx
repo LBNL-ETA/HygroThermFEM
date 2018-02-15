@@ -88,7 +88,6 @@ TEST_F( BlackBodyBC_2D_1, TestExample_1 ) {
 	const auto dTime = 3600;
 	const auto nSteps = 4;
 
-
 	auto temperatures = NodePool::Instance().nodeProperties( Property::temperature );
 	std::vector< std::vector< double > > solution;
 

@@ -14,9 +14,9 @@ namespace MoisThermFEM {
 			m_ThermalConductivity( ThermalConductivity ),
 			m_DiffusionResistanceFactor( DiffusionResistanceFactor ),
 			m_LiquidTransportCoefficient(
-					fem::make_unique< MoisThermFEM::SuctionCurve >( LiquidTransportCurve,
+					fem::make_unique< MoisThermFEM::SuctionFunction >( LiquidTransportCurve,
 																													Property::humidity ) ),
-			m_SorptionCurve( fem::make_unique< MoisThermFEM::FirstDerivativeCurve >( SorptionCurve,
+			m_SorptionCurve( fem::make_unique< MoisThermFEM::FirstDerivativeFunction >( SorptionCurve,
 																																							 Property::humidity ) ) {}
 
 	double Material::density() const {
