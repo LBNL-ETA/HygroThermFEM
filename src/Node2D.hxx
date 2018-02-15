@@ -59,6 +59,7 @@ namespace MoisThermFEM {
 												const Iteration t_Iteration = Iteration::Current ) const;
 		void setProperty( const Property t_Property, double t_value );
 		double getDeltaProperty( const Property t_Property ) const;
+		const State & getState() const;
 
 	private:
 		std::size_t m_NodeNumber { 0 };

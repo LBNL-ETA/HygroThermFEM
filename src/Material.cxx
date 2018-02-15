@@ -1,10 +1,12 @@
 #include "Material.hxx"
 #include "Functions.hxx"
 #include "FEMunique.hxx"
+#include "State.hxx"
 
 namespace MoisThermFEM {
 
-	Material::Material( const std::string & Name, double Density, double Porosity, double HeatCapacity,
+	Material::Material( const std::string & Name, double Density, double Porosity,
+											double HeatCapacity,
 											double ThermalConductivity, double DiffusionResistanceFactor,
 											const std::vector< std::pair< double, double > > & LiquidTransportCurve,
 											const std::vector< std::pair< double, double > > & SorptionCurve ) :
@@ -12,8 +14,10 @@ namespace MoisThermFEM {
 			m_ThermalConductivity( ThermalConductivity ),
 			m_DiffusionResistanceFactor( DiffusionResistanceFactor ),
 			m_LiquidTransportCoefficient(
-					fem::make_unique< MoisThermFEM::SuctionCurve >( LiquidTransportCurve ) ),
-			m_SorptionCurve( fem::make_unique< MoisThermFEM::FirstDerivativeCurve >( SorptionCurve ) ) {}
+					fem::make_unique< MoisThermFEM::SuctionCurve >( LiquidTransportCurve,
+																													Property::humidity ) ),
+			m_SorptionCurve( fem::make_unique< MoisThermFEM::FirstDerivativeCurve >( SorptionCurve,
+																																							 Property::humidity ) ) {}
 
 	double Material::density() const {
 		return m_Density;
@@ -35,12 +39,12 @@ namespace MoisThermFEM {
 		return m_DiffusionResistanceFactor;
 	}
 
-	double Material::liquidTransportationCoefficient( const double t_value ) const {
-		return m_LiquidTransportCoefficient->value( t_value );
+	double Material::liquidTransportationCoefficient( const State & state ) const {
+		return m_LiquidTransportCoefficient->value( state );
 	}
 
-	double Material::sorption( const double t_value ) const {
-		return m_SorptionCurve->value( t_value );
+	double Material::sorption( const State & state ) const {
+		return m_SorptionCurve->value( state );
 	}
 
 	std::string Material::name() const {

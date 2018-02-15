@@ -128,10 +128,10 @@ namespace MoisThermFEM {
 	SquareMatrix< double > IElementLinear2D::conductanceMatrix() const {
 		FenestrationCommon::SquareMatrix< double > result{ numOfQuadrilateralNodes };
 		for ( const std::unique_ptr< MoisThermFEM::IFunction > & cond : m_Conductance ) {
-			auto value1 = cond->value( m_Node1.getProperty( m_Property ) );
-			auto value2 = cond->value( m_Node2.getProperty( m_Property ) );
-			auto value3 = cond->value( m_Node3.getProperty( m_Property ) );
-			auto value4 = cond->value( m_Node4.getProperty( m_Property ) );
+			auto value1 = cond->value( m_Node1.getState() );
+			auto value2 = cond->value( m_Node2.getState() );
+			auto value3 = cond->value( m_Node3.getState() );
+			auto value4 = cond->value( m_Node4.getState() );
 			QLEConductance2D aMatrix( m_Node1, m_Node2, m_Node3, m_Node4, value1, value2, value3,
 																value4 );
 			aMatrix.integrate();
@@ -144,10 +144,10 @@ namespace MoisThermFEM {
 	SquareMatrix< double > IElementLinear2D::capacitanceMatrix() const {
 		FenestrationCommon::SquareMatrix< double > result{ numOfQuadrilateralNodes };
 		for ( const std::unique_ptr< MoisThermFEM::IFunction > & cap : m_Capacitance ) {
-			auto value1 = cap->value( m_Node1.getProperty( m_Property ) );
-			auto value2 = cap->value( m_Node2.getProperty( m_Property ) );
-			auto value3 = cap->value( m_Node3.getProperty( m_Property ) );
-			auto value4 = cap->value( m_Node4.getProperty( m_Property ) );
+			auto value1 = cap->value( m_Node1.getState() );
+			auto value2 = cap->value( m_Node2.getState() );
+			auto value3 = cap->value( m_Node3.getState() );
+			auto value4 = cap->value( m_Node4.getState() );
 			QLECapacitance2D aMatrix( m_Node1, m_Node2, m_Node3, m_Node4, value1, value2, value3,
 																value4 );
 			aMatrix.integrate();
@@ -166,9 +166,11 @@ namespace MoisThermFEM {
 			IElementLinear2D( t_Node1, t_Node2, t_Node3, t_Node4, Property::temperature ) {
 		/// Note that this works for non-porous material with constant properties.
 		m_Conductance.push_back(
-				fem::make_unique< MoisThermFEM::Constant >( mat.thermalConductivity() ) );
+				fem::make_unique< MoisThermFEM::Constant >( mat.thermalConductivity(),
+																										Property::temperature ) );
 		m_Capacitance.push_back(
-				fem::make_unique< MoisThermFEM::Constant >( mat.heatCapacity() * mat.density() ) );
+				fem::make_unique< MoisThermFEM::Constant >( mat.heatCapacity() * mat.density(),
+																										Property::temperature ) );
 	}
 
 }

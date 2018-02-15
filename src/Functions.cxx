@@ -1,36 +1,44 @@
 #include <algorithm>
 #include "Functions.hxx"
+#include "State.hxx"
 
 namespace MoisThermFEM {
-
 
 	//////////////////////////////////////////////////////////////////
 	///  IDecoratingCurve
 	//////////////////////////////////////////////////////////////////
 
-	IDecoratingFunction::IDecoratingFunction() : IFunction(), m_Function{ nullptr } {}
+	IFunction::IFunction( Property t_Property ) : m_Property( t_Property ) {}
 
-	IDecoratingFunction::IDecoratingFunction( std::unique_ptr< IFunction > & m_Curve )
-			: IFunction(), m_Function( std::move( m_Curve ) ) {}
+	//////////////////////////////////////////////////////////////////
+	///  IDecoratingCurve
+	//////////////////////////////////////////////////////////////////
 
-	double IDecoratingFunction::value( const double t_position ) const {
-		return m_Function != nullptr ? getValue( t_position ) * m_Function->value( t_position )
-																 : getValue( t_position );
+	IDecoratingFunction::IDecoratingFunction( Property property ) : IFunction( property ),
+																																	m_Function{ nullptr } {}
+
+	IDecoratingFunction::IDecoratingFunction( Property property,
+																						std::unique_ptr< IFunction > & m_Curve )
+			: IFunction( property ), m_Function( std::move( m_Curve ) ) {}
+
+	double IDecoratingFunction::value( const State & state ) const {
+		auto value = state.getValue( m_Property );
+		return m_Function != nullptr ? getValue( value ) * m_Function->value( state )
+																 : getValue( value );
 	}
 
 	//////////////////////////////////////////////////////////////////
 	///  Constant
 	//////////////////////////////////////////////////////////////////
 
-	Constant::Constant( const double value ) : IDecoratingFunction(), m_Value( value ) {}
+	Constant::Constant( const double value, Property property ) : IDecoratingFunction( property ), m_Value( value ) {}
 
 	double Constant::getValue( const double ) const {
 		return m_Value;
 	}
 
-	Constant::Constant( const double value, std::unique_ptr< IFunction > & t_Curve )
-			: IDecoratingFunction(
-			t_Curve ), m_Value( value ) {
+	Constant::Constant( const double value, Property property, std::unique_ptr< IFunction > & t_Curve )
+			: IDecoratingFunction( property, t_Curve ), m_Value( value ) {
 
 	}
 
@@ -39,27 +47,32 @@ namespace MoisThermFEM {
 	//////////////////////////////////////////////////////////////////
 
 	TabularFunction::TabularFunction( const std::vector< std::pair< double, double > > & values,
+																		Property property,
 																		FenestrationCommon::Interpolator interpolator )
-			: IDecoratingFunction(), m_Curve( values ),
+			: IDecoratingFunction( property ), m_Curve( values ),
 				m_Interpolator( std::move( interpolator ) ) {}
 
 	TabularFunction::TabularFunction(
 			const std::initializer_list< std::pair< double, double > > & list,
-			FenestrationCommon::Interpolator interpolator ) : IDecoratingFunction(), m_Curve( list ),
-																		m_Interpolator( std::move( interpolator ) ) {}
+			Property property,
+			FenestrationCommon::Interpolator interpolator ) : IDecoratingFunction( property ), m_Curve( list ),
+																												m_Interpolator(
+																														std::move( interpolator ) ) {}
 
 	TabularFunction::TabularFunction( const std::vector< std::pair< double, double > > & values,
+																		Property property,
 																		std::unique_ptr< IFunction > & t_Curve,
 																		FenestrationCommon::Interpolator interpolator )
-			: IDecoratingFunction( t_Curve ), m_Curve( values ),
+			: IDecoratingFunction( property, t_Curve ), m_Curve( values ),
 				m_Interpolator( std::move( interpolator ) ) {
 
 	}
 
 	TabularFunction::TabularFunction(
 			const std::initializer_list< std::pair< double, double > > & list,
+			Property property,
 			std::unique_ptr< IFunction > & t_Curve, FenestrationCommon::Interpolator interpolator ) :
-			IDecoratingFunction( t_Curve ), m_Curve( list ), m_Interpolator( std::move( interpolator ) ) {
+			IDecoratingFunction( property, t_Curve ), m_Curve( list ), m_Interpolator( std::move( interpolator ) ) {
 
 	}
 
@@ -91,29 +104,32 @@ namespace MoisThermFEM {
 	//////////////////////////////////////////////////////////////////
 
 	SuctionCurve::SuctionCurve( const std::vector< std::pair< double, double > > & values,
-															const FenestrationCommon::Interpolator & interpolator ) : TabularFunction( values,
-																																										 interpolator ) {
+															Property property,
+															const FenestrationCommon::Interpolator & interpolator )
+			: TabularFunction( values, property, interpolator ) {
 
 	}
 
 	SuctionCurve::SuctionCurve( const std::initializer_list< std::pair< double, double > > & list,
-															const FenestrationCommon::Interpolator & interpolator ) : TabularFunction( list,
-																																										 interpolator ) {
+															Property property,
+															const FenestrationCommon::Interpolator & interpolator )
+			: TabularFunction( list, property, interpolator ) {
 
 	}
 
 	SuctionCurve::SuctionCurve( const std::initializer_list< std::pair< double, double > > & list,
+															Property property,
 															std::unique_ptr< IFunction > & t_Curve,
-															const FenestrationCommon::Interpolator & interpolator ) : TabularFunction( list, t_Curve,
-																																										 interpolator ) {
+															const FenestrationCommon::Interpolator & interpolator )
+			: TabularFunction( list, property, t_Curve, interpolator ) {
 
 	}
 
 	SuctionCurve::SuctionCurve( const std::vector< std::pair< double, double > > & values,
+															Property property,
 															std::unique_ptr< IFunction > & t_Curve,
-															const FenestrationCommon::Interpolator & interpolator ) : TabularFunction( values,
-																																										 t_Curve,
-																																										 interpolator ) {
+															const FenestrationCommon::Interpolator & interpolator )
+			: TabularFunction( values, property, t_Curve, interpolator ) {
 
 	}
 
@@ -139,28 +155,36 @@ namespace MoisThermFEM {
 	//////////////////////////////////////////////////////////////////
 
 	FirstDerivativeCurve::FirstDerivativeCurve(
-			const std::vector< std::pair< double, double > > & values, const FenestrationCommon::Interpolator interpolator )
-			: TabularFunction( values, interpolator ) {
+			const std::vector< std::pair< double, double > > & values,
+			Property property,
+			const FenestrationCommon::Interpolator interpolator )
+			: TabularFunction( values, property, interpolator ) {
 
 	}
 
 	FirstDerivativeCurve::FirstDerivativeCurve(
 			const std::initializer_list< std::pair< double, double > > & list,
-			const FenestrationCommon::Interpolator interpolator ) : TabularFunction( list, interpolator ) {
+			Property property,
+			const FenestrationCommon::Interpolator interpolator ) :
+			TabularFunction( list, property, interpolator ) {
 
 	}
 
 	FirstDerivativeCurve::FirstDerivativeCurve(
 			const std::vector< std::pair< double, double > > & values,
-			std::unique_ptr< IFunction > & t_Curve, const FenestrationCommon::Interpolator interpolator ) :
-			TabularFunction( values, t_Curve, interpolator ) {
+			Property property,
+			std::unique_ptr< IFunction > & t_Curve, const FenestrationCommon::Interpolator interpolator )
+			:
+			TabularFunction( values, property, t_Curve, interpolator ) {
 
 	}
 
 	FirstDerivativeCurve::FirstDerivativeCurve(
 			const std::initializer_list< std::pair< double, double > > & list,
-			std::unique_ptr< IFunction > & t_Curve, const FenestrationCommon::Interpolator interpolator ) :
-			TabularFunction( list, t_Curve, interpolator ) {
+			Property property,
+			std::unique_ptr< IFunction > & t_Curve, const FenestrationCommon::Interpolator interpolator )
+			:
+			TabularFunction( list, property, t_Curve, interpolator ) {
 
 	}
 
