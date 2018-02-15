@@ -43,8 +43,16 @@ namespace MoisThermFEM {
 		return m_LiquidTransportCoefficient->value( state );
 	}
 
+	std::vector< std::pair< double, double > > Material::liquidTransporatationCurve() const {
+		return m_LiquidTransportCoefficient->getCurve();
+	}
+
 	double Material::sorption( const State & state ) const {
 		return m_SorptionCurve->value( state );
+	}
+
+	std::vector< std::pair< double, double > > Material::sorptionCurve() const {
+		return m_SorptionCurve->getCurve();
 	}
 
 	std::string Material::name() const {

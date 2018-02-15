@@ -26,10 +26,16 @@ namespace MoisThermFEM {
 																															 const Node2D & t_Node2,
 																															 const double t_Emissivity,
 																															 const double t_RadiationTemperature ) {
-		BlackBodyRadiationBC bc{ t_Node1, t_Node2, t_Emissivity, t_RadiationTemperature };
 		m_BCs.push_back( fem::make_unique< BlackBodyRadiationBC >( t_Node1, t_Node2, t_Emissivity,
 																															 t_RadiationTemperature ) );
 		m_Linear = false;
+	}
+
+	void BoundaryCondition2DFactory::createMoistureBC( const Node2D & t_Node1, const Node2D & t_Node2,
+																										 const double t_ConvectiveCoefficient,
+																										 const double t_AirHumidity ) {
+		m_BCs.push_back( fem::make_unique< MoistureBC >( t_Node1, t_Node2, t_ConvectiveCoefficient,
+																										 t_AirHumidity ) );
 	}
 
 

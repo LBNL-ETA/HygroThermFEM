@@ -94,7 +94,7 @@ TEST_F( CurveTest, TestSuctionCurve ) {
 
 TEST_F( CurveTest, TestConstantCurve ) {
 	SCOPED_TRACE( "Begin Test: Test tabular logarithmic." );
-	const MoisThermFEM::Constant cons( 5, Property::temperature );
+	const MoisThermFEM::Constant cons( 5 );
 
 	State interpolationPoint( 2.5, 0, 101325 );
 	auto result = cons.value( interpolationPoint );
@@ -128,8 +128,7 @@ TEST_F( CurveTest, TestTabularOutOfRangeFront ) {
 
 TEST_F( CurveTest, TestComposition1 ) {
 	SCOPED_TRACE( "Begin Test: Composition (multiplication) of two functions." );
-	std::unique_ptr< MoisThermFEM::IFunction > cons = fem::make_unique< MoisThermFEM::Constant >(
-			5, Property::temperature );
+	std::unique_ptr< MoisThermFEM::IFunction > cons = fem::make_unique< MoisThermFEM::Constant >( 5 );
 	const MoisThermFEM::TabularFunction tabular( { { 1, 10 },
 																								 { 2, 20 },
 																								 { 3, 30 } }, Property::temperature, cons );
@@ -164,16 +163,14 @@ TEST_F( CurveTest, TestPorosityCalculation ) {
 	const auto materialPorosity = 0.05;
 
 	std::unique_ptr< MoisThermFEM::IFunction > waterFill = fem::make_unique< MoisThermFEM::Constant >(
-			materialPorosity / maxWaterContent,
-			Property::humidity, waterContent );
+			materialPorosity / maxWaterContent, waterContent );
 
 	State outdoor( 10, 0.98, 101325 );
 
 	auto result = waterFill->value( outdoor );
 	EXPECT_NEAR( 0.0136875, result, 1e-6 );
 
-	const MoisThermFEM::Constant airFill( materialPorosity, Property::humidity, waterFill,
-	 																			MoisThermFEM::Operation::SUB );
+	const MoisThermFEM::Constant airFill( materialPorosity, waterFill, MoisThermFEM::Operation::SUB );
 
 	result = airFill.value( outdoor );
 	EXPECT_NEAR( 0.0363125, result, 1e-6 );

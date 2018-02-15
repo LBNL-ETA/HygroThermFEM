@@ -66,9 +66,9 @@ namespace MoisThermFEM {
 	/// Simple constant curve.
 	class Constant : public IDecoratingFunction {
 	public:
-		Constant( const double value, Property property );
+		Constant( const double value );
 
-		Constant( const double value, Property property, std::unique_ptr< IFunction > & t_Curve,
+		Constant( const double value, std::unique_ptr< IFunction > & t_Curve,
 							Operation operation = Operation::MULT );
 
 	private:
@@ -108,6 +108,8 @@ namespace MoisThermFEM {
 		double max() const;
 
 		double min() const;
+
+		std::vector< std::pair< double, double > > getCurve() const;
 
 	protected:
 		std::vector< std::pair< double, double > > m_Curve;
@@ -199,7 +201,7 @@ namespace MoisThermFEM {
 		SaturationFunction( Property property );
 
 		SaturationFunction( Property property, std::unique_ptr< IFunction > & t_Curve,
-														Operation operation );
+												Operation operation = Operation::MULT );
 
 	private:
 		double getValue( const double t_position ) const override;

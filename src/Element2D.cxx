@@ -117,11 +117,10 @@ namespace MoisThermFEM {
 
 	IElementLinear2D::IElementLinear2D(
 			const Node2D & t_Node1, const Node2D & t_Node2,
-			const Node2D & t_Node3, const Node2D & t_Node4,
-			const Property t_property ) : IElementQuadrilateral2D( t_Node1, t_Node2, t_Node3, t_Node4 ),
-																		m_Node1( t_Node1 ), m_Node2( t_Node2 ), m_Node3( t_Node3 ),
-																		m_Node4( t_Node4 ),
-																		m_Property( t_property ) {
+			const Node2D & t_Node3, const Node2D & t_Node4 ) :
+			IElementQuadrilateral2D( t_Node1, t_Node2, t_Node3, t_Node4 ),
+			m_Node1( t_Node1 ), m_Node2( t_Node2 ), m_Node3( t_Node3 ),
+			m_Node4( t_Node4 ) {
 
 	}
 
@@ -163,14 +162,60 @@ namespace MoisThermFEM {
 	ElementThermalLinear2D::ElementThermalLinear2D( const Node2D & t_Node1, const Node2D & t_Node2,
 																									const Node2D & t_Node3, const Node2D & t_Node4,
 																									const Material & mat ) :
-			IElementLinear2D( t_Node1, t_Node2, t_Node3, t_Node4, Property::temperature ) {
+			IElementLinear2D( t_Node1, t_Node2, t_Node3, t_Node4 ) {
 		/// Note that this works for non-porous material with constant properties.
 		m_Conductance.push_back(
-				fem::make_unique< MoisThermFEM::Constant >( mat.thermalConductivity(),
-																										Property::temperature ) );
+				fem::make_unique< MoisThermFEM::Constant >( mat.thermalConductivity() ) );
 		m_Capacitance.push_back(
-				fem::make_unique< MoisThermFEM::Constant >( mat.heatCapacity() * mat.density(),
-																										Property::temperature ) );
+				fem::make_unique< MoisThermFEM::Constant >( mat.heatCapacity() * mat.density() ) );
 	}
 
+	//////////////////////////////////////////////////////////////////////////////
+	///  ElementMoistureLinear2D
+	//////////////////////////////////////////////////////////////////////////////
+
+
+
+	ElementMoistureLinear2D::ElementMoistureLinear2D( const Node2D & t_Node1, const Node2D & t_Node2,
+																										const Node2D & t_Node3, const Node2D & t_Node4,
+																										const Material & mat ) :
+			IElementLinear2D( t_Node1, t_Node2, t_Node3, t_Node4 ) {
+
+		/////////////////////////////////////////////////////////////
+		/// Creating conductance function for vapor
+		/////////////////////////////////////////////////////////////
+
+		std::unique_ptr< MoisThermFEM::IFunction > waterContent =
+				std::unique_ptr< MoisThermFEM::IFunction >(
+						new MoisThermFEM::TabularFunction( mat.sorptionCurve(), Property::humidity ) );
+
+		/// Calls sorption curve at 100% humidity to get maximum water content
+		auto maxWaterContent = mat.sorption( State( 0, 1, 0 ) );
+
+		std::unique_ptr< MoisThermFEM::IFunction > waterFill = fem::make_unique< MoisThermFEM::Constant >(
+				mat.porosity() / maxWaterContent, waterContent );
+
+		std::unique_ptr< MoisThermFEM::IFunction > airFill = fem::make_unique< MoisThermFEM::Constant >(
+				mat.porosity(), waterFill, MoisThermFEM::Operation::SUB );
+
+		std::unique_ptr< MoisThermFEM::IFunction > saturationFunction =
+				fem::make_unique< MoisThermFEM::SaturationFunction >( Property::temperature, airFill );
+
+		m_Conductance.push_back( fem::make_unique< MoisThermFEM::Constant >(
+				mat.diffusionResistanceFactor(), saturationFunction ) );
+
+		/////////////////////////////////////////////////////////////
+		/// Creating conductance function for liquid
+		/////////////////////////////////////////////////////////////
+		m_Conductance.push_back(
+				fem::make_unique< MoisThermFEM::SuctionFunction >( mat.liquidTransporatationCurve(),
+																													 Property::humidity ) );
+
+		/////////////////////////////////////////////////////////////
+		/// Creating capacitance function
+		/////////////////////////////////////////////////////////////
+		m_Capacitance.push_back(
+				fem::make_unique< MoisThermFEM::TabularFunction >( mat.sorptionCurve(),
+																													 Property::humidity ) );
+	}
 }

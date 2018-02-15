@@ -29,8 +29,10 @@ namespace MoisThermFEM {
 		double diffusionResistanceFactor() const;
 
 		double liquidTransportationCoefficient( const State & state ) const;
+		std::vector< std::pair< double, double > > liquidTransporatationCurve() const;
 
 		double sorption( const State & state ) const;
+		std::vector< std::pair< double, double > > sorptionCurve() const;
 
 	private:
 		/// Create material by using MaterialPool.

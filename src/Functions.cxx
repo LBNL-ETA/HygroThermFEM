@@ -40,17 +40,16 @@ namespace MoisThermFEM {
 	///  Constant
 	//////////////////////////////////////////////////////////////////
 
-	Constant::Constant( const double value, Property property ) : IDecoratingFunction( property ),
-																																m_Value( value ) {}
+	Constant::Constant( const double value ) : IDecoratingFunction( Property::temperature ),
+																						 m_Value( value ) {}
 
 	double Constant::getValue( const double ) const {
 		return m_Value;
 	}
 
-	Constant::Constant( const double value, Property property,
-											std::unique_ptr< IFunction > & t_Curve,
+	Constant::Constant( const double value, std::unique_ptr< IFunction > & t_Curve,
 											Operation operation )
-			: IDecoratingFunction( property, t_Curve, operation ), m_Value( value ) {
+			: IDecoratingFunction( Property::temperature, t_Curve, operation ), m_Value( value ) {
 
 	}
 
@@ -122,6 +121,10 @@ namespace MoisThermFEM {
 
 	double TabularFunction::min() const {
 		return m_Curve.front().second;
+	}
+
+	std::vector< std::pair< double, double > > TabularFunction::getCurve() const {
+		return m_Curve;
 	}
 
 	//////////////////////////////////////////////////////////////////
