@@ -1,6 +1,4 @@
 #include <gtest/gtest.h>
-#include <memory>
-#include <vector>
 
 #include "Conrad2D.hxx"
 
@@ -38,18 +36,14 @@ TEST_F( TestBoundaryConditions2D_test1, TestIntegrationPoints ) {
     auto const hc1 = 20.0;
     auto const Tair1 = 255.15;
 
-    ConvectionBC aBC1{ node1, node2, hc1, Tair1 };
-
     auto const hc2 = 2.4;
     auto const Tair2 = 294.15;
 
-    ConvectionBC aBC2{ node6, node5, hc2, Tair2 };
-    std::vector< std::reference_wrapper< IBCLinear2D > > vBC{ aBC1, aBC2 };
+    BoundaryCondition2DFactory BCs;
+    BCs.createConvectionBC( node1, node2, hc1, Tair1 );
+    BCs.createConvectionBC( node6, node5, hc2, Tair2 );
 
-    // It is possible directly to pass { aBC1, aBC2 } to the constructor
-    auto aBCs = BoundaryConditions2D( vBC );
-
-    auto H = aBCs.HMatrix();
+    auto H = BCs.HMatrix();
 
     std::vector< std::vector< double > > correctH = {
             { 33.33333333, 16.66666667, 0, 0, 0, 0 },
@@ -67,7 +61,7 @@ TEST_F( TestBoundaryConditions2D_test1, TestIntegrationPoints ) {
         }
     }
 
-    auto R = aBCs.RVector();
+    auto R = BCs.RVector();
 
     std::vector< double > correctR = { 12757.5, 12757.5, 0, 0, 1764.9, 1764.9 };
 

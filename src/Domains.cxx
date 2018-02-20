@@ -2,7 +2,6 @@
 #include <algorithm>
 
 #include "Domains.hxx"
-#include "NodePool.hxx"
 #include "LinearSolver.hxx"
 #include "Common.hxx"
 
@@ -10,8 +9,9 @@ using FenestrationCommon::CLinearSolver;
 
 namespace MoisThermFEM {
 
-	Domain::Domain( const ElementsLinear2D & t_Elements, const BoundaryConditions2D & t_BCs )
-			: m_Elements( t_Elements ), m_BCs( t_BCs ), m_Linear( t_BCs.isLinear() ) {}
+	Domain::Domain( const Property property ) : m_Property( property ) {
+
+	}
 
 	FenestrationCommon::SquareMatrix< double > Domain::steadyStateLeftHandSide() {
 		auto condMat = m_Elements.conductanceMatrix();
@@ -61,7 +61,7 @@ namespace MoisThermFEM {
 
 		std::vector< double > solution;
 
-		if( m_Linear ) {
+		if( isLinear() ) {
 			solution = aSolver.solveSystem( A, B );
 		} else {
 			solution = currentStateValues;
@@ -92,7 +92,7 @@ namespace MoisThermFEM {
 
 				++numOfIterations;
 
-				m_BCs.updateNodeTemperatures( solution );
+				m_BCs.updateNodeValues( solution, m_Property );
 
 				A = transientM_K_H_Matrix( t_DTime );
 				B = transientMT_R_Vector( currentStateValues, t_DTime );
@@ -116,6 +116,18 @@ namespace MoisThermFEM {
 		result = std::pow( result, 0.5 );
 
 		return result;
+	}
+
+	BoundaryCondition2DFactory & Domain::boundariesCreator() {
+		return m_BCs;
+	}
+
+	Element2DFactory & Domain::elementsCreator() {
+		return m_Elements;
+	}
+
+	bool Domain::isLinear() const {
+		return m_BCs.isLinear() && m_Elements.isLinear();
 	}
 
 	/// FenestrationCommon::SquareMatrix< double > Domain::transientDH_Matrix() {

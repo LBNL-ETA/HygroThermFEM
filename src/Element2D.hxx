@@ -6,11 +6,11 @@
 #include "Quadrilateral2D.hxx"
 #include "SquareMatrix.hxx"
 #include "Material.hxx"
-#include "Curve.hxx"
+#include "Functions.hxx"
 
 namespace MoisThermFEM {
 
-	// Constant that holds number of nodes in certain elements
+	// Constant that holds number of nodes in certain elementsCreator
 	const std::size_t numOfQuadrilateralNodes = 4;
 
 	//////////////////////////////////////////////////////////////////////////////
@@ -103,7 +103,7 @@ namespace MoisThermFEM {
 	class IElementLinear2D : public IElementQuadrilateral2D {
 	public:
 		IElementLinear2D( const Node2D & t_Node1, const Node2D & t_Node2, const Node2D & t_Node3,
-											const Node2D & t_Node4, const Property t_property );
+											const Node2D & t_Node4 );
 
 		FenestrationCommon::SquareMatrix< double > conductanceMatrix() const;
 		FenestrationCommon::SquareMatrix< double > capacitanceMatrix() const;
@@ -115,19 +115,29 @@ namespace MoisThermFEM {
 		Node2D m_Node4;
 
 		/// TODO: This did not work with reference_wrapper and it should. Check later.
-		std::vector< std::unique_ptr< FenestrationCommon::ICurve > > m_Conductance;
-		std::vector< std::unique_ptr< FenestrationCommon::ICurve > > m_Capacitance;
-		const Property m_Property;
+		/// Reminder: Introduce pair of curve pointer and Property so that curve knows what to use
+		std::vector< std::unique_ptr< MoisThermFEM::IFunction > > m_Conductance;
+		std::vector< std::unique_ptr< MoisThermFEM::IFunction > > m_Capacitance;
 	};
 
 	//////////////////////////////////////////////////////////////////////////////
 	///  ElementThermalLinear2D
 	//////////////////////////////////////////////////////////////////////////////
 
-	/// Handles linear 2D element (4 nodes)
 	class ElementThermalLinear2D : public IElementLinear2D {
 	public:
 		ElementThermalLinear2D( const Node2D & t_Node1, const Node2D & t_Node2, const Node2D & t_Node3,
+														const Node2D & t_Node4, const Material & mat );
+
+	};
+
+	//////////////////////////////////////////////////////////////////////////////
+	///  ElementMoistureLinear2D
+	//////////////////////////////////////////////////////////////////////////////
+
+	class ElementMoistureLinear2D : public IElementLinear2D {
+	public:
+		ElementMoistureLinear2D( const Node2D & t_Node1, const Node2D & t_Node2, const Node2D & t_Node3,
 														const Node2D & t_Node4, const Material & mat );
 
 	};

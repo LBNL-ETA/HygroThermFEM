@@ -1,8 +1,6 @@
-#include <math.h>
-#include <assert.h>
+#include <cmath>
 
 #include "IBCLine2D.hxx"
-#include "Node2D.hxx"
 #include "IntegrationPoints.hxx"
 #include "LineLocal1D.hxx"
 

@@ -1,31 +1,34 @@
 #pragma once
 
+#include <memory>
 #include <vector>
 #include <functional>
 
 #include "SquareMatrix.hxx"
+#include "FEMunique.hxx"
+#include "State.hxx"
+#include "IBCLine2D.hxx"
 
 namespace MoisThermFEM {
-
-	class IBCLinear2D;
 
 	/// Container for all boundary conditions. Its responsibility is to create matrix and vector of
 	/// all boundary conditions.
 	class BoundaryConditions2D {
 	public:
-		explicit BoundaryConditions2D(
-				std::vector< std::reference_wrapper< IBCLinear2D > > & t_BCs );
+		BoundaryConditions2D() = default;
+		BoundaryConditions2D( const BoundaryConditions2D & other ) = delete;
 
 		FenestrationCommon::SquareMatrix< double > HMatrix() const;
-		FenestrationCommon::SquareMatrix< double >DHMatrix() const;
+
+		/// FenestrationCommon::SquareMatrix< double >DHMatrix() const;
 		FenestrationCommon::Vector< double > RVector() const;
 
 		bool isLinear() const;
 
-		void updateNodeTemperatures( const std::vector< double > & temperatures );
+		void updateNodeValues( const std::vector< double > & values, const Property property );
 
-	private:
-		std::vector< std::reference_wrapper< IBCLinear2D > > m_BCs;
+	protected:
+		std::vector< std::unique_ptr< IBCLinear2D > > m_BCs;
 		bool m_Linear;
 	};
 

@@ -30,7 +30,7 @@ protected:
 };
 
 TEST_F( BlackBodyBC_2D_1, TestExample_1 ) {
-	SCOPED_TRACE( "Begin Test: Two elements example with transient." );
+	SCOPED_TRACE( "Begin Test: Two elementsCreator example with transient." );
 
 	// Enter nodes. Arguments are: node number, x-coordinate, y-coordinate, initial temperature
 	auto & nodePool = NodePool::Instance();
@@ -48,12 +48,12 @@ TEST_F( BlackBodyBC_2D_1, TestExample_1 ) {
 
 	auto & material = materialPool.createMaterial(
 			"Cottaer Sandstone",
-			2050, /// density
-			0.22, /// porosity
-			850,  /// specific heat capacity (dry)
-			1.8,  /// thermal conductivity (dry)
-			15,   /// diffusion resistance factor
-			{ { 0,   0 },  /// liquid transportation coefficient
+			2050,    /// Density
+			0.22,    /// Porosity
+			850,     /// Specific Heat Capacity (dry)
+			1.8,     /// Thermal Conductivity (dry)
+			15E-6,   /// Diffusion Resistance Factor
+			{ { 0,   0 },  /// Liquid Transportation Coefficient
 				{ 27,  1E-8 },
 				{ 45,  1.1E-8 },
 				{ 90,  2E-8 },
@@ -62,7 +62,7 @@ TEST_F( BlackBodyBC_2D_1, TestExample_1 ) {
 				{ 162, 1E-7 },
 				{ 171, 2E-7 },
 				{ 180, 7E-7 } },
-			{ { 0,     0 },   /// sorption curve
+			{ { 0,     0 },   /// Moisture Storage Function
 				{ 0.5,   5.3 },
 				{ 0.65,  8.4 },
 				{ 0.8,   12 },
@@ -74,29 +74,20 @@ TEST_F( BlackBodyBC_2D_1, TestExample_1 ) {
 				{ 1,     180 } }
 	);
 
-	// Create elements
-	const ElementThermalLinear2D el1{ node3, node4, node2, node1, material };
-	const ElementThermalLinear2D el2{ node6, node4, node3, node5, material };
+	Domain domain{ Property::temperature };
 
-	const std::vector< std::reference_wrapper< const IElementLinear2D > > vElements{ el1, el2 };
-
-	const auto elements = ElementsLinear2D( vElements );
+	domain.elementsCreator().createThermalElement( node3, node4, node2, node1, material );
+	domain.elementsCreator().createThermalElement( node6, node4, node3, node5, material );
 
 	// Create Boundary Conditions
 	const auto tRadiation = 200.0;
 	const auto surfaceEmissivity = 0.84;
 
-	BlackBodyRadiationBC aBc1{ node5, node6, surfaceEmissivity, tRadiation };
-
-	std::vector< std::reference_wrapper< IBCLinear2D > > vBc{ aBc1 };
-
-	// It is possible directly to pass { aBc1 } to the constructor
-	const BoundaryConditions2D aBCs{ vBc };
+	domain.boundariesCreator().createBlackBodyRadiationBC( node5, node6, surfaceEmissivity,
+																												 tRadiation );
 
 	const auto dTime = 3600;
 	const auto nSteps = 4;
-
-	Domain domain{ elements, aBCs };
 
 	auto temperatures = NodePool::Instance().nodeProperties( Property::temperature );
 	std::vector< std::vector< double > > solution;

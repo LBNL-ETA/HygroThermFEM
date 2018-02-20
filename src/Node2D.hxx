@@ -47,8 +47,8 @@ namespace MoisThermFEM {
 		Node2D( const std::size_t t_NodeNumber, const double t_x, const double t_y,
 						const State & t_State );
 
-		Node2D( const Node2D & t_Node );
-		Node2D & operator=( const Node2D & other );
+		Node2D( const Node2D & t_Node ) = default;
+		Node2D & operator=( const Node2D & other ) = default;
 
 		size_t getNodeNumber() const;
 
@@ -59,6 +59,7 @@ namespace MoisThermFEM {
 												const Iteration t_Iteration = Iteration::Current ) const;
 		void setProperty( const Property t_Property, double t_value );
 		double getDeltaProperty( const Property t_Property ) const;
+		const State & getState() const;
 
 	private:
 		std::size_t m_NodeNumber { 0 };
@@ -106,7 +107,7 @@ namespace MoisThermFEM {
 	//   QuadrilateralNodes2D
 	////////////////////////////////////////////////////////////////////////////
 
-	// Class that store nodal data which are part of elements
+	// Class that store nodal data which are part of elementsCreator
 	class QuadrilateralNodes2D : public INodesStorage {
 	public:
 		QuadrilateralNodes2D( const Node2D & t_Node1, const Node2D & t_Node2, const Node2D & t_Node3,

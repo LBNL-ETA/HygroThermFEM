@@ -1,10 +1,11 @@
 #include "Material.hxx"
-#include "Curve.hxx"
 #include "FEMunique.hxx"
+#include "State.hxx"
 
 namespace MoisThermFEM {
 
-	Material::Material( const std::string & Name, double Density, double Porosity, double HeatCapacity,
+	Material::Material( const std::string & Name, double Density, double Porosity,
+											double HeatCapacity,
 											double ThermalConductivity, double DiffusionResistanceFactor,
 											const std::vector< std::pair< double, double > > & LiquidTransportCurve,
 											const std::vector< std::pair< double, double > > & SorptionCurve ) :
@@ -12,8 +13,10 @@ namespace MoisThermFEM {
 			m_ThermalConductivity( ThermalConductivity ),
 			m_DiffusionResistanceFactor( DiffusionResistanceFactor ),
 			m_LiquidTransportCoefficient(
-					fem::make_unique< FenestrationCommon::SuctionCurve >( LiquidTransportCurve ) ),
-			m_SorptionCurve( fem::make_unique< FenestrationCommon::Curve >( SorptionCurve ) ) {}
+					fem::make_unique< MoisThermFEM::SuctionFunction >( LiquidTransportCurve,
+																														 Property::humidity ) ),
+			m_SorptionCurve( fem::make_unique< MoisThermFEM::TabularFunction >( SorptionCurve,
+																																									Property::humidity ) ) {}
 
 	double Material::density() const {
 		return m_Density;
@@ -35,12 +38,20 @@ namespace MoisThermFEM {
 		return m_DiffusionResistanceFactor;
 	}
 
-	double Material::liquidTransportationCoefficient( const double t_value ) const {
-		return m_LiquidTransportCoefficient->value( t_value );
+	std::vector< std::pair< double, double > > Material::liquidTransportationCurve() const {
+		return m_LiquidTransportCoefficient->getCurve();
 	}
 
-	double Material::sorption( const double t_value ) const {
-		return m_SorptionCurve->firstDerivative( t_value );
+	std::vector< double > Material::waterContent( const std::vector< double > & humidity ) const {
+		std::vector< double > result( humidity.size() );
+		for ( auto i = 0u; i < humidity.size(); ++i ) {
+			result[ i ] = m_SorptionCurve->value( State( 0, humidity[ i ], 0 ) );
+		}
+		return result;
+	}
+
+	std::vector< std::pair< double, double > > Material::sorptionCurve() const {
+		return m_SorptionCurve->getCurve();
 	}
 
 	std::string Material::name() const {

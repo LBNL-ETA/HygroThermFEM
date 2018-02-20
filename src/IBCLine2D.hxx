@@ -13,7 +13,7 @@ namespace MoisThermFEM {
 	class LineNodes2D;
 	class LineLinearLocal1D;
 
-	// Interface class for boundary conditions in linear 2D finite elements.
+	// Interface class for boundary conditions in linear 2D finite elementsCreator.
 	class IBCLinear2D {
 	public:
 		IBCLinear2D() = delete;
