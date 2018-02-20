@@ -17,7 +17,8 @@ namespace MoisThermFEM {
 	//////////////////////////////////////////////////////////////////
 
 	IDecoratingFunction::IDecoratingFunction( Property property ) : IFunction( property ),
-																																	m_Function{ nullptr } {}
+																																	m_Function{ nullptr },
+																																	m_Operation( Operation::MULT ) {}
 
 	IDecoratingFunction::IDecoratingFunction( Property property,
 																						std::unique_ptr< IFunction > & m_Curve,
@@ -66,10 +67,11 @@ namespace MoisThermFEM {
 	TabularFunction::TabularFunction(
 			std::initializer_list< std::pair< double, double > > & list,
 			Property property,
-			FenestrationCommon::Interpolator interpolator ) : IDecoratingFunction( property ),
-																												m_Curve( std::move( list ) ),
-																												m_Interpolator(
-																														std::move( interpolator ) ) {}
+			FenestrationCommon::Interpolator interpolator ) :
+			IDecoratingFunction( property ),
+			m_Curve( list ),
+			m_Interpolator(
+					std::move( interpolator ) ) {}
 
 	TabularFunction::TabularFunction( const std::vector< std::pair< double, double > > & values,
 																		Property property,

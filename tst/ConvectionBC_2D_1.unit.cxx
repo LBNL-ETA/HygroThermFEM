@@ -36,12 +36,12 @@ TEST_F( ConvectionBC_2D_1, TestExample_1 ) {
 
 	auto & material = materialPool.createMaterial(
 			"Test Material",
-			2050, /// density
-			0.22, /// porosity
-			850,  /// specific heat capacity (dry)
-			1,  /// thermal conductivity (dry)
-			15,   /// diffusion resistance factor
-			{ { 0,   0 },  /// liquid transportation coefficient
+			2050,    /// Density
+			0.22,    /// Porosity
+			850,     /// Specific Heat Capacity (dry)
+			1,       /// Thermal Conductivity (dry)
+			15E-6,   /// Diffusion Resistance Factor
+			{ { 0,   0 },  /// Liquid Transportation Coefficient
 				{ 27,  1E-8 },
 				{ 45,  1.1E-8 },
 				{ 90,  2E-8 },
@@ -50,7 +50,7 @@ TEST_F( ConvectionBC_2D_1, TestExample_1 ) {
 				{ 162, 1E-7 },
 				{ 171, 2E-7 },
 				{ 180, 7E-7 } },
-			{ { 0,     0 },   /// sorption curve
+			{ { 0,     0 },   /// Moisture Storage Function
 				{ 0.5,   5.3 },
 				{ 0.65,  8.4 },
 				{ 0.8,   12 },
@@ -69,13 +69,13 @@ TEST_F( ConvectionBC_2D_1, TestExample_1 ) {
 
 	// Create Boundary Conditions
 	const auto hc1 = 20.0;
-	const auto tair1 = -18.0;
+	const auto temperatureAir1 = -18.0;
 
 	const auto hc2 = 2.4;
-	const auto tair2 = 21.0;
+	const auto temperatureAir2 = 21.0;
 
-	domain.boundariesCreator().createConvectionBC( node1, node2, hc1, tair1 );
-	domain.boundariesCreator().createConvectionBC( node6, node5, hc2, tair2 );
+	domain.boundariesCreator().createConvectionBC( node1, node2, hc1, temperatureAir1 );
+	domain.boundariesCreator().createConvectionBC( node6, node5, hc2, temperatureAir2 );
 
 	auto solution = domain.steadyState();
 

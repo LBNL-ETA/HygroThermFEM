@@ -27,7 +27,6 @@ TEST_F( MoistureBC_2D_1, TestExample_1 ) {
 	auto & nodePool = NodePool::Instance();
 	auto & materialPool = MaterialPool::Instance();
 
-	// same temperature in every node (humidity and pressure irrelevant for this example)
 	auto state = State( 293.15, 0, 101325 );
 	const auto node1 = nodePool.createNode( 1, 0.15, 0.05, state );
 	const auto node2 = nodePool.createNode( 2, 0.15, 0.00, state );
@@ -42,7 +41,7 @@ TEST_F( MoistureBC_2D_1, TestExample_1 ) {
 			0.22, /// porosity
 			850,  /// specific heat capacity (dry)
 			1.8,  /// thermal conductivity (dry)
-			15,   /// diffusion resistance factor
+			15E-6,   /// diffusion resistance factor
 			{ { 0,   0 },  /// liquid transportation coefficient
 				{ 27,  1E-8 },
 				{ 45,  1.1E-8 },
@@ -75,7 +74,7 @@ TEST_F( MoistureBC_2D_1, TestExample_1 ) {
 
 	domain.boundariesCreator().createMoistureBC( node1, node2, hc, humidity );
 
-	const auto dTime = 1;
+	const auto dTime = 36000;
 	const auto nSteps = 4;
 
 	auto humidities = NodePool::Instance().nodeProperties( Property::humidity );
@@ -83,16 +82,14 @@ TEST_F( MoistureBC_2D_1, TestExample_1 ) {
 
 	for ( unsigned i = 0; i < nSteps; ++i ) {
 		humidities = domain.transient( humidities, dTime );
-		solution.push_back( humidities );
+		solution.push_back( material.waterContent( humidities ) );
 	}
 
-	/// TODO: Results seem incorrect. Just have something that will give green light from tests.
-	/// This still needs to be corrected against WUFI
 	std::vector< std::vector< double > > correctSolution = {
-			{ 0.472700733, 0.472700733, 0.170301496, 0.170301496, 0.13812376 },
-			{ 0.491636522, 0.491636522, 0.281689143, 0.281689143, 0.25456308 },
-			{ 0.494749012, 0.494749012, 0.354755888, 0.354755888, 0.335824887 },
-			{ 0.496512435, 0.496512435, 0.403249654, 0.403249654, 0.390510034 }
+			{ 5.299994769, 5.299994769, 0.127527923, 0.127527923, 0.017069277, 0.017069277 },
+			{ 5.299999814, 5.299999814, 0.247383205, 0.247383205, 0.047896190, 0.047896190 },
+			{ 5.299999818, 5.299999818, 0.360643613, 0.360643613, 0.089756609, 0.089756609 },
+			{ 5.299999822, 5.299999822, 0.468202627, 0.468202627, 0.140410613, 0.140410613 }
 	};
 
 	EXPECT_EQ( solution.size(), correctSolution.size() );

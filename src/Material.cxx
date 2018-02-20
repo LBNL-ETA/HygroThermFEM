@@ -1,5 +1,4 @@
 #include "Material.hxx"
-#include "Functions.hxx"
 #include "FEMunique.hxx"
 #include "State.hxx"
 
@@ -15,9 +14,9 @@ namespace MoisThermFEM {
 			m_DiffusionResistanceFactor( DiffusionResistanceFactor ),
 			m_LiquidTransportCoefficient(
 					fem::make_unique< MoisThermFEM::SuctionFunction >( LiquidTransportCurve,
-																													Property::humidity ) ),
-			m_SorptionCurve( fem::make_unique< MoisThermFEM::FirstDerivativeFunction >( SorptionCurve,
-																																							 Property::humidity ) ) {}
+																														 Property::humidity ) ),
+			m_SorptionCurve( fem::make_unique< MoisThermFEM::TabularFunction >( SorptionCurve,
+																																									Property::humidity ) ) {}
 
 	double Material::density() const {
 		return m_Density;
@@ -39,16 +38,16 @@ namespace MoisThermFEM {
 		return m_DiffusionResistanceFactor;
 	}
 
-	double Material::liquidTransportationCoefficient( const State & state ) const {
-		return m_LiquidTransportCoefficient->value( state );
-	}
-
-	std::vector< std::pair< double, double > > Material::liquidTransporatationCurve() const {
+	std::vector< std::pair< double, double > > Material::liquidTransportationCurve() const {
 		return m_LiquidTransportCoefficient->getCurve();
 	}
 
-	double Material::sorption( const State & state ) const {
-		return m_SorptionCurve->value( state );
+	std::vector< double > Material::waterContent( const std::vector< double > & humidity ) const {
+		std::vector< double > result( humidity.size() );
+		for ( auto i = 0u; i < humidity.size(); ++i ) {
+			result[ i ] = m_SorptionCurve->value( State( 0, humidity[ i ], 0 ) );
+		}
+		return result;
 	}
 
 	std::vector< std::pair< double, double > > Material::sorptionCurve() const {

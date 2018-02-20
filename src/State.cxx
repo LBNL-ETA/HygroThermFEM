@@ -17,15 +17,6 @@ namespace MoisThermFEM {
 		m_Property[ Iteration::Previous ][ Property::pressure ] = t_Pressure;
 	}
 
-	State::State( const State & other ) : m_Property( other.m_Property ) {
-
-	}
-
-	State & State::operator=( const State & other ) {
-		m_Property = other.m_Property;
-		return *this;
-	}
-
 	double State::getValue( const Property t_Property, const Iteration t_Iteration ) const {
 		return m_Property.at( t_Iteration ).at( t_Property );
 	}

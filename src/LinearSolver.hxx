@@ -10,7 +10,7 @@ namespace FenestrationCommon {
 
   class CLinearSolver {
   public:
-    CLinearSolver();
+    CLinearSolver() = default;
 
     std::vector< double > solveSystem( 
       FenestrationCommon::SquareMatrix< double > t_MatrixA, 

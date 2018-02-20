@@ -8,11 +8,8 @@
 namespace MoisThermFEM {
 
 	////////////////////////////////////////////////////////////////////////////
-	//   IIntegrationPoints2D
+	///   IIntegrationPoints2D
 	////////////////////////////////////////////////////////////////////////////
-	IIntegrationPoints2D::IIntegrationPoints2D() {
-
-	}
 
 	std::vector< LocalPoint2D > IIntegrationPoints2D::getPoints() const {
 		return m_Points;
@@ -27,11 +24,8 @@ namespace MoisThermFEM {
 	}
 
 	////////////////////////////////////////////////////////////////////////////
-	//   IIntegrationPoints1D
+	///   IIntegrationPoints1D
 	////////////////////////////////////////////////////////////////////////////
-	IIntegrationPoints1D::IIntegrationPoints1D() {
-	}
-
 	std::vector< LocalPoint1D > IIntegrationPoints1D::getPoints() const {
 		return m_Points;
 	}

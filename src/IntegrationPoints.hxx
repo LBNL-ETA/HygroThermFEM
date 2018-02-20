@@ -17,7 +17,7 @@ namespace MoisThermFEM {
   class IIntegrationPoints1D {
   public:
     virtual ~IIntegrationPoints1D() = default;
-    IIntegrationPoints1D();
+    IIntegrationPoints1D() = default;
 
     virtual std::vector< LocalPoint1D > getPoints() const final;
     virtual size_t count() const final;
@@ -37,7 +37,7 @@ namespace MoisThermFEM {
   class IIntegrationPoints2D {
   public:
     virtual ~IIntegrationPoints2D() = default;
-    IIntegrationPoints2D();
+    IIntegrationPoints2D() = default;
 
     virtual std::vector< LocalPoint2D > getPoints() const final;
     virtual std::vector< double > getWeights() const final;

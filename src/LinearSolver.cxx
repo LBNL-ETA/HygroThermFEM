@@ -1,16 +1,11 @@
 #include <stdexcept>
-#include <assert.h>
+#include <cassert>
 
 #include "LinearSolver.hxx"
-#include "SquareMatrix.hxx"
 
-#include <math.h>
+#include <cmath>
 
 namespace FenestrationCommon {
-
-  CLinearSolver::CLinearSolver() {
-  
-  }
 
   std::vector< double > CLinearSolver::checkSingularity( SquareMatrix< double > & t_MatrixA ) const {
     auto size = t_MatrixA.size();
@@ -116,7 +111,7 @@ namespace FenestrationCommon {
           sum -= t_MatrixA[ i ][ j ] * t_VectorB[ j ];
         } // j
       } else if ( sum != 0.0 ) {
-        ii = int( i );
+        ii = i;
       }
       t_VectorB[ i ] = sum;
     } // i

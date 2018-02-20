@@ -112,7 +112,7 @@ namespace MoisThermFEM {
 	}
 
 	//////////////////////////////////////////////////////////////////////////////
-	///  IElementlLinear2D
+	///  IElementLinear2D
 	//////////////////////////////////////////////////////////////////////////////
 
 	IElementLinear2D::IElementLinear2D(
@@ -208,7 +208,7 @@ namespace MoisThermFEM {
 		/// Creating conductance function for liquid
 		/////////////////////////////////////////////////////////////
 		m_Conductance.push_back(
-				fem::make_unique< MoisThermFEM::SuctionFunction >( mat.liquidTransporatationCurve(),
+				fem::make_unique< MoisThermFEM::SuctionFunction >( mat.liquidTransportationCurve(),
 																													 Property::humidity ) );
 
 		/////////////////////////////////////////////////////////////

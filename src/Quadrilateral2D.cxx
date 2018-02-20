@@ -1,9 +1,8 @@
-#include <math.h>
+#include <cmath>
 #include <stdexcept>
-#include <assert.h>
+#include <cassert>
 
 #include "Quadrilateral2D.hxx"
-#include "Node2D.hxx"
 #include "IntegrationPoints.hxx"
 #include "QuadrilateralLocal2D.hxx"
 

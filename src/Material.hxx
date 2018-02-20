@@ -28,10 +28,9 @@ namespace MoisThermFEM {
 
 		double diffusionResistanceFactor() const;
 
-		double liquidTransportationCoefficient( const State & state ) const;
-		std::vector< std::pair< double, double > > liquidTransporatationCurve() const;
+		std::vector< std::pair< double, double > > liquidTransportationCurve() const;
 
-		double sorption( const State & state ) const;
+		std::vector< double > waterContent( const std::vector< double > & humidity ) const;
 		std::vector< std::pair< double, double > > sorptionCurve() const;
 
 	private:
@@ -49,7 +48,7 @@ namespace MoisThermFEM {
 		double m_ThermalConductivity;
 		double m_DiffusionResistanceFactor;
 		std::unique_ptr< MoisThermFEM::TabularFunction > m_LiquidTransportCoefficient;
-		std::unique_ptr< MoisThermFEM::FirstDerivativeFunction > m_SorptionCurve;
+		std::unique_ptr< MoisThermFEM::TabularFunction > m_SorptionCurve;
 	};
 
 }

@@ -1,6 +1,5 @@
 #include "BoundaryConditions2D.hxx"
 #include "NodePool.hxx"
-#include "IBCLine2D.hxx"
 
 using namespace FenestrationCommon;
 
@@ -16,7 +15,7 @@ namespace MoisThermFEM {
 
 	SquareMatrix< double > BoundaryConditions2D::HMatrix() const {
 		FenestrationCommon::SquareMatrix< double > result{ NodePool::Instance().maxIndex() };
-		for ( const auto & aBc : m_BCs ) {
+		for ( const std::unique_ptr< IBCLinear2D > & aBc : m_BCs ) {
 			auto indexes = aBc->getNodeIndexes();
 			auto matH = aBc->H_Matrix();
 			for ( size_t i = 0; i < 2; ++i ) {
@@ -31,7 +30,7 @@ namespace MoisThermFEM {
 	FenestrationCommon::Vector< double > BoundaryConditions2D::RVector() const {
 		FenestrationCommon::Vector< double > result( NodePool::Instance().maxIndex(), 0 );
 		// Create full size matrices
-		for ( const auto & aBc : m_BCs ) {
+		for ( const std::unique_ptr< IBCLinear2D > & aBc : m_BCs ) {
 			auto indexes = aBc->getNodeIndexes();
 			auto vecR = aBc->R_Vector();
 			for ( size_t i = 0; i < 2; ++i ) {
