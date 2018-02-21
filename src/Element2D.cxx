@@ -1,3 +1,5 @@
+#include <cassert>
+
 #include "Element2D.hxx"
 #include "IntegrationPoints.hxx"
 #include "QuadrilateralLocal2D.hxx"
@@ -119,19 +121,18 @@ namespace MoisThermFEM {
 			const Node2D & t_Node1, const Node2D & t_Node2,
 			const Node2D & t_Node3, const Node2D & t_Node4 ) :
 			IElementQuadrilateral2D( t_Node1, t_Node2, t_Node3, t_Node4 ),
-			m_Node1( t_Node1 ), m_Node2( t_Node2 ), m_Node3( t_Node3 ),
-			m_Node4( t_Node4 ) {
-
+			m_Node( { t_Node1, t_Node2, t_Node3, t_Node4 } ) {
 	}
 
 	SquareMatrix< double > IElementLinear2D::conductanceMatrix() const {
 		FenestrationCommon::SquareMatrix< double > result{ numOfQuadrilateralNodes };
 		for ( const std::unique_ptr< MoisThermFEM::IFunction > & cond : m_Conductance ) {
-			auto value1 = cond->value( m_Node1.getState() );
-			auto value2 = cond->value( m_Node2.getState() );
-			auto value3 = cond->value( m_Node3.getState() );
-			auto value4 = cond->value( m_Node4.getState() );
-			QLEConductance2D aMatrix( m_Node1, m_Node2, m_Node3, m_Node4, value1, value2, value3,
+			auto value1 = cond->value( m_Node[ 0 ].getState() );
+			auto value2 = cond->value( m_Node[ 1 ].getState() );
+			auto value3 = cond->value( m_Node[ 2 ].getState() );
+			auto value4 = cond->value( m_Node[ 3 ].getState() );
+			QLEConductance2D aMatrix( m_Node[ 0 ], m_Node[ 1 ], m_Node[ 2 ], m_Node[ 3 ], value1, value2,
+																value3,
 																value4 );
 			aMatrix.integrate();
 			result += aMatrix.getMatrix();
@@ -143,16 +144,21 @@ namespace MoisThermFEM {
 	SquareMatrix< double > IElementLinear2D::capacitanceMatrix() const {
 		FenestrationCommon::SquareMatrix< double > result{ numOfQuadrilateralNodes };
 		for ( const std::unique_ptr< MoisThermFEM::IFunction > & cap : m_Capacitance ) {
-			auto value1 = cap->value( m_Node1.getState() );
-			auto value2 = cap->value( m_Node2.getState() );
-			auto value3 = cap->value( m_Node3.getState() );
-			auto value4 = cap->value( m_Node4.getState() );
-			QLECapacitance2D aMatrix( m_Node1, m_Node2, m_Node3, m_Node4, value1, value2, value3,
-																value4 );
+			auto value1 = cap->value( m_Node[ 0 ].getState() );
+			auto value2 = cap->value( m_Node[ 1 ].getState() );
+			auto value3 = cap->value( m_Node[ 2 ].getState() );
+			auto value4 = cap->value( m_Node[ 3 ].getState() );
+			QLECapacitance2D aMatrix( m_Node[ 0 ], m_Node[ 1 ], m_Node[ 2 ], m_Node[ 3 ], value1, value2,
+																value3, value4 );
 			aMatrix.integrate();
 			result += aMatrix.getMatrix();
 		}
 		return result;
+	}
+
+	Node2D & IElementLinear2D::getNode( const std::size_t index ) {
+		assert( index < m_Node.size() );
+		return m_Node[ index ];
 	}
 
 	//////////////////////////////////////////////////////////////////////////////
@@ -216,6 +222,6 @@ namespace MoisThermFEM {
 		/////////////////////////////////////////////////////////////
 		m_Capacitance.push_back(
 				fem::make_unique< MoisThermFEM::FirstDerivativeFunction >( mat.sorptionCurve(),
-																													 Property::humidity ) );
+																																	 Property::humidity ) );
 	}
 }

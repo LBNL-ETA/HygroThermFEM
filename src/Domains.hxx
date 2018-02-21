@@ -24,6 +24,10 @@ namespace MoisThermFEM {
 
 	protected:
 
+		friend class MultiDomain;
+
+		void updateNodeValues( const std::vector< double > & values, const Property property );
+
 		FenestrationCommon::SquareMatrix< double > steadyStateLeftHandSide();
 		FenestrationCommon::Vector< double > steadyStateRightHandSide();
 
@@ -36,9 +40,6 @@ namespace MoisThermFEM {
 		/// This function retrieves M*U+R vector (where U is state variable)
 		FenestrationCommon::Vector< double >
 		transientMT_R_Vector( std::vector< double > & t_PreviousSolution, const double t_DTime );
-
-		/// Returns norm of vector. Necessary to estimate current error.
-		static double norm( const std::vector< double > & t_vector );
 
 		bool isLinear() const;
 
