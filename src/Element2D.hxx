@@ -108,11 +108,10 @@ namespace MoisThermFEM {
 		FenestrationCommon::SquareMatrix< double > conductanceMatrix() const;
 		FenestrationCommon::SquareMatrix< double > capacitanceMatrix() const;
 
+		Node2D & getNode( const std::size_t index );
+
 	protected:
-		Node2D m_Node1;
-		Node2D m_Node2;
-		Node2D m_Node3;
-		Node2D m_Node4;
+		std::vector< Node2D > m_Node;
 
 		/// TODO: This did not work with reference_wrapper and it should. Check later.
 		/// Reminder: Introduce pair of curve pointer and Property so that curve knows what to use

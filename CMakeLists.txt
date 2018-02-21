@@ -55,7 +55,7 @@ if( MSVC )
   add_definitions( "/wd4996" )
 endif()
 
-add_library( ${target_name} STATIC ${SOURCES} src/MaterialPool.cxx src/MaterialPool.hxx src/BoundaryCondition2DFactory.cxx src/BoundaryCondition2DFactory.hxx src/Element2DFactory.cxx src/Element2DFactory.hxx)
+add_library( ${target_name} STATIC ${SOURCES} src/MaterialPool.cxx src/MaterialPool.hxx src/BoundaryCondition2DFactory.cxx src/BoundaryCondition2DFactory.hxx src/Element2DFactory.cxx src/Element2DFactory.hxx src/FEMMath.hxx src/FEMMath.cxx src/MultiDomain.cxx src/MultiDomain.hxx)
 
 set_target_properties( ${target_name} PROPERTIES LINKER_LANGUAGE CXX )
 

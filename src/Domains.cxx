@@ -4,6 +4,7 @@
 #include "Domains.hxx"
 #include "LinearSolver.hxx"
 #include "Common.hxx"
+#include "FEMMath.hxx"
 
 using FenestrationCommon::CLinearSolver;
 
@@ -107,17 +108,6 @@ namespace MoisThermFEM {
 		return solution;
 	}
 
-	double Domain::norm( const std::vector< double > & t_vector ) {
-		double result { 0 };
-		std::for_each( t_vector.begin(), t_vector.end(), [ & ]( double n ) {
-			result += n * n;
-		} );
-
-		result = std::pow( result, 0.5 );
-
-		return result;
-	}
-
 	BoundaryCondition2DFactory & Domain::boundariesCreator() {
 		return m_BCs;
 	}
@@ -128,6 +118,11 @@ namespace MoisThermFEM {
 
 	bool Domain::isLinear() const {
 		return m_BCs.isLinear() && m_Elements.isLinear();
+	}
+
+	void Domain::updateNodeValues( const std::vector< double > & values, const Property property ) {
+		m_BCs.updateNodeValues( values, property );
+		m_Elements.updateNodeValues( values, property );
 	}
 
 	/// FenestrationCommon::SquareMatrix< double > Domain::transientDH_Matrix() {

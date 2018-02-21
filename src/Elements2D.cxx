@@ -61,5 +61,17 @@ namespace MoisThermFEM {
 		return m_Linear;
 	}
 
+	void ElementsLinear2D::updateNodeValues( const std::vector< double > & values,
+																					 const Property property ) {
+		for ( auto & aBc : m_Elements ) {
+			for( auto i = 0u; i < numOfQuadrilateralNodes; ++i ) {
+				auto & node = aBc->getNode( i );
+				auto index = node.getNodeNumber();
+				node.setProperty( property, values[ index - 1 ] );
+			}
+
+		}
+	}
+
 
 }
