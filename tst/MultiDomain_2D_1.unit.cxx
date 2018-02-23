@@ -70,7 +70,7 @@ TEST_F( MultiDomain_2D_1, TestExample_1 ) {
 
 	// Create Boundary Conditions
 	const auto hc = 20;
-	const auto airTemperature = 303.15;
+	const auto airTemperature = 293.15;
 	const auto humidity = 0.5;
 
 	domain.createConvectionBC( node1, node2, hc, airTemperature, humidity );

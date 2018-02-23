@@ -16,11 +16,11 @@ namespace MoisThermFEM {
 	///  IDecoratingCurve
 	//////////////////////////////////////////////////////////////////
 
-	IDecoratingFunction::IDecoratingFunction( Property property ) : IFunction( property ),
+	IOperationFunction::IOperationFunction( Property property ) : IFunction( property ),
 																																	m_Function{ nullptr },
 																																	m_Operation( Operation::MULT ) {}
 
-	IDecoratingFunction::IDecoratingFunction( Property property,
+	IOperationFunction::IOperationFunction( Property property,
 																						std::unique_ptr< IFunction > & m_Curve,
 																						Operation operation )
 			: IFunction( property ), m_Function( std::move( m_Curve ) ), m_Operation( operation ) {
@@ -30,7 +30,7 @@ namespace MoisThermFEM {
 		m_Operator[ Operation::SUB ] = [ & ]( double a, double b ) { return a - b; };
 	}
 
-	double IDecoratingFunction::value( const State & state ) const {
+	double IOperationFunction::value( const State & state ) const {
 		auto value = state.getValue( m_Property );
 		return m_Function != nullptr ? m_Operator.at( m_Operation )( getValue( value ),
 																																 m_Function->value( state ) )
@@ -41,7 +41,7 @@ namespace MoisThermFEM {
 	///  Constant
 	//////////////////////////////////////////////////////////////////
 
-	Constant::Constant( const double value ) : IDecoratingFunction( Property::temperature ),
+	Constant::Constant( const double value ) : IOperationFunction( Property::temperature ),
 																						 m_Value( value ) {}
 
 	double Constant::getValue( const double ) const {
@@ -50,7 +50,7 @@ namespace MoisThermFEM {
 
 	Constant::Constant( const double value, std::unique_ptr< IFunction > & t_Curve,
 											Operation operation )
-			: IDecoratingFunction( Property::temperature, t_Curve, operation ), m_Value( value ) {
+			: IOperationFunction( Property::temperature, t_Curve, operation ), m_Value( value ) {
 
 	}
 
@@ -61,14 +61,14 @@ namespace MoisThermFEM {
 	TabularFunction::TabularFunction( const std::vector< std::pair< double, double > > & values,
 																		Property property,
 																		FenestrationCommon::Interpolator interpolator )
-			: IDecoratingFunction( property ), m_Curve( values ),
+			: IOperationFunction( property ), m_Curve( values ),
 				m_Interpolator( std::move( interpolator ) ) {}
 
 	TabularFunction::TabularFunction(
 			std::initializer_list< std::pair< double, double > > & list,
 			Property property,
 			FenestrationCommon::Interpolator interpolator ) :
-			IDecoratingFunction( property ),
+			IOperationFunction( property ),
 			m_Curve( list ),
 			m_Interpolator(
 					std::move( interpolator ) ) {}
@@ -78,7 +78,7 @@ namespace MoisThermFEM {
 																		std::unique_ptr< IFunction > & t_Curve,
 																		Operation operation,
 																		FenestrationCommon::Interpolator interpolator )
-			: IDecoratingFunction( property, t_Curve, operation ), m_Curve( values ),
+			: IOperationFunction( property, t_Curve, operation ), m_Curve( values ),
 				m_Interpolator( std::move( interpolator ) ) {
 
 	}
@@ -89,7 +89,7 @@ namespace MoisThermFEM {
 			std::unique_ptr< IFunction > & t_Curve,
 			Operation operation,
 			FenestrationCommon::Interpolator interpolator ) :
-			IDecoratingFunction( property, t_Curve, operation ), m_Curve( list ),
+			IOperationFunction( property, t_Curve, operation ), m_Curve( list ),
 			m_Interpolator( std::move( interpolator ) ) {
 
 	}
@@ -239,16 +239,16 @@ namespace MoisThermFEM {
 	//////////////////////////////////////////////////////////////////
 
 	SaturationFunction::SaturationFunction( Property property ) :
-			IDecoratingFunction( property ) {}
+			IOperationFunction( property ) {}
 
 	SaturationFunction::SaturationFunction( Property property, std::unique_ptr< IFunction > & t_Curve,
 																					Operation operation )
-			: IDecoratingFunction( property, t_Curve, operation ) {
+			: IOperationFunction( property, t_Curve, operation ) {
 
 	}
 
 	double SaturationFunction::getValue( const double t_position ) const {
-		auto temp = 77.345 + 0.0057 * t_position - 7235 / t_position;
+		auto temp = 77.345 + 0.0057 * t_position - 7235.0 / t_position;
 		temp = std::exp( temp );
 		return temp / ( 461.4 * std::pow( t_position, 9.2 ) );
 	}

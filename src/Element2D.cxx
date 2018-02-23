@@ -83,7 +83,7 @@ namespace MoisThermFEM {
 	}
 
 	//////////////////////////////////////////////////////////////////////////////
-	//  QLECapacitance2D
+	///  QLECapacitance2D
 	//////////////////////////////////////////////////////////////////////////////
 
 	QLECapacitance2D::QLECapacitance2D( const Node2D & t_Node1, const Node2D & t_Node2,
@@ -180,16 +180,14 @@ namespace MoisThermFEM {
 	///  ElementMoistureLinear2D
 	//////////////////////////////////////////////////////////////////////////////
 
-
-
 	ElementMoistureLinear2D::ElementMoistureLinear2D( const Node2D & t_Node1, const Node2D & t_Node2,
 																										const Node2D & t_Node3, const Node2D & t_Node4,
 																										const Material & mat ) :
 			IElementLinear2D( t_Node1, t_Node2, t_Node3, t_Node4 ) {
 
-		/////////////////////////////////////////////////////////////
+		//////////////////////////////////////////////////////////////////////////////
 		/// Creating conductance function for vapor
-		/////////////////////////////////////////////////////////////
+		//////////////////////////////////////////////////////////////////////////////
 
 		std::unique_ptr< MoisThermFEM::IFunction > waterContent =
 				std::unique_ptr< MoisThermFEM::IFunction >(
@@ -204,22 +202,25 @@ namespace MoisThermFEM {
 		std::unique_ptr< MoisThermFEM::IFunction > airFill = fem::make_unique< MoisThermFEM::Constant >(
 				mat.porosity(), waterFill, MoisThermFEM::Operation::SUB );
 
+		//std::unique_ptr< MoisThermFEM::IFunction > saturationFunction =
+		//		fem::make_unique< MoisThermFEM::SaturationFunction >( Property::temperature, airFill );
+
 		std::unique_ptr< MoisThermFEM::IFunction > saturationFunction =
-				fem::make_unique< MoisThermFEM::SaturationFunction >( Property::temperature, airFill );
+				fem::make_unique< MoisThermFEM::SaturationFunction >( Property::temperature );
 
 		m_Conductance.push_back( fem::make_unique< MoisThermFEM::Constant >(
-				mat.diffusionResistanceFactor(), saturationFunction ) );
+				mat.diffusionResistanceFactor() * 2.5E-5, saturationFunction ) );
 
-		/////////////////////////////////////////////////////////////
+		//////////////////////////////////////////////////////////////////////////////
 		/// Creating conductance function for liquid
-		/////////////////////////////////////////////////////////////
+		//////////////////////////////////////////////////////////////////////////////
 		m_Conductance.push_back(
 				fem::make_unique< MoisThermFEM::SuctionFunction >( mat.liquidTransportationCurve(),
 																													 Property::humidity ) );
 
-		/////////////////////////////////////////////////////////////
+		//////////////////////////////////////////////////////////////////////////////
 		/// Creating capacitance function
-		/////////////////////////////////////////////////////////////
+		//////////////////////////////////////////////////////////////////////////////
 		m_Capacitance.push_back(
 				fem::make_unique< MoisThermFEM::FirstDerivativeFunction >( mat.sorptionCurve(),
 																																	 Property::humidity ) );

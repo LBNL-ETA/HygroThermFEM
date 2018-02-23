@@ -179,10 +179,33 @@ TEST_F( CurveTest, TestPorosityCalculation ) {
 
 TEST_F( CurveTest, TestSaturationFunction ) {
 	SCOPED_TRACE( "Begin Test: Test saturation function." );
-	const MoisThermFEM::SaturationFunction sat( Property::temperature );
 
-	State interpolationPoint( 293.15, 0, 101325 );
+	std::unique_ptr< MoisThermFEM::IFunction > waterContent =
+			std::unique_ptr< MoisThermFEM::IFunction >(
+					new MoisThermFEM::TabularFunction( { { 0.000, 0.0 },
+																							 { 0.500, 5.3 },
+																							 { 0.650, 8.4 },
+																							 { 0.800, 12 },
+																							 { 0.930, 17 },
+																							 { 0.950, 25 },
+																							 { 0.990, 63 },
+																							 { 0.995, 83 },
+																							 { 0.999, 120 },
+																							 { 1.000, 180 } }, Property::humidity ) );
+
+	auto maxWaterContent = waterContent->value( State( 0, 1, 0 ) );
+	const auto materialPorosity = 0.22;
+
+	std::unique_ptr< MoisThermFEM::IFunction > waterFill = fem::make_unique< MoisThermFEM::Constant >(
+			materialPorosity / maxWaterContent, waterContent );
+
+	std::unique_ptr< MoisThermFEM::IFunction > airFill = fem::make_unique< MoisThermFEM::Constant >(
+			materialPorosity, waterFill, MoisThermFEM::Operation::SUB );
+
+	const MoisThermFEM::SaturationFunction sat( Property::temperature, airFill );
+
+	State interpolationPoint( 283.15, 0.5, 101325 );
 	auto result = sat.value( interpolationPoint );
-	EXPECT_NEAR( 0.017235141, result, 1e-6 );
+	EXPECT_NEAR( 0.002000939, result, 1e-6 );
 
 }

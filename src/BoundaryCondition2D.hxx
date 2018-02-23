@@ -76,9 +76,18 @@ namespace MoisThermFEM {
 
 		virtual FenestrationCommon::SquareMatrix< double > H_Matrix() const override;
 
-	private:
+	protected:
 		double m_ConvectiveCoefficient;
 		double m_AirHumidity;
+	};
+
+
+	/////////////////////////////////////////////////////
+	/// HumidityBC
+	/////////////////////////////////////////////////////
+	class HumidityBC : public MoistureBC {
+	public:
+		HumidityBC( const Node2D & t_Node1, const Node2D & t_Node2, const double t_AirHumidity );
 	};
 
 }

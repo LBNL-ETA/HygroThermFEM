@@ -5,7 +5,7 @@
 
 using namespace MoisThermFEM;
 
-class MoistureBC_2D_1 : public testing::Test {
+class HumidityBC_2D_1 : public testing::Test {
 
 protected:
 	void
@@ -20,10 +20,9 @@ protected:
 
 };
 
-TEST_F( MoistureBC_2D_1, TestExample_1 ) {
+TEST_F( HumidityBC_2D_1, TestExample_1 ) {
 	SCOPED_TRACE( "Begin Test: Simple two elements example with moisture transfer." );
 
-	// Enter nodes. Arguments are: node number, x-coordinate, y-coordinate
 	auto & nodePool = NodePool::Instance();
 	auto & materialPool = MaterialPool::Instance();
 
@@ -41,25 +40,25 @@ TEST_F( MoistureBC_2D_1, TestExample_1 ) {
 			0.22, /// porosity
 			850,  /// specific heat capacity (dry)
 			1.8,  /// thermal conductivity (dry)
-			15,   /// diffusion resistance factor (this is mi value)
+			15,   /// diffusion resistance factor
 			{ { 0,   0 },  /// liquid transportation coefficient
-				//{ 27,  1E-8 },
-				//{ 45,  1.1E-8 },
-				//{ 90,  2E-8 },
-				//{ 126, 3.5E-8 },
-				//{ 144, 5E-8 },
-				//{ 162, 1E-7 },
-				//{ 171, 2E-7 },
+				{ 27,  1E-8 },
+				{ 45,  1.1E-8 },
+				{ 90,  2E-8 },
+				{ 126, 3.5E-8 },
+				{ 144, 5E-8 },
+				{ 162, 1E-7 },
+				{ 171, 2E-7 },
 				{ 180, 7E-7 } },
 			{ { 0,     0 },   /// sorption curve
-				// { 0.5,   5.3 },
-				// { 0.65,  8.4 },
-				// { 0.8,   12 },
-				// { 0.93,  17 },
-				// { 0.95,  25 },
-				// { 0.99,  63 },
-				// { 0.995, 83 },
-				// { 0.999, 120 },
+				{ 0.5,   5.3 },
+				{ 0.65,  8.4 },
+				{ 0.8,   12 },
+				{ 0.93,  17 },
+				{ 0.95,  25 },
+				{ 0.99,  63 },
+				{ 0.995, 83 },
+				{ 0.999, 120 },
 				{ 1,     180 } }
 	);
 
@@ -69,12 +68,11 @@ TEST_F( MoistureBC_2D_1, TestExample_1 ) {
 	domain.elementsCreator().createMoistureElement( node6, node4, node3, node5, material );
 
 	// Create Boundary Conditions
-	const auto hc = 20;
 	const auto humidity = 0.5;
 
-	domain.boundariesCreator().createMoistureBC( node1, node2, hc, humidity );
+	domain.boundariesCreator().createHumidityBC( node1, node2, humidity );
 
-	const auto dTime = 3600;
+	const auto dTime = 36000;
 	const auto nSteps = 4;
 
 	auto humidities = NodePool::Instance().nodeProperties( Property::humidity );
@@ -86,10 +84,10 @@ TEST_F( MoistureBC_2D_1, TestExample_1 ) {
 	}
 
 	std::vector< std::vector< double > > correctSolution = {
-			{ 89.98509557, 89.98509557, 1.479201675, 1.479201675, 0.138629684, 0.138629684 },
-			{ 89.99963391, 89.99963391, 2.894383870, 2.894383870, 0.396896924, 0.396896924 },
-			{ 89.99964193, 89.99964193, 4.251832243, 4.251832243, 0.758178605, 0.758178605 },
-			{ 89.99964738, 89.99964738, 5.557285358, 5.557285358, 1.207947332, 1.207947332 }
+			{ 5.300000000, 5.300000000, 3.656595028, 3.656595028, 3.459583739, 3.459583739 },
+			{ 5.300000000, 5.300000000, 4.775772302, 4.775772302, 4.704858240, 4.704858240 },
+			{ 5.300000000, 5.300000000, 5.132177331, 5.132177331, 5.109154085, 5.109154085 },
+			{ 5.300000000, 5.300000000, 5.246250512, 5.246250512, 5.238863983, 5.238863983 }
 	};
 
 	EXPECT_EQ( solution.size(), correctSolution.size() );

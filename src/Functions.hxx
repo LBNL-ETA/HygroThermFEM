@@ -42,12 +42,12 @@ namespace MoisThermFEM {
 	///  IDecoratingFunction
 	//////////////////////////////////////////////////////////////////
 
-	class IDecoratingFunction : public IFunction {
+	class IOperationFunction : public IFunction {
 	public:
 
-		IDecoratingFunction( Property property );
+		IOperationFunction( Property property );
 
-		IDecoratingFunction( Property property, std::unique_ptr< IFunction > & m_Curve,
+		IOperationFunction( Property property, std::unique_ptr< IFunction > & m_Curve,
 												 Operation operation = Operation::MULT );
 
 		double value( const State & state ) const final;
@@ -64,7 +64,7 @@ namespace MoisThermFEM {
 	//////////////////////////////////////////////////////////////////
 
 	/// Simple constant curve.
-	class Constant : public IDecoratingFunction {
+	class Constant : public IOperationFunction {
 	public:
 		Constant( const double value );
 
@@ -83,7 +83,7 @@ namespace MoisThermFEM {
 
 	/// Interface for classic tabular curve. There are different interpolation strategies and
 	/// this is base class for all of them.
-	class TabularFunction : public IDecoratingFunction {
+	class TabularFunction : public IOperationFunction {
 	public:
 		TabularFunction( const std::vector< std::pair< double, double > > & values,
 										 Property property,
@@ -196,7 +196,7 @@ namespace MoisThermFEM {
 	//////////////////////////////////////////////////////////////////
 
 	/// Simple constant curve.
-	class SaturationFunction : public IDecoratingFunction {
+	class SaturationFunction : public IOperationFunction {
 	public:
 		SaturationFunction( Property property );
 

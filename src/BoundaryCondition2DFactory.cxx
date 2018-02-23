@@ -38,5 +38,10 @@ namespace MoisThermFEM {
 																										 t_AirHumidity ) );
 	}
 
+	void BoundaryCondition2DFactory::createHumidityBC( const Node2D & t_Node1, const Node2D & t_Node2,
+																										 const double t_Humidity ) {
+		m_BCs.push_back( fem::make_unique< HumidityBC >( t_Node1, t_Node2, t_Humidity ) );
+	}
+
 
 }
