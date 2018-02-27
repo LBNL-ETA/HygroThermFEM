@@ -209,7 +209,7 @@ namespace MoisThermFEM {
 				fem::make_unique< MoisThermFEM::SaturationFunction >( Property::temperature );
 
 		m_Conductance.push_back( fem::make_unique< MoisThermFEM::Constant >(
-				mat.diffusionResistanceFactor() * 2.5E-5, saturationFunction ) );
+				 2.5E-5 / mat.diffusionResistanceFactor(), saturationFunction ) );
 
 		//////////////////////////////////////////////////////////////////////////////
 		/// Creating conductance function for liquid

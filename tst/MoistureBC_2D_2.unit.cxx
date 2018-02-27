@@ -5,7 +5,7 @@
 
 using namespace MoisThermFEM;
 
-class MoistureBC_2D_1 : public testing::Test {
+class MoistureBC_2D_2 : public testing::Test {
 
 protected:
 	void
@@ -20,15 +20,14 @@ protected:
 
 };
 
-TEST_F( MoistureBC_2D_1, TestExample_1 ) {
+TEST_F( MoistureBC_2D_2, TestExample_1 ) {
 	SCOPED_TRACE( "Begin Test: Simple two elements example with moisture transfer." );
 
 	// Enter nodes. Arguments are: node number, x-coordinate, y-coordinate
 	auto & nodePool = NodePool::Instance();
 	auto & materialPool = MaterialPool::Instance();
 
-	std::vector< double > gridXCoordinates{ 0, 0.015, 0.025, 0.035, 0.045, 0.055, 0.065, 0.075,
-																					0.085, 0.095, 0.105, 0.115, 0.125, 0.135, 0.15 };
+	std::vector< double > gridXCoordinates{ 0, 0.005, 0.15 };
 
 	auto state = State( 293.15, 0, 101325 );
 	size_t nodeIndex = 0;
@@ -75,6 +74,8 @@ TEST_F( MoistureBC_2D_1, TestExample_1 ) {
 		auto node2 = nodePool.Instance().getNode( 2 * i - 1 );
 		auto node3 = nodePool.Instance().getNode( 2 * i + 1 );
 		auto node4 = nodePool.Instance().getNode( 2 * i );
+		/// domain.elementsCreator().createMoistureElement( node3, node2, node1, node4, material );
+		/// domain.elementsCreator().createMoistureElement( node2, node1, node4, node3, material );
 		domain.elementsCreator().createMoistureElement( node4, node3, node2, node1, material );
 	}
 

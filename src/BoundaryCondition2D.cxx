@@ -126,5 +126,5 @@ namespace MoisThermFEM {
 	/////////////////////////////////////////////////////
 
 	HumidityBC::HumidityBC( const Node2D & t_Node1, const Node2D & t_Node2, const double t_AirHumidity )
-			: MoistureBC( t_Node1, t_Node2, 1e20, t_AirHumidity ) {}
+		: MoistureBC( t_Node1, t_Node2, 1e20, t_AirHumidity ) {}
 }
