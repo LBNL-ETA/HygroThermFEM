@@ -1,11 +1,11 @@
 #pragma once
 
+#include <memory>
 #include <vector>
 #include <map>
 #include <functional>
 
 #include "Interpolator.hxx"
-
 
 /// Functions interface is used to build function that are used for matrix building. Functions are
 /// stacked together to make full function that later will be stored in FEM element.

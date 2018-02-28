@@ -27,7 +27,7 @@ TEST_F( MoistureBC_2D_2, TestExample_1 ) {
 	auto & nodePool = NodePool::Instance();
 	auto & materialPool = MaterialPool::Instance();
 
-	std::vector< double > gridXCoordinates{ 0, 0.005, 0.15 };
+	std::vector< double > gridXCoordinates { 0, 0.005, 0.1, 0.15 };
 
 	auto state = State( 293.15, 0, 101325 );
 	size_t nodeIndex = 0;
@@ -63,10 +63,10 @@ TEST_F( MoistureBC_2D_2, TestExample_1 ) {
 					// { 0.99,  63 },
 					// { 0.995, 83 },
 					// { 0.999, 120 },
-				{ 1, 180} }
+				{ 1, 5.3 } }
 	);
 
-	Domain domain{ Property::humidity };
+	Domain domain { Property::humidity };
 
 	/// Create elements
 	for ( size_t i = 1; i <= ( nodePool.maxIndex() - 2 ) / 2; ++i ) {
@@ -97,18 +97,26 @@ TEST_F( MoistureBC_2D_2, TestExample_1 ) {
 		solution.push_back( material.waterContent( humidities ) );
 	}
 
+	/// std::cout.precision( 8 );
+	/// for ( auto & val : solution ) {
+	/// 	for ( auto & item : val ) {
+	/// 		std::cout << item << ", ";
+	/// 	}
+	/// 	std::cout << std::endl;
+	/// }
+
 	std::vector< std::vector< double > > correctSolution = {
-			{ 89.98509557, 89.98509557, 1.479201675, 1.479201675, 0.138629684, 0.138629684 },
-			{ 89.99963391, 89.99963391, 2.894383870, 2.894383870, 0.396896924, 0.396896924 },
-			{ 89.99964193, 89.99964193, 4.251832243, 4.251832243, 0.758178605, 0.758178605 },
-			{ 89.99964738, 89.99964738, 5.557285358, 5.557285358, 1.207947332, 1.207947332 }
+			{ 2.6499994, 2.6499994, 1.1360996, 1.1360996, 0.029942115, 0.029942115, 0.0040426892, 0.0040426892 },
+			{ 2.6499997, 2.6499997, 1.7608073, 1.7608073, 0.074437582, 0.074437582, 0.013547184,  0.013547184 },
+			{ 2.6499998, 2.6499998, 2.1049112, 2.1049112, 0.12531369,  0.12531369,  0.028637542,  0.028637542 },
+			{ 2.6499999, 2.6499999, 2.295015,  2.295015,  0.17830914,  0.17830914,  0.048845725,  0.048845725 }
 	};
 
 	EXPECT_EQ( solution.size(), correctSolution.size() );
 
-	/// for ( auto i = 0u; i < correctSolution.size(); ++i ) {
-	/// 	for ( auto j = 0u; j < correctSolution[ i ].size(); ++j ) {
-	/// 		EXPECT_NEAR( correctSolution[ i ][ j ], solution[ i ][ j ], 1e-6 );
-	/// 	}
-	/// }
+	for ( auto i = 0u; i < correctSolution.size(); ++i ) {
+		for ( auto j = 0u; j < correctSolution[ i ].size(); ++j ) {
+			EXPECT_NEAR( correctSolution[ i ][ j ], solution[ i ][ j ], 1e-6 );
+		}
+	}
 }
