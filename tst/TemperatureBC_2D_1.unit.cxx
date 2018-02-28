@@ -76,9 +76,8 @@ TEST_F( TemperatureBC_2D_1, TestExample_1 ) {
 
 	Domain domain{ Property::temperature };
 
-	domain.elementsCreator().createThermalElement( node3, node4, node2, node1, material );
-	/// domain.elementsCreator().createThermalElement( node4, node2, node1, node3, material );
-	domain.elementsCreator().createThermalElement( node6, node4, node3, node5, material );
+	domain.elementsCreator().createThermalElement( node1, node2, node4, node3, material );
+	domain.elementsCreator().createThermalElement( node5, node3, node4, node6, material );
 
 	// Create Boundary Conditions
 	const auto tSurface = 12.0;

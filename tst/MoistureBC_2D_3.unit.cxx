@@ -5,7 +5,7 @@
 
 using namespace MoisThermFEM;
 
-class HumidityBC_2D_1 : public testing::Test {
+class MoistureBC_2D_3 : public testing::Test {
 
 protected:
 	void
@@ -20,19 +20,26 @@ protected:
 
 };
 
-TEST_F( HumidityBC_2D_1, TestExample_1 ) {
+TEST_F( MoistureBC_2D_3, TestExample_1 ) {
 	SCOPED_TRACE( "Begin Test: Simple two elements example with moisture transfer." );
 
 	auto & nodePool = NodePool::Instance();
 	auto & materialPool = MaterialPool::Instance();
 
-	auto state = State( 293.15, 0, 101325 );
-	const auto node1 = nodePool.createNode( 1, 0.15, 0.05, state );
-	const auto node2 = nodePool.createNode( 2, 0.15, 0.00, state );
-	const auto node3 = nodePool.createNode( 3, 0.05, 0.05, state );
-	const auto node4 = nodePool.createNode( 4, 0.05, 0.00, state );
-	const auto node5 = nodePool.createNode( 5, 0.00, 0.05, state );
-	const auto node6 = nodePool.createNode( 6, 0.00, 0.00, state );
+	std::vector< double > gridXCoordinates{ 0, 0.005, 0.1, 0.15 };
+
+	const double initialTemperature = 293.15;
+	const double initialMoistureContent = 0;
+	const double initialPressure = 0;
+
+	auto state = State( initialTemperature, initialMoistureContent, initialPressure );
+	size_t nodeIndex = 0;
+	for ( auto val : gridXCoordinates ) {
+		++nodeIndex;
+		nodePool.createNode( nodeIndex, val, 0.00, state );
+		++nodeIndex;
+		nodePool.createNode( nodeIndex, val, 0.05, state );
+	}
 
 	auto & material = materialPool.createMaterial(
 			"Cottaer Sandstone",
@@ -64,13 +71,23 @@ TEST_F( HumidityBC_2D_1, TestExample_1 ) {
 
 	Domain domain{ Property::humidity };
 
-	domain.elementsCreator().createMoistureElement( node3, node4, node2, node1, material );
-	domain.elementsCreator().createMoistureElement( node6, node4, node3, node5, material );
+	/// Create elements
+	for ( size_t i = 1; i <= ( nodePool.maxIndex() - 2 ) / 2; ++i ) {
+		auto node1 = nodePool.Instance().getNode( 2 * i + 1 );
+		auto node2 = nodePool.Instance().getNode( 2 * i + 2 );
+		auto node3 = nodePool.Instance().getNode( 2 * i );
+		auto node4 = nodePool.Instance().getNode( 2 * i - 1 );
+		domain.elementsCreator().createMoistureElement( node1, node2, node3, node4, material );
+	}
 
 	// Create Boundary Conditions
+	const auto hc = 1;
 	const auto humidity = 0.5;
 
-	domain.boundariesCreator().createHumidityBC( node1, node2, humidity );
+	auto node1 = nodePool.Instance().getNode( 1 );
+	auto node2 = nodePool.Instance().getNode( 2 );
+
+	domain.boundariesCreator().createMoistureBC( node1, node2, hc, humidity );
 
 	const auto dTime = 36000;
 	const auto nSteps = 4;
@@ -84,10 +101,10 @@ TEST_F( HumidityBC_2D_1, TestExample_1 ) {
 	}
 
 	std::vector< std::vector< double > > correctSolution = {
-			{ 5.300000000, 5.300000000, 3.656595028, 3.656595028, 3.459583739, 3.459583739 },
-			{ 5.300000000, 5.300000000, 4.775772302, 4.775772302, 4.704858240, 4.704858240 },
-			{ 5.300000000, 5.300000000, 5.132177331, 5.132177331, 5.109154085, 5.109154085 },
-			{ 5.300000000, 5.300000000, 5.246250512, 5.246250512, 5.238863983, 5.238863983 }
+			{ 5.299966, 5.299966, 1.466304, 1.466304, 0.01998726, 0.01998726, 0.001446992, 0.001446992 },
+			{ 5.299979, 5.299979, 2.50616, 2.50616, 0.053431, 0.053431, 0.005210412, 0.005210412 },
+			{ 5.299985, 5.299985, 3.243863, 3.243863, 0.09576148, 0.09576148, 0.01176592, 0.01176592 },
+			{ 5.299989, 5.299989, 3.767472, 3.767472, 0.1437928, 0.1437928, 0.02132411, 0.02132411 }
 	};
 
 	EXPECT_EQ( solution.size(), correctSolution.size() );

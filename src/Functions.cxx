@@ -3,102 +3,140 @@
 
 #include "Functions.hxx"
 #include "State.hxx"
+#include "FEMunique.hxx"
 
 namespace MoisThermFEM {
 
 	//////////////////////////////////////////////////////////////////
-	///  IDecoratingCurve
+	///  IFunction
 	//////////////////////////////////////////////////////////////////
 
-	IFunction::IFunction( Property t_Property ) : m_Property( t_Property ) {}
+	IFunction::IFunction( Property t_Property ) :
+			m_Property( t_Property ) {}
+
+	double IFunction::value( const State & state ) const {
+		return getValue( state.getValue( m_Property ) );
+	}
 
 	//////////////////////////////////////////////////////////////////
-	///  IDecoratingCurve
+	///  IOperationFunction
 	//////////////////////////////////////////////////////////////////
 
-	IOperationFunction::IOperationFunction( Property property ) : IFunction( property ),
-																																	m_Function{ nullptr },
-																																	m_Operation( Operation::MULT ) {}
+	double IOperation::value( const State & state ) const {
+		return m_Operator.at( m_Operation )( m_Function1->value( state ), m_Function2->value( state ) );
+	}
 
-	IOperationFunction::IOperationFunction( Property property,
-																						std::unique_ptr< IFunction > & m_Curve,
-																						Operation operation )
-			: IFunction( property ), m_Function( std::move( m_Curve ) ), m_Operation( operation ) {
+	IOperation::IOperation( std::shared_ptr< IValue > & t_Val1, std::shared_ptr< IValue > & t_Val2,
+	                        Operation t_Operation ) :
+			m_Function1( t_Val1 ), m_Function2( t_Val2 ),
+			m_Operation( t_Operation ) {
 		m_Operator[ Operation::MULT ] = [ & ]( double a, double b ) { return a * b; };
 		m_Operator[ Operation::DIV ] = [ & ]( double a, double b ) { return a / b; };
 		m_Operator[ Operation::ADD ] = [ & ]( double a, double b ) { return a + b; };
 		m_Operator[ Operation::SUB ] = [ & ]( double a, double b ) { return a - b; };
 	}
 
-	double IOperationFunction::value( const State & state ) const {
-		auto value = state.getValue( m_Property );
-		return m_Function != nullptr ? m_Operator.at( m_Operation )( getValue( value ),
-																																 m_Function->value( state ) )
-																 : getValue( value );
-	}
-
 	//////////////////////////////////////////////////////////////////
 	///  Constant
 	//////////////////////////////////////////////////////////////////
 
-	Constant::Constant( const double value ) : IOperationFunction( Property::temperature ),
-																						 m_Value( value ) {}
+	Constant::Constant( const double value ) :
+			IFunction( Property::temperature ), m_Value( value ) {}
 
 	double Constant::getValue( const double ) const {
 		return m_Value;
 	}
 
-	Constant::Constant( const double value, std::unique_ptr< IFunction > & t_Curve,
-											Operation operation )
-			: IOperationFunction( Property::temperature, t_Curve, operation ), m_Value( value ) {
+	//////////////////////////////////////////////////////////////////
+	///  Operators
+	//////////////////////////////////////////////////////////////////
 
+	std::shared_ptr< MoisThermFEM::IValue >
+	operator+( std::shared_ptr< IValue > & left, std::shared_ptr< IValue > & right ) {
+		return std::make_shared< MoisThermFEM::IOperation >( left, right, MoisThermFEM::Operation::ADD );
+	}
+
+	std::shared_ptr< MoisThermFEM::IValue >
+	operator+( const double left, std::shared_ptr< IValue > & right ) {
+		std::shared_ptr< MoisThermFEM::IValue > aLeft( new MoisThermFEM::Constant( left ) );
+		return std::make_shared< MoisThermFEM::IOperation >( aLeft, right, MoisThermFEM::Operation::ADD );
+	}
+
+	std::shared_ptr< MoisThermFEM::IValue >
+	operator+( std::shared_ptr< IValue > & left, const double right ) {
+		return operator+( right, left );
+	}
+
+	std::shared_ptr< MoisThermFEM::IValue >
+	operator-( std::shared_ptr< IValue > & left, std::shared_ptr< IValue > & right ) {
+		return std::make_shared< MoisThermFEM::IOperation >( left, right, MoisThermFEM::Operation::SUB );
+	}
+
+	std::shared_ptr< MoisThermFEM::IValue >
+	operator-( const double left, std::shared_ptr< IValue > & right ) {
+		std::shared_ptr< MoisThermFEM::IValue > aLeft( new MoisThermFEM::Constant( left ) );
+		return std::make_shared< MoisThermFEM::IOperation >( aLeft, right, MoisThermFEM::Operation::SUB );
+	}
+
+	std::shared_ptr< MoisThermFEM::IValue >
+	operator-( std::shared_ptr< IValue > & left, const double right ) {
+		std::shared_ptr< MoisThermFEM::IValue > aRight( new MoisThermFEM::Constant( right ) );
+		return std::make_shared< MoisThermFEM::IOperation >( left, aRight, MoisThermFEM::Operation::SUB );
+	}
+
+	std::shared_ptr< MoisThermFEM::IValue >
+	operator*( std::shared_ptr< IValue > & left, std::shared_ptr< IValue > & right ) {
+		return std::make_shared< MoisThermFEM::IOperation >( left, right, MoisThermFEM::Operation::MULT );
+	}
+
+	std::shared_ptr< MoisThermFEM::IValue >
+	operator*( const double left, std::shared_ptr< IValue > & right ) {
+		std::shared_ptr< MoisThermFEM::IValue > aLeft( new MoisThermFEM::Constant( left ) );
+		return std::make_shared< MoisThermFEM::IOperation >( aLeft, right, MoisThermFEM::Operation::MULT );
+	}
+
+	std::shared_ptr< MoisThermFEM::IValue >
+	operator*( std::shared_ptr< IValue > & left, const double right ) {
+		return operator*( right, left );
+	}
+
+	std::shared_ptr< MoisThermFEM::IValue >
+	operator/( std::shared_ptr< IValue > & left, std::shared_ptr< IValue > & right ) {
+		return std::make_shared< MoisThermFEM::IOperation >( left, right, MoisThermFEM::Operation::DIV );
+	}
+
+	std::shared_ptr< MoisThermFEM::IValue >
+	operator/( const double left, std::shared_ptr< IValue > & right ) {
+		std::shared_ptr< MoisThermFEM::IValue > aLeft( new MoisThermFEM::Constant( left ) );
+		return std::make_shared< MoisThermFEM::IOperation >( aLeft, right, MoisThermFEM::Operation::DIV );
+	}
+
+	std::shared_ptr< MoisThermFEM::IValue >
+	operator/( std::shared_ptr< IValue > & left, const double right ) {
+		std::shared_ptr< MoisThermFEM::IValue > aRight( new MoisThermFEM::Constant( right ) );
+		return std::make_shared< MoisThermFEM::IOperation >( left, aRight, MoisThermFEM::Operation::DIV );
 	}
 
 	//////////////////////////////////////////////////////////////////
-	///  Curve
+	///  TabularFunction
 	//////////////////////////////////////////////////////////////////
 
 	TabularFunction::TabularFunction( const std::vector< std::pair< double, double > > & values,
-																		Property property,
-																		FenestrationCommon::Interpolator interpolator )
-			: IOperationFunction( property ), m_Curve( values ),
-				m_Interpolator( std::move( interpolator ) ) {}
+	                                  Property property,
+	                                  FenestrationCommon::Interpolator interpolator ) :
+			IFunction( property ), m_Curve( values ), m_Interpolator( std::move( interpolator ) ) {}
 
-	TabularFunction::TabularFunction(
-			std::initializer_list< std::pair< double, double > > & list,
-			Property property,
-			FenestrationCommon::Interpolator interpolator ) :
-			IOperationFunction( property ),
-			m_Curve( list ),
-			m_Interpolator(
-					std::move( interpolator ) ) {}
+	TabularFunction::TabularFunction( std::initializer_list< std::pair< double, double > > & list,
+	                                  Property property,
+	                                  FenestrationCommon::Interpolator interpolator ) :
+			IFunction( property ), m_Curve( list ), m_Interpolator( std::move( interpolator ) ) {}
 
-	TabularFunction::TabularFunction( const std::vector< std::pair< double, double > > & values,
-																		Property property,
-																		std::unique_ptr< IFunction > & t_Curve,
-																		Operation operation,
-																		FenestrationCommon::Interpolator interpolator )
-			: IOperationFunction( property, t_Curve, operation ), m_Curve( values ),
-				m_Interpolator( std::move( interpolator ) ) {
-
-	}
-
-	TabularFunction::TabularFunction(
-			const std::initializer_list< std::pair< double, double > > & list,
-			Property property,
-			std::unique_ptr< IFunction > & t_Curve,
-			Operation operation,
-			FenestrationCommon::Interpolator interpolator ) :
-			IOperationFunction( property, t_Curve, operation ), m_Curve( list ),
-			m_Interpolator( std::move( interpolator ) ) {
-
-	}
 
 	double TabularFunction::getValue( const double t_position ) const {
 		auto it = std::find_if( m_Curve.begin(), m_Curve.end(),
-														[ & ]( std::pair< double, double > val ) {
-															return val.first > t_position;
-														} );
+				[ & ]( std::pair< double, double > val ) {
+					return val.first > t_position;
+				} );
 
 		auto points = getInterpolationPoints( it );
 
@@ -130,12 +168,12 @@ namespace MoisThermFEM {
 	}
 
 	//////////////////////////////////////////////////////////////////
-	///  SuctionCurve
+	///  SuctionFunction
 	//////////////////////////////////////////////////////////////////
 
 	SuctionFunction::SuctionFunction( const std::vector< std::pair< double, double > > & values,
-																		Property property,
-																		const FenestrationCommon::Interpolator & interpolator )
+	                                  Property property,
+	                                  const FenestrationCommon::Interpolator & interpolator )
 			: TabularFunction( values, property, interpolator ) {
 
 	}
@@ -145,25 +183,6 @@ namespace MoisThermFEM {
 			Property property,
 			const FenestrationCommon::Interpolator & interpolator )
 			: TabularFunction( list, property, interpolator ) {
-
-	}
-
-	SuctionFunction::SuctionFunction(
-			const std::initializer_list< std::pair< double, double > > & list,
-			Property property,
-			std::unique_ptr< IFunction > & t_Curve,
-			Operation operation,
-			const FenestrationCommon::Interpolator & interpolator )
-			: TabularFunction( list, property, t_Curve, operation, interpolator ) {
-
-	}
-
-	SuctionFunction::SuctionFunction( const std::vector< std::pair< double, double > > & values,
-																		Property property,
-																		std::unique_ptr< IFunction > & t_Curve,
-																		Operation operation,
-																		const FenestrationCommon::Interpolator & interpolator )
-			: TabularFunction( values, property, t_Curve, operation, interpolator ) {
 
 	}
 
@@ -204,25 +223,6 @@ namespace MoisThermFEM {
 
 	}
 
-	FirstDerivativeFunction::FirstDerivativeFunction(
-			const std::vector< std::pair< double, double > > & values,
-			Property property,
-			std::unique_ptr< IFunction > & t_Curve, Operation operation,
-			const FenestrationCommon::Interpolator & interpolator )
-			: TabularFunction( values, property, t_Curve, operation, interpolator ) {
-
-	}
-
-	FirstDerivativeFunction::FirstDerivativeFunction(
-			const std::initializer_list< std::pair< double, double > > & list,
-			Property property,
-			std::unique_ptr< IFunction > & t_Curve,
-			Operation operation,
-			const FenestrationCommon::Interpolator & interpolator ) :
-			TabularFunction( list, property, t_Curve, operation, interpolator ) {
-
-	}
-
 	double FirstDerivativeFunction::getValue( const double t_position ) const {
 		return firstDerivative( t_position );
 	}
@@ -239,13 +239,7 @@ namespace MoisThermFEM {
 	//////////////////////////////////////////////////////////////////
 
 	SaturationFunction::SaturationFunction( Property property ) :
-			IOperationFunction( property ) {}
-
-	SaturationFunction::SaturationFunction( Property property, std::unique_ptr< IFunction > & t_Curve,
-																					Operation operation )
-			: IOperationFunction( property, t_Curve, operation ) {
-
-	}
+			IFunction( property ) {}
 
 	double SaturationFunction::getValue( const double t_position ) const {
 		auto temp = 77.345 + 0.0057 * t_position - 7235.0 / t_position;

@@ -128,14 +128,18 @@ TEST_F( CurveTest, TestTabularOutOfRangeFront ) {
 
 TEST_F( CurveTest, TestComposition1 ) {
 	SCOPED_TRACE( "Begin Test: Composition (multiplication) of two functions." );
-	std::unique_ptr< MoisThermFEM::IFunction > cons = fem::make_unique< MoisThermFEM::Constant >( 5 );
-	const MoisThermFEM::TabularFunction tabular( { { 1, 10 },
-																								 { 2, 20 },
-																								 { 3, 30 } }, Property::temperature, cons );
+	std::shared_ptr< MoisThermFEM::IValue > tabular( new MoisThermFEM::TabularFunction( {
+																																													{ 1, 10 },
+																																													{ 2, 20 },
+																																													{ 3, 30 }
+																																											},
+																																											Property::temperature ) );
+
+	tabular = tabular * 5;
 
 	State interpolationPoint( 2.5, 0, 101325 );
 
-	auto result = tabular.value( interpolationPoint );
+	auto result = tabular->value( interpolationPoint );
 
 	EXPECT_NEAR( 125, result, 1e-6 );
 
@@ -144,35 +148,34 @@ TEST_F( CurveTest, TestComposition1 ) {
 TEST_F( CurveTest, TestPorosityCalculation ) {
 	SCOPED_TRACE( "Begin Test: Calculate liquid and air porosities." );
 
-	std::unique_ptr< MoisThermFEM::IFunction > waterContent =
-			std::unique_ptr< MoisThermFEM::IFunction >(
-					new MoisThermFEM::TabularFunction( { { 0.000, 0.0 },
-																							 { 0.500, 0.5 },
-																							 { 0.800, 1.4 },
-																							 { 0.900, 2.6 },
-																							 { 0.930, 3.6 },
-																							 { 0.950, 4.7 },
-																							 { 0.970, 7.1 },
-																							 { 0.990, 14.8 },
-																							 { 0.995, 20.9 },
-																							 { 0.999, 33.0 },
-																							 { 1.000, 40.0 } }, Property::humidity ) );
+	std::shared_ptr< MoisThermFEM::IValue > waterContent(
+			new MoisThermFEM::TabularFunction( { { 0.000, 0.0 },
+																					 { 0.500, 0.5 },
+																					 { 0.800, 1.4 },
+																					 { 0.900, 2.6 },
+																					 { 0.930, 3.6 },
+																					 { 0.950, 4.7 },
+																					 { 0.970, 7.1 },
+																					 { 0.990, 14.8 },
+																					 { 0.995, 20.9 },
+																					 { 0.999, 33.0 },
+																					 { 1.000, 40.0 } },
+																				 Property::humidity ) );
 
 
 	auto maxWaterContent = waterContent->value( State( 0, 1, 0 ) );
 	const auto materialPorosity = 0.05;
 
-	std::unique_ptr< MoisThermFEM::IFunction > waterFill = fem::make_unique< MoisThermFEM::Constant >(
-			materialPorosity / maxWaterContent, waterContent );
+	auto waterFill = materialPorosity / maxWaterContent * waterContent;
 
 	State outdoor( 10, 0.98, 101325 );
 
 	auto result = waterFill->value( outdoor );
 	EXPECT_NEAR( 0.0136875, result, 1e-6 );
 
-	const MoisThermFEM::Constant airFill( materialPorosity, waterFill, MoisThermFEM::Operation::SUB );
+	const auto airFill = materialPorosity - waterFill;
 
-	result = airFill.value( outdoor );
+	result = airFill->value( outdoor );
 	EXPECT_NEAR( 0.0363125, result, 1e-6 );
 
 }
@@ -180,32 +183,33 @@ TEST_F( CurveTest, TestPorosityCalculation ) {
 TEST_F( CurveTest, TestSaturationFunction ) {
 	SCOPED_TRACE( "Begin Test: Test saturation function." );
 
-	std::unique_ptr< MoisThermFEM::IFunction > waterContent =
-			std::unique_ptr< MoisThermFEM::IFunction >(
-					new MoisThermFEM::TabularFunction( { { 0.000, 0.0 },
-																							 { 0.500, 5.3 },
-																							 { 0.650, 8.4 },
-																							 { 0.800, 12 },
-																							 { 0.930, 17 },
-																							 { 0.950, 25 },
-																							 { 0.990, 63 },
-																							 { 0.995, 83 },
-																							 { 0.999, 120 },
-																							 { 1.000, 180 } }, Property::humidity ) );
+	std::shared_ptr< MoisThermFEM::IValue > waterContent(
+			new MoisThermFEM::TabularFunction( { { 0.000, 0.0 },
+																					 { 0.500, 5.3 },
+																					 { 0.650, 8.4 },
+																					 { 0.800, 12 },
+																					 { 0.930, 17 },
+																					 { 0.950, 25 },
+																					 { 0.990, 63 },
+																					 { 0.995, 83 },
+																					 { 0.999, 120 },
+																					 { 1.000, 180 } }, Property::humidity ) );
 
 	auto maxWaterContent = waterContent->value( State( 0, 1, 0 ) );
 	const auto materialPorosity = 0.22;
 
-	std::unique_ptr< MoisThermFEM::IFunction > waterFill = fem::make_unique< MoisThermFEM::Constant >(
-			materialPorosity / maxWaterContent, waterContent );
+	std::shared_ptr< MoisThermFEM::IValue > waterFill =
+			materialPorosity / maxWaterContent * waterContent;
 
-	std::unique_ptr< MoisThermFEM::IFunction > airFill = fem::make_unique< MoisThermFEM::Constant >(
-			materialPorosity, waterFill, MoisThermFEM::Operation::SUB );
+	std::shared_ptr< MoisThermFEM::IValue > airFill = materialPorosity - waterFill;
 
-	const MoisThermFEM::SaturationFunction sat( Property::temperature, airFill );
+	std::shared_ptr< MoisThermFEM::IValue > sat(
+			new MoisThermFEM::SaturationFunction( Property::temperature ) );
+
+	sat = sat * airFill;
 
 	State interpolationPoint( 283.15, 0.5, 101325 );
-	auto result = sat.value( interpolationPoint );
+	auto result = sat->value( interpolationPoint );
 	EXPECT_NEAR( 0.002000939, result, 1e-6 );
 
 }

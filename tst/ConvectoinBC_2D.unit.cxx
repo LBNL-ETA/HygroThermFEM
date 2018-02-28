@@ -16,6 +16,7 @@ protected:
     TearDown() override {
         auto & nodePool = NodePool::Instance();
         nodePool.clear();
+        MaterialPool::Instance().clear();
     }
 
 };

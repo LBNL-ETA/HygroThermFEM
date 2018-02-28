@@ -30,6 +30,15 @@ TEST_F( MoistureBC_2D_1, TestExample_1 ) {
 	std::vector< double > gridXCoordinates{ 0, 0.015, 0.025, 0.035, 0.045, 0.055, 0.065, 0.075,
 																					0.085, 0.095, 0.105, 0.115, 0.125, 0.135, 0.15 };
 
+	/// Custom grid creation
+	// std::vector< double > gridXCoordinates;
+//
+	// int maxI = 200;
+	// for( int i = 0; i <= maxI; ++i ) {
+	// 	auto curX = double( i ) / maxI;
+	// 	gridXCoordinates.push_back( curX );
+	// }
+
 	auto state = State( 293.15, 0, 101325 );
 	size_t nodeIndex = 0;
 	for ( auto val : gridXCoordinates ) {
@@ -64,26 +73,26 @@ TEST_F( MoistureBC_2D_1, TestExample_1 ) {
 					// { 0.99,  63 },
 					// { 0.995, 83 },
 					// { 0.999, 120 },
-				{ 1, 180} }
+				{ 1, 5.3 } }
 	);
 
 	Domain domain{ Property::humidity };
 
 	/// Create elements
 	for ( size_t i = 1; i <= ( nodePool.maxIndex() - 2 ) / 2; ++i ) {
-		auto node1 = nodePool.Instance().getNode( 2 * i - 2 );
-		auto node2 = nodePool.Instance().getNode( 2 * i - 1 );
-		auto node3 = nodePool.Instance().getNode( 2 * i + 1 );
-		auto node4 = nodePool.Instance().getNode( 2 * i );
-		domain.elementsCreator().createMoistureElement( node4, node3, node2, node1, material );
+		auto node1 = nodePool.Instance().getNode( 2 * i + 1 );
+		auto node2 = nodePool.Instance().getNode( 2 * i + 2 );
+		auto node3 = nodePool.Instance().getNode( 2 * i );
+		auto node4 = nodePool.Instance().getNode( 2 * i - 1 );
+		domain.elementsCreator().createMoistureElement( node1, node2, node3, node4, material );
 	}
 
 	// Create Boundary Conditions
 	const auto hc = 20;
 	const auto humidity = 0.5;
 
-	auto node1 = nodePool.Instance().getNode( 0 );
-	auto node2 = nodePool.Instance().getNode( 1 );
+	auto node1 = nodePool.Instance().getNode( 1 );
+	auto node2 = nodePool.Instance().getNode( 2 );
 
 	domain.boundariesCreator().createMoistureBC( node1, node2, hc, humidity );
 

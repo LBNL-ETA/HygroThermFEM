@@ -70,21 +70,19 @@ TEST_F( MoistureBC_2D_2, TestExample_1 ) {
 
 	/// Create elements
 	for ( size_t i = 1; i <= ( nodePool.maxIndex() - 2 ) / 2; ++i ) {
-		auto node1 = nodePool.Instance().getNode( 2 * i - 2 );
-		auto node2 = nodePool.Instance().getNode( 2 * i - 1 );
-		auto node3 = nodePool.Instance().getNode( 2 * i + 1 );
-		auto node4 = nodePool.Instance().getNode( 2 * i );
-		/// domain.elementsCreator().createMoistureElement( node3, node2, node1, node4, material );
-		/// domain.elementsCreator().createMoistureElement( node2, node1, node4, node3, material );
-		domain.elementsCreator().createMoistureElement( node4, node3, node2, node1, material );
+		auto node1 = nodePool.Instance().getNode( 2 * i + 1 );
+		auto node2 = nodePool.Instance().getNode( 2 * i + 2 );
+		auto node3 = nodePool.Instance().getNode( 2 * i );
+		auto node4 = nodePool.Instance().getNode( 2 * i - 1 );
+		domain.elementsCreator().createMoistureElement( node1, node2, node3, node4, material );
 	}
 
 	// Create Boundary Conditions
 	const auto hc = 20;
 	const auto humidity = 0.5;
 
-	auto node1 = nodePool.Instance().getNode( 0 );
-	auto node2 = nodePool.Instance().getNode( 1 );
+	auto node1 = nodePool.Instance().getNode( 1 );
+	auto node2 = nodePool.Instance().getNode( 2 );
 
 	domain.boundariesCreator().createMoistureBC( node1, node2, hc, humidity );
 

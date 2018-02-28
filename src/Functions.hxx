@@ -20,56 +20,101 @@ namespace MoisThermFEM {
 		MULT, DIV, ADD, SUB
 	};
 
+	class IValue {
+	public:
+		virtual double value( const State & state ) const = 0;
+	};
+
 	//////////////////////////////////////////////////////////////////
 	///  IFunction
 	//////////////////////////////////////////////////////////////////
 
 	/// Interface for functions
-	class IFunction {
+	class IFunction: public IValue {
 	public:
 		IFunction( Property t_Property );
 
-		virtual double value( const State & state ) const = 0;
+		virtual double value( const State & state ) const;
 
 	protected:
-		virtual double getValue( const double t_position ) const = 0;
+		virtual double getValue( const double t_position = 0 ) const = 0;
 
 		Property m_Property;
 
 	};
 
 	//////////////////////////////////////////////////////////////////
-	///  IDecoratingFunction
+	///  IOperation
 	//////////////////////////////////////////////////////////////////
 
-	class IOperationFunction : public IFunction {
+	class IOperation: public IValue {
+	public:
+		IOperation( std::shared_ptr< IValue > & t_Val1, std::shared_ptr< IValue > & t_Val2,
+		            Operation t_Operation );
+
 	public:
 
-		IOperationFunction( Property property );
+		double value( const State & state ) const override;
 
-		IOperationFunction( Property property, std::unique_ptr< IFunction > & m_Curve,
-												 Operation operation = Operation::MULT );
+	private:
+		/// Functions can be shared between different operations and that is why it is necessary
+		/// to share function
+		std::shared_ptr< IValue > m_Function1;
+		std::shared_ptr< IValue > m_Function2;
 
-		double value( const State & state ) const final;
-
-	protected:
-		std::unique_ptr< IFunction > m_Function;
 		Operation m_Operation;
 		std::map< Operation, std::function< double( double, double ) > > m_Operator;
 
 	};
 
 	//////////////////////////////////////////////////////////////////
+	///  Operators
+	//////////////////////////////////////////////////////////////////
+
+	std::shared_ptr< MoisThermFEM::IValue >
+	operator+( std::shared_ptr< IValue > & left, std::shared_ptr< IValue > & right );
+
+	std::shared_ptr< MoisThermFEM::IValue >
+	operator+( const double left, std::shared_ptr< IValue > & right );
+
+	std::shared_ptr< MoisThermFEM::IValue >
+	operator+( std::shared_ptr< IValue > & left, const double right );
+
+	std::shared_ptr< MoisThermFEM::IValue >
+	operator-( std::shared_ptr< IValue > & left, std::shared_ptr< IValue > & right );
+
+	std::shared_ptr< MoisThermFEM::IValue >
+	operator-( const double left, std::shared_ptr< IValue > & right );
+
+	std::shared_ptr< MoisThermFEM::IValue >
+	operator-( std::shared_ptr< IValue > & left, const double right );
+
+	std::shared_ptr< MoisThermFEM::IValue >
+	operator*( std::shared_ptr< IValue > & left, std::shared_ptr< IValue > & right );
+
+	std::shared_ptr< MoisThermFEM::IValue >
+	operator*( const double left, std::shared_ptr< IValue > & right );
+
+	std::shared_ptr< MoisThermFEM::IValue >
+	operator*( std::shared_ptr< IValue > & left, const double right );
+
+	std::shared_ptr< MoisThermFEM::IValue >
+	operator/( std::shared_ptr< IValue > & left, std::shared_ptr< IValue > & right );
+
+	std::shared_ptr< MoisThermFEM::IValue >
+	operator/( const double left, std::shared_ptr< IValue > & right );
+
+	std::shared_ptr< MoisThermFEM::IValue >
+	operator/( std::shared_ptr< IValue > & left, const double right );
+
+	//////////////////////////////////////////////////////////////////
 	///  Constant
 	//////////////////////////////////////////////////////////////////
 
 	/// Simple constant curve.
-	class Constant : public IOperationFunction {
+	class Constant: public IFunction {
 	public:
 		Constant( const double value );
-
-		Constant( const double value, std::unique_ptr< IFunction > & t_Curve,
-							Operation operation = Operation::MULT );
 
 	private:
 		double getValue( const double t_position = 0 ) const override;
@@ -83,27 +128,13 @@ namespace MoisThermFEM {
 
 	/// Interface for classic tabular curve. There are different interpolation strategies and
 	/// this is base class for all of them.
-	class TabularFunction : public IOperationFunction {
+	class TabularFunction: public IFunction {
 	public:
-		TabularFunction( const std::vector< std::pair< double, double > > & values,
-										 Property property,
-										 FenestrationCommon::Interpolator interpolator = FenestrationCommon::Interpolation::Linear );
+		TabularFunction( const std::vector< std::pair< double, double > > & values, Property property,
+		                 FenestrationCommon::Interpolator interpolator = FenestrationCommon::Interpolation::Linear );
 
-		TabularFunction( std::initializer_list< std::pair< double, double>> & list,
-										 Property property,
-										 FenestrationCommon::Interpolator interpolator = FenestrationCommon::Interpolation::Linear );
-
-		TabularFunction( const std::vector< std::pair< double, double > > & values,
-										 Property property,
-										 std::unique_ptr< IFunction > & t_Curve,
-										 Operation operation = Operation::MULT,
-										 FenestrationCommon::Interpolator interpolator = FenestrationCommon::Interpolation::Linear );
-
-		TabularFunction( const std::initializer_list< std::pair< double, double > > & list,
-										 Property property,
-										 std::unique_ptr< IFunction > & t_Curve,
-										 Operation operation = Operation::MULT,
-										 FenestrationCommon::Interpolator interpolator = FenestrationCommon::Interpolation::Linear );
+		TabularFunction( std::initializer_list< std::pair< double, double > > & list, Property property,
+		                 FenestrationCommon::Interpolator interpolator = FenestrationCommon::Interpolation::Linear );
 
 		double max() const;
 
@@ -118,8 +149,8 @@ namespace MoisThermFEM {
 		double getValue( const double t_position ) const override;
 
 		virtual std::pair< std::pair< double, double >, std::pair< double, double > >
-		getInterpolationPoints(
-				std::vector< std::pair< double, double > >::const_iterator & it ) const;
+		getInterpolationPoints( std::vector< std::pair< double, double > >::const_iterator & it ) const;
+
 	};
 
 	//////////////////////////////////////////////////////////////////
@@ -132,24 +163,12 @@ namespace MoisThermFEM {
 	class SuctionFunction : public TabularFunction {
 	public:
 		SuctionFunction( const std::vector< std::pair< double, double > > & values,
-										 Property property,
-										 const FenestrationCommon::Interpolator & interpolator = FenestrationCommon::Interpolation::Logarithmic );
+		                 Property property,
+		                 const FenestrationCommon::Interpolator & interpolator = FenestrationCommon::Interpolation::Logarithmic );
 
 		SuctionFunction( const std::initializer_list< std::pair< double, double > > & list,
-										 Property property,
-										 const FenestrationCommon::Interpolator & interpolator = FenestrationCommon::Interpolation::Logarithmic );
-
-		SuctionFunction( const std::vector< std::pair< double, double > > & values,
-										 Property property,
-										 std::unique_ptr< IFunction > & t_Curve,
-										 Operation operation = Operation::MULT,
-										 const FenestrationCommon::Interpolator & interpolator = FenestrationCommon::Interpolation::Logarithmic );
-
-		SuctionFunction( const std::initializer_list< std::pair< double, double > > & list,
-										 Property property,
-										 std::unique_ptr< IFunction > & t_Curve,
-										 Operation operation = Operation::MULT,
-										 const FenestrationCommon::Interpolator & interpolator = FenestrationCommon::Interpolation::Logarithmic );
+		                 Property property,
+		                 const FenestrationCommon::Interpolator & interpolator = FenestrationCommon::Interpolation::Logarithmic );
 
 	protected:
 		std::pair< std::pair< double, double >, std::pair< double, double > >
@@ -165,24 +184,12 @@ namespace MoisThermFEM {
 
 	public:
 		FirstDerivativeFunction( const std::vector< std::pair< double, double > > & values,
-														 Property property,
-														 const FenestrationCommon::Interpolator interpolator = FenestrationCommon::Interpolation::Linear );
+		                         Property property,
+		                         const FenestrationCommon::Interpolator interpolator = FenestrationCommon::Interpolation::Linear );
 
 		FirstDerivativeFunction( const std::initializer_list< std::pair< double, double > > & list,
-														 Property property,
-														 const FenestrationCommon::Interpolator interpolator = FenestrationCommon::Interpolation::Linear );
-
-		FirstDerivativeFunction( const std::vector< std::pair< double, double > > & values,
-														 Property property,
-														 std::unique_ptr< IFunction > & t_Curve,
-														 Operation operation = Operation::MULT,
-														 const FenestrationCommon::Interpolator & interpolator = FenestrationCommon::Interpolation::Linear );
-
-		FirstDerivativeFunction( const std::initializer_list< std::pair< double, double > > & list,
-														 Property property,
-														 std::unique_ptr< IFunction > & t_Curve,
-														 Operation operation = Operation::MULT,
-														 const FenestrationCommon::Interpolator & interpolator = FenestrationCommon::Interpolation::Linear );
+		                         Property property,
+		                         const FenestrationCommon::Interpolator interpolator = FenestrationCommon::Interpolation::Linear );
 
 	private:
 		double getValue( const double t_position ) const override;
@@ -196,12 +203,9 @@ namespace MoisThermFEM {
 	//////////////////////////////////////////////////////////////////
 
 	/// Simple constant curve.
-	class SaturationFunction : public IOperationFunction {
+	class SaturationFunction : public IFunction {
 	public:
 		SaturationFunction( Property property );
-
-		SaturationFunction( Property property, std::unique_ptr< IFunction > & t_Curve,
-												Operation operation = Operation::MULT );
 
 	private:
 		double getValue( const double t_position ) const override;

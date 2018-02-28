@@ -115,8 +115,8 @@ namespace MoisThermFEM {
 
 		/// TODO: This did not work with reference_wrapper and it should. Check later.
 		/// Reminder: Introduce pair of curve pointer and Property so that curve knows what to use
-		std::vector< std::unique_ptr< MoisThermFEM::IFunction > > m_Conductance;
-		std::vector< std::unique_ptr< MoisThermFEM::IFunction > > m_Capacitance;
+		std::vector< std::shared_ptr< MoisThermFEM::IValue > > m_Conductance;
+		std::vector< std::shared_ptr< MoisThermFEM::IValue > > m_Capacitance;
 	};
 
 	//////////////////////////////////////////////////////////////////////////////

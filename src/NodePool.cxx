@@ -18,8 +18,8 @@ namespace MoisThermFEM {
 	}
 
 	Node2D & NodePool::getNode( const size_t Index ) {
-		assert( Index < m_Nodes.size() );
-		return m_Nodes[ Index ];
+		assert( Index <= m_Nodes.size() );
+		return m_Nodes[ Index - 1 ];
 	}
 
 	size_t NodePool::maxIndex() const {
