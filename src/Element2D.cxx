@@ -193,16 +193,16 @@ namespace MoisThermFEM {
 		/// Creating conductance function for vapor
 		//////////////////////////////////////////////////////////////////////////////
 
-		pValue waterContent(
-				std::make_shared< MoisThermFEM::TabularFunction >( mat.sorptionCurve(),
-																													 Property::humidity ) );
+		//pValue waterContent(
+		//		std::make_shared< MoisThermFEM::TabularFunction >( mat.sorptionCurve(),
+		//																											 Property::humidity ) );
 
 		/// Calls sorption curve at 100% humidity to get maximum water content
-		auto maxWaterContent = waterContent->value( State( 0, 1, 0 ) );
+		///auto maxWaterContent = waterContent->value( State( 0, 1, 0 ) );
 
-		pValue waterFill = mat.porosity() / maxWaterContent * waterContent;
+		//pValue waterFill = mat.porosity() / maxWaterContent * waterContent;
 
-		pValue airFill = mat.porosity() - waterFill;
+		///pValue airFill = mat.porosity() - waterFill;
 
 		pValue saturationFunction(
 				std::make_shared< MoisThermFEM::SaturationFunction >( Property::temperature ) );

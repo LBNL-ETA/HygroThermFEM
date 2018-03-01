@@ -115,7 +115,9 @@ namespace MoisThermFEM {
 		using pValue = std::shared_ptr< IValue >;
 
 		pValue saturation( std::make_shared< SaturationFunction >( Property::temperature ) );
-		const auto humidityCalculator = saturation * m_AirHumidity;
+		auto humidityCalculator = saturation * m_AirHumidity;
+
+		humidityCalculator = humidityCalculator * m_Material.porosity();
 		const auto humidityByVolume = humidityCalculator->value(
 				State( m_AirTemperature, m_AirHumidity, 101325 ) );
 		const auto coeff =
@@ -126,25 +128,12 @@ namespace MoisThermFEM {
 	FenestrationCommon::SquareMatrix< double > MoistureBC::H_Matrix() const {
 		using pValue = std::shared_ptr< IValue >;
 
-		pValue waterContent( std::make_shared< TabularFunction >( m_Material.sorptionCurve(),
-																													 Property::humidity ) );
-
-		/// Calls sorption curve at 100% humidity to get maximum water content
-		const auto maxWaterContent = waterContent->value( State( 0, 1, 0 ) );
-
-		pValue waterFill = m_Material.porosity() / maxWaterContent * waterContent;
-
-		pValue airFill = m_Material.porosity() - waterFill;
-
 		pValue saturationFunction( std::make_shared< SaturationFunction >( Property::temperature ) );
 
-		const auto humidityCoeff = airFill * saturationFunction;
+		const auto humidityCoeff = m_Material.porosity() * saturationFunction;
 
-		// const auto humidityByVolume1 = humidityCoeff->value( m_Nodes[ 0 ].getState() );
-		// const auto humidityByVolume2 = humidityCoeff->value( m_Nodes[ 1 ].getState() );
-
-		const auto humidityByVolume1 = humidityCoeff->value( State( 293.15, 0, 101325 ) );
-		const auto humidityByVolume2 = humidityCoeff->value( State( 293.15, 0, 101325 ) );
+		const auto humidityByVolume1 = humidityCoeff->value( m_Nodes[ 0 ].getState() );
+		const auto humidityByVolume2 = humidityCoeff->value( m_Nodes[ 1 ].getState() );
 
 		FenestrationCommon::Vector< double > coeffs {
 			humidityByVolume1 * m_ConvectiveCoefficient / ( Constants::Density_AIR * Constants::Cp_Air ),
