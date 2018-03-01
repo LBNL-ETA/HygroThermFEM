@@ -1,6 +1,5 @@
 #include <algorithm>
 #include <functional>
-#include <cmath>
 
 #include "BoundaryCondition2D.hxx"
 #include "Common.hxx"
@@ -52,8 +51,8 @@ namespace MoisThermFEM {
 	BlackBodyRadiationBC::BlackBodyRadiationBC( const Node2D & t_Node1, const Node2D & t_Node2,
 																							const double t_Emissivity,
 																							const double t_RadiationTemperature )
-			: IBCLinear2D( t_Node1, t_Node2, false ), m_RadiationTemperature{ t_RadiationTemperature },
-				m_Emissivity{ t_Emissivity } {}
+			: IBCLinear2D( t_Node1, t_Node2, false ), m_RadiationTemperature { t_RadiationTemperature },
+				m_Emissivity { t_Emissivity } {}
 
 	FenestrationCommon::Vector< double > BlackBodyRadiationBC::HRadiative() const {
 		FenestrationCommon::Vector< double > result( numOfBCNodes, 0 );
@@ -104,27 +103,55 @@ namespace MoisThermFEM {
 	/// MoistureBC
 	/////////////////////////////////////////////////////
 
-	MoistureBC::MoistureBC( const Node2D & t_Node1, const Node2D & t_Node2,
-													const double t_ConvectiveCoefficient, const double t_AirHumidity ) :
+	MoistureBC::MoistureBC( const Node2D & t_Node1, const Node2D & t_Node2, const Material & material,
+													const double t_ConvectiveCoefficient, const double t_AirHumidity,
+													const double t_AirTemperature ) :
 			IBCLinear2D( t_Node1, t_Node2 ), m_ConvectiveCoefficient( t_ConvectiveCoefficient ),
-			m_AirHumidity( t_AirHumidity ) {
+			m_AirHumidity( t_AirHumidity ), m_AirTemperature( t_AirTemperature ), m_Material( material ) {
 
 	}
 
 	FenestrationCommon::Vector< double > MoistureBC::R_Vector() const {
-		auto coeff = m_ConvectiveCoefficient * m_AirHumidity / ( Constants::Density_AIR * Constants::Cp_Air );
+		using pValue = std::shared_ptr< IValue >;
+
+		pValue saturation( std::make_shared< SaturationFunction >( Property::temperature ) );
+		const auto humidityCalculator = saturation * m_AirHumidity;
+		const auto humidityByVolume = humidityCalculator->value(
+				State( m_AirTemperature, m_AirHumidity, 101325 ) );
+		const auto coeff =
+				m_ConvectiveCoefficient * humidityByVolume / ( Constants::Density_AIR * Constants::Cp_Air );
 		return m_PsiVector * coeff;
 	}
 
 	FenestrationCommon::SquareMatrix< double > MoistureBC::H_Matrix() const {
-		auto coeff = m_ConvectiveCoefficient / ( Constants::Density_AIR * Constants::Cp_Air );
-		return m_PsiPsiMatrix * coeff;
+		using pValue = std::shared_ptr< IValue >;
+
+		pValue waterContent( std::make_shared< TabularFunction >( m_Material.sorptionCurve(),
+																													 Property::humidity ) );
+
+		/// Calls sorption curve at 100% humidity to get maximum water content
+		const auto maxWaterContent = waterContent->value( State( 0, 1, 0 ) );
+
+		pValue waterFill = m_Material.porosity() / maxWaterContent * waterContent;
+
+		pValue airFill = m_Material.porosity() - waterFill;
+
+		pValue saturationFunction( std::make_shared< SaturationFunction >( Property::temperature ) );
+
+		const auto humidityCoeff = airFill * saturationFunction;
+
+		// const auto humidityByVolume1 = humidityCoeff->value( m_Nodes[ 0 ].getState() );
+		// const auto humidityByVolume2 = humidityCoeff->value( m_Nodes[ 1 ].getState() );
+
+		const auto humidityByVolume1 = humidityCoeff->value( State( 293.15, 0, 101325 ) );
+		const auto humidityByVolume2 = humidityCoeff->value( State( 293.15, 0, 101325 ) );
+
+		FenestrationCommon::Vector< double > coeffs {
+			humidityByVolume1 * m_ConvectiveCoefficient / ( Constants::Density_AIR * Constants::Cp_Air ),
+			humidityByVolume2 * m_ConvectiveCoefficient / ( Constants::Density_AIR * Constants::Cp_Air ),
+		};
+
+		return m_PsiPsiMatrix.mmultRows( coeffs );
 	}
 
-	/////////////////////////////////////////////////////
-	/// HumidityBC
-	/////////////////////////////////////////////////////
-
-	HumidityBC::HumidityBC( const Node2D & t_Node1, const Node2D & t_Node2, const double t_AirHumidity )
-		: MoistureBC( t_Node1, t_Node2, 1e20, t_AirHumidity ) {}
 }

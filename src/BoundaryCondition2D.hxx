@@ -1,6 +1,7 @@
 #pragma once
 
 #include "IBCLine2D.hxx"
+#include "Material.hxx"
 
 namespace MoisThermFEM {
 
@@ -69,8 +70,9 @@ namespace MoisThermFEM {
 	/////////////////////////////////////////////////////
 	class MoistureBC : public IBCLinear2D {
 	public:
-		MoistureBC( const Node2D & t_Node1, const Node2D & t_Node2,
-								const double t_ConvectiveCoefficient, const double t_AirHumidity );
+		MoistureBC( const Node2D & t_Node1, const Node2D & t_Node2, const Material & material,
+								const double t_ConvectiveCoefficient, const double t_AirHumidity,
+								const double t_AirTemperature );
 
 		virtual FenestrationCommon::Vector< double > R_Vector() const override;
 
@@ -79,15 +81,8 @@ namespace MoisThermFEM {
 	protected:
 		double m_ConvectiveCoefficient;
 		double m_AirHumidity;
-	};
-
-
-	/////////////////////////////////////////////////////
-	/// HumidityBC
-	/////////////////////////////////////////////////////
-	class HumidityBC : public MoistureBC {
-	public:
-		HumidityBC( const Node2D & t_Node1, const Node2D & t_Node2, const double t_AirHumidity );
+		double m_AirTemperature;
+		const Material & m_Material;
 	};
 
 }

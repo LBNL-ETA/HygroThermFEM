@@ -89,9 +89,13 @@ namespace MoisThermFEM {
 
 				error = norm( dU );
 
-				std::transform( dU.begin(), dU.end(),
-												solution.begin(),
-												solution.begin(), std::plus< double >() );
+				for( auto i = 0u; i < solution.size(); ++i ) {
+					solution[i] += dU[i];
+				}
+
+				/// std::transform( dU.begin(), dU.end(),
+				/// 								solution.begin(),
+				/// 								solution.begin(), std::plus< double >() );
 
 				++numOfIterations;
 

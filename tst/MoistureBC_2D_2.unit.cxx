@@ -27,7 +27,8 @@ TEST_F( MoistureBC_2D_2, TestExample_1 ) {
 	auto & nodePool = NodePool::Instance();
 	auto & materialPool = MaterialPool::Instance();
 
-	std::vector< double > gridXCoordinates { 0, 0.005, 0.1, 0.15 };
+	// std::vector< double > gridXCoordinates { 0, 0.005, 0.1, 0.15 };
+	std::vector< double > gridXCoordinates{ 0, 0.005 };
 
 	auto state = State( 293.15, 0, 101325 );
 	size_t nodeIndex = 0;
@@ -79,12 +80,14 @@ TEST_F( MoistureBC_2D_2, TestExample_1 ) {
 
 	// Create Boundary Conditions
 	const auto hc = 20;
+	const auto airTemperature = 293.15;
 	const auto humidity = 0.5;
 
 	auto node1 = nodePool.Instance().getNode( 1 );
 	auto node2 = nodePool.Instance().getNode( 2 );
 
-	domain.boundariesCreator().createMoistureBC( node1, node2, hc, humidity );
+	domain.boundariesCreator().createMoistureBC( node1, node2, material, hc, humidity,
+																							 airTemperature );
 
 	const auto dTime = 36000;
 	const auto nSteps = 4;

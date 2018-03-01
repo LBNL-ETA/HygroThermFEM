@@ -26,7 +26,7 @@ TEST_F( MoistureBC_2D_3, TestExample_1 ) {
 	auto & nodePool = NodePool::Instance();
 	auto & materialPool = MaterialPool::Instance();
 
-	std::vector< double > gridXCoordinates{ 0, 0.005, 0.1, 0.15 };
+	std::vector< double > gridXCoordinates { 0, 0.005, 0.1, 0.15 };
 
 	const double initialTemperature = 293.15;
 	const double initialMoistureContent = 0;
@@ -69,7 +69,7 @@ TEST_F( MoistureBC_2D_3, TestExample_1 ) {
 				{ 1,     180 } }
 	);
 
-	Domain domain{ Property::humidity };
+	Domain domain { Property::humidity };
 
 	/// Create elements
 	for ( size_t i = 1; i <= ( nodePool.maxIndex() - 2 ) / 2; ++i ) {
@@ -82,12 +82,14 @@ TEST_F( MoistureBC_2D_3, TestExample_1 ) {
 
 	// Create Boundary Conditions
 	const auto hc = 1;
+	const auto airTemperature = 293.15;
 	const auto humidity = 0.5;
 
 	auto node1 = nodePool.Instance().getNode( 1 );
 	auto node2 = nodePool.Instance().getNode( 2 );
 
-	domain.boundariesCreator().createMoistureBC( node1, node2, hc, humidity );
+	domain.boundariesCreator().createMoistureBC( node1, node2, material, hc, humidity,
+																							 airTemperature );
 
 	const auto dTime = 36000;
 	const auto nSteps = 4;
@@ -102,9 +104,9 @@ TEST_F( MoistureBC_2D_3, TestExample_1 ) {
 
 	std::vector< std::vector< double > > correctSolution = {
 			{ 5.299966, 5.299966, 1.466304, 1.466304, 0.01998726, 0.01998726, 0.001446992, 0.001446992 },
-			{ 5.299979, 5.299979, 2.50616, 2.50616, 0.053431, 0.053431, 0.005210412, 0.005210412 },
-			{ 5.299985, 5.299985, 3.243863, 3.243863, 0.09576148, 0.09576148, 0.01176592, 0.01176592 },
-			{ 5.299989, 5.299989, 3.767472, 3.767472, 0.1437928, 0.1437928, 0.02132411, 0.02132411 }
+			{ 5.299979, 5.299979, 2.50616,  2.50616,  0.053431,   0.053431,   0.005210412, 0.005210412 },
+			{ 5.299985, 5.299985, 3.243863, 3.243863, 0.09576148, 0.09576148, 0.01176592,  0.01176592 },
+			{ 5.299989, 5.299989, 3.767472, 3.767472, 0.1437928,  0.1437928,  0.02132411,  0.02132411 }
 	};
 
 	EXPECT_EQ( solution.size(), correctSolution.size() );

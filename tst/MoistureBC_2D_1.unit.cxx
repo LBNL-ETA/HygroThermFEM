@@ -39,7 +39,11 @@ TEST_F( MoistureBC_2D_1, TestExample_1 ) {
 	// 	gridXCoordinates.push_back( curX );
 	// }
 
-	auto state = State( 293.15, 0, 101325 );
+	const auto initialTemperature = 293.15;
+	const auto initialHumidity = 0.0;
+	const auto initialPressure = 101325.0;
+
+	auto state = State( initialTemperature, initialHumidity, initialPressure );
 	size_t nodeIndex = 0;
 	for ( auto val : gridXCoordinates ) {
 		++nodeIndex;
@@ -89,12 +93,14 @@ TEST_F( MoistureBC_2D_1, TestExample_1 ) {
 
 	// Create Boundary Conditions
 	const auto hc = 20;
-	const auto humidity = 0.5;
+	const auto airTemperature = 293.15;
+	const auto airHumidity = 0.5;
 
 	auto node1 = nodePool.Instance().getNode( 1 );
 	auto node2 = nodePool.Instance().getNode( 2 );
 
-	domain.boundariesCreator().createMoistureBC( node1, node2, hc, humidity );
+	domain.boundariesCreator().createMoistureBC( node1, node2, material, hc, airHumidity,
+																							 airTemperature );
 
 	const auto dTime = 36000;
 	const auto nSteps = 4;

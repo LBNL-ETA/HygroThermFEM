@@ -22,7 +22,7 @@ namespace MoisThermFEM {
 		void createElement( const Node2D & t_Node1, const Node2D & t_Node2, const Node2D & t_Node3,
 												const Node2D & t_Node4, const Material & mat );
 
-		void createConvectionBC( const Node2D & t_Node1, const Node2D & t_Node2,
+		void createConvectionBC( const Node2D & t_Node1, const Node2D & t_Node2, const Material & material,
 														 const double t_ConvectionCoefficient, const double t_AirTemperature,
 														 const double t_Humidity );
 
