@@ -37,6 +37,22 @@ namespace MoisThermFEM {
 		TemperatureBC( Node2D & t_Node1, Node2D & t_Node2, const double t_Temp1, const double t_Temp2 );
 	};
 
+	////////////////////////////////////////////////////////
+	/// Flux BC
+	////////////////////////////////////////////////////////
+
+	class FluxBC : public IBCLinear2D {
+	public:
+		FluxBC( Node2D & t_Node1, Node2D & t_Node2, const double t_Flux );
+
+		FenestrationCommon::Vector< double > R_Vector() const override;
+
+		FenestrationCommon::SquareMatrix< double > H_Matrix() const override;
+
+	private:
+		double m_Flux;
+	};
+
 	///////////////////////////////////////////////////////
 	/// BlackBodyRadiationBC
 	///////////////////////////////////////////////////////

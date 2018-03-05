@@ -19,6 +19,7 @@ namespace MoisThermFEM {
 															const double t_Temp2 );
 
 		void createTemperatureBC( Node2D & t_Node1, Node2D & t_Node2, const double t_Temp );
+		void createFluxBC( Node2D & t_Node1, Node2D & t_Node2, const double t_Flux );
 
 		void createBlackBodyRadiationBC( const Node2D & t_Node1, const Node2D & t_Node2,
 																		 const double t_Emissivity,

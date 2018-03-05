@@ -33,10 +33,9 @@ TEST_F( Analytical_TemperatureBC_Transient, TestExample_1 ) {
 	auto & nodePool = NodePool::Instance();
 	auto & materialPool = MaterialPool::Instance();
 
-	/// Create slab that is 1 meter long and have nodes at every 10 cm
+	/// Create slab that is 10 cm long and have nodes at every 1 cm
 	std::vector< double > gridXCoordinates{ 0, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09,
 																					0.1 };
-	///std::vector< double > gridXCoordinates { 0, 0.05, 0.15 };
 
 	const auto initialTemperature = 20.0;
 	const auto initialHumidity = 0.0;

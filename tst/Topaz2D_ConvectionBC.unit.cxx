@@ -14,7 +14,7 @@ using namespace MoisThermFEM;
 ///   Solution achieved with linear solver (no iterations required in this case
 /////////////////////////////////////////////////////////////////////////////////////
 
-class ConvectionBC_2D_2 : public testing::Test {
+class Topaz2D_ConvectionBC : public testing::Test {
 
 protected:
 	void
@@ -31,7 +31,7 @@ protected:
 
 /// Transient convection BC. Example is tested in EXCEL and Topaz2D.
 
-TEST_F( ConvectionBC_2D_2, TestExample_1 ) {
+TEST_F( Topaz2D_ConvectionBC, TestExample_1 ) {
 	SCOPED_TRACE( "Begin Test: Two elementsCreator example with transient." );
 
 	// Enter nodes. Arguments are: node number, x-coordinate, y-coordinate, initial temperature

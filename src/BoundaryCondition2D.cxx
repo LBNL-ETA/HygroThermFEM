@@ -46,6 +46,24 @@ namespace MoisThermFEM {
 	}
 
 	////////////////////////////////////////////////////////
+	/// Flux BC
+	////////////////////////////////////////////////////////
+
+	FluxBC::FluxBC( Node2D & t_Node1, Node2D & t_Node2, const double t_Flux ) :
+	IBCLinear2D( t_Node1, t_Node2 ), m_Flux( t_Flux )  {
+
+	}
+
+	FenestrationCommon::Vector< double > FluxBC::R_Vector() const {
+		return m_PsiVector * m_Flux;
+	}
+
+	FenestrationCommon::SquareMatrix< double > FluxBC::H_Matrix() const {
+		// Flux boundary conditions do not have H matrix (It is zero)
+		return FenestrationCommon::SquareMatrix< double >( 4 );
+	}
+
+	////////////////////////////////////////////////////////
 	/// BlackBodyRadiationBC
 	////////////////////////////////////////////////////////
 
@@ -143,5 +161,4 @@ namespace MoisThermFEM {
 
 		return m_PsiPsiMatrix.mmultRows( coeffs );
 	}
-
 }
