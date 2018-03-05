@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <functional>
+#include <cmath>
 
 #include "BoundaryCondition2D.hxx"
 #include "Common.hxx"
