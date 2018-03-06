@@ -4,6 +4,7 @@
 
 #include "IntegrationPoints.hxx"
 #include "Node2D.hxx"
+#include "FEMunique.hxx"
 
 namespace MoisThermFEM {
 
@@ -30,14 +31,14 @@ namespace MoisThermFEM {
 		std::vector< LocalPoint1D > aPoints = IntegrationPoints2D::Instance().getPoints1D();
 		for ( const auto & point : aPoints ) {
 			m_Ksi.push_back( std::unique_ptr< LineLinearLocalShapeFunctions1D >(
-					new LineLinearLocalShapeFunctions1D( point ) ) );
+					fem::make_unique< LineLinearLocalShapeFunctions1D >( LineLinearLocalShapeFunctions1D( point ) ) ) );
 		}
 	}
 
 	double LineLinearLocal1D::Psi( size_t const IntegrationPointIndex, size_t const Index ) {
 		if( IntegrationPointIndex >= m_Ksi.size() ) {
 			throw std::runtime_error(
-					"Integration point index out of range. Rouinte LineElement1DLinearLocal::Psi." );
+					"Integration point index out of range. Routine LineElement1DLinearLocal::Psi." );
 		}
 
 		return m_Ksi[ IntegrationPointIndex ]->Psi( Index );
