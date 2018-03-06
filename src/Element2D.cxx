@@ -15,9 +15,10 @@ namespace MoisThermFEM {
 	///  IQLEMatrix2D
 	//////////////////////////////////////////////////////////////////////////////
 	IQLEMatrix2D::IQLEMatrix2D( const QuadrilateralLinearGlobal2D & t_Element,
-		const double t_Value1, const double t_Value2, const double t_Value3, const double t_Value4 ) :
-			m_Matrix( numOfQuadrilateralNodes ), m_Global2D( t_Element ), 
-		m_Values{ t_Value1, t_Value2, t_Value3, t_Value4 } {
+															const double t_Value1, const double t_Value2, const double t_Value3,
+															const double t_Value4 ) :
+			m_Matrix{ numOfQuadrilateralNodes }, m_Values{ t_Value1, t_Value2, t_Value3, t_Value4 },
+			m_Global2D{ t_Element } {
 
 	}
 
@@ -42,8 +43,9 @@ namespace MoisThermFEM {
 	///  QLEConductance2D
 	//////////////////////////////////////////////////////////////////////////////
 
-	QLEConductance2D::QLEConductance2D( const QuadrilateralLinearGlobal2D & t_Element, 
-		const double t_Value1, const double t_Value2, const double t_Value3, const double t_Value4 ) :
+	QLEConductance2D::QLEConductance2D( const QuadrilateralLinearGlobal2D & t_Element,
+																			const double t_Value1, const double t_Value2,
+																			const double t_Value3, const double t_Value4 ) :
 			IQLEMatrix2D{ t_Element, t_Value1, t_Value2, t_Value3, t_Value4 } {
 
 	}
@@ -71,7 +73,7 @@ namespace MoisThermFEM {
 	///  QLECapacitance2D
 	//////////////////////////////////////////////////////////////////////////////
 
-	QLECapacitance2D::QLECapacitance2D( const QuadrilateralLinearGlobal2D & t_Element, 
+	QLECapacitance2D::QLECapacitance2D( const QuadrilateralLinearGlobal2D & t_Element,
 																			const double t_Value1, const double t_Value2,
 																			const double t_Value3,
 																			const double t_Value4 ) :
@@ -103,8 +105,8 @@ namespace MoisThermFEM {
 	IElementLinear2D::IElementLinear2D(
 			const Node2D & t_Node1, const Node2D & t_Node2,
 			const Node2D & t_Node3, const Node2D & t_Node4 ) :
-			m_Global2D{ t_Node1, t_Node2, t_Node3, t_Node4 },
-			m_Node( { t_Node1, t_Node2, t_Node3, t_Node4 } ) {
+			m_Node{ { t_Node1, t_Node2, t_Node3, t_Node4 } },
+			m_Global2D{ t_Node1, t_Node2, t_Node3, t_Node4 } {
 	}
 
 	SquareMatrix< double > IElementLinear2D::conductanceMatrix() const {
@@ -129,7 +131,7 @@ namespace MoisThermFEM {
 			auto value2 = cap->value( m_Node[ 1 ].getState() );
 			auto value3 = cap->value( m_Node[ 2 ].getState() );
 			auto value4 = cap->value( m_Node[ 3 ].getState() );
-			QLECapacitance2D aMatrix( m_Global2D, value1, value2,	value3, value4 );
+			QLECapacitance2D aMatrix( m_Global2D, value1, value2, value3, value4 );
 			aMatrix.integrate();
 			result += aMatrix.getMatrix();
 		}
@@ -141,7 +143,7 @@ namespace MoisThermFEM {
 		return m_Node[ index ];
 	}
 
-	std::vector<std::size_t> IElementLinear2D::nodeIndexes() const {
+	std::vector< std::size_t > IElementLinear2D::nodeIndexes() const {
 		return m_Global2D.nodeIndexes();
 	}
 
