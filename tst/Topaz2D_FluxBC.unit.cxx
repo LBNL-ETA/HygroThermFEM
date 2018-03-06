@@ -71,13 +71,13 @@ TEST_F( Topaz2D_FluxBC, TestExample_1 ) {
 	domain.elementsCreator().createThermalElement( node5, node3, node4, node6, material );
 
 	// Create Boundary Conditions
+	// Positive flux means outside flow.
 	const auto surfaceFlux = -12.0;
 
 	domain.boundariesCreator().createFluxBC( node5, node6, surfaceFlux );
 
 	const auto dTime = 3600;
 	const auto nSteps = 4;
-
 
 	auto temperatures = NodePool::Instance().nodeProperties( Property::temperature );
 	std::vector< std::vector< double > > solution;
