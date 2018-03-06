@@ -18,6 +18,7 @@ namespace MoisThermFEM {
 
 		/// Creates lumped mass matrix that includes time derivative
 		FenestrationCommon::Vector< double > getLumpedMass( const double DTime );
+		FenestrationCommon::SquareMatrix< double > getMassMatrix( const double DTime );
 
 		bool isLinear() const;
 

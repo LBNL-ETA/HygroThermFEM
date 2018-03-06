@@ -17,10 +17,10 @@ namespace MoisThermFEM {
 		return m_Nodes.back();
 	}
 
-	// Node2D & NodePool::getNode( const size_t Index ) {
-	// 	assert( Index < m_Nodes.size() );
-	// 	return m_Nodes[ Index ];
-	// }
+	Node2D & NodePool::getNode( const size_t Index ) {
+		assert( Index <= m_Nodes.size() );
+		return m_Nodes[ Index - 1 ];
+	}
 
 	size_t NodePool::maxIndex() const {
 		Node2D aNode = *max_element( m_Nodes.begin(), m_Nodes.end(),

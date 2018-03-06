@@ -53,6 +53,23 @@ namespace MoisThermFEM {
 		return M;
 	}
 
+	FenestrationCommon::SquareMatrix< double > ElementsLinear2D::getMassMatrix( const double DTime ) {
+		FenestrationCommon::SquareMatrix< double > Capacitance { NodePool::Instance().maxIndex() };
+
+		// now integrate element matrices into global matrix
+		for ( auto & aElement : m_Elements ) {
+			auto indexes = aElement->nodeIndexes();
+			auto capacitance = aElement->capacitanceMatrix();
+			for ( size_t i = 0; i < numOfQuadrilateralNodes; ++i ) {
+				for ( size_t j = 0; j < numOfQuadrilateralNodes; ++j ) {
+					Capacitance[ indexes[ i ] - 1 ][ indexes[ j ] - 1 ] += capacitance[ i ][ j ] / DTime;
+				}
+			}
+		}
+
+		return Capacitance;
+	}
+
 	ElementsLinear2D::ElementsLinear2D() : m_Linear( true ) {
 
 	}

@@ -5,16 +5,7 @@
 
 using namespace MoisThermFEM;
 
-/////////////////////////////////////////////////////////////////////////////////////
-/// Transient heat transfer example on Sandstone specimen using data from database
-///   Lumped mass matrix
-///   Time-step 1 hour
-///   Six nodes block at initial temperatures in nodes of 100 degrees
-///   Initial temperature boundary conditions at nodes 5 and 6 are 12 degrees
-///   Solution achieved with linear solver (no iterations required in this case
-/////////////////////////////////////////////////////////////////////////////////////
-
-class TemperatureBC_2D_1 : public testing::Test {
+class Topaz2D_FluxBC : public testing::Test {
 
 protected:
 	void
@@ -29,7 +20,7 @@ protected:
 
 };
 
-TEST_F( TemperatureBC_2D_1, TestExample_1 ) {
+TEST_F( Topaz2D_FluxBC, TestExample_1 ) {
 	SCOPED_TRACE( "Begin Test: Two elementsCreator example with transient." );
 
 	// Enter nodes. Arguments are: node number, x-coordinate, y-coordinate, initial temperature
@@ -37,7 +28,7 @@ TEST_F( TemperatureBC_2D_1, TestExample_1 ) {
 	auto & materialPool = MaterialPool::Instance();
 
 	// same temperature in every node (humidity and pressure irrelevant for this example)
-	auto state = State( 100, 0, 101325 );
+	auto state = State( 0, 0, 101325 );
 
 	const auto node1 = nodePool.createNode( 1, 0.15, 0.05, state );
 	const auto node2 = nodePool.createNode( 2, 0.15, 0, state );
@@ -76,17 +67,17 @@ TEST_F( TemperatureBC_2D_1, TestExample_1 ) {
 
 	Domain domain{ Property::temperature };
 
-	domain.elementsCreator().createThermalElement( node3, node4, node2, node1, material );
-	domain.elementsCreator().createThermalElement( node6, node4, node3, node5, material );
+	domain.elementsCreator().createThermalElement( node1, node2, node4, node3, material );
+	domain.elementsCreator().createThermalElement( node5, node3, node4, node6, material );
 
 	// Create Boundary Conditions
-	const auto tSurface = 12.0;
+	// Positive flux means outside flow.
+	const auto surfaceFlux = -12.0;
 
-	domain.boundariesCreator().createTemperatureBC( node5, node6, tSurface );
+	domain.boundariesCreator().createFluxBC( node5, node6, surfaceFlux );
 
 	const auto dTime = 3600;
 	const auto nSteps = 4;
-
 
 	auto temperatures = NodePool::Instance().nodeProperties( Property::temperature );
 	std::vector< std::vector< double > > solution;
@@ -97,10 +88,10 @@ TEST_F( TemperatureBC_2D_1, TestExample_1 ) {
 	}
 
 	std::vector< std::vector< double > > correctSolution = {
-			{ 83.64609365, 83.64609365, 61.65791323, 61.65791323, 12, 12 },
-			{ 66.21082587, 66.21082587, 42.76873166, 42.76873166, 12, 12 },
-			{ 51.74326318, 51.74326318, 32.29131256, 32.29131256, 12, 12 },
-			{ 40.71210006, 40.71210006, 25.88046294, 25.88046294, 12, 12 }
+			{ 0.068797095, 0.068797095, 0.161296275, 0.161296275, 0.370195609, 0.370195609 },
+			{ 0.184225668, 0.184225668, 0.339421878, 0.339421878, 0.596640275, 0.596640275 },
+			{ 0.324790684, 0.324790684, 0.513783385, 0.513783385, 0.784104345, 0.784104345 },
+			{ 0.478007410, 0.478007410, 0.684010609, 0.684010609, 0.958667844, 0.958667844 }
 	};
 
 	EXPECT_EQ( solution.size(), correctSolution.size() );

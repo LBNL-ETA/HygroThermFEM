@@ -1,6 +1,7 @@
 #pragma once
 
 #include "IBCLine2D.hxx"
+#include "Material.hxx"
 
 namespace MoisThermFEM {
 
@@ -36,6 +37,22 @@ namespace MoisThermFEM {
 		TemperatureBC( Node2D & t_Node1, Node2D & t_Node2, const double t_Temp1, const double t_Temp2 );
 	};
 
+	////////////////////////////////////////////////////////
+	/// Flux BC
+	////////////////////////////////////////////////////////
+
+	class FluxBC : public IBCLinear2D {
+	public:
+		FluxBC( Node2D & t_Node1, Node2D & t_Node2, const double t_Flux );
+
+		FenestrationCommon::Vector< double > R_Vector() const override;
+
+		FenestrationCommon::SquareMatrix< double > H_Matrix() const override;
+
+	private:
+		double m_Flux;
+	};
+
 	///////////////////////////////////////////////////////
 	/// BlackBodyRadiationBC
 	///////////////////////////////////////////////////////
@@ -69,16 +86,19 @@ namespace MoisThermFEM {
 	/////////////////////////////////////////////////////
 	class MoistureBC : public IBCLinear2D {
 	public:
-		MoistureBC( const Node2D & t_Node1, const Node2D & t_Node2,
-								const double t_ConvectiveCoefficient, const double t_AirHumidity );
+		MoistureBC( const Node2D & t_Node1, const Node2D & t_Node2, const Material & material,
+								const double t_ConvectiveCoefficient, const double t_AirHumidity,
+								const double t_AirTemperature );
 
 		virtual FenestrationCommon::Vector< double > R_Vector() const override;
 
 		virtual FenestrationCommon::SquareMatrix< double > H_Matrix() const override;
 
-	private:
+	protected:
 		double m_ConvectiveCoefficient;
 		double m_AirHumidity;
+		double m_AirTemperature;
+		const Material & m_Material;
 	};
 
 }

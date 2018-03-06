@@ -113,8 +113,9 @@ namespace MoisThermFEM {
     m_JacobiDet = j11 * j22 - j21 * j12;
 
     // integrate inverse matrix now
-    j11 = j11 / m_JacobiDet;
-    j22 = j22 / m_JacobiDet;
+		auto temp = j11;
+    j11 = j22 / m_JacobiDet;
+    j22 = temp / m_JacobiDet;
     j12 = -j12 / m_JacobiDet;
     j21 = -j21 / m_JacobiDet;
 

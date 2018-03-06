@@ -27,13 +27,30 @@ TEST_F( MoistureBC_2D_1, TestExample_1 ) {
 	auto & nodePool = NodePool::Instance();
 	auto & materialPool = MaterialPool::Instance();
 
-	auto state = State( 293.15, 0, 101325 );
-	const auto node1 = nodePool.createNode( 1, 0.15, 0.05, state );
-	const auto node2 = nodePool.createNode( 2, 0.15, 0.00, state );
-	const auto node3 = nodePool.createNode( 3, 0.05, 0.05, state );
-	const auto node4 = nodePool.createNode( 4, 0.05, 0.00, state );
-	const auto node5 = nodePool.createNode( 5, 0.00, 0.05, state );
-	const auto node6 = nodePool.createNode( 6, 0.00, 0.00, state );
+	std::vector< double > gridXCoordinates { 0, 0.015, 0.025, 0.035, 0.045, 0.055, 0.065, 0.075,
+																					 0.085, 0.095, 0.105, 0.115, 0.125, 0.135, 0.15 };
+
+	/// Custom grid creation
+	// std::vector< double > gridXCoordinates;
+//
+	// int maxI = 200;
+	// for( int i = 0; i <= maxI; ++i ) {
+	// 	auto curX = double( i ) / maxI;
+	// 	gridXCoordinates.push_back( curX );
+	// }
+
+	const auto initialTemperature = 293.15;
+	const auto initialHumidity = 0.0;
+	const auto initialPressure = 101325.0;
+
+	auto state = State( initialTemperature, initialHumidity, initialPressure );
+	size_t nodeIndex = 0;
+	for ( auto val : gridXCoordinates ) {
+		++nodeIndex;
+		nodePool.createNode( nodeIndex, val, 0.00, state );
+		++nodeIndex;
+		nodePool.createNode( nodeIndex, val, 0.05, state );
+	}
 
 	auto & material = materialPool.createMaterial(
 			"Cottaer Sandstone",
@@ -41,38 +58,49 @@ TEST_F( MoistureBC_2D_1, TestExample_1 ) {
 			0.22, /// porosity
 			850,  /// specific heat capacity (dry)
 			1.8,  /// thermal conductivity (dry)
-			15E-6,   /// diffusion resistance factor
+			15,   /// diffusion resistance factor (this is mi value)
 			{ { 0,   0 },  /// liquid transportation coefficient
-				{ 27,  1E-8 },
-				{ 45,  1.1E-8 },
-				{ 90,  2E-8 },
-				{ 126, 3.5E-8 },
-				{ 144, 5E-8 },
-				{ 162, 1E-7 },
-				{ 171, 2E-7 },
+					//{ 27,  1E-8 },
+					//{ 45,  1.1E-8 },
+					//{ 90,  2E-8 },
+					//{ 126, 3.5E-8 },
+					//{ 144, 5E-8 },
+					//{ 162, 1E-7 },
+					//{ 171, 2E-7 },
 				{ 180, 7E-7 } },
-			{ { 0,     0 },   /// sorption curve
-				{ 0.5,   5.3 },
-				{ 0.65,  8.4 },
-				{ 0.8,   12 },
-				{ 0.93,  17 },
-				{ 0.95,  25 },
-				{ 0.99,  63 },
-				{ 0.995, 83 },
-				{ 0.999, 120 },
-				{ 1,     180 } }
+			{ { 0, 0 },   /// sorption curve
+					// { 0.5,   5.3 },
+					// { 0.65,  8.4 },
+					// { 0.8,   12 },
+					// { 0.93,  17 },
+					// { 0.95,  25 },
+					// { 0.99,  63 },
+					// { 0.995, 83 },
+					// { 0.999, 120 },
+				{ 1, 5.3 } }
 	);
 
-	Domain domain{ Property::humidity };
+	Domain domain { Property::humidity };
 
-	domain.elementsCreator().createMoistureElement( node3, node4, node2, node1, material );
-	domain.elementsCreator().createMoistureElement( node6, node4, node3, node5, material );
+	/// Create elements
+	for ( size_t i = 1; i <= ( nodePool.maxIndex() - 2 ) / 2; ++i ) {
+		auto node1 = nodePool.Instance().getNode( 2 * i + 1 );
+		auto node2 = nodePool.Instance().getNode( 2 * i + 2 );
+		auto node3 = nodePool.Instance().getNode( 2 * i );
+		auto node4 = nodePool.Instance().getNode( 2 * i - 1 );
+		domain.elementsCreator().createMoistureElement( node1, node2, node3, node4, material );
+	}
 
 	// Create Boundary Conditions
 	const auto hc = 20;
-	const auto humidity = 0.5;
+	const auto airTemperature = 293.15;
+	const auto airHumidity = 0.5;
 
-	domain.boundariesCreator().createMoistureBC( node1, node2, hc, humidity );
+	auto node1 = nodePool.Instance().getNode( 1 );
+	auto node2 = nodePool.Instance().getNode( 2 );
+
+	domain.boundariesCreator().createMoistureBC( node1, node2, material, hc, airHumidity,
+																							 airTemperature );
 
 	const auto dTime = 36000;
 	const auto nSteps = 4;
@@ -85,18 +113,29 @@ TEST_F( MoistureBC_2D_1, TestExample_1 ) {
 		solution.push_back( material.waterContent( humidities ) );
 	}
 
+	/// std::cout.precision( 8 );
+	/// int counter = 0;
+	/// for ( auto & val : solution ) {
+	/// 	for ( auto & item : val ) {
+	/// 		++counter;
+	/// 		if( counter % 2 )
+	/// 			std::cout << item << ", ";
+	/// 	}
+	/// 	std::cout << std::endl;
+	/// }
+
 	std::vector< std::vector< double > > correctSolution = {
-			{ 5.299994769, 5.299994769, 0.127527923, 0.127527923, 0.017069277, 0.017069277 },
-			{ 5.299999814, 5.299999814, 0.247383205, 0.247383205, 0.047896190, 0.047896190 },
-			{ 5.299999818, 5.299999818, 0.360643613, 0.360643613, 0.089756609, 0.089756609 },
-			{ 5.299999822, 5.299999822, 0.468202627, 0.468202627, 0.140410613, 0.140410613 }
+			{ 2.6498955, 0.97524335, 0.48359673, 0.23980252, 0.11891159, 0.058965089, 0.029239302, 0.014499207, 0.0071902274, 0.0035663744, 0.0017703551, 0.00088167597, 0.00044487237, 0.00023607421, 0.00014973783 },
+			{ 2.6499595, 1.4101503,  0.86223326, 0.50837455, 0.29216405, 0.16474869,  0.091549415, 0.050285239, 0.027362077,  0.014777367,  0.0079385003, 0.0042609241,  0.0023152761,  0.001328245,   0.00089724477 },
+			{ 2.6499672, 1.6442965,  1.1238547,  0.73749888, 0.46857355, 0.29006141,  0.17577438,  0.10465423,  0.061399201,  0.03558884,   0.020444751,  0.011710349,   0.0067939179,  0.0041728745,  0.0029749206 },
+			{ 2.6499719, 1.7890282,  1.3077879,  0.92081676, 0.6277995,  0.41638853,  0.26972258,  0.17120685,  0.10680059,   0.065663392,  0.039939966,  0.024208203,   0.014881826,   0.0097006528,  0.0072409374 }
 	};
 
 	EXPECT_EQ( solution.size(), correctSolution.size() );
 
 	for ( auto i = 0u; i < correctSolution.size(); ++i ) {
 		for ( auto j = 0u; j < correctSolution[ i ].size(); ++j ) {
-			EXPECT_NEAR( correctSolution[ i ][ j ], solution[ i ][ j ], 1e-6 );
+			EXPECT_NEAR( correctSolution[ i ][ j ], solution[ i ][ 2 * j ], 1e-6 );
 		}
 	}
 }
