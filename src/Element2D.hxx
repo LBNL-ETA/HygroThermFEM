@@ -14,23 +14,6 @@ namespace MoisThermFEM {
 	const std::size_t numOfQuadrilateralNodes = 4;
 
 	//////////////////////////////////////////////////////////////////////////////
-	///  IQuadrilateralElement2D
-	//////////////////////////////////////////////////////////////////////////////
-
-	class IElementQuadrilateral2D {
-	public:
-		virtual ~IElementQuadrilateral2D() = default;
-
-		IElementQuadrilateral2D( const Node2D & t_Node1, const Node2D & t_Node2, const Node2D & t_Node3,
-														 const Node2D & t_Node4 );
-
-		std::vector< std::size_t > nodeIndexes() const;
-
-	protected:
-		QuadrilateralLinearGlobal2D m_Element;
-	};
-
-	//////////////////////////////////////////////////////////////////////////////
 	///  IQLEMatrix2D
 	//////////////////////////////////////////////////////////////////////////////
 
@@ -39,8 +22,8 @@ namespace MoisThermFEM {
 	// capacitance and conductance matrices have different form)
 	class IQLEMatrix2D {
 	public:
-		IQLEMatrix2D( const double t_Value1, const double t_Value2, const double t_Value3,
-									const double t_Value4 );
+		IQLEMatrix2D( const QuadrilateralLinearGlobal2D & t_Element, const double t_Value1, const double t_Value2, 
+			const double t_Value3, const double t_Value4 );
 
 		FenestrationCommon::SquareMatrix< double > getMatrix() const;
 
@@ -53,6 +36,8 @@ namespace MoisThermFEM {
 
 		FenestrationCommon::SquareMatrix< double > m_Matrix;
 		const std::vector< double > m_Values;
+
+		const QuadrilateralLinearGlobal2D & m_Global2D;
 	};
 
 	//////////////////////////////////////////////////////////////////////////////
@@ -60,11 +45,10 @@ namespace MoisThermFEM {
 	//////////////////////////////////////////////////////////////////////////////
 
 	// Class to handle conductance matrix in global coordinate system
-	class QLEConductance2D : public IElementQuadrilateral2D, public IQLEMatrix2D {
+	class QLEConductance2D : public IQLEMatrix2D {
 	public:
 		QLEConductance2D(
-				const Node2D & t_Node1, const Node2D & t_Node2, const Node2D & t_Node3,
-				const Node2D & t_Node4, const double t_Value1, const double t_Value2,
+			const QuadrilateralLinearGlobal2D & t_Element, const double t_Value1, const double t_Value2,
 				const double t_Value3,
 				const double t_Value4 );
 
@@ -79,10 +63,10 @@ namespace MoisThermFEM {
 	//////////////////////////////////////////////////////////////////////////////
 
 	// Class to handle capacitance matrix in global coordinate system
-	class QLECapacitance2D : public IElementQuadrilateral2D, public IQLEMatrix2D {
+	class QLECapacitance2D : public IQLEMatrix2D {
 	public:
-		QLECapacitance2D( const Node2D & t_Node1, const Node2D & t_Node2, const Node2D & t_Node3,
-											const Node2D & t_Node4, const double t_Value1, const double t_Value2,
+		QLECapacitance2D( const QuadrilateralLinearGlobal2D & t_Element, const double t_Value1, 
+											const double t_Value2,
 											const double t_Value3,
 											const double t_Value4 );
 
@@ -100,7 +84,7 @@ namespace MoisThermFEM {
 	/// 2D world. This class will be used by multiple governing equations since
 	/// basis of matrix creation are identical with only difference in what coefficients
 	/// are passed
-	class IElementLinear2D : public IElementQuadrilateral2D {
+	class IElementLinear2D {
 	public:
 		IElementLinear2D( const Node2D & t_Node1, const Node2D & t_Node2, const Node2D & t_Node3,
 											const Node2D & t_Node4 );
@@ -110,6 +94,8 @@ namespace MoisThermFEM {
 
 		Node2D & getNode( const std::size_t index );
 
+		std::vector< std::size_t > nodeIndexes() const;
+
 	protected:
 		std::vector< Node2D > m_Node;
 
@@ -117,6 +103,9 @@ namespace MoisThermFEM {
 		/// Reminder: Introduce pair of curve pointer and Property so that curve knows what to use
 		std::vector< std::shared_ptr< MoisThermFEM::IValue > > m_Conductance;
 		std::vector< std::shared_ptr< MoisThermFEM::IValue > > m_Capacitance;
+
+	private:
+		QuadrilateralLinearGlobal2D m_Global2D;
 	};
 
 	//////////////////////////////////////////////////////////////////////////////
