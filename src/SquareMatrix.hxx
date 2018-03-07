@@ -30,6 +30,10 @@ namespace FenestrationCommon {
 			return m_Matrix[ index ];
 		}
 
+		const std::vector< T > & operator[]( const std::size_t index ) const {
+			return m_Matrix.at( index );
+		}
+
 		std::size_t size() const {
 			return m_size;
 		}
@@ -75,12 +79,12 @@ namespace FenestrationCommon {
 			return result;
 		}
 
-		SquareMatrix addDiagonal( const std::vector< T > & t_Vector ) {
+		SquareMatrix< T > addDiagonal( const std::vector< T > & t_Vector ) {
 			if( m_size != t_Vector.size() ) {
 				std::runtime_error( "Matrix and vector have different sizes." );
 			}
 
-			SquareMatrix aMatrix{ m_size };
+			SquareMatrix< T > aMatrix{ m_size };
 			for ( auto i = 0u; i < m_size; ++i ) {
 				for ( auto j = 0u; j < m_size; ++j ) {
 					aMatrix[ i ][ j ] = m_Matrix[ i ][ j ];

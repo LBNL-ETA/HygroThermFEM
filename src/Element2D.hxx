@@ -12,6 +12,7 @@ namespace MoisThermFEM {
 
 	// Constant that holds number of nodes in certain elementsCreator
 	const std::size_t numOfQuadrilateralNodes = 4;
+	const std::size_t numOfIntegrationPoints = 4;
 
 	//////////////////////////////////////////////////////////////////////////////
 	///  IQLEMatrix2D
@@ -22,8 +23,9 @@ namespace MoisThermFEM {
 	// capacitance and conductance matrices have different form)
 	class IQLEMatrix2D {
 	public:
-		IQLEMatrix2D( const QuadrilateralLinearGlobal2D & t_Element, const double t_Value1, const double t_Value2, 
-			const double t_Value3, const double t_Value4 );
+		IQLEMatrix2D( const QuadrilateralLinearGlobal2D & t_Element, const double t_Value1,
+									const double t_Value2,
+									const double t_Value3, const double t_Value4 );
 
 		FenestrationCommon::SquareMatrix< double > getMatrix() const;
 
@@ -38,6 +40,9 @@ namespace MoisThermFEM {
 		const std::vector< double > m_Values;
 
 		const QuadrilateralLinearGlobal2D & m_Global2D;
+
+		std::vector< FenestrationCommon::SquareMatrix< double > > m_IntegrationMatrix;
+
 	};
 
 	//////////////////////////////////////////////////////////////////////////////
@@ -48,7 +53,7 @@ namespace MoisThermFEM {
 	class QLEConductance2D : public IQLEMatrix2D {
 	public:
 		QLEConductance2D(
-			const QuadrilateralLinearGlobal2D & t_Element, const double t_Value1, const double t_Value2,
+				const QuadrilateralLinearGlobal2D & t_Element, const double t_Value1, const double t_Value2,
 				const double t_Value3,
 				const double t_Value4 );
 
@@ -65,7 +70,7 @@ namespace MoisThermFEM {
 	// Class to handle capacitance matrix in global coordinate system
 	class QLECapacitance2D : public IQLEMatrix2D {
 	public:
-		QLECapacitance2D( const QuadrilateralLinearGlobal2D & t_Element, const double t_Value1, 
+		QLECapacitance2D( const QuadrilateralLinearGlobal2D & t_Element, const double t_Value1,
 											const double t_Value2,
 											const double t_Value3,
 											const double t_Value4 );
@@ -90,6 +95,7 @@ namespace MoisThermFEM {
 											const Node2D & t_Node4 );
 
 		FenestrationCommon::SquareMatrix< double > conductanceMatrix() const;
+
 		FenestrationCommon::SquareMatrix< double > capacitanceMatrix() const;
 
 		Node2D & getNode( const std::size_t index );
@@ -126,7 +132,7 @@ namespace MoisThermFEM {
 	class ElementMoistureLinear2D : public IElementLinear2D {
 	public:
 		ElementMoistureLinear2D( const Node2D & t_Node1, const Node2D & t_Node2, const Node2D & t_Node3,
-														const Node2D & t_Node4, const Material & mat );
+														 const Node2D & t_Node4, const Material & mat );
 
 	};
 

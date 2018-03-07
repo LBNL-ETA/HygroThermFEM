@@ -19,7 +19,8 @@ namespace MoisThermFEM {
 															const double t_Value1, const double t_Value2, const double t_Value3,
 															const double t_Value4 ) :
 			m_Matrix{ numOfQuadrilateralNodes }, m_Values{ t_Value1, t_Value2, t_Value3, t_Value4 },
-			m_Global2D{ t_Element } {
+			m_Global2D{ t_Element },
+			m_IntegrationMatrix{ numOfQuadrilateralNodes, SquareMatrix< double >{ numOfQuadrilateralNodes } } {
 
 	}
 
@@ -40,15 +41,30 @@ namespace MoisThermFEM {
 		}
 	}
 
-	//////////////////////////////////////////////////////////////////////////////
-	///  QLEConductance2D
-	//////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
+///  QLEConductance2D
+//////////////////////////////////////////////////////////////////////////////
 
 	QLEConductance2D::QLEConductance2D( const QuadrilateralLinearGlobal2D & t_Element,
 																			const double t_Value1, const double t_Value2,
 																			const double t_Value3, const double t_Value4 ) :
 			IQLEMatrix2D{ t_Element, t_Value1, t_Value2, t_Value3, t_Value4 } {
 
+		for ( std::size_t integrationPoint = 0; integrationPoint < numOfIntegrationPoints;
+					++integrationPoint ) {
+			auto DPsiDx = m_Global2D.DPsiDx( integrationPoint );
+			auto DPsiDy = m_Global2D.DPsiDy( integrationPoint );
+			const auto det = m_Global2D.det( integrationPoint );
+
+			auto & DPsiDxDyMatrix = m_IntegrationMatrix[ integrationPoint ];
+			for ( auto i = 0u; i < DPsiDxDyMatrix.size(); ++i ) {
+				for ( auto j = 0u; j < DPsiDxDyMatrix.size(); ++j ) {
+					DPsiDxDyMatrix[ i ][ j ] =
+							( DPsiDx[ i ] * DPsiDx[ j ] + DPsiDy[ i ] * DPsiDy[ j ] ) * det;
+				}
+			}
+
+		}
 	}
 
 	SquareMatrix< double > QLEConductance2D::calculateMatrixInIntegrationPoint(
@@ -56,60 +72,65 @@ namespace MoisThermFEM {
 
 		SquareMatrix< double > aMatrix( numOfQuadrilateralNodes );
 
-		auto DPsiDx = m_Global2D.DPsiDx( t_IntegrationPointIndex );
-		auto DPsiDy = m_Global2D.DPsiDy( t_IntegrationPointIndex );
-		const auto det = m_Global2D.det( t_IntegrationPointIndex );
+		auto & DPsiDxDy = m_IntegrationMatrix[ t_IntegrationPointIndex ];
 
 		for ( size_t i = 0; i < aMatrix.size(); ++i ) {
 			for ( size_t j = 0; j < aMatrix.size(); ++j ) {
-				aMatrix[ i ][ j ] = ( DPsiDx[ i ] * DPsiDx[ j ] + DPsiDy[ i ] * DPsiDy[ j ] ) * det *
-														( m_Values[ i ] + m_Values[ j ] ) / 2;
+				aMatrix[ i ][ j ] = DPsiDxDy[ i ][ j ] * 0.5 * ( m_Values[ i ] + m_Values[ j ] );
 			}
 		}
 
 		return aMatrix;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////
-	///  QLECapacitance2D
-	//////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
+///  QLECapacitance2D
+//////////////////////////////////////////////////////////////////////////////
 
 	QLECapacitance2D::QLECapacitance2D( const QuadrilateralLinearGlobal2D & t_Element,
 																			const double t_Value1, const double t_Value2,
 																			const double t_Value3,
 																			const double t_Value4 ) :
 			IQLEMatrix2D{ t_Element, t_Value1, t_Value2, t_Value3, t_Value4 } {
+
+		const std::size_t numOfIntegrationPoints = 4;
+		auto & aElement = QuadrilateralLinearLocal2D::Instance();
+
+		for ( std::size_t integrationPoint = 0; integrationPoint < numOfIntegrationPoints;
+					++integrationPoint ) {
+			const auto & psi = aElement.VPsi( integrationPoint );
+			const auto det = m_Global2D.det( integrationPoint );
+
+			auto & psiPsiMatrix = m_IntegrationMatrix[ integrationPoint ];
+			for ( auto i = 0u; i < numOfIntegrationPoints; ++i ) {
+				for ( auto j = 0u; j < numOfIntegrationPoints; ++j ) {
+					psiPsiMatrix[ i ][ j ] = det * psi[ i ] * psi[ j ];
+				}
+			}
+
+		}
+
 	}
 
 	SquareMatrix< double > QLECapacitance2D::calculateMatrixInIntegrationPoint(
 			const size_t t_IntegrationPointIndex ) const {
-		// std::vector< std::vector< double > > aMatrix( numOfQuadrilateralNodes, std::vector< double >( numOfQuadrilateralNodes ) );
 
 		SquareMatrix< double > aMatrix{ numOfQuadrilateralNodes };
 
-		auto & aElement = QuadrilateralLinearLocal2D::Instance();
+		auto & psiPsi = m_IntegrationMatrix[ t_IntegrationPointIndex ];
 
-		const auto & psi = aElement.VPsi( t_IntegrationPointIndex );
-		const auto det = m_Global2D.det( t_IntegrationPointIndex );
-
-		//for ( size_t i = 0; i < aMatrix.size(); ++i ) {
-		for ( size_t i = 0; i < numOfQuadrilateralNodes; ++i ) {
-			// auto & tmp_mat = aMatrix[i];
-			// auto & tmp_psi_i = psi[i];
-			// auto & tmp_values_i = m_Values[i];
+		for ( size_t i = 0; i < aMatrix.size(); ++i ) {
 			for ( size_t j = 0; j < numOfQuadrilateralNodes; ++j ) {
-				aMatrix[ i ][ j ] = psi[ i ] * psi[ j ] * det * ( m_Values[ i ] + m_Values[ j ] ) / 2.0;
-				//tmp_mat[ j ] = tmp_psi_i * psi[ j ] * det * ( tmp_values_i + m_Values[ j ] ) / 2.0;
+				aMatrix[ i ][ j ] = psiPsi[ i ][ j ] * 0.5 * ( m_Values[ i ] + m_Values[ j ] );
 			}
 		}
 
-		// return SquareMatrix< double >( aMatrix );
 		return aMatrix;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////
-	///  IElementLinear2D
-	//////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
+///  IElementLinear2D
+//////////////////////////////////////////////////////////////////////////////
 
 	IElementLinear2D::IElementLinear2D(
 			const Node2D & t_Node1, const Node2D & t_Node2,
@@ -156,9 +177,9 @@ namespace MoisThermFEM {
 		return m_Global2D.nodeIndexes();
 	}
 
-	//////////////////////////////////////////////////////////////////////////////
-	///  ElementThermalLinear2D
-	//////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
+///  ElementThermalLinear2D
+//////////////////////////////////////////////////////////////////////////////
 
 	ElementThermalLinear2D::ElementThermalLinear2D( const Node2D & t_Node1, const Node2D & t_Node2,
 																									const Node2D & t_Node3, const Node2D & t_Node4,
@@ -173,9 +194,9 @@ namespace MoisThermFEM {
 				fem::make_unique< MoisThermFEM::Constant >( mat.heatCapacity() * mat.density() ) );
 	}
 
-	//////////////////////////////////////////////////////////////////////////////
-	///  ElementMoistureLinear2D
-	//////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
+///  ElementMoistureLinear2D
+//////////////////////////////////////////////////////////////////////////////
 
 	ElementMoistureLinear2D::ElementMoistureLinear2D( const Node2D & t_Node1, const Node2D & t_Node2,
 																										const Node2D & t_Node3, const Node2D & t_Node4,
@@ -218,4 +239,5 @@ namespace MoisThermFEM {
 																																	 Property::humidity ) );
 		m_Capacitance.push_back( sorptionCurve );
 	}
+
 }
