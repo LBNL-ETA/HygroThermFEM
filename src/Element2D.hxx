@@ -12,7 +12,7 @@ namespace MoisThermFEM {
 
 	// Constant that holds number of nodes in certain elementsCreator
 	const std::size_t numOfQuadrilateralNodes = 4;
-	const std::size_t numOfIntegrationPoints = 4;
+	// const std::size_t numOfIntegrationPoints = 4;
 
 	//////////////////////////////////////////////////////////////////////////////
 	///  IQLEMatrix2D

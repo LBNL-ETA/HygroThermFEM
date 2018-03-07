@@ -50,6 +50,8 @@ namespace MoisThermFEM {
 																			const double t_Value3, const double t_Value4 ) :
 			IQLEMatrix2D{ t_Element, t_Value1, t_Value2, t_Value3, t_Value4 } {
 
+		const auto numOfIntegrationPoints = IntegrationPoints2D::Instance().count2D();
+
 		for ( std::size_t integrationPoint = 0; integrationPoint < numOfIntegrationPoints;
 					++integrationPoint ) {
 			auto DPsiDx = m_Global2D.DPsiDx( integrationPoint );
@@ -93,7 +95,7 @@ namespace MoisThermFEM {
 																			const double t_Value4 ) :
 			IQLEMatrix2D{ t_Element, t_Value1, t_Value2, t_Value3, t_Value4 } {
 
-		const std::size_t numOfIntegrationPoints = 4;
+		const auto numOfIntegrationPoints = IntegrationPoints2D::Instance().count2D();
 		auto & aElement = QuadrilateralLinearLocal2D::Instance();
 
 		for ( std::size_t integrationPoint = 0; integrationPoint < numOfIntegrationPoints;
