@@ -1,7 +1,6 @@
 #include "FEMMath.hxx"
 
 #include <cmath>
-#include <algorithm>
 
 namespace MoisThermFEM {
 

@@ -117,7 +117,7 @@ namespace MoisThermFEM {
 		Constant( const double value );
 
 	private:
-		double getValue( const double t_position = 0 ) const override;
+		double getValue( const double t_position ) const override;
 
 		double m_Value;
 	};

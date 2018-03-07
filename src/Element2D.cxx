@@ -1,4 +1,5 @@
 #include <cassert>
+#include <iostream>
 
 #include "Element2D.hxx"
 #include "IntegrationPoints.hxx"

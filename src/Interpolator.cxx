@@ -1,5 +1,6 @@
 #include <cmath>
 #include <memory>
+#include <functional>
 
 #include "Interpolator.hxx"
 
