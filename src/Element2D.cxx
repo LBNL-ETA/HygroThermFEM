@@ -83,19 +83,27 @@ namespace MoisThermFEM {
 
 	SquareMatrix< double > QLECapacitance2D::calculateMatrixInIntegrationPoint(
 			const size_t t_IntegrationPointIndex ) const {
-		SquareMatrix< double > aMatrix( numOfQuadrilateralNodes );
+		// std::vector< std::vector< double > > aMatrix( numOfQuadrilateralNodes, std::vector< double >( numOfQuadrilateralNodes ) );
+
+		SquareMatrix< double > aMatrix{ numOfQuadrilateralNodes };
 
 		auto & aElement = QuadrilateralLinearLocal2D::Instance();
 
-		auto psi = aElement.VPsi( t_IntegrationPointIndex );
+		const auto & psi = aElement.VPsi( t_IntegrationPointIndex );
 		const auto det = m_Global2D.det( t_IntegrationPointIndex );
 
-		for ( size_t i = 0; i < aMatrix.size(); ++i ) {
-			for ( size_t j = 0; j < aMatrix.size(); ++j ) {
-				aMatrix[ i ][ j ] = psi[ i ] * psi[ j ] * det * ( m_Values[ i ] + m_Values[ j ] ) / 2;
+		//for ( size_t i = 0; i < aMatrix.size(); ++i ) {
+		for ( size_t i = 0; i < numOfQuadrilateralNodes; ++i ) {
+			// auto & tmp_mat = aMatrix[i];
+			// auto & tmp_psi_i = psi[i];
+			// auto & tmp_values_i = m_Values[i];
+			for ( size_t j = 0; j < numOfQuadrilateralNodes; ++j ) {
+				aMatrix[ i ][ j ] = psi[ i ] * psi[ j ] * det * ( m_Values[ i ] + m_Values[ j ] ) / 2.0;
+				//tmp_mat[ j ] = tmp_psi_i * psi[ j ] * det * ( tmp_values_i + m_Values[ j ] ) / 2.0;
 			}
 		}
 
+		// return SquareMatrix< double >( aMatrix );
 		return aMatrix;
 	}
 
