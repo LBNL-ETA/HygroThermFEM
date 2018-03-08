@@ -192,8 +192,7 @@ namespace MoisThermFEM {
 		m_Conductance.push_back( thermalConductivity );
 		pValue rhoCp(
 				std::make_shared< MoisThermFEM::Constant >( mat.heatCapacity() * mat.density() ) );
-		m_Capacitance.push_back(
-				fem::make_unique< MoisThermFEM::Constant >( mat.heatCapacity() * mat.density() ) );
+		m_Capacitance.push_back( rhoCp );
 	}
 
 //////////////////////////////////////////////////////////////////////////////

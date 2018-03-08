@@ -104,6 +104,8 @@ TEST_F( MoistureBC_2D_1, TestExample_1 ) {
 
 	const auto dTime = 36000;
 	const auto nSteps = 4;
+	/// const auto dTime = 60;
+	/// const auto nSteps = 3000;
 
 	auto humidities = NodePool::Instance().nodeProperties( Property::humidity );
 	std::vector< std::vector< double > > solution;

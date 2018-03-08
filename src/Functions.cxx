@@ -244,7 +244,8 @@ namespace MoisThermFEM {
 	double SaturationFunction::getValue( const double t_position ) const {
 		auto temp = 77.345 + 0.0057 * t_position - 7235.0 / t_position;
 		temp = std::exp( temp );
-		return temp / ( 461.4 * std::pow( t_position, 9.2 ) );
+		temp = temp / ( 461.4 * std::pow( t_position, 9.2 ) );
+		return temp;
 	}
 
 }
