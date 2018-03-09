@@ -99,7 +99,7 @@ TEST_F( MoistureBC_2D_1, TestExample_1 ) {
 	auto node1 = nodePool.Instance().getNode( 1 );
 	auto node2 = nodePool.Instance().getNode( 2 );
 
-	domain.boundariesCreator().createMoistureBC( node1, node2, material, hc, airHumidity,
+	domain.boundariesCreator().createMoistureBC( node1, node2, hc, material.porosity(), airHumidity,
 																							 airTemperature );
 
 	const auto dTime = 36000;

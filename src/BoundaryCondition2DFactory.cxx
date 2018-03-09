@@ -32,12 +32,13 @@ namespace MoisThermFEM {
 	}
 
 	void BoundaryCondition2DFactory::createMoistureBC( const Node2D & t_Node1, const Node2D & t_Node2,
-																										 const Material & material,
 																										 const double t_ConvectiveCoefficient,
+																										 const double t_Porosity,
 																										 const double t_AirHumidity,
 																										 const double t_AirTemperature ) {
-		m_BCs.push_back( fem::make_unique< MoistureBC >( t_Node1, t_Node2, material, t_ConvectiveCoefficient,
-																										 t_AirHumidity, t_AirTemperature ) );
+		m_BCs.push_back(
+				fem::make_unique< MoistureBC >( t_Node1, t_Node2, t_ConvectiveCoefficient, t_Porosity,
+																				t_AirHumidity, t_AirTemperature ) );
 	}
 
 	void BoundaryCondition2DFactory::createFluxBC( Node2D & t_Node1, Node2D & t_Node2,

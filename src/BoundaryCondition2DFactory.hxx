@@ -19,6 +19,7 @@ namespace MoisThermFEM {
 															const double t_Temp2 );
 
 		void createTemperatureBC( Node2D & t_Node1, Node2D & t_Node2, const double t_Temp );
+
 		void createFluxBC( Node2D & t_Node1, Node2D & t_Node2, const double t_Flux );
 
 		void createBlackBodyRadiationBC( const Node2D & t_Node1, const Node2D & t_Node2,
@@ -26,10 +27,8 @@ namespace MoisThermFEM {
 																		 const double t_RadiationTemperature );
 
 		void createMoistureBC( const Node2D & t_Node1, const Node2D & t_Node2,
-							   const Material & material,
-							   const double t_ConvectiveCoefficient,
-							   const double t_AirHumidity,
-							   const double t_AirTemperature );
+													 const double t_ConvectiveCoefficient, const double t_Porosity,
+													 const double t_AirHumidity, const double t_AirTemperature );
 
 
 	};

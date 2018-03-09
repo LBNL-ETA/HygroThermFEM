@@ -89,7 +89,7 @@ TEST_F( MultiDomain_2D_1, TestExample_1 ) {
 	auto node1 = nodePool.Instance().getNode( 1 );
 	auto node2 = nodePool.Instance().getNode( 2 );
 
-	domain.createConvectionBC( node1, node2, material, hc, airTemperature, humidity );
+	domain.createConvectionBC( node1, node2, hc, material.porosity(), airTemperature, humidity );
 
 	const auto dTime = 36000;
 	const auto nSteps = 4;

@@ -86,8 +86,9 @@ namespace MoisThermFEM {
 	/////////////////////////////////////////////////////
 	class MoistureBC : public IBCLinear2D {
 	public:
-		MoistureBC( const Node2D & t_Node1, const Node2D & t_Node2, const Material & material,
-								const double t_ConvectiveCoefficient, const double t_AirHumidity,
+		MoistureBC( const Node2D & t_Node1, const Node2D & t_Node2,
+								const double t_ConvectiveCoefficient,
+								const double t_Porosity, const double t_AirHumidity,
 								const double t_AirTemperature );
 
 		virtual FenestrationCommon::Vector< double > R_Vector() const override;
@@ -98,7 +99,7 @@ namespace MoisThermFEM {
 		double m_ConvectiveCoefficient;
 		double m_AirHumidity;
 		double m_AirTemperature;
-		const Material & m_Material;
+		double m_Porosity;
 	};
 
 }

@@ -43,15 +43,14 @@ namespace MoisThermFEM {
 	}
 
 	void MultiDomain::createConvectionBC( const Node2D & t_Node1, const Node2D & t_Node2,
-																				const Material & material,
-																				const double t_ConvectionCoefficient,
-																				const double t_AirTemperature, const double t_Humidity ) {
+																					const double t_ConvectionCoefficient, const double t_Porosity,
+																					const double t_AirTemperature, const double t_Humidity ) {
 		m_ThermalDomain.boundariesCreator().createConvectionBC( t_Node1, t_Node2,
 																														t_ConvectionCoefficient,
 																														t_AirTemperature );
-		m_MoistureDomain.boundariesCreator().createMoistureBC( t_Node1, t_Node2, material,
-																													 t_ConvectionCoefficient, t_Humidity,
-																													 t_AirTemperature );
+		m_MoistureDomain.boundariesCreator().createMoistureBC( t_Node1, t_Node2,
+																													 t_ConvectionCoefficient, t_Porosity,
+																													 t_Humidity, t_AirTemperature );
 	}
 
 	void MultiDomain::createTemperatureBC( Node2D & t_Node1, Node2D & t_Node2, const double t_Temp1,

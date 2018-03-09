@@ -50,7 +50,7 @@ namespace MoisThermFEM {
 	////////////////////////////////////////////////////////
 
 	FluxBC::FluxBC( Node2D & t_Node1, Node2D & t_Node2, const double t_Flux ) :
-	IBCLinear2D( t_Node1, t_Node2 ), m_Flux( t_Flux )  {
+			IBCLinear2D( t_Node1, t_Node2 ), m_Flux( t_Flux ) {
 
 	}
 
@@ -70,8 +70,8 @@ namespace MoisThermFEM {
 	BlackBodyRadiationBC::BlackBodyRadiationBC( const Node2D & t_Node1, const Node2D & t_Node2,
 																							const double t_Emissivity,
 																							const double t_RadiationTemperature )
-			: IBCLinear2D( t_Node1, t_Node2, false ), m_RadiationTemperature { t_RadiationTemperature },
-				m_Emissivity { t_Emissivity } {}
+			: IBCLinear2D( t_Node1, t_Node2, false ), m_RadiationTemperature{ t_RadiationTemperature },
+				m_Emissivity{ t_Emissivity } {}
 
 	FenestrationCommon::Vector< double > BlackBodyRadiationBC::HRadiative() const {
 		FenestrationCommon::Vector< double > result( numOfBCNodes, 0 );
@@ -96,11 +96,14 @@ namespace MoisThermFEM {
 	/// MoistureBC
 	/////////////////////////////////////////////////////
 
-	MoistureBC::MoistureBC( const Node2D & t_Node1, const Node2D & t_Node2, const Material & material,
-													const double t_ConvectiveCoefficient, const double t_AirHumidity,
-													const double t_AirTemperature ) :
+	MoistureBC::MoistureBC( const Node2D & t_Node1, const Node2D & t_Node2,
+													const double t_ConvectiveCoefficient,
+													const double t_Porosity, const double t_AirHumidity,
+													const double t_AirTemperature )
+			:
 			IBCLinear2D( t_Node1, t_Node2 ), m_ConvectiveCoefficient( t_ConvectiveCoefficient ),
-			m_AirHumidity( t_AirHumidity ), m_AirTemperature( t_AirTemperature ), m_Material( material ) {
+			m_AirHumidity( t_AirHumidity ), m_AirTemperature( t_AirTemperature ),
+			m_Porosity( t_Porosity ) {
 
 	}
 
@@ -110,7 +113,7 @@ namespace MoisThermFEM {
 		pValue saturation( std::make_shared< SaturationFunction >( Property::temperature ) );
 		auto humidityCalculator = saturation * m_AirHumidity;
 
-		humidityCalculator = humidityCalculator * m_Material.porosity();
+		humidityCalculator = humidityCalculator * m_Porosity;
 		const auto humidityByVolume = humidityCalculator->value(
 				State( m_AirTemperature, m_AirHumidity, 101325 ) );
 		const auto coeff =
@@ -123,14 +126,16 @@ namespace MoisThermFEM {
 
 		pValue saturationFunction( std::make_shared< SaturationFunction >( Property::temperature ) );
 
-		const auto humidityCoeff = m_Material.porosity() * saturationFunction;
+		const auto humidityCoeff = m_Porosity * saturationFunction;
 
 		const auto humidityByVolume1 = humidityCoeff->value( m_Nodes[ 0 ].getState() );
 		const auto humidityByVolume2 = humidityCoeff->value( m_Nodes[ 1 ].getState() );
 
-		FenestrationCommon::Vector< double > coeffs {
-			humidityByVolume1 * m_ConvectiveCoefficient / ( Constants::Density_AIR * Constants::Cp_Air ),
-			humidityByVolume2 * m_ConvectiveCoefficient / ( Constants::Density_AIR * Constants::Cp_Air ),
+		FenestrationCommon::Vector< double > coeffs{
+				humidityByVolume1 * m_ConvectiveCoefficient /
+				( Constants::Density_AIR * Constants::Cp_Air ),
+				humidityByVolume2 * m_ConvectiveCoefficient /
+				( Constants::Density_AIR * Constants::Cp_Air ),
 		};
 
 		return m_PsiPsiMatrix.mmultRows( coeffs );
