@@ -25,9 +25,11 @@ namespace MoisThermFEM {
 																		 const double t_Emissivity,
 																		 const double t_RadiationTemperature );
 
-		void createMoistureBC( const Node2D & t_Node1, const Node2D & t_Node2, const Material & material,
-													 const double t_ConvectiveCoefficient, const double t_AirHumidity,
-													 const double t_AirTempearture );
+		void createMoistureBC( const Node2D & t_Node1, const Node2D & t_Node2,
+							   const Material & material,
+							   const double t_ConvectiveCoefficient,
+							   const double t_AirHumidity,
+							   const double t_AirTemperature );
 
 
 	};

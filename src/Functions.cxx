@@ -3,7 +3,6 @@
 
 #include "Functions.hxx"
 #include "State.hxx"
-#include "FEMunique.hxx"
 
 namespace MoisThermFEM {
 
@@ -118,6 +117,23 @@ namespace MoisThermFEM {
 	}
 
 	//////////////////////////////////////////////////////////////////
+	///  Derivative
+	//////////////////////////////////////////////////////////////////
+
+	Derivative::Derivative( std::shared_ptr< IValue > & t_Value ) : IValue(),
+	m_Function( t_Value ) {
+
+	}
+
+	double Derivative::value( const State & state ) const {
+		const double small = 1e-8;
+		const State smallIncrease( state + State( small, small, small ) );
+		double val1 = m_Function->value( state );
+		double val2 = m_Function->value( state + State( small, small, small ) );
+		return ( val2 - val1 ) / small;
+	}
+
+	//////////////////////////////////////////////////////////////////
 	///  TabularFunction
 	//////////////////////////////////////////////////////////////////
 
@@ -204,37 +220,6 @@ namespace MoisThermFEM {
 	}
 
 	//////////////////////////////////////////////////////////////////
-	///  FirstDerivativeCurve
-	//////////////////////////////////////////////////////////////////
-
-	FirstDerivativeFunction::FirstDerivativeFunction(
-			const std::vector< std::pair< double, double > > & values,
-			Property property,
-			const FenestrationCommon::Interpolator interpolator )
-			: TabularFunction( values, property, interpolator ) {
-
-	}
-
-	FirstDerivativeFunction::FirstDerivativeFunction(
-			const std::initializer_list< std::pair< double, double > > & list,
-			Property property,
-			const FenestrationCommon::Interpolator interpolator ) :
-			TabularFunction( list, property, interpolator ) {
-
-	}
-
-	double FirstDerivativeFunction::getValue( const double t_position ) const {
-		return firstDerivative( t_position );
-	}
-
-	double FirstDerivativeFunction::firstDerivative( const double t_position ) const {
-		const double small = 1e-8;
-		double val1 = TabularFunction::getValue( t_position );
-		double val2 = TabularFunction::getValue( t_position + small );
-		return ( val2 - val1 ) / small;
-	}
-
-	//////////////////////////////////////////////////////////////////
 	///  SaturationFunction
 	//////////////////////////////////////////////////////////////////
 
@@ -244,7 +229,8 @@ namespace MoisThermFEM {
 	double SaturationFunction::getValue( const double t_position ) const {
 		auto temp = 77.345 + 0.0057 * t_position - 7235.0 / t_position;
 		temp = std::exp( temp );
-		return temp / ( 461.4 * std::pow( t_position, 9.2 ) );
+		temp = temp / ( 461.4 * std::pow( t_position, 9.2 ) );
+		return temp;
 	}
 
 }

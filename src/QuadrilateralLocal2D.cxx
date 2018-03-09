@@ -78,7 +78,7 @@ namespace MoisThermFEM {
 		return m_Ksi[ IntegrationPointIndex ]->PsiDEta( Index );
 	}
 
-	std::vector< double >
+	std::vector<double>
 	QuadrilateralLinearLocal2D::VPsi( size_t const IntegrationPointIndex ) const {
 		if( IntegrationPointIndex >= m_Ksi.size() ) {
 			throw std::runtime_error(

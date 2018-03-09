@@ -1,72 +1,72 @@
-cmake_minimum_required( VERSION 2.8.11 )
+cmake_minimum_required(VERSION 2.8.11)
 
-set( target_name MoisThermFEM )
+set(target_name MoisThermFEM)
 
-project( ${target_name} CXX )
+project(${target_name} CXX)
 
-include( cmake/ProjectMacros.cmake )
-include( cmake/internal_utils.cmake )
-include( cmake/CompilerFlags.cmake )
+include(cmake/ProjectMacros.cmake)
+include(cmake/internal_utils.cmake)
+include(cmake/CompilerFlags.cmake)
 
 # google test will not be created by this project if this is not main project. Main project is expected to handle google test.
 get_directory_property(hasParent PARENT_DIRECTORY)
 
-if(hasParent)
-	set( BUILD_TESTING OFF )
-else()
-	option( BUILD_TESTING "Build testing targets" ON )
-endif()
+if (hasParent)
+    set(BUILD_TESTING OFF)
+else ()
+    option(BUILD_TESTING "Build testing targets" ON)
+endif ()
 
-if( BUILD_TESTING )
-	set(google_disable_pthreads ON)
-	# include(CMakeLists-GTest.txt)
-	configure_file(CMakeLists.txt.in ${CMAKE_BINARY_DIR}/googletest-download/CMakeLists.txt)
-	execute_process(COMMAND ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}" .
-  		WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/googletest-download )
-	execute_process(COMMAND ${CMAKE_COMMAND} --build .
-  		WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/googletest-download )
-  		
-  	# Prevent GoogleTest from overriding our compiler/linker options
-	# when building with Visual Studio
-	set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
- 
-	# Add googletest directly to our build. This adds
-	# the following targets: gtest, gtest_main, gmock
-	# and gmock_main
-	add_subdirectory(${CMAKE_BINARY_DIR}/googletest-src
-    	${CMAKE_BINARY_DIR}/googletest-build)
- 
-	# Now simply link your own targets against gtest, gmock,
-	# etc. as appropriate
-  		
-  include_directories( ${CMAKE_BINARY_DIR}/googletest-src/include )
+if (BUILD_TESTING)
+    set(google_disable_pthreads ON)
+    # include(CMakeLists-GTest.txt)
+    configure_file(CMakeLists.txt.in ${CMAKE_BINARY_DIR}/googletest-download/CMakeLists.txt)
+    execute_process(COMMAND ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}" .
+            WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/googletest-download)
+    execute_process(COMMAND ${CMAKE_COMMAND} --build .
+            WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/googletest-download)
+
+    # Prevent GoogleTest from overriding our compiler/linker options
+    # when building with Visual Studio
+    set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+
+    # Add googletest directly to our build. This adds
+    # the following targets: gtest, gtest_main, gmock
+    # and gmock_main
+    add_subdirectory(${CMAKE_BINARY_DIR}/googletest-src
+            ${CMAKE_BINARY_DIR}/googletest-build)
+
+    # Now simply link your own targets against gtest, gmock,
+    # etc. as appropriate
+
+    include_directories(${CMAKE_BINARY_DIR}/googletest-src/include)
 endif ()
 
 # add_subdirectory( src )
 
-file( GLOB SOURCES_CXX "src/*.cxx" )
-file( GLOB SOURCES_HXX "src/*.hxx" )
-file (GLOB INCLUDE_HXX "include/*.hxx" )
-list( APPEND SOURCES ${SOURCES_HXX} ${INCLUDE_HXX} ${SOURCES_CXX} )
+file(GLOB SOURCES_CXX "src/*.cxx")
+file(GLOB SOURCES_HXX "src/*.hxx")
+file(GLOB INCLUDE_HXX "include/*.hxx")
+list(APPEND SOURCES ${SOURCES_HXX} ${INCLUDE_HXX} ${SOURCES_CXX})
 
-set( CMAKE_CXX_STANDARD 11 )
+set(CMAKE_CXX_STANDARD 11)
 
-if( MSVC )
-  add_definitions( "/wd4996" )
-endif()
+if (MSVC)
+    add_definitions("/wd4996")
+endif ()
 
-add_library( ${target_name} STATIC ${SOURCES} src/MaterialPool.cxx src/MaterialPool.hxx src/BoundaryCondition2DFactory.cxx src/BoundaryCondition2DFactory.hxx src/Element2DFactory.cxx src/Element2DFactory.hxx src/FEMMath.hxx src/FEMMath.cxx src/MultiDomain.cxx src/MultiDomain.hxx)
+add_library(${target_name} STATIC ${SOURCES} src/MaterialPool.cxx src/MaterialPool.hxx src/BoundaryCondition2DFactory.cxx src/BoundaryCondition2DFactory.hxx src/Element2DFactory.cxx src/Element2DFactory.hxx src/FEMMath.hxx src/FEMMath.cxx src/MultiDomain.cxx src/MultiDomain.hxx)
 
-set_target_properties( ${target_name} PROPERTIES LINKER_LANGUAGE CXX )
+set_target_properties(${target_name} PROPERTIES LINKER_LANGUAGE CXX)
 
-if( BUILD_TESTING )
-  #include_directories( src )
-  include_directories( include )
-  
-  file( GLOB all_test_src RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "tst/*.cxx" )
-  LIST( APPEND test_src ${all_test_src} )
-  
-  CREATE_TEST_TARGETS( ${target_name} "${test_src}" "" )
-endif()
+if (BUILD_TESTING)
+    #include_directories( src )
+    include_directories(include)
+
+    file(GLOB all_test_src RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "tst/*.cxx")
+    LIST(APPEND test_src ${all_test_src})
+
+    CREATE_TEST_TARGETS(${target_name} "${test_src}" "")
+endif ()
 
 config_compiler_and_linker()

@@ -32,7 +32,7 @@ namespace FenestrationCommon {
     auto TINY = 1e-20;
 
     auto size = int( t_MatrixA.size() );
-    std::vector< size_t > index( size );
+    std::vector< size_t > index( static_cast<unsigned long>(size) );
 
     auto vv = checkSingularity( t_MatrixA );
 
@@ -73,7 +73,7 @@ namespace FenestrationCommon {
         d = -d;
         vv[ imax ] = vv[ j ];
       }
-      index[ j ] = imax;
+      index[ j ] = static_cast<unsigned long>(imax);
       if ( t_MatrixA[ j ][ j ] == 0.0 ) {
         t_MatrixA[ j ][ j ] = TINY;
       }

@@ -117,9 +117,24 @@ namespace MoisThermFEM {
 		Constant( const double value );
 
 	private:
-		double getValue( const double t_position = 0 ) const override;
+		double getValue( const double t_position ) const override;
 
 		double m_Value;
+	};
+
+	//////////////////////////////////////////////////////////////////
+	///  Derivative
+	//////////////////////////////////////////////////////////////////
+	class Derivative : public IValue {
+
+	public:
+		Derivative( std::shared_ptr< IValue > & t_Function );
+
+		double value( const State & state ) const override;
+
+	private:
+		std::shared_ptr< IValue > m_Function;
+
 	};
 
 	//////////////////////////////////////////////////////////////////
@@ -174,27 +189,6 @@ namespace MoisThermFEM {
 		std::pair< std::pair< double, double >, std::pair< double, double > >
 		getInterpolationPoints(
 				std::vector< std::pair< double, double > >::const_iterator & it ) const override;
-
-	};
-
-	//////////////////////////////////////////////////////////////////
-	///  FirstDerivativeFunction
-	//////////////////////////////////////////////////////////////////
-	class FirstDerivativeFunction : public TabularFunction {
-
-	public:
-		FirstDerivativeFunction( const std::vector< std::pair< double, double > > & values,
-		                         Property property,
-		                         const FenestrationCommon::Interpolator interpolator = FenestrationCommon::Interpolation::Linear );
-
-		FirstDerivativeFunction( const std::initializer_list< std::pair< double, double > > & list,
-		                         Property property,
-		                         const FenestrationCommon::Interpolator interpolator = FenestrationCommon::Interpolation::Linear );
-
-	private:
-		double getValue( const double t_position ) const override;
-
-		virtual double firstDerivative( const double t_position ) const final;
 
 	};
 

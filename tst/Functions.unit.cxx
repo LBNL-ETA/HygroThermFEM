@@ -42,13 +42,16 @@ TEST_F( CurveTest, TestTabularLinear ) {
 
 TEST_F( CurveTest, TestFirstDerivative ) {
 	SCOPED_TRACE( "Begin Test: Test first derivative of tabular linear curve." );
-	const MoisThermFEM::FirstDerivativeFunction curve( { { 1, 10 },
-																											 { 2, 20 },
-																											 { 3, 30 } }, Property::temperature );
+	std::shared_ptr< MoisThermFEM::IValue > table(
+			std::make_shared< MoisThermFEM::TabularFunction >(
+					std::vector< std::pair< double, double > >( { { 1, 10 },
+																												{ 2, 20 },
+																												{ 3, 30 } } ), Property::temperature ) );
+	const MoisThermFEM::Derivative der( table );
 
 	State interpolationPoint( 2.5, 0, 101325 );
 
-	auto result = curve.value( interpolationPoint );
+	auto result = der.value( interpolationPoint );
 
 	EXPECT_NEAR( 10, result, 1e-6 );
 }

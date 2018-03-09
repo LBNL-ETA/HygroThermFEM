@@ -26,7 +26,7 @@ namespace MoisThermFEM {
 	////////////////////////////////////////////////////////////////////////////
 	///   IIntegrationPoints1D
 	////////////////////////////////////////////////////////////////////////////
-	std::vector< LocalPoint1D > IIntegrationPoints1D::getPoints() const {
+	std::vector< LocalPoint1D > & IIntegrationPoints1D::getPoints() {
 		return m_Points;
 	}
 
@@ -201,7 +201,7 @@ namespace MoisThermFEM {
 		return m_IntPoints2D->getPoints();
 	}
 
-	std::vector< LocalPoint1D > IntegrationPoints2D::getPoints1D() const {
+	std::vector< LocalPoint1D > & IntegrationPoints2D::getPoints1D() const {
 		return m_IntPoints1D->getPoints();
 	}
 
@@ -213,10 +213,11 @@ namespace MoisThermFEM {
 		return m_IntPoints1D->count();
 	}
 
-	IntegrationPoints2D::IntegrationPoints2D() {
+	IntegrationPoints2D::IntegrationPoints2D() :
+			m_IntPoints2D{ fem::make_unique< TwoIntegrationPoint2D >() },
+			m_IntPoints1D{ fem::make_unique< TwoIntegrationPoint1D >() } {
 		// Two-point formula is default one
-		m_IntPoints2D = fem::make_unique< TwoIntegrationPoint2D >();
-		m_IntPoints1D = fem::make_unique< TwoIntegrationPoint1D >();
+		
 	}
 
 	IntegrationPoints2D::~IntegrationPoints2D() = default;

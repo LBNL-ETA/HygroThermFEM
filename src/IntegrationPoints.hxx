@@ -19,7 +19,7 @@ namespace MoisThermFEM {
     virtual ~IIntegrationPoints1D() = default;
     IIntegrationPoints1D() = default;
 
-    virtual std::vector< LocalPoint1D > getPoints() const final;
+    virtual std::vector< LocalPoint1D > & getPoints() final;
     virtual size_t count() const final;
 
   protected:
@@ -143,7 +143,7 @@ namespace MoisThermFEM {
     
     // Get integration points
     std::vector< LocalPoint2D > getPoints2D() const;
-    std::vector< LocalPoint1D > getPoints1D() const;
+    std::vector< LocalPoint1D > & getPoints1D() const;
 
     // Number of integration points
     size_t count2D() const;

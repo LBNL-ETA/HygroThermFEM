@@ -29,7 +29,7 @@ TEST_F( MultiDomain_2D_1, TestExample_1 ) {
 
 	std::vector< double > gridXCoordinates{ 0, 0.005, 0.1, 0.15 };
 
-	const double initialTemperature = 293.15;
+	const double initialTemperature = 273.15;
 	const double initialMoistureContent = 0;
 	const double initialPressure = 0;
 
@@ -48,7 +48,7 @@ TEST_F( MultiDomain_2D_1, TestExample_1 ) {
 			0.22, /// porosity
 			850,  /// specific heat capacity (dry)
 			1.8,  /// thermal conductivity (dry)
-			15E-6,   /// diffusion resistance factor
+			15,   /// diffusion resistance factor
 			{ { 0,   0 },  /// liquid transportation coefficient
 				{ 27,  1E-8 },
 				{ 45,  1.1E-8 },
@@ -82,7 +82,7 @@ TEST_F( MultiDomain_2D_1, TestExample_1 ) {
 	}
 
 	// Create Boundary Conditions
-	const auto hc = 20;
+	const auto hc = 1;
 	const auto airTemperature = 293.15;
 	const auto humidity = 0.5;
 
@@ -99,13 +99,21 @@ TEST_F( MultiDomain_2D_1, TestExample_1 ) {
 	std::vector< std::vector< double > > temperatureSolution;
 	std::vector< std::vector< double > > waterContentSolution;
 
-	for ( unsigned i = 0; i < nSteps; ++i ) {
+	for ( auto i = 0; i < nSteps; ++i ) {
 		auto aSolution = domain.transient( temperatures, humidities, dTime );
 		temperatureSolution.push_back( aSolution.temperature );
 		waterContentSolution.push_back( material.waterContent( aSolution.humidity ) );
 		temperatures = aSolution.temperature;
 		humidities = aSolution.humidity;
 	}
+
+	/// std::cout.precision( 8 );
+	/// for ( auto & val : waterContentSolution ) {
+	/// 	for ( auto & item : val ) {
+	/// 		std::cout << item << ", ";
+	/// 	}
+	/// 	std::cout << std::endl;
+	/// }
 
 	std::vector< std::vector< double > > correctWaterContentSolution = {
 			{ 5.299994668, 5.299994668, 0.183871198, 0.183871198, 0.032795632, 0.032795632 },

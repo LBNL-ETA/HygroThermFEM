@@ -10,7 +10,7 @@ using FenestrationCommon::CLinearSolver;
 
 namespace MoisThermFEM {
 
-	Domain::Domain( const Property property ) : m_Property( property ) {
+	Domain::Domain( const Property property ) : m_Elements{}, m_BCs{}, m_Property( property ){
 
 	}
 
