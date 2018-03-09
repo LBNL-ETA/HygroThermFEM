@@ -2,7 +2,7 @@
 #include <cmath>
 #include <gtest/gtest.h>
 
-#include "Conrad2D.hxx"
+#include "MoisThermFEM2D.hxx"
 
 using namespace MoisThermFEM;
 
