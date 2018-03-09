@@ -84,32 +84,6 @@ namespace MoisThermFEM {
 		return result;
 	}
 
-	/// FenestrationCommon::Vector< double > BlackBodyRadiationBC::DHRadiative() const {
-	/// 	FenestrationCommon::Vector< double > result( numOfBCNodes, 0 );
-	/// 	for ( std::size_t j = 0; j < numOfBCNodes; ++j ) {
-	/// 		double T = m_Nodes[ j ].getProperty( Property::temperature );
-	/// 		result[ j ] = ( 3 * std::pow( T, 2 ) + 2 * m_RadiationTemperature * T +
-	/// 										std::pow( m_RadiationTemperature, 2 ) ) * Constants::STEFANBOLTZMANN *
-	/// 									m_Emissivity;
-	/// 	}
-	/// 	return result;
-	/// }
-
-	/// FenestrationCommon::SquareMatrix< double > BlackBodyRadiationBC::D_HMatrix() const {
-	/// 	double integratedTemperature = getIntegratedProperty( Property::temperature );
-	/// 	double integratedDeltaTemperature = getIntegratedDeltaProperty( Property::temperature );
-///
-	/// 	auto DhT = DHRadiative() * integratedTemperature;
-	/// 	auto DhDt = DHRadiative() * integratedDeltaTemperature;
-	/// 	auto VRadiation = DHRadiative() * m_RadiationTemperature;
-///
-	/// 	auto C = m_PsiPsiMatrix.mmultRows( DhT );
-	/// 	auto D = m_PsiPsiMatrix.mmultRows( DhDt );
-	/// 	auto E = m_PsiPsiMatrix.mmultRows( VRadiation );
-///
-	/// 	return C + D + E;
-	/// }
-
 	FenestrationCommon::Vector< double > BlackBodyRadiationBC::R_Vector() const {
 		return m_PsiVector * HRadiative() * m_RadiationTemperature;
 	}

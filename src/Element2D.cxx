@@ -4,7 +4,6 @@
 #include "Element2D.hxx"
 #include "IntegrationPoints.hxx"
 #include "QuadrilateralLocal2D.hxx"
-#include "FEMunique.hxx"
 
 using FenestrationCommon::SquareMatrix;
 
@@ -236,9 +235,11 @@ namespace MoisThermFEM {
 		/// Creating capacitance function
 		//////////////////////////////////////////////////////////////////////////////
 		pValue sorptionCurve(
-				std::make_shared< MoisThermFEM::FirstDerivativeFunction >( mat.sorptionCurve(),
+				std::make_shared< MoisThermFEM::TabularFunction >( mat.sorptionCurve(),
 																																	 Property::humidity ) );
-		m_Capacitance.push_back( sorptionCurve );
+		pValue sorptionDerivative{ std::make_shared< MoisThermFEM::Derivative >( sorptionCurve ) };
+
+		m_Capacitance.push_back( sorptionDerivative );
 	}
 
 }
