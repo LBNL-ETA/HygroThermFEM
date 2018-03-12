@@ -22,8 +22,8 @@ namespace FenestrationCommon {
 				t_input ), m_size( m_Matrix.size() ) {
 		}
 
-		explicit SquareMatrix(const std::vector< std::vector< T > > & t_input) : m_Matrix(
-			t_input), m_size(m_Matrix.size()) {
+		explicit SquareMatrix( const std::vector< std::vector< T > > & t_input ) : m_Matrix(
+				t_input ), m_size( m_Matrix.size() ) {
 		}
 
 		std::vector< T > & operator[]( const std::size_t index ) {
@@ -66,13 +66,13 @@ namespace FenestrationCommon {
 		SquareMatrix< T >
 		mmultRows( const Vector< T > & t_vector ) const {
 			if( m_Matrix.size() != t_vector.size() ) {
-				throw std::runtime_error("Matrix and vector must have same sizes.");
+				throw std::runtime_error( "Matrix and vector must have same sizes." );
 			}
 
 			SquareMatrix< T > result{ m_Matrix.size() };
 
-			for( auto i = 0u; i < t_vector.size(); ++i ) {
-				for( auto j = 0u; j < t_vector.size(); ++j ) {
+			for ( auto i = 0u; i < t_vector.size(); ++i ) {
+				for ( auto j = 0u; j < t_vector.size(); ++j ) {
 					result[ i ][ j ] = m_Matrix[ i ][ j ] * t_vector[ i ];
 				}
 			}

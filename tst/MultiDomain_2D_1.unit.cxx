@@ -27,9 +27,9 @@ TEST_F( MultiDomain_2D_1, TestExample_1 ) {
 	auto & nodePool = NodePool::Instance();
 	auto & materialPool = MaterialPool::Instance();
 
-	std::vector< double > gridXCoordinates{ 0, 0.005, 0.1, 0.15 };
+	std::vector< double > gridXCoordinates{ 0, 0.05, 0.1, 0.15 };
 
-	const double initialTemperature = 273.15;
+	const double initialTemperature = 293.15;
 	const double initialMoistureContent = 0;
 	const double initialPressure = 0;
 
@@ -82,7 +82,7 @@ TEST_F( MultiDomain_2D_1, TestExample_1 ) {
 	}
 
 	// Create Boundary Conditions
-	const auto hc = 1;
+	const auto hc = 20;
 	const auto airTemperature = 293.15;
 	const auto humidity = 0.5;
 

@@ -23,21 +23,16 @@ namespace MoisThermFEM {
 	// capacitance and conductance matrices have different form)
 	class IQLEMatrix2D {
 	public:
-		IQLEMatrix2D( const QuadrilateralLinearGlobal2D & t_Element, const double t_Value1,
-									const double t_Value2,
-									const double t_Value3, const double t_Value4 );
-
-		FenestrationCommon::SquareMatrix< double > getMatrix() const;
+		IQLEMatrix2D( const QuadrilateralLinearGlobal2D & t_Element );
 
 		// Integrate matrix over all points of integration
-		void integrate();
+		virtual FenestrationCommon::SquareMatrix< double >
+		integrate( const std::vector< double > & t_Values ) const final;
 
 	protected:
 		virtual FenestrationCommon::SquareMatrix< double > calculateMatrixInIntegrationPoint(
-				const std::size_t t_IntegrationPointIndex ) const = 0;
-
-		FenestrationCommon::SquareMatrix< double > m_Matrix;
-		const std::vector< double > m_Values;
+				const std::vector< double > & t_Values,
+				const std::size_t t_IntegrationPointIndex ) const final;
 
 		const QuadrilateralLinearGlobal2D & m_Global2D;
 
@@ -52,14 +47,7 @@ namespace MoisThermFEM {
 	// Class to handle conductance matrix in global coordinate system
 	class QLEConductance2D : public IQLEMatrix2D {
 	public:
-		QLEConductance2D(
-				const QuadrilateralLinearGlobal2D & t_Element, const double t_Value1, const double t_Value2,
-				const double t_Value3,
-				const double t_Value4 );
-
-	protected:
-		FenestrationCommon::SquareMatrix< double > calculateMatrixInIntegrationPoint(
-				const std::size_t t_IntegrationPointIndex ) const override;
+		QLEConductance2D( const QuadrilateralLinearGlobal2D & t_Element );
 
 	};
 
@@ -70,14 +58,7 @@ namespace MoisThermFEM {
 	// Class to handle capacitance matrix in global coordinate system
 	class QLECapacitance2D : public IQLEMatrix2D {
 	public:
-		QLECapacitance2D( const QuadrilateralLinearGlobal2D & t_Element, const double t_Value1,
-											const double t_Value2,
-											const double t_Value3,
-											const double t_Value4 );
-
-	protected:
-		FenestrationCommon::SquareMatrix< double > calculateMatrixInIntegrationPoint(
-				const std::size_t t_IntegrationPointIndex ) const override;
+		QLECapacitance2D( const QuadrilateralLinearGlobal2D & t_Element );
 
 	};
 
@@ -103,15 +84,17 @@ namespace MoisThermFEM {
 		std::vector< std::size_t > nodeIndexes() const;
 
 	protected:
-		std::vector< Node2D > m_Node;
-
 		/// TODO: This did not work with reference_wrapper and it should. Check later.
 		/// Reminder: Introduce pair of curve pointer and Property so that curve knows what to use
 		std::vector< std::shared_ptr< MoisThermFEM::IValue > > m_Conductance;
 		std::vector< std::shared_ptr< MoisThermFEM::IValue > > m_Capacitance;
 
 	private:
+		std::vector< Node2D > m_Node;
+
 		QuadrilateralLinearGlobal2D m_Global2D;
+		QLECapacitance2D m_QLECapacitance2D;
+		QLEConductance2D m_QLEConductance2D;
 	};
 
 	//////////////////////////////////////////////////////////////////////////////
