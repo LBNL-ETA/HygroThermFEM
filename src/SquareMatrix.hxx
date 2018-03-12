@@ -23,7 +23,7 @@ namespace FenestrationCommon {
 		}
 
 		explicit SquareMatrix(const std::vector< std::vector< T > > & t_input) : m_Matrix(
-			t_input), m_size(m_Matrix.size()) {
+			t_input), m_size( m_Matrix.size() ) {
 		}
 
 		std::vector< T > & operator[]( const std::size_t index ) {
