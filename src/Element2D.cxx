@@ -27,34 +27,26 @@ namespace MoisThermFEM {
 
 		FenestrationCommon::SquareMatrix< double > aMatrix{ numOfQuadrilateralNodes };
 
-		for ( unsigned i = 0; i < count; ++i ) {
-			auto aMatInIntPt = calculateMatrixInIntegrationPoint( t_Values, i );
-			for ( unsigned j = 0; j < aMatInIntPt.size(); ++j ) {
-				for ( unsigned k = 0; k < aMatInIntPt.size(); ++k ) {
-					aMatrix[ j ][ k ] += aMatInIntPt[ j ][ k ];
-				}
-			}
+		for ( auto i = 0u; i < count; ++i ) {
+			calculateMatrixInIntegrationPoint( t_Values, i, aMatrix );
 		}
 
 		return aMatrix;
 	}
 
-	FenestrationCommon::SquareMatrix< double > IQLEMatrix2D::calculateMatrixInIntegrationPoint(
-			const std::vector< double > & t_Values, const std::size_t t_IntegrationPointIndex ) const {
+	void IQLEMatrix2D::calculateMatrixInIntegrationPoint(
+			const std::vector< double > & t_Values, const std::size_t t_IntegrationPointIndex,
+			FenestrationCommon::SquareMatrix< double > & t_Matrix ) const {
 
 		assert( t_Values.size() == 4 );
 
-		SquareMatrix< double > aMatrix( numOfQuadrilateralNodes );
-
 		auto & intPointMatrix = m_IntegrationMatrix[ t_IntegrationPointIndex ];
 
-		for ( size_t i = 0; i < aMatrix.size(); ++i ) {
-			for ( size_t j = 0; j < aMatrix.size(); ++j ) {
-				aMatrix[ i ][ j ] = intPointMatrix[ i ][ j ] * 0.5 * ( t_Values[ i ] + t_Values[ j ] );
+		for ( size_t i = 0; i < t_Matrix.size(); ++i ) {
+			for ( size_t j = 0; j < t_Matrix.size(); ++j ) {
+				t_Matrix[ i ][ j ] += intPointMatrix[ i ][ j ] * 0.5 * ( t_Values[ i ] + t_Values[ j ] );
 			}
 		}
-
-		return aMatrix;
 	}
 
 //////////////////////////////////////////////////////////////////////////////
