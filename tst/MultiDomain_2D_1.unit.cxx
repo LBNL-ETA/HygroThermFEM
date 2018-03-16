@@ -31,7 +31,7 @@ TEST_F( MultiDomain_2D_1, TestExample_1 ) {
 
 	const double initialTemperature = 293.15;
 	const double initialMoistureContent = 0;
-	const double initialPressure = 0;
+	const double initialPressure = 101325;
 
 	auto state = State( initialTemperature, initialMoistureContent, initialPressure );
 	size_t nodeIndex = 0;
@@ -45,7 +45,7 @@ TEST_F( MultiDomain_2D_1, TestExample_1 ) {
 	auto & material = materialPool.createMaterial(
 			"Cottaer Sandstone",
 			2050, /// density
-			0.22, /// porosity
+			1.00, /// porosity
 			850,  /// specific heat capacity (dry)
 			1.8,  /// thermal conductivity (dry)
 			15,   /// diffusion resistance factor
@@ -82,7 +82,7 @@ TEST_F( MultiDomain_2D_1, TestExample_1 ) {
 	}
 
 	// Create Boundary Conditions
-	const auto hc = 20;
+	const auto hc = 1;
 	const auto airTemperature = 293.15;
 	const auto humidity = 0.5;
 

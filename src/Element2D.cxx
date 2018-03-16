@@ -152,9 +152,9 @@ namespace MoisThermFEM {
 		return m_Global2D.nodeIndexes();
 	}
 
-//////////////////////////////////////////////////////////////////////////////
-///  ElementThermalLinear2D
-//////////////////////////////////////////////////////////////////////////////
+	//////////////////////////////////////////////////////////////////////////////
+	///  ElementThermalLinear2D
+	//////////////////////////////////////////////////////////////////////////////
 
 	ElementThermalLinear2D::ElementThermalLinear2D( const Node2D & t_Node1, const Node2D & t_Node2,
 																									const Node2D & t_Node3, const Node2D & t_Node4,
@@ -197,29 +197,14 @@ namespace MoisThermFEM {
 
 	}
 
-//////////////////////////////////////////////////////////////////////////////
-///  ElementMoistureLinear2D
-//////////////////////////////////////////////////////////////////////////////
+	//////////////////////////////////////////////////////////////////////////////
+	///  ElementMoistureLinear2D
+	//////////////////////////////////////////////////////////////////////////////
 
 	ElementMoistureLinear2D::ElementMoistureLinear2D( const Node2D & t_Node1, const Node2D & t_Node2,
 																										const Node2D & t_Node3, const Node2D & t_Node4,
 																										const Material & mat ) :
 			IElementLinear2D( t_Node1, t_Node2, t_Node3, t_Node4 ) {
-
-		//////////////////////////////////////////////////////////////////////////////
-		/// Creating conductance function for vapor
-		//////////////////////////////////////////////////////////////////////////////
-
-		//pValue waterContent(
-		//		std::make_shared< MoisThermFEM::TabularFunction >( mat.sorptionCurve(),
-		//																											 Property::humidity ) );
-
-		/// Calls sorption curve at 100% humidity to get maximum water content
-		///auto maxWaterContent = waterContent->value( State( 0, 1, 0 ) );
-
-		//pValue waterFill = mat.porosity() / maxWaterContent * waterContent;
-
-		///pValue airFill = mat.porosity() - waterFill;
 
 		pValue saturationFunction(
 				std::make_shared< MoisThermFEM::SaturationFunction >( Property::temperature ) );

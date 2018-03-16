@@ -18,13 +18,14 @@ namespace MoisThermFEM {
 		auto currentHumidity = humidity;
 
 		while ( temperatureError > ConvergenceError || humidityError > ConvergenceError ) {
-			m_MoistureDomain.updateNodeValues( currentTemperature, Property::temperature );
 			m_ThermalDomain.updateNodeValues( currentHumidity, Property::humidity );
 			auto temperatureSolution = m_ThermalDomain.transient( temperature, t_DTime );
-			auto humiditySolution = m_MoistureDomain.transient( humidity, t_DTime );
 			temperatureError = normError( temperatureSolution, currentTemperature );
-			humidityError = normError( humiditySolution, currentHumidity );
 			currentTemperature = temperatureSolution;
+
+			m_MoistureDomain.updateNodeValues( currentTemperature, Property::temperature );
+			auto humiditySolution = m_MoistureDomain.transient( humidity, t_DTime );
+			humidityError = normError( humiditySolution, currentHumidity );
 			currentHumidity = humiditySolution;
 		}
 
