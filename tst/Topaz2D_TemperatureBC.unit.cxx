@@ -47,9 +47,9 @@ TEST_F( Topaz2D_TemperatureBC, TestExample_1 ) {
 	auto node6 = nodePool.createNode( 6, 0, 0, state );
 
 	auto & material = materialPool.createMaterial(
-			"Cottaer Sandstone",
+			"Cottaer Sandstone - non porous",
 			2050,    /// Density
-			0.22,    /// Porosity
+			0.00,    /// Porosity
 			850,     /// Specific Heat Capacity (dry)
 			1.8,     /// Thermal Conductivity (dry)
 			15E-6,   /// Diffusion Resistance Factor

@@ -4,6 +4,7 @@
 #include "Element2D.hxx"
 #include "IntegrationPoints.hxx"
 #include "QuadrilateralLocal2D.hxx"
+#include "Common.hxx"
 
 using FenestrationCommon::SquareMatrix;
 
@@ -159,12 +160,41 @@ namespace MoisThermFEM {
 																									const Node2D & t_Node3, const Node2D & t_Node4,
 																									const Material & mat ) :
 			IElementLinear2D( t_Node1, t_Node2, t_Node3, t_Node4 ) {
+
+		/// Calculate air and water content
+		pValue waterContent(
+				std::make_shared< MoisThermFEM::TabularFunction >( mat.sorptionCurve(),
+																													 Property::humidity ) );
+
+		/// Calls sorption curve at 100% humidity to get maximum water content
+		auto maxWaterContent = waterContent->value( State( 0, 1, 0 ) );
+
+		pValue waterFill = mat.porosity() / maxWaterContent * waterContent;
+
+		pValue airFill = mat.porosity() - waterFill;
+
+		auto waterCapacitance = waterFill * ( Constants::Density_Water * Constants::Cp_Water );
+		auto airCapacitance = airFill * ( Constants::Density_Air * Constants::Cp_Air );
+		auto dryCapacitance =
+				( 1 - mat.porosity() ) * ( mat.density() * mat.heatCapacity() );
+
+		auto capacitance = waterCapacitance + airCapacitance;
+		capacitance = capacitance	+ dryCapacitance;
+
+		m_Capacitance.push_back( capacitance );
+
+		auto waterConductance = waterFill * Constants::K_Water;
+		auto airConductance = airFill * Constants::K_Air;
+		auto dryConductance = ( 1 - mat.porosity() ) * mat.thermalConductivity();
+
 		pValue thermalConductivity(
 				std::make_shared< MoisThermFEM::Constant >( mat.thermalConductivity() ) );
-		m_Conductance.push_back( thermalConductivity );
-		pValue rhoCp(
-				std::make_shared< MoisThermFEM::Constant >( mat.heatCapacity() * mat.density() ) );
-		m_Capacitance.push_back( rhoCp );
+
+		auto conductance = waterConductance + airConductance;
+		conductance = conductance + dryConductance;
+
+		m_Conductance.push_back( conductance );
+
 	}
 
 //////////////////////////////////////////////////////////////////////////////

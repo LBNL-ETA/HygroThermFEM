@@ -117,7 +117,7 @@ namespace MoisThermFEM {
 		const auto humidityByVolume = humidityCalculator->value(
 				State( m_AirTemperature, m_AirHumidity, 101325 ) );
 		const auto coeff =
-				m_ConvectiveCoefficient * humidityByVolume / ( Constants::Density_AIR * Constants::Cp_Air );
+				m_ConvectiveCoefficient * humidityByVolume / ( Constants::Density_Air * Constants::Cp_Air );
 		return m_PsiVector * coeff;
 	}
 
@@ -133,9 +133,9 @@ namespace MoisThermFEM {
 
 		FenestrationCommon::Vector< double > coeffs{
 				humidityByVolume1 * m_ConvectiveCoefficient /
-				( Constants::Density_AIR * Constants::Cp_Air ),
+				( Constants::Density_Air * Constants::Cp_Air ),
 				humidityByVolume2 * m_ConvectiveCoefficient /
-				( Constants::Density_AIR * Constants::Cp_Air ),
+				( Constants::Density_Air * Constants::Cp_Air ),
 		};
 
 		return m_PsiPsiMatrix.mmultRows( coeffs );
