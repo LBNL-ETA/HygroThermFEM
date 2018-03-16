@@ -37,7 +37,7 @@ TEST_F( ConvectionBC_2D_1, TestExample_1 ) {
 	auto & material = materialPool.createMaterial(
 			"Test Material",
 			2050,    /// Density
-			0.22,    /// Porosity
+			0.00,    /// Porosity
 			850,     /// Specific Heat Capacity (dry)
 			1,       /// Thermal Conductivity (dry)
 			15E-6,   /// Diffusion Resistance Factor

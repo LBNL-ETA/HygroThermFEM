@@ -35,7 +35,7 @@ TEST_F( TestSingleElementMatrices2D, TestConductionMatrix ) {
     auto & material = materialPool.createMaterial(
         "Test Material",
         1, /// density
-        0.22, /// porosity
+        0.00, /// porosity
         1,  /// specific heat capacity (dry)
         1,  /// thermal conductivity (dry)
         15,   /// diffusion resistance factor

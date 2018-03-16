@@ -60,8 +60,8 @@ TEST_F( Analytical_ConvectionBC_Transient, TestExample_1 ) {
 			1.8,     /// Thermal Conductivity (dry)
 			/// No need for liquid coefficients
 			15E-6,   /// Diffusion Resistance Factor
-			{ { 0, 0 } },  /// Liquid Transportation Coefficient
-			{ { 0, 0 } }   /// Moisture Storage Function
+			{ { 0, 0 }, { 180, 7E-7 } },  /// Liquid Transportation Coefficient
+			{ { 0, 0 }, { 1, 5.3 } }   /// Moisture Storage Function
 
 	);
 
