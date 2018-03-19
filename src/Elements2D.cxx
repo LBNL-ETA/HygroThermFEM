@@ -15,7 +15,7 @@ namespace MoisThermFEM {
 			for ( size_t i = 0; i < numOfQuadrilateralNodes; ++i ) {
 				for ( size_t j = 0; j < numOfQuadrilateralNodes; ++j ) {
 					result[ indexes[ i ] - 1 ][ indexes[ j ] - 1 ] +=
-							conductance[ i ][ j ] + condDer[ i ][ j ];
+							( conductance[ i ][ j ] + condDer[ i ][ j ] );
 				}
 			}
 		}

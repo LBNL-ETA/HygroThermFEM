@@ -100,15 +100,16 @@ namespace MoisThermFEM {
 			auto DPsiDy = m_Global2D.DPsiDy( integrationPoint );
 			const auto det = m_Global2D.det( integrationPoint );
 
+			auto gammaX = 0.0;
+			auto gammaY = 0.0;
+			for ( auto k = 0u; k < numOfIntegrationPoints; ++k ) {
+				gammaX += DPsiDx[ k ] * t_Values[ k ];
+				gammaY += DPsiDy[ k ] * t_Values[ k ];
+			}
+
 			auto & psiPsiMatrix = m_IntegrationMatrix[ integrationPoint ];
 			for ( auto i = 0u; i < numOfIntegrationPoints; ++i ) {
 				for ( auto j = 0u; j < numOfIntegrationPoints; ++j ) {
-					auto gammaX = 0.0;
-					auto gammaY = 0.0;
-					for ( auto k = 0u; k < numOfIntegrationPoints; ++k ) {
-						gammaX += DPsiDx[ k ] * t_Values[ k ];
-						gammaY += DPsiDy[ k ] * t_Values[ k ];
-					}
 					psiPsiMatrix[ i ][ j ] =
 							det * ( DPsiDx[ i ] * psi[ j ] * gammaX + DPsiDy[ i ] * psi[ j ] * gammaY );
 				}
@@ -188,14 +189,16 @@ namespace MoisThermFEM {
 		const auto numOfIntegrationPoints = IntegrationPoints2D::Instance().count2D();
 
 		/// Integration matrix must be created every time
-		std::vector< double > m_Derivatives( numOfIntegrationPoints );
+		std::vector< double > aDerivatives( numOfIntegrationPoints );
+
 		auto count = 0u;
+		m_QLEDerivativeConductance.clear();
 		for ( const auto & cond : m_DerivativeConductance ) {
 			for ( auto i = 0u; i < numOfIntegrationPoints; ++i ) {
-				m_Derivatives[ i ] = cond.derivativeTerm->value( m_Node[ i ].getState() );
+				aDerivatives[ i ] = cond.derivativeTerm->value( m_Node[ i ].getState() );
 			}
 			m_QLEDerivativeConductance.emplace_back( m_Global2D );
-			m_QLEDerivativeConductance[ count ].updateIntegrationMatrix( m_Derivatives );
+			m_QLEDerivativeConductance[ count ].updateIntegrationMatrix( aDerivatives );
 			++count;
 		}
 
@@ -270,13 +273,15 @@ namespace MoisThermFEM {
 		auto airConductance = airFill * Constants::K_Air;
 		auto dryConductance = ( 1 - mat.porosity() ) * mat.thermalConductivity();
 
-		pValue thermalConductivity(
-				std::make_shared< MoisThermFEM::Constant >( mat.thermalConductivity() ) );
-
 		auto conductance = waterConductance + airConductance;
 		conductance = conductance + dryConductance;
 
 		m_Conductance.push_back( conductance );
+
+		/// Seems that it is not neccessary to create separate term when conductance coefficient
+		/// is changing. Need to confirm that with rest of the team (Simon)
+		/// pValue one( std::make_shared< MoisThermFEM::Constant >( 1 ) );
+		/// m_DerivativeConductance.emplace_back( one, conductance );
 
 	}
 
