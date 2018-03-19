@@ -30,7 +30,7 @@ TEST_F( MultiDomain_2D_1, TestExample_1 ) {
 	std::vector< double > gridXCoordinates{ 0, 0.05, 0.1, 0.15 };
 
 	const double initialTemperature = 293.15;
-	const double initialMoistureContent = 0;
+	const double initialMoistureContent = 0.5;
 	const double initialPressure = 101325;
 
 	auto state = State( initialTemperature, initialMoistureContent, initialPressure );
@@ -45,7 +45,7 @@ TEST_F( MultiDomain_2D_1, TestExample_1 ) {
 	auto & material = materialPool.createMaterial(
 			"Cottaer Sandstone",
 			2050, /// density
-			1.00, /// porosity
+			0.22, /// porosity
 			850,  /// specific heat capacity (dry)
 			1.8,  /// thermal conductivity (dry)
 			15,   /// diffusion resistance factor

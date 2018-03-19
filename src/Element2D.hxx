@@ -53,6 +53,22 @@ namespace MoisThermFEM {
 	};
 
 	//////////////////////////////////////////////////////////////////////////////
+	///  QLEConductanceDerivative2D
+	//////////////////////////////////////////////////////////////////////////////
+
+	// Handles conductance part with derivative term
+	class QLEConductanceDerivative2D : public IQLEMatrix2D {
+	public:
+		QLEConductanceDerivative2D( const QuadrilateralLinearGlobal2D & t_Element );
+
+		// This updates integration matrix with new derivative values
+		void updateIntegrationMatrix( const std::vector< double > & t_Values );
+
+		void clearIntegrationMatrix();
+
+	};
+
+	//////////////////////////////////////////////////////////////////////////////
 	///  QLECapacitance2D
 	//////////////////////////////////////////////////////////////////////////////
 
@@ -61,6 +77,15 @@ namespace MoisThermFEM {
 	public:
 		QLECapacitance2D( const QuadrilateralLinearGlobal2D & t_Element );
 
+	};
+
+	/// Keeping function pointers for QLEConductanceDerivative2D in Elements array
+	struct DerivativeFunction {
+		DerivativeFunction( const std::shared_ptr< IValue > & fixedTerm,
+												const std::shared_ptr< IValue > & derivativeTerm );
+
+		std::shared_ptr< MoisThermFEM::IValue > fixedTerm;
+		std::shared_ptr< MoisThermFEM::IValue > derivativeTerm;
 	};
 
 	//////////////////////////////////////////////////////////////////////////////
@@ -78,6 +103,8 @@ namespace MoisThermFEM {
 
 		FenestrationCommon::SquareMatrix< double > conductanceMatrix() const;
 
+		FenestrationCommon::SquareMatrix< double > conductanceDerivativeMatrix();
+
 		FenestrationCommon::SquareMatrix< double > capacitanceMatrix() const;
 
 		Node2D & getNode( const std::size_t index );
@@ -89,6 +116,7 @@ namespace MoisThermFEM {
 		/// Reminder: Introduce pair of curve pointer and Property so that curve knows what to use
 		std::vector< std::shared_ptr< MoisThermFEM::IValue > > m_Conductance;
 		std::vector< std::shared_ptr< MoisThermFEM::IValue > > m_Capacitance;
+		std::vector< DerivativeFunction > m_DerivativeConductance;
 
 	private:
 		std::vector< Node2D > m_Node;
@@ -96,6 +124,8 @@ namespace MoisThermFEM {
 		QuadrilateralLinearGlobal2D m_Global2D;
 		QLECapacitance2D m_QLECapacitance2D;
 		QLEConductance2D m_QLEConductance2D;
+		/// This one depends on functions and must be stored for every DerivativeConductance submatrix
+		std::vector< QLEConductanceDerivative2D > m_QLEDerivativeConductance;
 	};
 
 	//////////////////////////////////////////////////////////////////////////////

@@ -77,6 +77,51 @@ namespace MoisThermFEM {
 	}
 
 //////////////////////////////////////////////////////////////////////////////
+///  QLEConductanceDerivative2D
+//////////////////////////////////////////////////////////////////////////////
+
+	QLEConductanceDerivative2D::QLEConductanceDerivative2D(
+			const QuadrilateralLinearGlobal2D & t_Element ) : IQLEMatrix2D{ t_Element } {
+
+	}
+
+	void QLEConductanceDerivative2D::updateIntegrationMatrix(
+			const std::vector< double > & t_Values ) {
+
+		const auto numOfIntegrationPoints = IntegrationPoints2D::Instance().count2D();
+		auto & aElement = QuadrilateralLinearLocal2D::Instance();
+
+		assert( t_Values.size() == numOfIntegrationPoints );
+
+		for ( std::size_t integrationPoint = 0; integrationPoint < numOfIntegrationPoints;
+					++integrationPoint ) {
+			const auto & psi = aElement.VPsi( integrationPoint );
+			auto DPsiDx = m_Global2D.DPsiDx( integrationPoint );
+			auto DPsiDy = m_Global2D.DPsiDy( integrationPoint );
+			const auto det = m_Global2D.det( integrationPoint );
+
+			auto & psiPsiMatrix = m_IntegrationMatrix[ integrationPoint ];
+			for ( auto i = 0u; i < numOfIntegrationPoints; ++i ) {
+				for ( auto j = 0u; j < numOfIntegrationPoints; ++j ) {
+					auto gammaX = 0.0;
+					auto gammaY = 0.0;
+					for ( auto k = 0u; k < numOfIntegrationPoints; ++k ) {
+						gammaX += DPsiDx[ k ] * t_Values[ k ];
+						gammaY += DPsiDy[ k ] * t_Values[ k ];
+					}
+					psiPsiMatrix[ i ][ j ] =
+							det * ( DPsiDx[ i ] * psi[ j ] * gammaX + DPsiDy[ i ] * psi[ j ] * gammaY );
+				}
+			}
+
+		}
+	}
+
+	void QLEConductanceDerivative2D::clearIntegrationMatrix() {
+		m_IntegrationMatrix.clear();
+	}
+
+//////////////////////////////////////////////////////////////////////////////
 ///  QLECapacitance2D
 //////////////////////////////////////////////////////////////////////////////
 
@@ -103,6 +148,14 @@ namespace MoisThermFEM {
 	}
 
 //////////////////////////////////////////////////////////////////////////////
+///  DerivativeFunction
+//////////////////////////////////////////////////////////////////////////////
+
+	DerivativeFunction::DerivativeFunction( const std::shared_ptr< IValue > & fixedTerm,
+																					const std::shared_ptr< IValue > & derivativeTerm )
+			: fixedTerm( fixedTerm ), derivativeTerm( derivativeTerm ) {}
+
+//////////////////////////////////////////////////////////////////////////////
 ///  IElementLinear2D
 //////////////////////////////////////////////////////////////////////////////
 
@@ -125,6 +178,36 @@ namespace MoisThermFEM {
 				values[ i ] = cond->value( m_Node[ i ].getState() );
 			}
 			result += m_QLEConductance2D.integrate( values );
+		}
+
+		return result;
+	}
+
+	FenestrationCommon::SquareMatrix< double > IElementLinear2D::conductanceDerivativeMatrix() {
+		FenestrationCommon::SquareMatrix< double > result{ numOfQuadrilateralNodes };
+		const auto numOfIntegrationPoints = IntegrationPoints2D::Instance().count2D();
+
+		/// Integration matrix must be created every time
+		std::vector< double > m_Derivatives( numOfIntegrationPoints );
+		auto count = 0u;
+		for ( const auto & cond : m_DerivativeConductance ) {
+			for ( auto i = 0u; i < numOfIntegrationPoints; ++i ) {
+				m_Derivatives[ i ] = cond.derivativeTerm->value( m_Node[ i ].getState() );
+			}
+			m_QLEDerivativeConductance.emplace_back( m_Global2D );
+			m_QLEDerivativeConductance[ count ].updateIntegrationMatrix( m_Derivatives );
+			++count;
+		}
+
+		/// Now rest of integration is performed as usual
+		count = 0u;
+		for ( const auto & cond : m_DerivativeConductance ) {
+			std::vector< double > values( numOfIntegrationPoints );
+			for ( auto i = 0u; i < numOfIntegrationPoints; ++i ) {
+				values[ i ] = cond.fixedTerm->value( m_Node[ i ].getState() );
+			}
+			result += m_QLEDerivativeConductance[ count ].integrate( values );
+			++count;
 		}
 
 		return result;
@@ -179,7 +262,7 @@ namespace MoisThermFEM {
 				( 1 - mat.porosity() ) * ( mat.density() * mat.heatCapacity() );
 
 		auto capacitance = waterCapacitance + airCapacitance;
-		capacitance = capacitance	+ dryCapacitance;
+		capacitance = capacitance + dryCapacitance;
 
 		m_Capacitance.push_back( capacitance );
 
@@ -206,10 +289,17 @@ namespace MoisThermFEM {
 																										const Material & mat ) :
 			IElementLinear2D( t_Node1, t_Node2, t_Node3, t_Node4 ) {
 
+		//////////////////////////////////////////////////////////////////////////////
+		/// Creating conductance function for vapor
+		//////////////////////////////////////////////////////////////////////////////
+		pValue delta(
+				std::make_shared< MoisThermFEM::Constant >( 2.5E-5 / mat.diffusionResistanceFactor() ) );
 		pValue saturationFunction(
 				std::make_shared< MoisThermFEM::SaturationFunction >( Property::temperature ) );
 
-		m_Conductance.push_back( 2.5E-5 / mat.diffusionResistanceFactor() * saturationFunction );
+		m_Conductance.push_back( delta * saturationFunction );
+
+		m_DerivativeConductance.emplace_back( delta, saturationFunction );
 
 		//////////////////////////////////////////////////////////////////////////////
 		/// Creating conductance function for liquid
@@ -229,5 +319,4 @@ namespace MoisThermFEM {
 
 		m_Capacitance.push_back( sorptionDerivative );
 	}
-
 }
