@@ -29,17 +29,29 @@ TEST_F( MultiDomain_2D_1, TestExample_1 ) {
 
 	std::vector< double > gridXCoordinates{ 0, 0.05, 0.1, 0.15 };
 
-	const double initialTemperature = 293.15;
-	const double initialMoistureContent = 0.2;
+	const double initialTemperature = 300.00;
+	const double initialMoistureContent = 0.0;
 	const double initialPressure = 101325;
 
 	auto state = State( initialTemperature, initialMoistureContent, initialPressure );
 	size_t nodeIndex = 0;
+	auto T = 0.0;
+	auto deltaT = 0.0;
+	auto H = 0.0;
+	auto deltaH = 0.1;
 	for ( auto val : gridXCoordinates ) {
 		++nodeIndex;
-		nodePool.createNode( nodeIndex, val, 0.00, state );
+		//nodePool.createNode( nodeIndex, val, 0.00, state );
+		nodePool.createNode( nodeIndex, val, 0.00,
+												 State( initialTemperature + T, initialMoistureContent + deltaH,
+																initialPressure ) );
 		++nodeIndex;
-		nodePool.createNode( nodeIndex, val, 0.05, state );
+		nodePool.createNode( nodeIndex, val, 0.05,
+												 State( initialTemperature + T, initialMoistureContent + deltaH,
+																initialPressure ) );
+		//nodePool.createNode( nodeIndex, val, 0.05, state );
+		T += deltaT;
+		H += deltaH;
 	}
 
 	auto & material = materialPool.createMaterial(
@@ -83,13 +95,13 @@ TEST_F( MultiDomain_2D_1, TestExample_1 ) {
 
 	// Create Boundary Conditions
 	const auto hc = 1;
-	const auto airTemperature = 303.15;
+	const auto airTemperature = 293.15;
 	const auto humidity = 0.2;
 
 	auto node1 = nodePool.Instance().getNode( 1 );
 	auto node2 = nodePool.Instance().getNode( 2 );
 
-	domain.createConvectionBC( node1, node2, hc, material.porosity(), airTemperature, humidity );
+	//domain.createConvectionBC( node1, node2, hc, material.porosity(), airTemperature, humidity );
 
 	const auto dTime = 36000;
 	const auto nSteps = 4;
