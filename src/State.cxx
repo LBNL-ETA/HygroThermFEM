@@ -25,6 +25,14 @@ namespace MoisThermFEM {
 		return state;
 	}
 
+	State operator-( const State & lhs, const State & rhs ) {
+		State state;
+		state.setValue( Property::temperature, lhs.getValue( Property::temperature ) - rhs.getValue( Property::temperature ) );
+		state.setValue( Property::humidity, lhs.getValue( Property::humidity ) - rhs.getValue( Property::humidity ) );
+		state.setValue( Property::pressure, lhs.getValue( Property::pressure ) - rhs.getValue( Property::pressure ) );
+		return state;
+	}
+
 	double State::getValue( const Property t_Property, const Iteration t_Iteration ) const {
 		return m_Property.at( t_Iteration ).at( t_Property );
 	}

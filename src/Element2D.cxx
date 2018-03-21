@@ -5,12 +5,13 @@
 #include "IntegrationPoints.hxx"
 #include "QuadrilateralLocal2D.hxx"
 #include "Common.hxx"
+#include "MaterialProperties.hxx"
 
 using FenestrationCommon::SquareMatrix;
 
 namespace MoisThermFEM {
 
-	using pValue = std::shared_ptr< MoisThermFEM::IValue >;
+	using iValue = std::shared_ptr< MoisThermFEM::IValue >;
 
 	//////////////////////////////////////////////////////////////////////////////
 	///  IQLEMatrix2D
@@ -247,22 +248,13 @@ namespace MoisThermFEM {
 																									const Material & mat ) :
 			IElementLinear2D( t_Node1, t_Node2, t_Node3, t_Node4 ) {
 
-		/// Calculate air and water content
-		pValue waterContent(
-				std::make_shared< MoisThermFEM::TabularFunction >( mat.sorptionCurve(),
-																													 Property::humidity ) );
-
-		/// Calls sorption curve at 100% humidity to get maximum water content
-		auto maxWaterContent = waterContent->value( State( 0, 1, 0 ) );
-
-		pValue waterFill = mat.porosity() / maxWaterContent * waterContent;
-
-		pValue airFill = mat.porosity() - waterFill;
+		iValue waterFill = MaterialProperties::getWaterFill( mat );
+		///iValue waterFill( std::make_shared< MoisThermFEM::Constant >( 0.1 ) );
+		iValue airFill = MaterialProperties::getAirFill( mat );
 
 		auto waterCapacitance = waterFill * ( Constants::Density_Water * Constants::Cp_Water );
 		auto airCapacitance = airFill * ( Constants::Density_Air * Constants::Cp_Air );
-		auto dryCapacitance =
-				( 1 - mat.porosity() ) * ( mat.density() * mat.heatCapacity() );
+		auto dryCapacitance = ( 1 - mat.porosity() ) * ( mat.density() * mat.heatCapacity() );
 
 		auto capacitance = waterCapacitance + airCapacitance;
 		capacitance = capacitance + dryCapacitance;
@@ -280,8 +272,8 @@ namespace MoisThermFEM {
 
 		/// Seems that it is not neccessary to create separate term when conductance coefficient
 		/// is changing. Need to confirm that with rest of the team (Simon)
-		/// pValue one( std::make_shared< MoisThermFEM::Constant >( 1 ) );
-		/// m_DerivativeConductance.emplace_back( one, conductance );
+		///iValue one( std::make_shared< MoisThermFEM::Constant >( 1 ) );
+		///m_DerivativeConductance.emplace_back( one, conductance );
 
 	}
 
@@ -297,19 +289,20 @@ namespace MoisThermFEM {
 		//////////////////////////////////////////////////////////////////////////////
 		/// Creating conductance function for vapor
 		//////////////////////////////////////////////////////////////////////////////
-		pValue delta(
-				std::make_shared< MoisThermFEM::Constant >( 2.5E-5 / mat.diffusionResistanceFactor() ) );
-		pValue saturationFunction(
+		iValue delta( std::make_shared< MoisThermFEM::Constant >( 2.5E-5 / mat.diffusionResistanceFactor() ) );
+		//iValue delta( std::make_shared< MoisThermFEM::Constant >( 0.01 ) );
+		iValue saturationFunction(
 				std::make_shared< MoisThermFEM::SaturationFunction >( Property::temperature ) );
 
 		m_Conductance.push_back( delta * saturationFunction );
+		//m_Conductance.push_back( delta );
 
-		m_DerivativeConductance.emplace_back( delta, saturationFunction );
+		//m_DerivativeConductance.emplace_back( delta, saturationFunction );
 
 		//////////////////////////////////////////////////////////////////////////////
 		/// Creating conductance function for liquid
 		//////////////////////////////////////////////////////////////////////////////
-		pValue suctionCurve(
+		iValue suctionCurve(
 				std::make_shared< MoisThermFEM::SuctionFunction >( mat.liquidTransportationCurve(),
 																													 Property::humidity ) );
 		m_Conductance.push_back( suctionCurve );
@@ -317,10 +310,9 @@ namespace MoisThermFEM {
 		//////////////////////////////////////////////////////////////////////////////
 		/// Creating capacitance function
 		//////////////////////////////////////////////////////////////////////////////
-		pValue sorptionCurve(
-				std::make_shared< MoisThermFEM::TabularFunction >( mat.sorptionCurve(),
+		iValue sorptionDerivative(
+				std::make_shared< MoisThermFEM::TabularDerivative >( mat.sorptionCurve(),
 																													 Property::humidity ) );
-		pValue sorptionDerivative{ std::make_shared< MoisThermFEM::Derivative >( sorptionCurve ) };
 
 		m_Capacitance.push_back( sorptionDerivative );
 	}

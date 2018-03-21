@@ -23,6 +23,7 @@ namespace MoisThermFEM {
 		State & operator=( const State & other ) = default;
 
 		friend State operator+( const State & lhs, const State & rhs );
+		friend State operator-( const State & lhs, const State & rhs );
 
 		double getValue( const Property t_Property, const Iteration t_Iteration = Iteration::Current ) const;
 		void setValue( const Property t_Property, const double t_Value );

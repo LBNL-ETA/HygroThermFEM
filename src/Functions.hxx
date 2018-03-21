@@ -30,7 +30,7 @@ namespace MoisThermFEM {
 	//////////////////////////////////////////////////////////////////
 
 	/// Interface for functions
-	class IFunction: public IValue {
+	class IFunction : public IValue {
 	public:
 		IFunction( Property t_Property );
 
@@ -47,10 +47,10 @@ namespace MoisThermFEM {
 	///  IOperation
 	//////////////////////////////////////////////////////////////////
 
-	class IOperation: public IValue {
+	class IOperation : public IValue {
 	public:
 		IOperation( std::shared_ptr< IValue > & t_Val1, std::shared_ptr< IValue > & t_Val2,
-		            Operation t_Operation );
+								Operation t_Operation );
 
 	public:
 
@@ -112,7 +112,7 @@ namespace MoisThermFEM {
 	//////////////////////////////////////////////////////////////////
 
 	/// Simple constant curve.
-	class Constant: public IFunction {
+	class Constant : public IFunction {
 	public:
 		Constant( const double value );
 
@@ -143,13 +143,13 @@ namespace MoisThermFEM {
 
 	/// Interface for classic tabular curve. There are different interpolation strategies and
 	/// this is base class for all of them.
-	class TabularFunction: public IFunction {
+	class TabularFunction : public IFunction {
 	public:
 		TabularFunction( const std::vector< std::pair< double, double > > & values, Property property,
-		                 FenestrationCommon::Interpolator interpolator = FenestrationCommon::Interpolation::Linear );
+										 FenestrationCommon::Interpolator interpolator = FenestrationCommon::Interpolation::Linear );
 
 		TabularFunction( std::initializer_list< std::pair< double, double > > & list, Property property,
-		                 FenestrationCommon::Interpolator interpolator = FenestrationCommon::Interpolation::Linear );
+										 FenestrationCommon::Interpolator interpolator = FenestrationCommon::Interpolation::Linear );
 
 		double max() const;
 
@@ -169,6 +169,31 @@ namespace MoisThermFEM {
 	};
 
 	//////////////////////////////////////////////////////////////////
+	///  TabularDerivative
+	//////////////////////////////////////////////////////////////////
+
+	/// This class is different from ordinary derivative because it extends over the limits. This is
+	/// important in iterations when first derivative really needs to be evaluated outside of limits
+	/// or convergence will produce incorrect results (sorption curve is good example).
+	class TabularDerivative : public IFunction {
+	public:
+		TabularDerivative( const std::vector< std::pair< double, double > > & values,
+											 Property property );
+
+		TabularDerivative( std::initializer_list< std::pair< double, double > > & list,
+											 Property property );
+
+	protected:
+		std::vector< std::pair< double, double > > m_Curve;
+
+		double getValue( const double t_position ) const override;
+
+		virtual std::pair< std::pair< double, double >, std::pair< double, double > >
+		getInterpolationPoints( std::vector< std::pair< double, double > >::const_iterator & it ) const;
+
+	};
+
+	//////////////////////////////////////////////////////////////////
 	///  SuctionFunction
 	//////////////////////////////////////////////////////////////////
 
@@ -178,12 +203,12 @@ namespace MoisThermFEM {
 	class SuctionFunction : public TabularFunction {
 	public:
 		SuctionFunction( const std::vector< std::pair< double, double > > & values,
-		                 Property property,
-		                 const FenestrationCommon::Interpolator & interpolator = FenestrationCommon::Interpolation::Logarithmic );
+										 Property property,
+										 const FenestrationCommon::Interpolator & interpolator = FenestrationCommon::Interpolation::Logarithmic );
 
 		SuctionFunction( const std::initializer_list< std::pair< double, double > > & list,
-		                 Property property,
-		                 const FenestrationCommon::Interpolator & interpolator = FenestrationCommon::Interpolation::Logarithmic );
+										 Property property,
+										 const FenestrationCommon::Interpolator & interpolator = FenestrationCommon::Interpolation::Logarithmic );
 
 	protected:
 		std::pair< std::pair< double, double >, std::pair< double, double > >

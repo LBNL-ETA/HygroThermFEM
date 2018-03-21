@@ -23,3 +23,4 @@
 #include "../src/Element2DFactory.hxx"
 #include "../src/FEMMath.hxx"
 #include "../src/MultiDomain.hxx"
+#include "../src/MaterialProperties.hxx"

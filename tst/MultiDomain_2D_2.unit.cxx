@@ -5,13 +5,7 @@
 
 using namespace MoisThermFEM;
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
-/// This is simple two elements multi-domain example without boundary conditions. Initial
-/// temperature and moisture distribution is not same in every node. This case should prove
-/// that domain will try to reach equilibrium
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-class MultiDomain_2D_1 : public testing::Test {
+class MultiDomain_2D_2 : public testing::Test {
 
 protected:
 	void
@@ -26,7 +20,7 @@ protected:
 
 };
 
-TEST_F( MultiDomain_2D_1, TestExample_1 ) {
+TEST_F( MultiDomain_2D_2, TestExample_1 ) {
 	SCOPED_TRACE( "Begin Test: Simple two elements example with moisture and heat transfer." );
 
 	// Enter nodes. Arguments are: node number, x-coordinate, y-coordinate
@@ -35,27 +29,17 @@ TEST_F( MultiDomain_2D_1, TestExample_1 ) {
 
 	std::vector< double > gridXCoordinates{ 0, 0.05, 0.1 };
 
-	const double initialTemperature = 300.00;
+	const double initialTemperature = 273.15;
 	const double initialMoistureContent = 0.0;
 	const double initialPressure = 101325;
 
 	auto state = State( initialTemperature, initialMoistureContent, initialPressure );
 	size_t nodeIndex = 0;
-	auto T = 0.0;
-	auto deltaT = 10.0;
-	auto H = 0.0;
-	auto deltaH = 0.1;
 	for ( auto val : gridXCoordinates ) {
 		++nodeIndex;
-		nodePool.createNode( nodeIndex, val, 0.00,
-												 State( initialTemperature + T, initialMoistureContent + H,
-																initialPressure ) );
+		nodePool.createNode( nodeIndex, val, 0.00, state );
 		++nodeIndex;
-		nodePool.createNode( nodeIndex, val, 0.05,
-												 State( initialTemperature + T, initialMoistureContent + H,
-																initialPressure ) );
-		T += deltaT;
-		H += deltaH;
+		nodePool.createNode( nodeIndex, val, 0.05, state );
 	}
 
 	auto & material = materialPool.createMaterial(
@@ -99,7 +83,17 @@ TEST_F( MultiDomain_2D_1, TestExample_1 ) {
 		domain.createElement( node1, node2, node3, node4, material );
 	}
 
-	const auto dTime = 360;
+	/// Create Boundary Conditions
+	const auto hc = 1;
+	const auto airTemperature = 293.15;
+	const auto humidity = 0.2;
+
+	auto node1 = nodePool.Instance().getNode( 1 );
+	auto node2 = nodePool.Instance().getNode( 2 );
+
+	domain.createConvectionBC( node1, node2, hc, material.porosity(), airTemperature, humidity );
+
+	const auto dTime = 3600;
 	const auto nSteps = 10;
 
 	auto temperatures = NodePool::Instance().nodeProperties( Property::temperature );
@@ -115,6 +109,18 @@ TEST_F( MultiDomain_2D_1, TestExample_1 ) {
 		humidities = aSolution.humidity;
 	}
 
+	std::cout << "******************************************************" << std::endl;
+	std::cout << "Water content solution" << std::endl;
+	std::cout << "******************************************************" << std::endl;
+
+	std::cout.precision( 8 );
+	for ( auto & val : waterContentSolution ) {
+		for ( auto & item : val ) {
+			std::cout << item << ", ";
+		}
+		std::cout << std::endl;
+	}
+
 	std::vector< std::vector< double > > correctWaterContentSolution = {
 			{ 0.0017333712, 0.0017333712, 1.0604835, 1.0604835, 2.1164663, 2.1164663 },
 			{ 0.0035344008, 0.0035344008, 1.060838,  1.060838,  2.1133204, 2.1133204 },
@@ -128,12 +134,24 @@ TEST_F( MultiDomain_2D_1, TestExample_1 ) {
 			{ 0.019180671,  0.019180671,  1.0617426, 1.0617426, 2.0940351, 2.0940351 }
 	};
 
-	EXPECT_EQ( waterContentSolution.size(), correctWaterContentSolution.size() );
+	//EXPECT_EQ( waterContentSolution.size(), correctWaterContentSolution.size() );
+//
+	//for ( auto i = 0u; i < correctWaterContentSolution.size(); ++i ) {
+	//	for ( auto j = 0u; j < correctWaterContentSolution[ i ].size(); ++j ) {
+	//		EXPECT_NEAR( correctWaterContentSolution[ i ][ j ], waterContentSolution[ i ][ j ], 1e-6 );
+	//	}
+	//}
 
-	for ( auto i = 0u; i < correctWaterContentSolution.size(); ++i ) {
-		for ( auto j = 0u; j < correctWaterContentSolution[ i ].size(); ++j ) {
-			EXPECT_NEAR( correctWaterContentSolution[ i ][ j ], waterContentSolution[ i ][ j ], 1e-6 );
+	std::cout << "******************************************************" << std::endl;
+	std::cout << "Temperature solution" << std::endl;
+	std::cout << "******************************************************" << std::endl;
+
+	std::cout.precision( 8 );
+	for ( auto & val : temperatureSolution ) {
+		for ( auto & item : val ) {
+			std::cout << item << ", ";
 		}
+		std::cout << std::endl;
 	}
 
 	std::vector< std::vector< double > > correctTemperatureSolution = {
@@ -149,11 +167,11 @@ TEST_F( MultiDomain_2D_1, TestExample_1 ) {
 			{ 309.2958006, 309.2958006, 310.0051613, 310.0051613, 310.7160944, 310.7160944 }
 	};
 
-	EXPECT_EQ( temperatureSolution.size(), correctTemperatureSolution.size() );
-
-	for ( auto i = 0u; i < correctTemperatureSolution.size(); ++i ) {
-		for ( auto j = 0u; j < correctTemperatureSolution[ i ].size(); ++j ) {
-			EXPECT_NEAR( correctTemperatureSolution[ i ][ j ], temperatureSolution[ i ][ j ], 1e-6 );
-		}
-	}
+	//EXPECT_EQ( temperatureSolution.size(), correctTemperatureSolution.size() );
+//
+	//for ( auto i = 0u; i < correctTemperatureSolution.size(); ++i ) {
+	//	for ( auto j = 0u; j < correctTemperatureSolution[ i ].size(); ++j ) {
+	//		EXPECT_NEAR( correctTemperatureSolution[ i ][ j ], temperatureSolution[ i ][ j ], 1e-6 );
+	//	}
+	//}
 }
