@@ -290,14 +290,12 @@ namespace MoisThermFEM {
 		/// Creating conductance function for vapor
 		//////////////////////////////////////////////////////////////////////////////
 		iValue delta( std::make_shared< MoisThermFEM::Constant >( 2.5E-5 / mat.diffusionResistanceFactor() ) );
-		//iValue delta( std::make_shared< MoisThermFEM::Constant >( 0.01 ) );
 		iValue saturationFunction(
 				std::make_shared< MoisThermFEM::SaturationFunction >( Property::temperature ) );
 
 		m_Conductance.push_back( delta * saturationFunction );
-		//m_Conductance.push_back( delta );
 
-		//m_DerivativeConductance.emplace_back( delta, saturationFunction );
+		m_DerivativeConductance.emplace_back( delta, saturationFunction );
 
 		//////////////////////////////////////////////////////////////////////////////
 		/// Creating conductance function for liquid
