@@ -72,7 +72,7 @@ TEST_F( Analytical_TemperatureBC_Transient, TestExample_1 ) {
 		auto node3 = nodePool.Instance().getNode( 2 * i + 2 );
 		auto node4 = nodePool.Instance().getNode( 2 * i );
 
-		domain.elementsCreator().createThermalElement( node1, node2, node3, node4, material );
+		domain.createThermalElement( node1, node2, node3, node4, material );
 	}
 
 	// Create Boundary Conditions
@@ -82,7 +82,7 @@ TEST_F( Analytical_TemperatureBC_Transient, TestExample_1 ) {
 	auto nodeBC1 = nodePool.Instance().getNode( 21 );
 	auto nodeBC2 = nodePool.Instance().getNode( 22 );
 
-	domain.boundariesCreator().createConvectionBC( nodeBC1, nodeBC2, hc, tAir );
+	domain.createConvectionBC( nodeBC1, nodeBC2, hc, tAir );
 
 	const auto dTime = 0.001;
 	const auto nSteps = 1000;

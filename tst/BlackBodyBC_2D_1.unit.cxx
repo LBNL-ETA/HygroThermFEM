@@ -76,14 +76,14 @@ TEST_F( BlackBodyBC_2D_1, TestExample_1 ) {
 
 	Domain domain{ Property::temperature };
 
-	domain.elementsCreator().createThermalElement( node3, node4, node2, node1, material );
-	domain.elementsCreator().createThermalElement( node6, node4, node3, node5, material );
+	domain.createThermalElement( node3, node4, node2, node1, material );
+	domain.createThermalElement( node6, node4, node3, node5, material );
 
 	// Create Boundary Conditions
 	const auto tRadiation = 200.0;
 	const auto surfaceEmissivity = 0.84;
 
-	domain.boundariesCreator().createBlackBodyRadiationBC( node5, node6, surfaceEmissivity,
+	domain.createBlackBodyRadiationBC( node5, node6, surfaceEmissivity,
 																												 tRadiation );
 
 	const auto dTime = 3600;

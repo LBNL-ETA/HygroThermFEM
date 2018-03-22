@@ -3,6 +3,7 @@
 #include <cmath>
 
 #include "BoundaryCondition2D.hxx"
+#include "MaterialProperties.hxx"
 #include "Common.hxx"
 
 namespace MoisThermFEM {
@@ -98,12 +99,12 @@ namespace MoisThermFEM {
 
 	MoistureBC::MoistureBC( const Node2D & t_Node1, const Node2D & t_Node2,
 													const double t_ConvectiveCoefficient,
-													const double t_Porosity, const double t_AirHumidity,
+													const Material & t_Material, const double t_AirHumidity,
 													const double t_AirTemperature )
 			:
 			IBCLinear2D( t_Node1, t_Node2 ), m_ConvectiveCoefficient( t_ConvectiveCoefficient ),
 			m_AirHumidity( t_AirHumidity ), m_AirTemperature( t_AirTemperature ),
-			m_Porosity( t_Porosity ) {
+			m_Material( t_Material ) {
 
 	}
 
@@ -111,9 +112,10 @@ namespace MoisThermFEM {
 		using pValue = std::shared_ptr< IValue >;
 
 		pValue saturation( std::make_shared< SaturationFunction >( Property::temperature ) );
-		auto humidityCalculator = saturation * m_AirHumidity;
+		pValue airFill = MaterialProperties::getAirFill( m_Material );
+		auto humidityCalculator = saturation * airFill;
+		humidityCalculator = humidityCalculator * m_AirHumidity;
 
-		humidityCalculator = humidityCalculator * m_Porosity;
 		const auto humidityByVolume = humidityCalculator->value(
 				State( m_AirTemperature, m_AirHumidity, 101325 ) );
 		const auto coeff =
@@ -126,7 +128,9 @@ namespace MoisThermFEM {
 
 		pValue saturationFunction( std::make_shared< SaturationFunction >( Property::temperature ) );
 
-		const auto humidityCoeff = m_Porosity * saturationFunction;
+		pValue airFill = MaterialProperties::getAirFill( m_Material );
+
+		const auto humidityCoeff = airFill * saturationFunction;
 
 		const auto humidityByVolume1 = humidityCoeff->value( m_Nodes[ 0 ].getState() );
 		const auto humidityByVolume2 = humidityCoeff->value( m_Nodes[ 1 ].getState() );

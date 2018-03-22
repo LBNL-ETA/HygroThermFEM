@@ -78,14 +78,14 @@ TEST_F( Topaz2D_ConvectionBC, TestExample_1 ) {
 
 	Domain domain { Property::temperature };
 
-	domain.elementsCreator().createThermalElement( node3, node4, node2, node1, material );
-	domain.elementsCreator().createThermalElement( node6, node4, node3, node5, material );
+	domain.createThermalElement( node3, node4, node2, node1, material );
+	domain.createThermalElement( node6, node4, node3, node5, material );
 
 	// Create Boundary Conditions
 	const auto tSurface = 20.0;
 	const auto hc = 20.0;
 
-	domain.boundariesCreator().createConvectionBC( node5, node6, hc, tSurface );
+	domain.createConvectionBC( node5, node6, hc, tSurface );
 
 	const auto dTime = 3600;
 	const auto nSteps = 4;
@@ -98,14 +98,6 @@ TEST_F( Topaz2D_ConvectionBC, TestExample_1 ) {
 		temperatures = domain.transient( temperatures, dTime );
 		solution.push_back( temperatures );
 	}
-
-	/// std::cout.precision( 8 );
-	/// for ( auto & val : solution ) {
-	/// 	for ( auto & item : val ) {
-	/// 		std::cout << item << ", ";
-	/// 	}
-	/// 	std::cout << std::endl;
-	/// }
 
 	std::vector< std::vector< double > > correctSolution = {
 			{ 1.4182108, 1.4182108, 3.3250259, 3.3250259, 7.6313602, 7.6313602 },

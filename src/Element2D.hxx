@@ -99,7 +99,7 @@ namespace MoisThermFEM {
 	class IElementLinear2D {
 	public:
 		IElementLinear2D( const Node2D & t_Node1, const Node2D & t_Node2, const Node2D & t_Node3,
-											const Node2D & t_Node4 );
+											const Node2D & t_Node4, const Material & t_Material );
 
 		FenestrationCommon::SquareMatrix< double > conductanceMatrix() const;
 
@@ -109,7 +109,11 @@ namespace MoisThermFEM {
 
 		Node2D & getNode( const std::size_t index );
 
+		bool haveBothNodes( const Node2D & t_Node1, const Node2D & t_Node2 ) const;
+
 		std::vector< std::size_t > nodeIndexes() const;
+
+		const Material & getMaterial() const;
 
 	protected:
 		/// TODO: This did not work with reference_wrapper and it should. Check later.
@@ -117,6 +121,8 @@ namespace MoisThermFEM {
 		std::vector< std::shared_ptr< MoisThermFEM::IValue > > m_Conductance;
 		std::vector< std::shared_ptr< MoisThermFEM::IValue > > m_Capacitance;
 		std::vector< DerivativeFunction > m_DerivativeConductance;
+
+		const Material & m_Material;
 
 	private:
 		std::vector< Node2D > m_Node;

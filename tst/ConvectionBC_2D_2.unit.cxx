@@ -78,7 +78,7 @@ TEST_F( ConvectionBC_2D_2, TestExample_1 ) {
 		auto node2 = nodePool.Instance().getNode( 2 * i + 2 );
 		auto node3 = nodePool.Instance().getNode( 2 * i );
 		auto node4 = nodePool.Instance().getNode( 2 * i - 1 );
-		domain.elementsCreator().createThermalElement( node1, node2, node3, node4, material );
+		domain.createThermalElement( node1, node2, node3, node4, material );
 	}
 
 	// Create Boundary Conditions
@@ -88,7 +88,7 @@ TEST_F( ConvectionBC_2D_2, TestExample_1 ) {
 	auto node1 = nodePool.Instance().getNode( 1 );
 	auto node2 = nodePool.Instance().getNode( 2 );
 
-	domain.boundariesCreator().createConvectionBC( node1, node2, hc, tSurface );
+	domain.createConvectionBC( node1, node2, hc, tSurface );
 
 	const auto dTime = 36000;
 	const auto nSteps = 4;

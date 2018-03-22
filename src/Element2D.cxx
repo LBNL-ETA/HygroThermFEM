@@ -163,7 +163,8 @@ namespace MoisThermFEM {
 
 	IElementLinear2D::IElementLinear2D(
 			const Node2D & t_Node1, const Node2D & t_Node2,
-			const Node2D & t_Node3, const Node2D & t_Node4 ) :
+			const Node2D & t_Node3, const Node2D & t_Node4, const Material & t_Material ) :
+			m_Material{ t_Material },
 			m_Node{ { t_Node1, t_Node2, t_Node3, t_Node4 } },
 			m_Global2D{ t_Node1, t_Node2, t_Node3, t_Node4 },
 			m_QLECapacitance2D{ m_Global2D },
@@ -239,6 +240,20 @@ namespace MoisThermFEM {
 		return m_Global2D.nodeIndexes();
 	}
 
+	const Material & IElementLinear2D::getMaterial() const {
+		return m_Material;
+	}
+
+	bool IElementLinear2D::haveBothNodes( const Node2D & t_Node1, const Node2D & t_Node2 ) const {
+		bool node1Found = false;
+		bool node2Found = false;
+		for( auto & node : m_Node ) {
+			node1Found = node1Found || node == t_Node1;
+			node2Found = node2Found || node == t_Node2;
+		}
+		return node1Found && node2Found;
+	}
+
 	//////////////////////////////////////////////////////////////////////////////
 	///  ElementThermalLinear2D
 	//////////////////////////////////////////////////////////////////////////////
@@ -246,10 +261,9 @@ namespace MoisThermFEM {
 	ElementThermalLinear2D::ElementThermalLinear2D( const Node2D & t_Node1, const Node2D & t_Node2,
 																									const Node2D & t_Node3, const Node2D & t_Node4,
 																									const Material & mat ) :
-			IElementLinear2D( t_Node1, t_Node2, t_Node3, t_Node4 ) {
+			IElementLinear2D( t_Node1, t_Node2, t_Node3, t_Node4, mat ) {
 
 		iValue waterFill = MaterialProperties::getWaterFill( mat );
-		///iValue waterFill( std::make_shared< MoisThermFEM::Constant >( 0.1 ) );
 		iValue airFill = MaterialProperties::getAirFill( mat );
 
 		auto waterCapacitance = waterFill * ( Constants::Density_Water * Constants::Cp_Water );
@@ -284,7 +298,7 @@ namespace MoisThermFEM {
 	ElementMoistureLinear2D::ElementMoistureLinear2D( const Node2D & t_Node1, const Node2D & t_Node2,
 																										const Node2D & t_Node3, const Node2D & t_Node4,
 																										const Material & mat ) :
-			IElementLinear2D( t_Node1, t_Node2, t_Node3, t_Node4 ) {
+			IElementLinear2D( t_Node1, t_Node2, t_Node3, t_Node4, mat ) {
 
 		//////////////////////////////////////////////////////////////////////////////
 		/// Creating conductance function for vapor

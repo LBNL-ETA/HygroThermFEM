@@ -19,8 +19,31 @@ namespace MoisThermFEM {
 		std::vector< double >
 		transient( std::vector< double > & currentStateValues, const double t_DTime );
 
-		BoundaryCondition2DFactory & boundariesCreator();
-		Element2DFactory & elementsCreator();
+		void createConvectionBC( const Node2D & t_Node1, const Node2D & t_Node2,
+														 const double t_ConvectionCoefficient, const double t_AirTemperature );
+
+		void createTemperatureBC( Node2D & t_Node1, Node2D & t_Node2, const double t_Temp1,
+															const double t_Temp2 );
+
+		void createTemperatureBC( Node2D & t_Node1, Node2D & t_Node2, const double t_Temp );
+
+		void createFluxBC( Node2D & t_Node1, Node2D & t_Node2, const double t_Flux );
+
+		void createBlackBodyRadiationBC( const Node2D & t_Node1, const Node2D & t_Node2,
+																		 const double t_Emissivity,
+																		 const double t_RadiationTemperature );
+
+		void createMoistureBC( const Node2D & t_Node1, const Node2D & t_Node2,
+															 const double t_ConvectiveCoefficient, const double t_AirHumidity,
+															 const double t_AirTemperature );
+
+		void createThermalElement( const Node2D & t_Node1, const Node2D & t_Node2, const Node2D & t_Node3,
+															 const Node2D & t_Node4, const Material & mat );
+
+		void createMoistureElement( const Node2D & t_Node1, const Node2D & t_Node2, const Node2D & t_Node3,
+																const Node2D & t_Node4, const Material & mat );
+
+		IElementLinear2D* findElement( const Node2D & t_Node1, const Node2D & t_Node2 );
 
 	protected:
 

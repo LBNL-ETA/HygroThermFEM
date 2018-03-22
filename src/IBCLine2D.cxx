@@ -3,6 +3,7 @@
 #include "IBCLine2D.hxx"
 #include "IntegrationPoints.hxx"
 #include "LineLocal1D.hxx"
+#include "Elements2D.hxx"
 
 using FenestrationCommon::SquareMatrix;
 
@@ -10,7 +11,8 @@ namespace MoisThermFEM {
 
 	IBCLinear2D::IBCLinear2D( const Node2D & t_Node1, const Node2D & t_Node2,
 														const bool t_Linear )
-			: m_Nodes( t_Node1, t_Node2 ), m_Linear( t_Linear ), m_PsiPsiMatrix( numOfBCNodes ),
+			: m_Nodes( t_Node1, t_Node2 ), m_Linear( t_Linear ),
+				m_PsiPsiMatrix( numOfBCNodes ),
 				m_PsiVector( numOfBCNodes, 0 ) {
 
 		m_Determinant =
@@ -49,7 +51,7 @@ namespace MoisThermFEM {
 	/// }
 
 	double IBCLinear2D::getIntegratedProperty( const Property t_Property ) const {
-		double sum { 0 };
+		double sum{ 0 };
 		for ( std::size_t i = 0; i < numOfIntegrationPoints(); ++i ) {
 			for ( std::size_t j = 0; j < numOfBCNodes; ++j ) {
 				sum += m_Nodes[ j ].getProperty( t_Property ) * psi( i, j );
@@ -59,7 +61,7 @@ namespace MoisThermFEM {
 	}
 
 	double IBCLinear2D::getIntegratedDeltaProperty( const Property t_Property ) const {
-		double sum { 0 };
+		double sum{ 0 };
 		for ( std::size_t i = 0; i < numOfIntegrationPoints(); ++i ) {
 			for ( std::size_t j = 0; j < numOfBCNodes; ++j ) {
 				sum += m_Nodes[ j ].getDeltaProperty( t_Property ) * psi( i, j );
@@ -70,7 +72,7 @@ namespace MoisThermFEM {
 
 	Node2D & IBCLinear2D::getNode( const std::size_t index ) {
 		if( index > numOfBCNodes ) {
-			throw std::runtime_error("Index out of range.");
+			throw std::runtime_error( "Index out of range." );
 		}
 		return m_Nodes.getNode( index );
 	}

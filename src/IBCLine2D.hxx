@@ -5,6 +5,7 @@
 #include "SquareMatrix.hxx"
 #include "Node2D.hxx"
 #include "Vector.hxx"
+#include "Material.hxx"
 
 namespace MoisThermFEM {
 
