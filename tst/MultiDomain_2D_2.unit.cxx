@@ -45,7 +45,7 @@ TEST_F( MultiDomain_2D_2, TestExample_1 ) {
 	auto & material = materialPool.createMaterial(
 			"Cottaer Sandstone",
 			2050, /// density
-			0.1, /// porosity
+			0.22, /// porosity
 			850,  /// specific heat capacity (dry)
 			1.8,  /// thermal conductivity (dry)
 			15,   /// diffusion resistance factor

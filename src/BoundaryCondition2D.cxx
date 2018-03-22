@@ -112,8 +112,8 @@ namespace MoisThermFEM {
 		using pValue = std::shared_ptr< IValue >;
 
 		pValue saturation( std::make_shared< SaturationFunction >( Property::temperature ) );
-		pValue airFill = MaterialProperties::getAirFill( m_Material );
-		auto humidityCalculator = saturation * airFill;
+		//pValue airFill = MaterialProperties::getAirFill( m_Material );
+		auto humidityCalculator = saturation * m_Material.porosity();
 		humidityCalculator = humidityCalculator * m_AirHumidity;
 
 		const auto humidityByVolume = humidityCalculator->value(
@@ -128,9 +128,9 @@ namespace MoisThermFEM {
 
 		pValue saturationFunction( std::make_shared< SaturationFunction >( Property::temperature ) );
 
-		pValue airFill = MaterialProperties::getAirFill( m_Material );
+		//pValue airFill = MaterialProperties::getAirFill( m_Material );
 
-		const auto humidityCoeff = airFill * saturationFunction;
+		const auto humidityCoeff = m_Material.porosity() * saturationFunction;
 
 		const auto humidityByVolume1 = humidityCoeff->value( m_Nodes[ 0 ].getState() );
 		const auto humidityByVolume2 = humidityCoeff->value( m_Nodes[ 1 ].getState() );
