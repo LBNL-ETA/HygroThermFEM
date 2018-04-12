@@ -64,8 +64,8 @@ TEST_F( ConvectionBC_2D_1, TestExample_1 ) {
 
 	Domain domain{ Property::temperature };
 
-	domain.elementsCreator().createThermalElement( node3, node4, node2, node1, material );
-	domain.elementsCreator().createThermalElement( node6, node4, node3, node5, material );
+	domain.createThermalElement( node3, node4, node2, node1, material );
+	domain.createThermalElement( node6, node4, node3, node5, material );
 
 	// Create Boundary Conditions
 	const auto hc1 = 20.0;
@@ -74,8 +74,8 @@ TEST_F( ConvectionBC_2D_1, TestExample_1 ) {
 	const auto hc2 = 2.4;
 	const auto temperatureAir2 = 21.0;
 
-	domain.boundariesCreator().createConvectionBC( node1, node2, hc1, temperatureAir1 );
-	domain.boundariesCreator().createConvectionBC( node6, node5, hc2, temperatureAir2 );
+	domain.createConvectionBC( node1, node2, hc1, temperatureAir1 );
+	domain.createConvectionBC( node6, node5, hc2, temperatureAir2 );
 
 	auto solution = domain.steadyState();
 

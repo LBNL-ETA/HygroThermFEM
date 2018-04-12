@@ -88,7 +88,7 @@ namespace MoisThermFEM {
 	public:
 		MoistureBC( const Node2D & t_Node1, const Node2D & t_Node2,
 								const double t_ConvectiveCoefficient,
-								const double t_Porosity, const double t_AirHumidity,
+								const Material & t_Material, const double t_AirHumidity,
 								const double t_AirTemperature );
 
 		virtual FenestrationCommon::Vector< double > R_Vector() const override;
@@ -99,7 +99,7 @@ namespace MoisThermFEM {
 		double m_ConvectiveCoefficient;
 		double m_AirHumidity;
 		double m_AirTemperature;
-		double m_Porosity;
+		const Material & m_Material;
 	};
 
 }

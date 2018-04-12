@@ -5,6 +5,12 @@
 
 using namespace MoisThermFEM;
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+/// This is simple two elements multi-domain example without boundary conditions. Initial
+/// temperature and moisture distribution is not same in every node. This case should prove
+/// that domain will try to reach equilibrium
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 class MultiDomain_2D_1 : public testing::Test {
 
 protected:
@@ -27,25 +33,37 @@ TEST_F( MultiDomain_2D_1, TestExample_1 ) {
 	auto & nodePool = NodePool::Instance();
 	auto & materialPool = MaterialPool::Instance();
 
-	std::vector< double > gridXCoordinates{ 0, 0.05, 0.1, 0.15 };
+	std::vector< double > gridXCoordinates{ 0, 0.05, 0.1 };
 
-	const double initialTemperature = 293.15;
-	const double initialMoistureContent = 0;
+	const double initialTemperature = 300.00;
+	const double initialMoistureContent = 0.0;
 	const double initialPressure = 101325;
 
 	auto state = State( initialTemperature, initialMoistureContent, initialPressure );
 	size_t nodeIndex = 0;
+	auto T = 0.0;
+	auto deltaT = 10.0;
+//	auto deltaT = 10.0;
+	auto H = 0.0;
+	auto deltaH = 0.1;
+//	auto deltaH = 0.1;
 	for ( auto val : gridXCoordinates ) {
 		++nodeIndex;
-		nodePool.createNode( nodeIndex, val, 0.00, state );
+		nodePool.createNode( nodeIndex, val, 0.00,
+												 State( initialTemperature + T, initialMoistureContent + H,
+																initialPressure ) );
 		++nodeIndex;
-		nodePool.createNode( nodeIndex, val, 0.05, state );
+		nodePool.createNode( nodeIndex, val, 0.05,
+												 State( initialTemperature + T, initialMoistureContent + H,
+																initialPressure ) );
+		T += deltaT;
+		H += deltaH;
 	}
 
 	auto & material = materialPool.createMaterial(
 			"Cottaer Sandstone",
 			2050, /// density
-			1.00, /// porosity
+			0.22, /// porosity
 			850,  /// specific heat capacity (dry)
 			1.8,  /// thermal conductivity (dry)
 			15,   /// diffusion resistance factor
@@ -57,7 +75,8 @@ TEST_F( MultiDomain_2D_1, TestExample_1 ) {
 				{ 144, 5E-8 },
 				{ 162, 1E-7 },
 				{ 171, 2E-7 },
-				{ 180, 7E-7 } },
+				{ 180, 7E-7 }
+			},
 			{ { 0,     0 },   /// sorption curve
 				{ 0.5,   5.3 },
 				{ 0.65,  8.4 },
@@ -67,7 +86,8 @@ TEST_F( MultiDomain_2D_1, TestExample_1 ) {
 				{ 0.99,  63 },
 				{ 0.995, 83 },
 				{ 0.999, 120 },
-				{ 1,     180 } }
+				{ 1,     180 }
+			}
 	);
 
 	MultiDomain domain;
@@ -81,18 +101,10 @@ TEST_F( MultiDomain_2D_1, TestExample_1 ) {
 		domain.createElement( node1, node2, node3, node4, material );
 	}
 
-	// Create Boundary Conditions
-	const auto hc = 1;
-	const auto airTemperature = 293.15;
-	const auto humidity = 0.5;
-
-	auto node1 = nodePool.Instance().getNode( 1 );
-	auto node2 = nodePool.Instance().getNode( 2 );
-
-	domain.createConvectionBC( node1, node2, hc, material.porosity(), airTemperature, humidity );
-
-	const auto dTime = 36000;
-	const auto nSteps = 4;
+	const auto dTime = 360;
+	/// const auto dTime = 3600;
+	const auto nSteps = 10;
+	/// const auto nSteps = 10;
 
 	auto temperatures = NodePool::Instance().nodeProperties( Property::temperature );
 	auto humidities = NodePool::Instance().nodeProperties( Property::humidity );
@@ -102,11 +114,16 @@ TEST_F( MultiDomain_2D_1, TestExample_1 ) {
 	for ( auto i = 0; i < nSteps; ++i ) {
 		auto aSolution = domain.transient( temperatures, humidities, dTime );
 		temperatureSolution.push_back( aSolution.temperature );
-		waterContentSolution.push_back( material.waterContent( aSolution.humidity ) );
+		//waterContentSolution.push_back( material.waterContent( aSolution.humidity ) );
+		waterContentSolution.push_back(aSolution.waterContent);
 		temperatures = aSolution.temperature;
 		humidities = aSolution.humidity;
 	}
 
+	/// std::cout << "******************************************************" << std::endl;
+	/// std::cout << "Water content solution" << std::endl;
+	/// std::cout << "******************************************************" << std::endl;
+///
 	/// std::cout.precision( 8 );
 	/// for ( auto & val : waterContentSolution ) {
 	/// 	for ( auto & item : val ) {
@@ -116,32 +133,56 @@ TEST_F( MultiDomain_2D_1, TestExample_1 ) {
 	/// }
 
 	std::vector< std::vector< double > > correctWaterContentSolution = {
-			{ 5.299994668, 5.299994668, 0.183871198, 0.183871198, 0.032795632, 0.032795632 },
-			{ 5.299999695, 5.299999695, 0.371026213, 0.371026213, 0.100414415, 0.100414415 },
-			{ 5.299999698, 5.299999698, 0.549863596, 0.549863596, 0.194063475, 0.194063475 },
-			{ 5.299999706, 5.299999706, 0.718353645, 0.718353645, 0.304960155, 0.304960155 }
+			{ 0.0020830641, 0.0020830641, 1.0610351, 1.0610351, 2.1150155, 2.1150155 },
+			{ 0.0041649337, 0.0041649337, 1.0617831, 1.0617831, 2.110805,  2.110805 },
+			{ 0.0062445946, 0.0062445946, 1.0623278, 1.0623278, 2.1071533, 2.1071533 },
+			{ 0.0083213149, 0.0083213149, 1.0627264, 1.0627264, 2.103911,  2.103911 },
+			{ 0.010394582,  0.010394582,  1.0630185, 1.0630185, 2.1009727, 2.1009727 },
+			{ 0.012464051,  0.012464051,  1.0632321, 1.0632321, 2.0982621, 2.0982621 },
+			{ 0.014529497,  0.014529497,  1.0633874, 1.0633874, 2.0957236, 2.0957236 },
+			{ 0.016590782,  0.016590782,  1.063499,  1.063499,  2.0933161, 2.0933161 },
+			{ 0.018647828,  0.018647828,  1.0635777, 1.0635777, 2.0910089, 2.0910089 },
+			{ 0.0207006,    0.0207006,    1.0636316, 1.0636316, 2.088779,  2.088779 }
 	};
 
-	// EXPECT_EQ( waterContentSolution.size(), correctWaterContentSolution.size() );
-//
-	// for ( auto i = 0u; i < correctWaterContentSolution.size(); ++i ) {
-	// 	for ( auto j = 0u; j < correctWaterContentSolution[ i ].size(); ++j ) {
-	// 		EXPECT_NEAR( correctWaterContentSolution[ i ][ j ], waterContentSolution[ i ][ j ], 1e-6 );
-	// 	}
-	// }
+	EXPECT_EQ( waterContentSolution.size(), correctWaterContentSolution.size() );
+
+	for ( auto i = 0u; i < correctWaterContentSolution.size(); ++i ) {
+		for ( auto j = 0u; j < correctWaterContentSolution[ i ].size(); ++j ) {
+			EXPECT_NEAR( correctWaterContentSolution[ i ][ j ], waterContentSolution[ i ][ j ], 1e-6 );
+		}
+	}
+
+	/// std::cout << "******************************************************" << std::endl;
+	/// std::cout << "Temperature solution" << std::endl;
+	/// std::cout << "******************************************************" << std::endl;
+///
+	/// std::cout.precision( 10 );
+	/// for ( auto & val : temperatureSolution ) {
+	/// 	for ( auto & item : val ) {
+	/// 		std::cout << item << ", ";
+	/// 	}
+	/// 	std::cout << std::endl;
+	/// }
 
 	std::vector< std::vector< double > > correctTemperatureSolution = {
-			{ 300.78062,   300.78062,   299.1739289, 299.1739289, 298.9780311, 298.9780311 },
-			{ 302.3493651, 302.3493651, 301.670692,  301.670692,  301.5831268, 301.5831268 },
-			{ 302.8590739, 302.8590739, 302.604354,  302.604354,  302.5711438, 302.5711438 },
-			{ 303.0430644, 303.0430644, 302.9489851, 302.9489851, 302.9366977, 302.9366977 }
+			{ 302.3175172, 302.3175172, 310.0016490, 310.0016490, 317.6932556, 317.6932556 },
+			{ 304.1027373, 304.1027373, 310.0035788, 310.0035788, 315.9149897, 315.9149897 },
+			{ 305.4780085, 305.4780085, 310.0054784, 310.0054784, 314.5442326, 314.5442326 },
+			{ 306.5375218, 306.5375218, 310.0072002, 310.0072002, 313.4876682, 313.4876682 },
+			{ 307.3538038, 307.3538038, 310.0086886, 310.0086886, 312.6733264, 312.6733264 },
+			{ 307.9827088, 307.9827088, 310.0099367, 310.0099367, 312.0457085, 312.0457085 },
+			{ 308.4672557, 308.4672557, 310.0109618, 310.0109618, 311.5620227, 311.5620227 },
+			{ 308.8405817, 308.8405817, 310.0117916, 310.0117916, 311.1892785, 311.1892785 },
+			{ 309.1282137, 309.1282137, 310.0124561, 310.0124561, 310.9020434, 310.9020434 },
+			{ 309.3498179, 309.3498179, 310.0129841, 310.0129841, 310.6807131, 310.6807131 }
 	};
 
-	// EXPECT_EQ( temperatureSolution.size(), correctTemperatureSolution.size() );
-//
-	// for ( auto i = 0u; i < correctTemperatureSolution.size(); ++i ) {
-	// 	for ( auto j = 0u; j < correctTemperatureSolution[ i ].size(); ++j ) {
-	// 		EXPECT_NEAR( correctTemperatureSolution[ i ][ j ], temperatureSolution[ i ][ j ], 1e-6 );
-	// 	}
-	// }
+	EXPECT_EQ( temperatureSolution.size(), correctTemperatureSolution.size() );
+
+	for ( auto i = 0u; i < correctTemperatureSolution.size(); ++i ) {
+		for ( auto j = 0u; j < correctTemperatureSolution[ i ].size(); ++j ) {
+			EXPECT_NEAR( correctTemperatureSolution[ i ][ j ], temperatureSolution[ i ][ j ], 1e-6 );
+		}
+	}
 }

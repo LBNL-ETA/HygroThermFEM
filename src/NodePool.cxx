@@ -37,6 +37,23 @@ namespace MoisThermFEM {
 		return aVector;
 	}
 
+	std::vector<double> NodePool::waterContent() const
+	{
+		std::vector< double > aVector;
+		for (const Node2D & aNode : m_Nodes) {
+			aVector.push_back(aNode.getWaterContent());
+		}
+		return aVector;
+	}
+
+	void NodePool::updateNodeValues( const std::vector<double> & t_values, const Property t_property )
+	{
+		assert(m_Nodes.size() == t_values.size());
+		for (std::size_t i = 0; i < t_values.size(); ++i) {
+			m_Nodes[i].setProperty(t_property, t_values[i]);
+		}
+	}
+
 	void NodePool::clear() {
 		m_Nodes.clear();
 	}

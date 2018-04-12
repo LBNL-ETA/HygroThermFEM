@@ -76,13 +76,13 @@ TEST_F( Topaz2D_TemperatureBC, TestExample_1 ) {
 
 	Domain domain{ Property::temperature };
 
-	domain.elementsCreator().createThermalElement( node1, node2, node4, node3, material );
-	domain.elementsCreator().createThermalElement( node5, node3, node4, node6, material );
+	domain.createThermalElement( node1, node2, node4, node3, material );
+	domain.createThermalElement( node5, node3, node4, node6, material );
 
 	// Create Boundary Conditions
 	const auto tSurface = 12.0;
 
-	domain.boundariesCreator().createTemperatureBC( node5, node6, tSurface );
+	domain.createTemperatureBC( node5, node6, tSurface );
 
 	const auto dTime = 3600;
 	const auto nSteps = 4;

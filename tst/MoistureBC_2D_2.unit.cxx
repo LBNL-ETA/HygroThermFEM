@@ -74,7 +74,7 @@ TEST_F( MoistureBC_2D_2, TestExample_1 ) {
 		auto node2 = nodePool.Instance().getNode( 2 * i + 2 );
 		auto node3 = nodePool.Instance().getNode( 2 * i );
 		auto node4 = nodePool.Instance().getNode( 2 * i - 1 );
-		domain.elementsCreator().createMoistureElement( node2, node3, node4, node1, material );
+		domain.createMoistureElement( node2, node3, node4, node1, material );
 	}
 
 	// Create Boundary Conditions
@@ -85,8 +85,7 @@ TEST_F( MoistureBC_2D_2, TestExample_1 ) {
 	auto node1 = nodePool.Instance().getNode( 5 );
 	auto node2 = nodePool.Instance().getNode( 6 );
 
-	domain.boundariesCreator().createMoistureBC( node1, node2, hc, material.porosity(), humidity,
-																							 airTemperature );
+	domain.createMoistureBC( node1, node2, hc, humidity, airTemperature );
 
 	const auto dTime = 36000;
 	const auto nSteps = 4;
@@ -98,14 +97,6 @@ TEST_F( MoistureBC_2D_2, TestExample_1 ) {
 		humidities = domain.transient( humidities, dTime );
 		solution.push_back( material.waterContent( humidities ) );
 	}
-
-	/// std::cout.precision( 8 );
-	/// for ( auto & val : solution ) {
-	/// 	for ( auto & item : val ) {
-	/// 		std::cout << item << ", ";
-	/// 	}
-	/// 	std::cout << std::endl;
-	/// }
 
 	std::vector< std::vector< double > > correctSolution = {
 			{ 0.0025399387, 0.0025399387, 0.13271657, 0.13271657, 5.2992847, 5.2992847 },

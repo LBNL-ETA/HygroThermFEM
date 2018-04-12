@@ -216,3 +216,36 @@ TEST_F( CurveTest, TestSaturationFunction ) {
 	EXPECT_NEAR( 0.002000939, result, 1e-6 );
 
 }
+
+TEST_F( CurveTest, TestTabularDerivative ) {
+	SCOPED_TRACE( "Begin Test: Test tabular derivative." );
+
+	std::shared_ptr< MoisThermFEM::IValue > waterContent(
+			new MoisThermFEM::TabularDerivative( { { 0.000, 0.0 },
+																						 { 0.500, 5.3 },
+																						 { 0.650, 8.4 },
+																						 { 0.800, 12 },
+																						 { 0.930, 17 },
+																						 { 0.950, 25 },
+																						 { 0.990, 63 },
+																						 { 0.995, 83 },
+																						 { 0.999, 120 },
+																						 { 1.000, 180 } }, Property::humidity ) );
+
+	State state1( 273.15, 0, 101325 );
+	auto result = waterContent->value( state1 );
+	EXPECT_NEAR( 10.6, result, 1e-6 );
+
+	State state2( 273.15, 1.0, 101325 );
+	result = waterContent->value( state2 );
+	EXPECT_NEAR( 60000, result, 1e-6 );
+
+	State state3( 273.15, -1.0, 101325 );
+	result = waterContent->value( state3 );
+	EXPECT_NEAR( 10.6, result, 1e-6 );
+
+	State state4( 273.15, 2.0, 101325 );
+	result = waterContent->value( state4 );
+	EXPECT_NEAR( 60000, result, 1e-6 );
+
+}

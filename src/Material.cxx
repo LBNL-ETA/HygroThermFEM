@@ -15,8 +15,27 @@ namespace MoisThermFEM {
 			m_LiquidTransportCoefficient(
 					fem::make_unique< MoisThermFEM::SuctionFunction >( LiquidTransportCurve,
 																														 Property::humidity ) ),
-			m_SorptionCurve( fem::make_unique< MoisThermFEM::TabularFunction >( SorptionCurve,
-																																									Property::humidity ) ) {}
+			m_SorptionCurve( nullptr ) {
+		/// Need to add extra point at the end of sorption curve because iterations can go out of scope
+		/// (can be greater than one) and that will produce incorrect results.
+		std::vector< std::pair< double, double > > updatedResults{ SorptionCurve };
+
+		/*const std::size_t size = updatedResults.size();
+		auto x1 = updatedResults[ size - 2 ].first;
+		auto x2 = updatedResults[ size - 1 ].first;
+		auto y1 = updatedResults[ size - 2 ].second;
+		auto y2 = updatedResults[ size - 1 ].second;
+
+		auto der = ( y2 - y1 ) / ( x2 - x1 );
+		double distance = 100;
+
+		auto x3 = x2 + distance;
+		auto y3 = y2 + der * distance;
+		updatedResults.emplace_back( x3, y3 );*/
+
+		m_SorptionCurve = fem::make_unique< MoisThermFEM::TabularFunction >( updatedResults,
+																																				 Property::humidity );
+	}
 
 	double Material::density() const {
 		return m_Density;
@@ -45,9 +64,14 @@ namespace MoisThermFEM {
 	std::vector< double > Material::waterContent( const std::vector< double > & humidity ) const {
 		std::vector< double > result( humidity.size() );
 		for ( auto i = 0u; i < humidity.size(); ++i ) {
-			result[ i ] = m_SorptionCurve->value( State( 0, humidity[ i ], 0 ) );
+			result[ i ] = waterContent( humidity[ i ] );
 		}
 		return result;
+	}
+
+	double Material::waterContent( const double humidity ) const
+	{
+		return m_SorptionCurve->value(State(0, humidity, 0));
 	}
 
 	std::vector< std::pair< double, double > > Material::sorptionCurve() const {

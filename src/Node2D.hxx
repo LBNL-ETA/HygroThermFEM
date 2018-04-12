@@ -1,8 +1,8 @@
 #pragma once
 
 #include <vector>
+#include <set>
 #include <initializer_list>
-#include <map>
 
 #include "State.hxx"
 
@@ -38,7 +38,7 @@ namespace MoisThermFEM {
 	};
 
 	////////////////////////////////////////////////////////////////////////////
-	///   Node2D
+	////   Node2D
 	////////////////////////////////////////////////////////////////////////////
 
 	// Defines nodal point in two dimensional cartesian space.
@@ -49,17 +49,21 @@ namespace MoisThermFEM {
 
 		Node2D( const Node2D & t_Node ) = default;
 		Node2D & operator=( const Node2D & other ) = default;
+		friend bool operator==( const Node2D & first, const Node2D & second );
 
 		size_t getNodeNumber() const;
 
 		double X() const;
 		double Y() const;
 
-		double getProperty( const Property t_Property,
-												const Iteration t_Iteration = Iteration::Current ) const;
+		double getProperty( const Property t_Property, const Iteration t_Iteration = Iteration::Current ) const;
 		void setProperty( const Property t_Property, double t_value );
 		double getDeltaProperty( const Property t_Property ) const;
 		const State & getState() const;
+
+		void assignMaterial(std::string & t_Material );
+
+		double getWaterContent() const;
 
 	private:
 		std::size_t m_NodeNumber { 0 };
@@ -68,10 +72,14 @@ namespace MoisThermFEM {
 
 		State m_State;
 
+		/// Node can belong to multiple materials. This will be used to calculate secondary properties
+		/// based on primary properties (water content depends on humidity)
+		std::set< std::string > m_Materials;
+
 	};
 
 	////////////////////////////////////////////////////////////////////////////
-	//   INodesStorage
+	////   INodesStorage
 	////////////////////////////////////////////////////////////////////////////
 
 	// Interface that holds all node data in single storage
@@ -93,7 +101,7 @@ namespace MoisThermFEM {
 	};
 
 	////////////////////////////////////////////////////////////////////////////
-	//   LineNodes2D
+	////   LineNodes2D
 	////////////////////////////////////////////////////////////////////////////
 
 	// Class that store nodes which are part of some boundary conditions in 2D
@@ -104,7 +112,7 @@ namespace MoisThermFEM {
 	};
 
 	////////////////////////////////////////////////////////////////////////////
-	//   QuadrilateralNodes2D
+	////   QuadrilateralNodes2D
 	////////////////////////////////////////////////////////////////////////////
 
 	// Class that store nodal data which are part of elementsCreator

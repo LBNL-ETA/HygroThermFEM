@@ -26,7 +26,7 @@ TEST_F( MoistureBC_2D_3, TestExample_1 ) {
 	auto & nodePool = NodePool::Instance();
 	auto & materialPool = MaterialPool::Instance();
 
-	std::vector< double > gridXCoordinates { 0, 0.005, 0.1, 0.15 };
+	std::vector< double > gridXCoordinates{ 0, 0.05, 0.1, 0.15 };
 
 	const double initialTemperature = 293.15;
 	const double initialMoistureContent = 0;
@@ -69,7 +69,7 @@ TEST_F( MoistureBC_2D_3, TestExample_1 ) {
 				{ 1,     180 } }
 	);
 
-	Domain domain { Property::humidity };
+	Domain domain{ Property::humidity };
 
 	/// Create elements
 	for ( size_t i = 1; i <= ( nodePool.maxIndex() - 2 ) / 2; ++i ) {
@@ -77,7 +77,7 @@ TEST_F( MoistureBC_2D_3, TestExample_1 ) {
 		auto node2 = nodePool.Instance().getNode( 2 * i + 2 );
 		auto node3 = nodePool.Instance().getNode( 2 * i );
 		auto node4 = nodePool.Instance().getNode( 2 * i - 1 );
-		domain.elementsCreator().createMoistureElement( node1, node2, node3, node4, material );
+		domain.createMoistureElement( node1, node2, node3, node4, material );
 	}
 
 	// Create Boundary Conditions
@@ -88,8 +88,7 @@ TEST_F( MoistureBC_2D_3, TestExample_1 ) {
 	auto node1 = nodePool.Instance().getNode( 1 );
 	auto node2 = nodePool.Instance().getNode( 2 );
 
-	domain.boundariesCreator().createMoistureBC( node1, node2, hc, material.porosity(), humidity,
-																							 airTemperature );
+	domain.createMoistureBC( node1, node2, hc, humidity, airTemperature );
 
 	const auto dTime = 36000;
 	const auto nSteps = 4;
@@ -103,10 +102,10 @@ TEST_F( MoistureBC_2D_3, TestExample_1 ) {
 	}
 
 	std::vector< std::vector< double > > correctSolution = {
-			{ 5.2911792, 5.2911792, 1.4638726, 1.4638726, 0.019954124, 0.019954124, 0.0014445934, 0.0014445934 },
-			{ 5.2945335, 5.2945335, 2.502929,  2.502929,  0.05335501,  0.05335501,  0.0052026859, 0.0052026859 },
-			{ 5.2959752, 5.2959752, 3.2404617, 3.2404617, 0.095641815, 0.095641815, 0.011750093,  0.011750093 },
-			{ 5.2969988, 5.2969988, 3.7642315, 3.7642315, 0.14363314,  0.14363314,  0.021297862,  0.021297862 }
+			{ 5.2857427, 5.2857427, 0.19158429, 0.19158429, 0.0069531636, 0.0069531636, 0.00050337936, 0.00050337936 },
+			{ 5.2990017, 5.2990017, 0.37024806, 0.37024806, 0.01992108,   0.01992108,   0.001909138,   0.001909138 },
+			{ 5.2990674, 5.2990674, 0.53663658, 0.53663658, 0.038067841,  0.038067841,  0.0045268737,  0.0045268737 },
+			{ 5.2990979, 5.2990979, 0.69179834, 0.69179834, 0.060664491,  0.060664491,  0.0085909975,  0.0085909975 }
 	};
 
 	EXPECT_EQ( solution.size(), correctSolution.size() );

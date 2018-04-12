@@ -24,6 +24,8 @@ namespace MoisThermFEM {
 
 		void updateNodeValues( const std::vector< double > & values, const Property property );
 
+		IElementLinear2D* findElement( const Node2D & t_Node1, const Node2D & t_Node2 );
+
 	protected:
 		/// FenestrationCommon::SquareMatrix< double > m_Conductance;
 		/// FenestrationCommon::SquareMatrix< double > m_Capacitance;

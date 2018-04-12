@@ -30,15 +30,6 @@ TEST_F( MoistureBC_2D_1, TestExample_1 ) {
 	std::vector< double > gridXCoordinates { 0, 0.015, 0.025, 0.035, 0.045, 0.055, 0.065, 0.075,
 																					 0.085, 0.095, 0.105, 0.115, 0.125, 0.135, 0.15 };
 
-	/// Custom grid creation
-	// std::vector< double > gridXCoordinates;
-//
-	// int maxI = 200;
-	// for( int i = 0; i <= maxI; ++i ) {
-	// 	auto curX = double( i ) / maxI;
-	// 	gridXCoordinates.push_back( curX );
-	// }
-
 	const auto initialTemperature = 293.15;
 	const auto initialHumidity = 0.0;
 	const auto initialPressure = 101325.0;
@@ -88,7 +79,7 @@ TEST_F( MoistureBC_2D_1, TestExample_1 ) {
 		auto node2 = nodePool.Instance().getNode( 2 * i + 2 );
 		auto node3 = nodePool.Instance().getNode( 2 * i );
 		auto node4 = nodePool.Instance().getNode( 2 * i - 1 );
-		domain.elementsCreator().createMoistureElement( node1, node2, node3, node4, material );
+		domain.createMoistureElement( node1, node2, node3, node4, material );
 	}
 
 	// Create Boundary Conditions
@@ -99,8 +90,7 @@ TEST_F( MoistureBC_2D_1, TestExample_1 ) {
 	auto node1 = nodePool.Instance().getNode( 1 );
 	auto node2 = nodePool.Instance().getNode( 2 );
 
-	domain.boundariesCreator().createMoistureBC( node1, node2, hc, material.porosity(), airHumidity,
-																							 airTemperature );
+	domain.createMoistureBC( node1, node2, hc, airHumidity, airTemperature );
 
 	const auto dTime = 36000;
 	const auto nSteps = 4;
@@ -114,17 +104,6 @@ TEST_F( MoistureBC_2D_1, TestExample_1 ) {
 		humidities = domain.transient( humidities, dTime );
 		solution.push_back( material.waterContent( humidities ) );
 	}
-
-	/// std::cout.precision( 8 );
-	/// int counter = 0;
-	/// for ( auto & val : solution ) {
-	/// 	for ( auto & item : val ) {
-	/// 		++counter;
-	/// 		if( counter % 2 )
-	/// 			std::cout << item << ", ";
-	/// 	}
-	/// 	std::cout << std::endl;
-	/// }
 
 	std::vector< std::vector< double > > correctSolution = {
 			{ 2.6498955, 0.97524335, 0.48359673, 0.23980252, 0.11891159, 0.058965089, 0.029239302, 0.014499207, 0.0071902274, 0.0035663744, 0.0017703551, 0.00088167597, 0.00044487237, 0.00023607421, 0.00014973783 },
