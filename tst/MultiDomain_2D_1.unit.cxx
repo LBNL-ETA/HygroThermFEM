@@ -114,7 +114,8 @@ TEST_F( MultiDomain_2D_1, TestExample_1 ) {
 	for ( auto i = 0; i < nSteps; ++i ) {
 		auto aSolution = domain.transient( temperatures, humidities, dTime );
 		temperatureSolution.push_back( aSolution.temperature );
-		waterContentSolution.push_back( material.waterContent( aSolution.humidity ) );
+		//waterContentSolution.push_back( material.waterContent( aSolution.humidity ) );
+		waterContentSolution.push_back(aSolution.waterContent);
 		temperatures = aSolution.temperature;
 		humidities = aSolution.humidity;
 	}

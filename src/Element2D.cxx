@@ -6,6 +6,7 @@
 #include "QuadrilateralLocal2D.hxx"
 #include "Common.hxx"
 #include "MaterialProperties.hxx"
+#include "NodePool.hxx"
 
 using FenestrationCommon::SquareMatrix;
 
@@ -169,7 +170,12 @@ namespace MoisThermFEM {
 			m_Global2D{ t_Node1, t_Node2, t_Node3, t_Node4 },
 			m_QLECapacitance2D{ m_Global2D },
 			m_QLEConductance2D{ m_Global2D } {
-
+		auto matName = m_Material.name();
+		auto & nodePool = NodePool::Instance();
+		for( auto & node : m_Node ) {
+			auto & poolNode = nodePool.getNode(node.getNodeNumber());
+			poolNode.assignMaterial(matName);
+		}
 	}
 
 	SquareMatrix< double > IElementLinear2D::conductanceMatrix() const {

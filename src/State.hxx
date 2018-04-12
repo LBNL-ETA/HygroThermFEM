@@ -15,8 +15,8 @@ namespace MoisThermFEM {
 	// Simple class to hold state variables
 	class State {
 	public:
-		explicit State( const double t_Temperature = 0, const double t_Humidity = 0,
-										const double t_Pressure = 101325 );
+		explicit State( const double t_Temperature = 0, const double t_Humidity = 0, 
+			const double t_Pressure = 101325 );
 
 		State( const State & other ) = default;
 

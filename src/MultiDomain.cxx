@@ -3,6 +3,7 @@
 #include "MultiDomain.hxx"
 #include "Common.hxx"
 #include "FEMMath.hxx"
+#include "NodePool.hxx"
 
 namespace MoisThermFEM {
 
@@ -19,28 +20,32 @@ namespace MoisThermFEM {
 
 		while ( temperatureError > ConvergenceError || humidityError > ConvergenceError ) {
 			m_ThermalDomain.updateNodeValues( currentHumidity, Property::humidity );
-			auto temperatureSolution = m_ThermalDomain.transient( temperature, t_DTime );
+			const auto temperatureSolution = m_ThermalDomain.transient( temperature, t_DTime );
 			temperatureError = normError( temperatureSolution, currentTemperature );
 
 			m_MoistureDomain.updateNodeValues( currentTemperature, Property::temperature );
-			auto humiditySolution = m_MoistureDomain.transient( humidity, t_DTime );
+			const auto humiditySolution = m_MoistureDomain.transient( humidity, t_DTime );
 			humidityError = normError( humiditySolution, currentHumidity );
 
 			currentHumidity = humiditySolution;
 			currentTemperature = temperatureSolution;
 		}
 
-		return Solution{ currentTemperature, currentHumidity };
+		auto & nodePool = NodePool::Instance();
+		nodePool.updateNodeValues(currentHumidity, Property::humidity);
+		nodePool.updateNodeValues(currentTemperature, Property::temperature);
+
+		std::vector< double > waterContent = nodePool.waterContent();
+
+		return Solution{ currentTemperature, currentHumidity, waterContent };
 	}
 
 	void MultiDomain::createElement( const Node2D & t_Node1, const Node2D & t_Node2,
 																	 const Node2D & t_Node3, const Node2D & t_Node4,
 																	 const Material & mat ) {
 
-		m_ThermalDomain.createThermalElement( t_Node1, t_Node2, t_Node3, t_Node4,
-																					mat );
-		m_MoistureDomain.createMoistureElement( t_Node1, t_Node2, t_Node3, t_Node4,
-																						mat );
+		m_ThermalDomain.createThermalElement( t_Node1, t_Node2, t_Node3, t_Node4, mat );
+		m_MoistureDomain.createMoistureElement( t_Node1, t_Node2, t_Node3, t_Node4, mat );
 
 	}
 
@@ -72,13 +77,12 @@ namespace MoisThermFEM {
 
 	double
 	MultiDomain::normError( const std::vector< double > & vec1, const std::vector< double > & vec2 ) {
-		auto norm1 = norm( vec1 );
-		auto norm2 = norm( vec2 );
+		const auto norm1 = norm( vec1 );
+		const auto norm2 = norm( vec2 );
 
 		return std::abs( norm1 - norm2 ) / norm1;
 	}
 
-	Solution::Solution( const std::vector< double > & temperature,
-											const std::vector< double > & humidity ) : temperature( temperature ),
-																																 humidity( humidity ) {}
+	Solution::Solution( const std::vector< double > & temperature, const std::vector< double > & humidity, const std::vector< double > & waterContent) : 
+	  temperature( temperature ), humidity( humidity ), waterContent( waterContent ) {}
 }

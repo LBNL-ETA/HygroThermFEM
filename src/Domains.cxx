@@ -10,19 +10,20 @@ using FenestrationCommon::CLinearSolver;
 
 namespace MoisThermFEM {
 
-	Domain::Domain( const Property property ) : m_Elements{}, m_BCs{}, m_Property( property ) {
+	Domain::Domain(const Property property) : m_Property{ property } {
 
 	}
 
 	FenestrationCommon::SquareMatrix< double > Domain::steadyStateLeftHandSide() {
 		auto condMat = m_Elements.conductanceMatrix();
-		auto H = m_BCs.HMatrix();
-		condMat = condMat + H;
+		const auto h = m_BCs.HMatrix();
+		condMat = condMat + h;
 
 		return condMat;
 	}
 
-	FenestrationCommon::Vector< double > Domain::steadyStateRightHandSide() {
+	FenestrationCommon::Vector< double > Domain::steadyStateRightHandSide() const
+	{
 		return m_BCs.RVector();
 	}
 

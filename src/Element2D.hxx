@@ -107,7 +107,7 @@ namespace MoisThermFEM {
 
 		FenestrationCommon::SquareMatrix< double > capacitanceMatrix() const;
 
-		Node2D & getNode( const std::size_t index );
+		Node2D & getNode( std::size_t index );
 
 		bool haveBothNodes( const Node2D & t_Node1, const Node2D & t_Node2 ) const;
 
@@ -118,8 +118,8 @@ namespace MoisThermFEM {
 	protected:
 		/// TODO: This did not work with reference_wrapper and it should. Check later.
 		/// Reminder: Introduce pair of curve pointer and Property so that curve knows what to use
-		std::vector< std::shared_ptr< MoisThermFEM::IValue > > m_Conductance;
-		std::vector< std::shared_ptr< MoisThermFEM::IValue > > m_Capacitance;
+		std::vector< std::shared_ptr< IValue > > m_Conductance;
+		std::vector< std::shared_ptr< IValue > > m_Capacitance;
 		std::vector< DerivativeFunction > m_DerivativeConductance;
 
 		const Material & m_Material;

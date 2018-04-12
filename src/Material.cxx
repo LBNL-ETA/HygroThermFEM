@@ -64,9 +64,14 @@ namespace MoisThermFEM {
 	std::vector< double > Material::waterContent( const std::vector< double > & humidity ) const {
 		std::vector< double > result( humidity.size() );
 		for ( auto i = 0u; i < humidity.size(); ++i ) {
-			result[ i ] = m_SorptionCurve->value( State( 0, humidity[ i ], 0 ) );
+			result[ i ] = waterContent( humidity[ i ] );
 		}
 		return result;
+	}
+
+	double Material::waterContent( const double humidity ) const
+	{
+		return m_SorptionCurve->value(State(0, humidity, 0));
 	}
 
 	std::vector< std::pair< double, double > > Material::sorptionCurve() const {

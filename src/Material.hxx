@@ -31,6 +31,7 @@ namespace MoisThermFEM {
 		std::vector< std::pair< double, double > > liquidTransportationCurve() const;
 
 		std::vector< double > waterContent( const std::vector< double > & humidity ) const;
+		double waterContent(const double humidity) const;
 		std::vector< std::pair< double, double > > sorptionCurve() const;
 
 	private:

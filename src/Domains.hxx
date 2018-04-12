@@ -10,20 +10,18 @@ namespace MoisThermFEM {
 	/// Pressure governing equations.
 	class Domain {
 	public:
-		Domain( const Property property );
+		explicit Domain( const Property property );
 
 		/// Calculates steady state solution
 		std::vector< double > steadyState();
 
 		/// Calculates next timestep value from current values
-		std::vector< double >
-		transient( std::vector< double > & currentStateValues, const double t_DTime );
+		std::vector< double > transient( std::vector< double > & currentStateValues, double t_DTime );
 
 		void createConvectionBC( const Node2D & t_Node1, const Node2D & t_Node2,
-														 const double t_ConvectionCoefficient, const double t_AirTemperature );
+								double t_ConvectionCoefficient, double t_AirTemperature );
 
-		void createTemperatureBC( Node2D & t_Node1, Node2D & t_Node2, const double t_Temp1,
-															const double t_Temp2 );
+		void createTemperatureBC( Node2D & t_Node1, Node2D & t_Node2, double t_Temp1, double t_Temp2 );
 
 		void createTemperatureBC( Node2D & t_Node1, Node2D & t_Node2, const double t_Temp );
 
@@ -52,7 +50,7 @@ namespace MoisThermFEM {
 		void updateNodeValues( const std::vector< double > & values, const Property property );
 
 		FenestrationCommon::SquareMatrix< double > steadyStateLeftHandSide();
-		FenestrationCommon::Vector< double > steadyStateRightHandSide();
+		FenestrationCommon::Vector< double > steadyStateRightHandSide() const;
 
 		/// In matrix equations some structures are showing up in both (linear and nonlinear) cases
 		/// and those matrix operations are separated into functions.

@@ -5,10 +5,12 @@
 namespace MoisThermFEM {
 
 	struct Solution {
-		Solution( const std::vector< double > & temperature, const std::vector< double > & humidity );
+		Solution( const std::vector< double > & temperature, const std::vector< double > & humidity,
+			const std::vector< double > & waterContent );
 
 		std::vector< double > temperature;
 		std::vector< double > humidity;
+		std::vector< double > waterContent;
 	};
 
 	class MultiDomain {
@@ -16,8 +18,7 @@ namespace MoisThermFEM {
 		MultiDomain();
 
 		/// Calculates next timestep value from current values
-		Solution
-		transient( std::vector< double > & temperature, std::vector< double > & humidity,
+		Solution transient( std::vector< double > & temperature, std::vector< double > & humidity,
 							 const double t_DTime );
 
 		void createElement( const Node2D & t_Node1, const Node2D & t_Node2, const Node2D & t_Node3,
