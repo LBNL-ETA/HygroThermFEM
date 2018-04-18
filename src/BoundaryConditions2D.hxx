@@ -15,6 +15,7 @@ namespace MoisThermFEM {
 	/// all boundary conditions.
 	class BoundaryConditions2D {
 	public:
+
 		BoundaryConditions2D() = default;
 		BoundaryConditions2D( const BoundaryConditions2D & other ) = delete;
 

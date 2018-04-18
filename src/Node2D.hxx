@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <set>
+#include <string>
 #include <initializer_list>
 
 #include "State.hxx"

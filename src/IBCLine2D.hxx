@@ -17,6 +17,8 @@ namespace MoisThermFEM {
 	// Interface class for boundary conditions in linear 2D finite elementsCreator.
 	class IBCLinear2D {
 	public:
+		virtual ~IBCLinear2D();
+
 		IBCLinear2D() = delete;
 		IBCLinear2D( const Node2D & t_Node1, const Node2D & t_Node2, const bool t_Linear = true );
 

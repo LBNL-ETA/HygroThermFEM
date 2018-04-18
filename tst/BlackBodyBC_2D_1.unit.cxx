@@ -111,4 +111,5 @@ TEST_F( BlackBodyBC_2D_1, TestExample_1 ) {
 			EXPECT_NEAR( correctSolution[ i ][ j ], solution[ i ][ j ], 1e-6 );
 		}
 	}
+
 }
