@@ -40,7 +40,7 @@ TEST_F( TestConvectionBC2D, TestIntegrationPoints ) {
 
     for ( auto i = 0u; i < correctH.size(); ++i ) {
         for ( auto j = 0u; j < correctH.size(); ++j ) {
-            EXPECT_NEAR( correctH[ i ][ j ], h[ i ][ j ], 1e-6 );
+            EXPECT_NEAR( correctH[ i][ j ], h( i, j ), 1e-6 );
         }
     }
 

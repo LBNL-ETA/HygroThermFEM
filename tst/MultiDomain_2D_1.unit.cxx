@@ -94,10 +94,10 @@ TEST_F( MultiDomain_2D_1, TestExample_1 ) {
 
 	/// Create elements
 	for ( size_t i = 1; i <= ( nodePool.maxIndex() - 2 ) / 2; ++i ) {
-		auto node1 = nodePool.Instance().getNode( 2 * i + 1 );
-		auto node2 = nodePool.Instance().getNode( 2 * i + 2 );
-		auto node3 = nodePool.Instance().getNode( 2 * i );
-		auto node4 = nodePool.Instance().getNode( 2 * i - 1 );
+		auto & node1 = MoisThermFEM::NodePool::Instance().getNode( 2 * i + 1 );
+		auto & node2 = MoisThermFEM::NodePool::Instance().getNode( 2 * i + 2 );
+		auto & node3 = MoisThermFEM::NodePool::Instance().getNode( 2 * i );
+		auto & node4 = MoisThermFEM::NodePool::Instance().getNode( 2 * i - 1 );
 		domain.createElement( node1, node2, node3, node4, material );
 	}
 
@@ -114,23 +114,10 @@ TEST_F( MultiDomain_2D_1, TestExample_1 ) {
 	for ( auto i = 0; i < nSteps; ++i ) {
 		auto aSolution = domain.transient( temperatures, humidities, dTime );
 		temperatureSolution.push_back( aSolution.temperature );
-		//waterContentSolution.push_back( material.waterContent( aSolution.humidity ) );
 		waterContentSolution.push_back(aSolution.waterContent);
 		temperatures = aSolution.temperature;
 		humidities = aSolution.humidity;
 	}
-
-	/// std::cout << "******************************************************" << std::endl;
-	/// std::cout << "Water content solution" << std::endl;
-	/// std::cout << "******************************************************" << std::endl;
-///
-	/// std::cout.precision( 8 );
-	/// for ( auto & val : waterContentSolution ) {
-	/// 	for ( auto & item : val ) {
-	/// 		std::cout << item << ", ";
-	/// 	}
-	/// 	std::cout << std::endl;
-	/// }
 
 	std::vector< std::vector< double > > correctWaterContentSolution = {
 			{ 0.0020830641, 0.0020830641, 1.0610351, 1.0610351, 2.1150155, 2.1150155 },
@@ -152,18 +139,6 @@ TEST_F( MultiDomain_2D_1, TestExample_1 ) {
 			EXPECT_NEAR( correctWaterContentSolution[ i ][ j ], waterContentSolution[ i ][ j ], 1e-6 );
 		}
 	}
-
-	/// std::cout << "******************************************************" << std::endl;
-	/// std::cout << "Temperature solution" << std::endl;
-	/// std::cout << "******************************************************" << std::endl;
-///
-	/// std::cout.precision( 10 );
-	/// for ( auto & val : temperatureSolution ) {
-	/// 	for ( auto & item : val ) {
-	/// 		std::cout << item << ", ";
-	/// 	}
-	/// 	std::cout << std::endl;
-	/// }
 
 	std::vector< std::vector< double > > correctTemperatureSolution = {
 			{ 302.3175172, 302.3175172, 310.0016490, 310.0016490, 317.6932556, 317.6932556 },

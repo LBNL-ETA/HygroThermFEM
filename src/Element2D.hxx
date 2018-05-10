@@ -4,7 +4,7 @@
 
 #include "Node2D.hxx"
 #include "Quadrilateral2D.hxx"
-#include "SquareMatrix.hxx"
+#include "SparceSquareMatrix.hxx"
 #include "Material.hxx"
 #include "Functions.hxx"
 
@@ -26,18 +26,18 @@ namespace MoisThermFEM {
 		IQLEMatrix2D( const QuadrilateralLinearGlobal2D & t_Element );
 
 		// Integrate matrix over all points of integration
-		virtual FenestrationCommon::SquareMatrix< double >
+		virtual FenestrationCommon::SparceSquareMatrix< double >
 		integrate( const std::vector< double > & t_Values ) const final;
 
 	protected:
 		virtual void calculateMatrixInIntegrationPoint(
 				const std::vector< double > & t_Values,
 				const std::size_t t_IntegrationPointIndex,
-				FenestrationCommon::SquareMatrix< double > & t_Matrix ) const final;
+				FenestrationCommon::SparceSquareMatrix< double > & t_Matrix ) const final;
 
 		const QuadrilateralLinearGlobal2D & m_Global2D;
 
-		std::vector< FenestrationCommon::SquareMatrix< double > > m_IntegrationMatrix;
+		std::vector< FenestrationCommon::SparceSquareMatrix< double > > m_IntegrationMatrix;
 
 	};
 
@@ -101,11 +101,11 @@ namespace MoisThermFEM {
 		IElementLinear2D( const Node2D & t_Node1, const Node2D & t_Node2, const Node2D & t_Node3,
 											const Node2D & t_Node4, const Material & t_Material );
 
-		FenestrationCommon::SquareMatrix< double > conductanceMatrix() const;
+		FenestrationCommon::SparceSquareMatrix< double > conductanceMatrix() const;
 
-		FenestrationCommon::SquareMatrix< double > conductanceDerivativeMatrix();
+		FenestrationCommon::SparceSquareMatrix< double > conductanceDerivativeMatrix();
 
-		FenestrationCommon::SquareMatrix< double > capacitanceMatrix() const;
+		FenestrationCommon::SparceSquareMatrix< double > capacitanceMatrix() const;
 
 		Node2D & getNode( std::size_t index );
 

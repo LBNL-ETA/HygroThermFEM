@@ -13,22 +13,22 @@ namespace MoisThermFEM {
 	/// 	}
 	/// }
 
-	SquareMatrix< double > BoundaryConditions2D::HMatrix() const {
-		FenestrationCommon::SquareMatrix< double > result{ NodePool::Instance().maxIndex() };
+	SparceSquareMatrix< double > BoundaryConditions2D::HMatrix() const {
+		FenestrationCommon::SparceSquareMatrix< double > result{ NodePool::Instance().maxIndex() };
 		for ( const std::unique_ptr< IBCLinear2D > & aBc : m_BCs ) {
 			auto indexes = aBc->getNodeIndexes();
 			auto matH = aBc->H_Matrix();
 			for ( size_t i = 0; i < 2; ++i ) {
 				for ( size_t j = 0; j < 2; ++j ) {
-					result[ indexes[ i ] - 1 ][ indexes[ j ] - 1 ] += matH[ i ][ j ];
+					result( indexes[ i ] - 1, indexes[ j ] - 1 ) += matH( i, j );
 				}
 			}
 		}
 		return result;
 	}
 
-	FenestrationCommon::Vector< double > BoundaryConditions2D::RVector() const {
-		FenestrationCommon::Vector< double > result( NodePool::Instance().maxIndex(), 0 );
+	std::vector< double > BoundaryConditions2D::RVector() const {
+		std::vector< double > result( NodePool::Instance().maxIndex(), 0 );
 		// Create full size matrices
 		for ( const std::unique_ptr< IBCLinear2D > & aBc : m_BCs ) {
 			auto indexes = aBc->getNodeIndexes();

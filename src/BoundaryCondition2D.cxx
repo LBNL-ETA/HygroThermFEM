@@ -2,6 +2,7 @@
 #include <functional>
 #include <cmath>
 
+#include "VectorOperators.hxx"
 #include "BoundaryCondition2D.hxx"
 #include "MaterialProperties.hxx"
 #include "Common.hxx"
@@ -19,11 +20,11 @@ namespace MoisThermFEM {
 
 	}
 
-	FenestrationCommon::Vector< double > ConvectionBC::R_Vector() const {
+	std::vector< double > ConvectionBC::R_Vector() const {
 		return m_PsiVector * m_ConvectionCoefficient * m_AirTemperature;
 	}
 
-	FenestrationCommon::SquareMatrix< double > ConvectionBC::H_Matrix() const {
+	FenestrationCommon::SparceSquareMatrix< double > ConvectionBC::H_Matrix() const {
 		return m_PsiPsiMatrix * m_ConvectionCoefficient;
 	}
 
@@ -55,13 +56,13 @@ namespace MoisThermFEM {
 
 	}
 
-	FenestrationCommon::Vector< double > FluxBC::R_Vector() const {
+	std::vector< double > FluxBC::R_Vector() const {
 		return m_PsiVector * m_Flux;
 	}
 
-	FenestrationCommon::SquareMatrix< double > FluxBC::H_Matrix() const {
+	FenestrationCommon::SparceSquareMatrix< double > FluxBC::H_Matrix() const {
 		// Flux boundary conditions do not have H matrix (It is zero)
-		return FenestrationCommon::SquareMatrix< double >( 4 );
+		return FenestrationCommon::SparceSquareMatrix< double >( 4 );
 	}
 
 	////////////////////////////////////////////////////////
@@ -74,8 +75,8 @@ namespace MoisThermFEM {
 			: IBCLinear2D( t_Node1, t_Node2, false ), m_RadiationTemperature{ t_RadiationTemperature },
 				m_Emissivity{ t_Emissivity } {}
 
-	FenestrationCommon::Vector< double > BlackBodyRadiationBC::HRadiative() const {
-		FenestrationCommon::Vector< double > result( numOfBCNodes, 0 );
+	std::vector< double > BlackBodyRadiationBC::HRadiative() const {
+		std::vector< double > result( numOfBCNodes, 0 );
 		for ( std::size_t j = 0; j < numOfBCNodes; ++j ) {
 			double T = m_Nodes[ j ].getProperty( Property::temperature );
 			result[ j ] = ( T + m_RadiationTemperature ) *
@@ -85,11 +86,11 @@ namespace MoisThermFEM {
 		return result;
 	}
 
-	FenestrationCommon::Vector< double > BlackBodyRadiationBC::R_Vector() const {
+	std::vector< double > BlackBodyRadiationBC::R_Vector() const {
 		return m_PsiVector * HRadiative() * m_RadiationTemperature;
 	}
 
-	FenestrationCommon::SquareMatrix< double > BlackBodyRadiationBC::H_Matrix() const {
+	FenestrationCommon::SparceSquareMatrix< double > BlackBodyRadiationBC::H_Matrix() const {
 		return m_PsiPsiMatrix.mmultRows( HRadiative() );
 	}
 
@@ -108,7 +109,7 @@ namespace MoisThermFEM {
 
 	}
 
-	FenestrationCommon::Vector< double > MoistureBC::R_Vector() const {
+	std::vector< double > MoistureBC::R_Vector() const {
 		using pValue = std::shared_ptr< IValue >;
 
 		pValue saturation( std::make_shared< SaturationFunction >( Property::temperature ) );
@@ -123,7 +124,7 @@ namespace MoisThermFEM {
 		return m_PsiVector * coeff;
 	}
 
-	FenestrationCommon::SquareMatrix< double > MoistureBC::H_Matrix() const {
+	FenestrationCommon::SparceSquareMatrix< double > MoistureBC::H_Matrix() const {
 		using pValue = std::shared_ptr< IValue >;
 
 		pValue saturationFunction( std::make_shared< SaturationFunction >( Property::temperature ) );
@@ -135,7 +136,7 @@ namespace MoisThermFEM {
 		const auto humidityByVolume1 = humidityCoeff->value( m_Nodes[ 0 ].getState() );
 		const auto humidityByVolume2 = humidityCoeff->value( m_Nodes[ 1 ].getState() );
 
-		FenestrationCommon::Vector< double > coeffs{
+		std::vector< double > coeffs{
 				humidityByVolume1 * m_ConvectiveCoefficient /
 				( Constants::Density_Air * Constants::Cp_Air ),
 				humidityByVolume2 * m_ConvectiveCoefficient /

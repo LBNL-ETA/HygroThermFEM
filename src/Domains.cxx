@@ -5,6 +5,7 @@
 #include "LinearSolver.hxx"
 #include "Common.hxx"
 #include "FEMMath.hxx"
+#include "VectorOperators.hxx"
 
 using FenestrationCommon::CLinearSolver;
 
@@ -14,7 +15,7 @@ namespace MoisThermFEM {
 
 	}
 
-	FenestrationCommon::SquareMatrix< double > Domain::steadyStateLeftHandSide() {
+	FenestrationCommon::SparceSquareMatrix< double > Domain::steadyStateLeftHandSide() {
 		auto condMat = m_Elements.conductanceMatrix();
 		const auto h = m_BCs.HMatrix();
 		condMat = condMat + h;
@@ -22,12 +23,12 @@ namespace MoisThermFEM {
 		return condMat;
 	}
 
-	FenestrationCommon::Vector< double > Domain::steadyStateRightHandSide() const
+	std::vector< double > Domain::steadyStateRightHandSide() const
 	{
 		return m_BCs.RVector();
 	}
 
-	FenestrationCommon::SquareMatrix< double > Domain::transientM_K_H_Matrix( const double t_DTime ) {
+	FenestrationCommon::SparceSquareMatrix< double > Domain::transientM_K_H_Matrix( const double t_DTime ) {
 		auto M = m_Elements.getLumpedMass( t_DTime );
 		// auto M = m_Elements.getMassMatrix( t_DTime );
 		auto M_K_H = m_Elements.conductanceMatrix();
@@ -38,10 +39,10 @@ namespace MoisThermFEM {
 		return M_K_H;
 	}
 
-	FenestrationCommon::Vector< double >
+	std::vector< double >
 	Domain::transientMT_R_Vector( std::vector< double > & t_PreviousSolution,
 																const double t_DTime ) {
-		FenestrationCommon::Vector< double > M{ m_Elements.getLumpedMass( t_DTime ) };
+		std::vector< double > M{ m_Elements.getLumpedMass( t_DTime ) };
 		auto R = m_BCs.RVector();
 
 		auto B = t_PreviousSolution * M + R;
@@ -51,8 +52,7 @@ namespace MoisThermFEM {
 
 	std::vector< double > Domain::steadyState() {
 		auto B = steadyStateRightHandSide();
-		CLinearSolver aSolver;
-		return aSolver.solveSystem( steadyStateLeftHandSide(), B );
+		return CLinearSolver::solveEigenSparse( steadyStateLeftHandSide(), B );
 	}
 
 	std::vector< double >
@@ -61,12 +61,12 @@ namespace MoisThermFEM {
 		auto A = transientM_K_H_Matrix( t_DTime );
 		auto B = transientMT_R_Vector( currentStateValues, t_DTime );
 
-		CLinearSolver aSolver;
+		//CLinearSolver aSolver;
 
 		std::vector< double > solution;
 
 		if( isLinear() ) {
-			solution = aSolver.solveSystem( A, B );
+			solution = CLinearSolver::solveEigenSparse( A, B );
 		} else {
 			solution = currentStateValues;
 
@@ -86,7 +86,7 @@ namespace MoisThermFEM {
 
 				/// auto dU = aSolver.solveSystem( DH, temp );
 
-				auto dU = aSolver.solveSystem( A, temp );
+				auto dU = CLinearSolver::solveEigenSparse( A, temp );
 
 				error = norm( dU );
 

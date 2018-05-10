@@ -5,7 +5,7 @@
 #include "LineLocal1D.hxx"
 #include "Elements2D.hxx"
 
-using FenestrationCommon::SquareMatrix;
+using FenestrationCommon::SparceSquareMatrix;
 
 namespace MoisThermFEM {
 
@@ -22,7 +22,7 @@ namespace MoisThermFEM {
 		for ( std::size_t i = 0; i < numOfIntegrationPoints(); ++i ) {
 			for ( std::size_t j = 0; j < numOfBCNodes; ++j ) {
 				for ( std::size_t k = 0; k < numOfBCNodes; ++k ) {
-					m_PsiPsiMatrix[ j ][ k ] += m_Determinant * psi( i, j ) * psi( i, k );
+					m_PsiPsiMatrix( j, k ) += m_Determinant * psi( i, j ) * psi( i, k );
 				}
 				m_PsiVector[ j ] += m_Determinant * psi( i, j );
 			}

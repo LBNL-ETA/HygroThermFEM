@@ -8,7 +8,7 @@
 #include "MaterialProperties.hxx"
 #include "NodePool.hxx"
 
-using FenestrationCommon::SquareMatrix;
+using FenestrationCommon::SparceSquareMatrix;
 
 namespace MoisThermFEM {
 
@@ -20,15 +20,15 @@ namespace MoisThermFEM {
 	IQLEMatrix2D::IQLEMatrix2D( const QuadrilateralLinearGlobal2D & t_Element ) :
 			m_Global2D{ t_Element },
 			m_IntegrationMatrix{ numOfQuadrilateralNodes,
-													 SquareMatrix< double >{ numOfQuadrilateralNodes } } {
+								 SparceSquareMatrix< double >{ numOfQuadrilateralNodes } } {
 
 	}
 
-	FenestrationCommon::SquareMatrix< double >
+	FenestrationCommon::SparceSquareMatrix< double >
 	IQLEMatrix2D::integrate( const std::vector< double > & t_Values ) const {
 		const auto count = IntegrationPoints2D::Instance().count2D();
 
-		FenestrationCommon::SquareMatrix< double > aMatrix{ numOfQuadrilateralNodes };
+		FenestrationCommon::SparceSquareMatrix< double > aMatrix{ numOfQuadrilateralNodes };
 
 		for ( auto i = 0u; i < count; ++i ) {
 			calculateMatrixInIntegrationPoint( t_Values, i, aMatrix );
@@ -39,7 +39,7 @@ namespace MoisThermFEM {
 
 	void IQLEMatrix2D::calculateMatrixInIntegrationPoint(
 			const std::vector< double > & t_Values, const std::size_t t_IntegrationPointIndex,
-			FenestrationCommon::SquareMatrix< double > & t_Matrix ) const {
+			FenestrationCommon::SparceSquareMatrix< double > & t_Matrix ) const {
 
 		assert( t_Values.size() == 4 );
 
@@ -47,7 +47,7 @@ namespace MoisThermFEM {
 
 		for ( size_t i = 0; i < t_Matrix.size(); ++i ) {
 			for ( size_t j = 0; j < t_Matrix.size(); ++j ) {
-				t_Matrix[ i ][ j ] += intPointMatrix[ i ][ j ] * 0.5 * ( t_Values[ i ] + t_Values[ j ] );
+				t_Matrix( i, j ) += intPointMatrix( i, j ) * 0.5 * ( t_Values[ i ] + t_Values[ j ] );
 			}
 		}
 	}
@@ -70,7 +70,7 @@ namespace MoisThermFEM {
 			auto & DPsiDxDyMatrix = m_IntegrationMatrix[ integrationPoint ];
 			for ( auto i = 0u; i < DPsiDxDyMatrix.size(); ++i ) {
 				for ( auto j = 0u; j < DPsiDxDyMatrix.size(); ++j ) {
-					DPsiDxDyMatrix[ i ][ j ] =
+					DPsiDxDyMatrix( i, j ) =
 							( DPsiDx[ i ] * DPsiDx[ j ] + DPsiDy[ i ] * DPsiDy[ j ] ) * det;
 				}
 			}
@@ -112,7 +112,7 @@ namespace MoisThermFEM {
 			auto & psiPsiMatrix = m_IntegrationMatrix[ integrationPoint ];
 			for ( auto i = 0u; i < numOfIntegrationPoints; ++i ) {
 				for ( auto j = 0u; j < numOfIntegrationPoints; ++j ) {
-					psiPsiMatrix[ i ][ j ] =
+					psiPsiMatrix(i, j ) =
 							det * ( DPsiDx[ i ] * psi[ j ] * gammaX + DPsiDy[ i ] * psi[ j ] * gammaY );
 				}
 			}
@@ -142,7 +142,7 @@ namespace MoisThermFEM {
 			auto & psiPsiMatrix = m_IntegrationMatrix[ integrationPoint ];
 			for ( auto i = 0u; i < numOfIntegrationPoints; ++i ) {
 				for ( auto j = 0u; j < numOfIntegrationPoints; ++j ) {
-					psiPsiMatrix[ i ][ j ] = det * psi[ i ] * psi[ j ];
+					psiPsiMatrix(i, j) = det * psi[ i ] * psi[ j ];
 				}
 			}
 
@@ -178,8 +178,8 @@ namespace MoisThermFEM {
 		}
 	}
 
-	SquareMatrix< double > IElementLinear2D::conductanceMatrix() const {
-		FenestrationCommon::SquareMatrix< double > result{ numOfQuadrilateralNodes };
+	FenestrationCommon::SparceSquareMatrix< double > IElementLinear2D::conductanceMatrix() const {
+		FenestrationCommon::SparceSquareMatrix< double > result{ numOfQuadrilateralNodes };
 		const auto numOfIntegrationPoints = IntegrationPoints2D::Instance().count2D();
 		for ( const auto & cond : m_Conductance ) {
 			std::vector< double > values( numOfIntegrationPoints );
@@ -192,8 +192,8 @@ namespace MoisThermFEM {
 		return result;
 	}
 
-	FenestrationCommon::SquareMatrix< double > IElementLinear2D::conductanceDerivativeMatrix() {
-		FenestrationCommon::SquareMatrix< double > result{ numOfQuadrilateralNodes };
+	FenestrationCommon::SparceSquareMatrix< double > IElementLinear2D::conductanceDerivativeMatrix() {
+		FenestrationCommon::SparceSquareMatrix< double > result{ numOfQuadrilateralNodes };
 		const auto numOfIntegrationPoints = IntegrationPoints2D::Instance().count2D();
 
 		/// Integration matrix must be created every time
@@ -224,8 +224,8 @@ namespace MoisThermFEM {
 		return result;
 	}
 
-	SquareMatrix< double > IElementLinear2D::capacitanceMatrix() const {
-		FenestrationCommon::SquareMatrix< double > result{ numOfQuadrilateralNodes };
+	FenestrationCommon::SparceSquareMatrix< double > IElementLinear2D::capacitanceMatrix() const {
+		FenestrationCommon::SparceSquareMatrix< double > result{ numOfQuadrilateralNodes };
 		const auto numOfIntegrationPoints = IntegrationPoints2D::Instance().count2D();
 		for ( const auto & cap : m_Capacitance ) {
 			std::vector< double > values( numOfIntegrationPoints );

@@ -5,8 +5,8 @@ using namespace FenestrationCommon;
 
 namespace MoisThermFEM {
 
-	SquareMatrix< double > ElementsLinear2D::conductanceMatrix() {
-		SquareMatrix< double > result{ NodePool::Instance().maxIndex() };
+	SparceSquareMatrix< double > ElementsLinear2D::conductanceMatrix() {
+		SparceSquareMatrix< double > result{ NodePool::Instance().maxIndex() };
 		// now integrate element matrices into global matrix
 		for ( auto & aElement : m_Elements ) {
 			auto indexes = aElement->nodeIndexes();
@@ -14,8 +14,8 @@ namespace MoisThermFEM {
 			auto condDer = aElement->conductanceDerivativeMatrix();
 			for ( size_t i = 0; i < numOfQuadrilateralNodes; ++i ) {
 				for ( size_t j = 0; j < numOfQuadrilateralNodes; ++j ) {
-					result[ indexes[ i ] - 1 ][ indexes[ j ] - 1 ] +=
-							( conductance[ i ][ j ] + condDer[ i ][ j ] );
+					result( indexes[ i ] - 1, indexes[ j ] - 1 ) +=
+							( conductance( i, j ) + condDer( i, j) );
 				}
 			}
 		}
@@ -26,8 +26,8 @@ namespace MoisThermFEM {
 //		return m_Capacitance;
 //	}
 
-	Vector< double > ElementsLinear2D::getLumpedMass( const double DTime ) {
-		FenestrationCommon::SquareMatrix< double > Capacitance{ NodePool::Instance().maxIndex() };
+	std::vector< double > ElementsLinear2D::getLumpedMass( const double DTime ) {
+		FenestrationCommon::SparceSquareMatrix< double > Capacitance{ NodePool::Instance().maxIndex() };
 
 		// now integrate element matrices into global matrix
 		for ( auto & aElement : m_Elements ) {
@@ -35,19 +35,19 @@ namespace MoisThermFEM {
 			auto capacitance = aElement->capacitanceMatrix();
 			for ( size_t i = 0; i < numOfQuadrilateralNodes; ++i ) {
 				for ( size_t j = 0; j < numOfQuadrilateralNodes; ++j ) {
-					Capacitance[ indexes[ i ] - 1 ][ indexes[ j ] - 1 ] += capacitance[ i ][ j ];
+					Capacitance( indexes[ i ] - 1, indexes[ j ] - 1 ) += capacitance( i, j );
 				}
 			}
 		}
 
 		auto size = Capacitance.size();
 
-		FenestrationCommon::Vector< double > M( size, 0 );
+		std::vector< double > M( size, 0 );
 
 		// Creates lump matrix
 		for ( size_t i = 0; i < size; ++i ) {
 			for ( size_t j = 0; j < size; ++j ) {
-				M[ i ] += Capacitance[ i ][ j ];
+				M[ i ] += Capacitance(i, j );
 			}
 			M[ i ] /= DTime;
 		}
@@ -55,8 +55,8 @@ namespace MoisThermFEM {
 		return M;
 	}
 
-	FenestrationCommon::SquareMatrix< double > ElementsLinear2D::getMassMatrix( const double DTime ) {
-		FenestrationCommon::SquareMatrix< double > Capacitance{ NodePool::Instance().maxIndex() };
+	FenestrationCommon::SparceSquareMatrix< double > ElementsLinear2D::getMassMatrix( const double DTime ) {
+		FenestrationCommon::SparceSquareMatrix< double > Capacitance{ NodePool::Instance().maxIndex() };
 
 		// now integrate element matrices into global matrix
 		for ( auto & aElement : m_Elements ) {
@@ -64,7 +64,7 @@ namespace MoisThermFEM {
 			auto capacitance = aElement->capacitanceMatrix();
 			for ( size_t i = 0; i < numOfQuadrilateralNodes; ++i ) {
 				for ( size_t j = 0; j < numOfQuadrilateralNodes; ++j ) {
-					Capacitance[ indexes[ i ] - 1 ][ indexes[ j ] - 1 ] += capacitance[ i ][ j ] / DTime;
+					Capacitance( indexes[ i ] - 1, indexes[ j ] - 1 ) += capacitance(i, j ) / DTime;
 				}
 			}
 		}

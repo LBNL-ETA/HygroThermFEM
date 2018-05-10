@@ -76,10 +76,10 @@ TEST_F( MultiDomain_2D_2, TestExample_1 ) {
 
 	/// Create elements
 	for ( size_t i = 1; i <= ( nodePool.maxIndex() - 2 ) / 2; ++i ) {
-		auto node1 = nodePool.Instance().getNode( 2 * i + 1 );
-		auto node2 = nodePool.Instance().getNode( 2 * i + 2 );
-		auto node3 = nodePool.Instance().getNode( 2 * i );
-		auto node4 = nodePool.Instance().getNode( 2 * i - 1 );
+		auto & node1 = MoisThermFEM::NodePool::Instance().getNode( 2 * i + 1 );
+		auto & node2 = MoisThermFEM::NodePool::Instance().getNode( 2 * i + 2 );
+		auto & node3 = MoisThermFEM::NodePool::Instance().getNode( 2 * i );
+		auto & node4 = MoisThermFEM::NodePool::Instance().getNode( 2 * i - 1 );
 		domain.createElement( node1, node2, node3, node4, material );
 	}
 
@@ -88,13 +88,13 @@ TEST_F( MultiDomain_2D_2, TestExample_1 ) {
 	const auto airTemperature = 293.15;
 	const auto humidity = 0.2;
 
-	auto node1 = nodePool.Instance().getNode( 1 );
-	auto node2 = nodePool.Instance().getNode( 2 );
+	auto & node1 = MoisThermFEM::NodePool::Instance().getNode( 1 );
+	auto & node2 = MoisThermFEM::NodePool::Instance().getNode( 2 );
 
 	domain.createConvectionBC( node1, node2, hc, airTemperature, humidity );
 
 	const auto dTime = 36000;
-	const auto nSteps = 10;
+	const auto nSteps = 100;
 
 	auto temperatures = NodePool::Instance().nodeProperties( Property::temperature );
 	auto humidities = NodePool::Instance().nodeProperties( Property::humidity );
@@ -104,7 +104,6 @@ TEST_F( MultiDomain_2D_2, TestExample_1 ) {
 	for ( auto i = 0; i < nSteps; ++i ) {
 		auto aSolution = domain.transient( temperatures, humidities, dTime );
 		temperatureSolution.push_back( aSolution.temperature );
-		//waterContentSolution.push_back( material.waterContent( aSolution.humidity ) );
 		waterContentSolution.push_back(aSolution.waterContent);
 		temperatures = aSolution.temperature;
 		humidities = aSolution.humidity;

@@ -2,9 +2,8 @@
 
 #include <vector>
 
-#include "SquareMatrix.hxx"
+#include "SparceSquareMatrix.hxx"
 #include "Node2D.hxx"
-#include "Vector.hxx"
 #include "Material.hxx"
 
 namespace MoisThermFEM {
@@ -31,8 +30,8 @@ namespace MoisThermFEM {
 		/// derivative. Reason for keeping them separate is that matrix equation for non-linear case
 		/// need to know what matrices are coming from coefficients derivative, because they will be on
 		/// left hand side, next to unknown.
-		virtual FenestrationCommon::Vector< double > R_Vector() const = 0;
-		virtual FenestrationCommon::SquareMatrix< double > H_Matrix() const = 0;
+		virtual std::vector< double > R_Vector() const = 0;
+		virtual FenestrationCommon::SparceSquareMatrix< double > H_Matrix() const = 0;
 
 		/// DHMatrix seems unnecessary because solution will converge anyway.
 		/// virtual FenestrationCommon::SquareMatrix< double > D_HMatrix() const;
@@ -54,11 +53,11 @@ namespace MoisThermFEM {
 
 		/// Matrix that is base for all boundary conditions. It needs to be modified for
 		/// coefficients and that will depend on type of boundary conditions
-		FenestrationCommon::SquareMatrix< double > m_PsiPsiMatrix;
+		FenestrationCommon::SparceSquareMatrix< double > m_PsiPsiMatrix;
 
 		/// Vector that is base for all boundary conditions. It needs to be modified for
 		/// coefficients and that will depend on type of boundary conditions
-		FenestrationCommon::Vector< double > m_PsiVector;
+		std::vector< double > m_PsiVector;
 
 	};
 
