@@ -15,7 +15,7 @@ namespace MoisThermFEM {
 
 	}
 
-	FenestrationCommon::SparceSquareMatrix< double > Domain::steadyStateLeftHandSide() {
+	FenestrationCommon::SquareMatrix Domain::steadyStateLeftHandSide() {
 		auto condMat = m_Elements.conductanceMatrix();
 		const auto h = m_BCs.HMatrix();
 		condMat = condMat + h;
@@ -28,7 +28,7 @@ namespace MoisThermFEM {
 		return m_BCs.RVector();
 	}
 
-	FenestrationCommon::SparceSquareMatrix< double > Domain::transientM_K_H_Matrix( const double t_DTime ) {
+	FenestrationCommon::SquareMatrix Domain::transientM_K_H_Matrix( const double t_DTime ) {
 		auto M = m_Elements.getLumpedMass( t_DTime );
 		// auto M = m_Elements.getMassMatrix( t_DTime );
 		auto M_K_H = m_Elements.conductanceMatrix();
@@ -52,7 +52,7 @@ namespace MoisThermFEM {
 
 	std::vector< double > Domain::steadyState() {
 		auto B = steadyStateRightHandSide();
-		return CLinearSolver::solveEigenSparse( steadyStateLeftHandSide(), B );
+		return CLinearSolver::solveEigen( steadyStateLeftHandSide(), B );
 	}
 
 	std::vector< double >
@@ -66,7 +66,7 @@ namespace MoisThermFEM {
 		std::vector< double > solution;
 
 		if( isLinear() ) {
-			solution = CLinearSolver::solveEigenSparse( A, B );
+			solution = CLinearSolver::solveEigen( A, B );
 		} else {
 			solution = currentStateValues;
 
@@ -86,7 +86,7 @@ namespace MoisThermFEM {
 
 				/// auto dU = aSolver.solveSystem( DH, temp );
 
-				auto dU = CLinearSolver::solveEigenSparse( A, temp );
+				auto dU = CLinearSolver::solveEigen( A, temp );
 
 				error = norm( dU );
 

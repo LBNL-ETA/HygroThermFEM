@@ -25,7 +25,7 @@ TEST_F(TestLinearSolver2, Test1)
 {
     SCOPED_TRACE("Begin Test: Test Linear Solver (2) - Solving 100 x 100 matrix.");
 
-    const SparceSquareMatrix<double> aMatrix{
+    const SquareMatrix aMatrix{
       {26.51667823, 53.94695893, 1.625820187, 51.9441262,  46.2580274,  68.08758525, 98.01883643, 74.9856821,  30.68945949, 40.0403195,
        86.67395446, 91.66482197, 85.40549725, 49.15490333, 89.48457852, 90.68946815, 23.97492918, 11.43224386, 26.48061429, 43.48956277,
        20.66686862, 73.31353253, 29.90760896, 28.16240442, 47.51292851, 40.82812737, 14.22222433, 17.67978345, 87.27990511, 9.418227351,
@@ -1054,7 +1054,7 @@ TEST_F(TestLinearSolver2, Test1)
       2.812968811,  -6.731639658, 0.228331797,  -2.35541077, 7.860944306,  -3.03049196,  3.107337053,  -9.138264125, -1.73135499,  6.17679052,
       -2.565913502, -2.142657654, 2.210873404,  2.124682809, -12.23085315, 9.55478563,   -1.896444308, 12.39565957,  -5.855936232, -0.334376521};
 
-    auto aSolution = CLinearSolver::solveEigenSparse( aMatrix, aVector );
+    auto aSolution = CLinearSolver::solveEigen( aMatrix, aVector );
 
     EXPECT_EQ(aSolution.size(), correctSolution.size());
 

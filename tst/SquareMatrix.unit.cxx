@@ -4,7 +4,7 @@
 
 #include "MoisThermFEM2D.hxx"
 
-using FenestrationCommon::SparceSquareMatrix;
+using FenestrationCommon::SquareMatrix;
 using std::vector;
 
 class SquareMatrixTest : public testing::Test {
@@ -17,70 +17,70 @@ protected:
 
 TEST_F(SquareMatrixTest, TestAddition) {
   SCOPED_TRACE("Begin Test: Matrix addition.");
-  SparceSquareMatrix<double> a{{1, 2}, {3, 4}};
+  SquareMatrix a{{1, 2}, {3, 4}};
 
-  SparceSquareMatrix<double> b{{2, 8}, {3, 5}};
+  SquareMatrix b{{2, 8}, {3, 5}};
 
   auto result = a + b;
 
-  SparceSquareMatrix<double> correctResult{{3, 10}, {6, 9}};
+  SquareMatrix correctResult{{3, 10}, {6, 9}};
 
   EXPECT_EQ(correctResult.size(), result.size());
 
   for (auto i = 0u; i < correctResult.size(); ++i) {
     for (auto j = 0u; j < correctResult.size(); ++j) {
-      EXPECT_NEAR(correctResult(i,j), result(i,j), 1e-6);
+      EXPECT_NEAR(correctResult(i, j), result(i, j), 1e-6);
     }
   }
 }
 
 TEST_F(SquareMatrixTest, TestMultiplication) {
   SCOPED_TRACE("Begin Test: Matrix multiplication.");
-  SparceSquareMatrix<double> a{{1, 2}, {3, 4}};
+  SquareMatrix a{{1, 2}, {3, 4}};
 
-  SparceSquareMatrix<double> b{{2, 8}, {3, 5}};
+  SquareMatrix b{{2, 8}, {3, 5}};
 
   auto result = a * b;
 
-  SparceSquareMatrix<double> correctResult{{8, 18}, {18, 44}};
+  SquareMatrix correctResult{{8, 18}, {18, 44}};
 
   EXPECT_EQ(correctResult.size(), result.size());
 
   for (auto i = 0u; i < correctResult.size(); ++i) {
     for (auto j = 0u; j < correctResult.size(); ++j) {
-      EXPECT_NEAR(correctResult(i,j), result(i,j), 1e-6);
+      EXPECT_NEAR(correctResult(i, j), result(i, j), 1e-6);
     }
   }
 
   /// Now test inverse multiplication
   result = b * a;
 
-  SparceSquareMatrix<double> correctInverse{{26, 36}, {18, 26}};
+  SquareMatrix correctInverse{{26, 36}, {18, 26}};
 
   EXPECT_EQ(correctInverse.size(), result.size());
 
   for (auto i = 0u; i < correctInverse.size(); ++i) {
     for (auto j = 0u; j < correctInverse.size(); ++j) {
-      EXPECT_NEAR(correctInverse(i,j), result(i,j), 1e-6);
+      EXPECT_NEAR(correctInverse(i, j), result(i, j), 1e-6);
     }
   }
 }
 
 TEST_F(SquareMatrixTest, TestMultiplicationBySingleValue) {
   SCOPED_TRACE("Begin Test: Matrix multiplication by single value.");
-  SparceSquareMatrix<double> a{{1, 2}, {3, 4}};
+  SquareMatrix a{{1, 2}, {3, 4}};
 
   double b = 2;
 
   auto result = a * b;
 
-  SparceSquareMatrix<double> correctResult{{2, 4}, {6, 8}};
+  SquareMatrix correctResult{{2, 4}, {6, 8}};
 
   EXPECT_EQ(correctResult.size(), result.size());
 
   for (auto i = 0u; i < correctResult.size(); ++i) {
     for (auto j = 0u; j < correctResult.size(); ++j) {
-      EXPECT_NEAR(correctResult(i,j), result(i,j), 1e-6);
+      EXPECT_NEAR(correctResult(i, j), result(i, j), 1e-6);
     }
   }
 
@@ -91,14 +91,14 @@ TEST_F(SquareMatrixTest, TestMultiplicationBySingleValue) {
 
   for (auto i = 0u; i < correctResult.size(); ++i) {
     for (auto j = 0u; j < correctResult.size(); ++j) {
-      EXPECT_NEAR(correctResult(i,j), result(i,j), 1e-6);
+      EXPECT_NEAR(correctResult(i, j), result(i, j), 1e-6);
     }
   }
 }
 
 TEST_F(SquareMatrixTest, TestMultiplicationWithVectors) {
   SCOPED_TRACE("Begin Test: Matrix multiplication with vector.");
-  SparceSquareMatrix<double> a{{1, 2}, {3, 4}};
+  SquareMatrix a{{1, 2}, {3, 4}};
 
   vector<double> b{6, 7};
 

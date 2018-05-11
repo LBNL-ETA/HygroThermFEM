@@ -11,7 +11,7 @@
 #include "../src/NodePool.hxx"
 #include "../src/BoundaryCondition2D.hxx"
 #include "../src/BoundaryConditions2D.hxx"
-#include "../src/SparceSquareMatrix.hxx"
+#include "../src/SquareMatrix.hxx"
 #include "../src/VectorOperators.hxx"
 #include "../src/LinearSolver.hxx"
 #include "../src/FEMunique.hxx"

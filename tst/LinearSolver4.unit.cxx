@@ -28,7 +28,7 @@ TEST_F(TestLinearSolver4, Test1)
 
     const size_t size = 10000;
     const size_t sparseWidth = 2;
-    SparceSquareMatrix<double> aMatrix(size);
+    SquareMatrix aMatrix(size);
     std::vector<double> aVector(size);
 
     // Randomly generated sparse matrix
@@ -46,7 +46,7 @@ TEST_F(TestLinearSolver4, Test1)
     auto aSolver = GetSolver();
 
     const auto startTime = std::chrono::high_resolution_clock::now();
-    auto aSolution = CLinearSolver::solveEigenSparse( aMatrix, aVector );
+    auto aSolution = CLinearSolver::solveEigen( aMatrix, aVector );
     const auto endTime = std::chrono::high_resolution_clock::now();
     const auto duration{
       std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count()};

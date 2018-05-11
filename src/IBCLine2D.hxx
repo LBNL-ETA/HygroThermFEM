@@ -2,7 +2,7 @@
 
 #include <vector>
 
-#include "SparceSquareMatrix.hxx"
+#include "SquareMatrix.hxx"
 #include "Node2D.hxx"
 #include "Material.hxx"
 
@@ -31,7 +31,7 @@ namespace MoisThermFEM {
 		/// need to know what matrices are coming from coefficients derivative, because they will be on
 		/// left hand side, next to unknown.
 		virtual std::vector< double > R_Vector() const = 0;
-		virtual FenestrationCommon::SparceSquareMatrix< double > H_Matrix() const = 0;
+		virtual FenestrationCommon::SquareMatrix H_Matrix() const = 0;
 
 		/// DHMatrix seems unnecessary because solution will converge anyway.
 		/// virtual FenestrationCommon::SquareMatrix< double > D_HMatrix() const;
@@ -53,7 +53,7 @@ namespace MoisThermFEM {
 
 		/// Matrix that is base for all boundary conditions. It needs to be modified for
 		/// coefficients and that will depend on type of boundary conditions
-		FenestrationCommon::SparceSquareMatrix< double > m_PsiPsiMatrix;
+		FenestrationCommon::SquareMatrix m_PsiPsiMatrix;
 
 		/// Vector that is base for all boundary conditions. It needs to be modified for
 		/// coefficients and that will depend on type of boundary conditions

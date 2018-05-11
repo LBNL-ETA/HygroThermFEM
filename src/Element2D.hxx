@@ -2,158 +2,158 @@
 
 #include <memory>
 
+#include "Functions.hxx"
+#include "Material.hxx"
 #include "Node2D.hxx"
 #include "Quadrilateral2D.hxx"
-#include "SparceSquareMatrix.hxx"
-#include "Material.hxx"
-#include "Functions.hxx"
+#include "SquareMatrix.hxx"
 
 namespace MoisThermFEM {
 
-	// Constant that holds number of nodes in certain elementsCreator
-	const std::size_t numOfQuadrilateralNodes = 4;
-	// const std::size_t numOfIntegrationPoints = 4;
+// Constant that holds number of nodes in certain elementsCreator
+const std::size_t numOfQuadrilateralNodes = 4;
+// const std::size_t numOfIntegrationPoints = 4;
 
-	//////////////////////////////////////////////////////////////////////////////
-	///  IQLEMatrix2D
-	//////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
+///  IQLEMatrix2D
+//////////////////////////////////////////////////////////////////////////////
 
-	// Abstract class that forces users to perform matrix calculation in inherited version
-	// Depending on equations, matrices will have different calculation methods (for example
-	// capacitance and conductance matrices have different form)
-	class IQLEMatrix2D {
-	public:
-		IQLEMatrix2D( const QuadrilateralLinearGlobal2D & t_Element );
+// Abstract class that forces users to perform matrix calculation in inherited
+// version Depending on equations, matrices will have different calculation
+// methods (for example capacitance and conductance matrices have different
+// form)
+class IQLEMatrix2D {
+public:
+  IQLEMatrix2D(const QuadrilateralLinearGlobal2D &t_Element);
 
-		// Integrate matrix over all points of integration
-		virtual FenestrationCommon::SparceSquareMatrix< double >
-		integrate( const std::vector< double > & t_Values ) const final;
+  // Integrate matrix over all points of integration
+  virtual FenestrationCommon::SquareMatrix
+  integrate(const std::vector<double> &t_Values) const final;
 
-	protected:
-		virtual void calculateMatrixInIntegrationPoint(
-				const std::vector< double > & t_Values,
-				const std::size_t t_IntegrationPointIndex,
-				FenestrationCommon::SparceSquareMatrix< double > & t_Matrix ) const final;
+protected:
+  virtual void calculateMatrixInIntegrationPoint(
+	const std::vector<double> &t_Values,
+	const std::size_t t_IntegrationPointIndex,
+	std::vector<std::vector<double>> & t_Matrix ) const final;
 
-		const QuadrilateralLinearGlobal2D & m_Global2D;
+  const QuadrilateralLinearGlobal2D &m_Global2D;
 
-		std::vector< FenestrationCommon::SparceSquareMatrix< double > > m_IntegrationMatrix;
+  std::vector<FenestrationCommon::SquareMatrix> m_IntegrationMatrix;
+};
 
-	};
+//////////////////////////////////////////////////////////////////////////////
+///  QLEConductance2D
+//////////////////////////////////////////////////////////////////////////////
 
-	//////////////////////////////////////////////////////////////////////////////
-	///  QLEConductance2D
-	//////////////////////////////////////////////////////////////////////////////
+// Class to handle conductance matrix in global coordinate system
+class QLEConductance2D : public IQLEMatrix2D {
+public:
+  QLEConductance2D(const QuadrilateralLinearGlobal2D &t_Element);
+};
 
-	// Class to handle conductance matrix in global coordinate system
-	class QLEConductance2D : public IQLEMatrix2D {
-	public:
-		QLEConductance2D( const QuadrilateralLinearGlobal2D & t_Element );
+//////////////////////////////////////////////////////////////////////////////
+///  QLEConductanceDerivative2D
+//////////////////////////////////////////////////////////////////////////////
 
-	};
+// Handles conductance part with derivative term
+class QLEConductanceDerivative2D : public IQLEMatrix2D {
+public:
+  QLEConductanceDerivative2D(const QuadrilateralLinearGlobal2D &t_Element);
 
-	//////////////////////////////////////////////////////////////////////////////
-	///  QLEConductanceDerivative2D
-	//////////////////////////////////////////////////////////////////////////////
+  // This updates integration matrix with new derivative values
+  void updateIntegrationMatrix(const std::vector<double> &t_Values);
 
-	// Handles conductance part with derivative term
-	class QLEConductanceDerivative2D : public IQLEMatrix2D {
-	public:
-		QLEConductanceDerivative2D( const QuadrilateralLinearGlobal2D & t_Element );
+  void clearIntegrationMatrix();
+};
 
-		// This updates integration matrix with new derivative values
-		void updateIntegrationMatrix( const std::vector< double > & t_Values );
+//////////////////////////////////////////////////////////////////////////////
+///  QLECapacitance2D
+//////////////////////////////////////////////////////////////////////////////
 
-		void clearIntegrationMatrix();
+// Class to handle capacitance matrix in global coordinate system
+class QLECapacitance2D : public IQLEMatrix2D {
+public:
+  QLECapacitance2D(const QuadrilateralLinearGlobal2D &t_Element);
+};
 
-	};
+/// Keeping function pointers for QLEConductanceDerivative2D in Elements array
+struct DerivativeFunction {
+  DerivativeFunction(const std::shared_ptr<IValue> &fixedTerm,
+                     const std::shared_ptr<IValue> &derivativeTerm);
 
-	//////////////////////////////////////////////////////////////////////////////
-	///  QLECapacitance2D
-	//////////////////////////////////////////////////////////////////////////////
+  std::shared_ptr<MoisThermFEM::IValue> fixedTerm;
+  std::shared_ptr<MoisThermFEM::IValue> derivativeTerm;
+};
 
-	// Class to handle capacitance matrix in global coordinate system
-	class QLECapacitance2D : public IQLEMatrix2D {
-	public:
-		QLECapacitance2D( const QuadrilateralLinearGlobal2D & t_Element );
+//////////////////////////////////////////////////////////////////////////////
+///  IElementLinear2D
+//////////////////////////////////////////////////////////////////////////////
 
-	};
+/// Class that handles creation of conductance and capacitance matrices in
+/// linear 2D world. This class will be used by multiple governing equations
+/// since basis of matrix creation are identical with only difference in what
+/// coefficients are passed
+class IElementLinear2D {
+public:
+  IElementLinear2D(const Node2D &t_Node1, const Node2D &t_Node2,
+                   const Node2D &t_Node3, const Node2D &t_Node4,
+                   const Material &t_Material);
 
-	/// Keeping function pointers for QLEConductanceDerivative2D in Elements array
-	struct DerivativeFunction {
-		DerivativeFunction( const std::shared_ptr< IValue > & fixedTerm,
-												const std::shared_ptr< IValue > & derivativeTerm );
+  FenestrationCommon::SquareMatrix conductanceMatrix() const;
 
-		std::shared_ptr< MoisThermFEM::IValue > fixedTerm;
-		std::shared_ptr< MoisThermFEM::IValue > derivativeTerm;
-	};
+  FenestrationCommon::SquareMatrix conductanceDerivativeMatrix();
 
-	//////////////////////////////////////////////////////////////////////////////
-	///  IElementLinear2D
-	//////////////////////////////////////////////////////////////////////////////
+  FenestrationCommon::SquareMatrix capacitanceMatrix() const;
 
-	/// Class that handles creation of conductance and capacitance matrices in linear
-	/// 2D world. This class will be used by multiple governing equations since
-	/// basis of matrix creation are identical with only difference in what coefficients
-	/// are passed
-	class IElementLinear2D {
-	public:
-		IElementLinear2D( const Node2D & t_Node1, const Node2D & t_Node2, const Node2D & t_Node3,
-											const Node2D & t_Node4, const Material & t_Material );
+  Node2D &getNode(std::size_t index);
 
-		FenestrationCommon::SparceSquareMatrix< double > conductanceMatrix() const;
+  bool haveBothNodes(const Node2D &t_Node1, const Node2D &t_Node2) const;
 
-		FenestrationCommon::SparceSquareMatrix< double > conductanceDerivativeMatrix();
+  std::vector<std::size_t> nodeIndexes() const;
 
-		FenestrationCommon::SparceSquareMatrix< double > capacitanceMatrix() const;
+  const Material &getMaterial() const;
 
-		Node2D & getNode( std::size_t index );
+protected:
+  /// TODO: This did not work with reference_wrapper and it should. Check later.
+  /// Reminder: Introduce pair of curve pointer and Property so that curve knows
+  /// what to use
+  std::vector<std::shared_ptr<IValue>> m_Conductance;
+  std::vector<std::shared_ptr<IValue>> m_Capacitance;
+  std::vector<DerivativeFunction> m_DerivativeConductance;
 
-		bool haveBothNodes( const Node2D & t_Node1, const Node2D & t_Node2 ) const;
+  const Material &m_Material;
 
-		std::vector< std::size_t > nodeIndexes() const;
+private:
+  std::vector<Node2D> m_Node;
 
-		const Material & getMaterial() const;
+  QuadrilateralLinearGlobal2D m_Global2D;
+  QLECapacitance2D m_QLECapacitance2D;
+  QLEConductance2D m_QLEConductance2D;
+  /// This one depends on functions and must be stored for every
+  /// DerivativeConductance submatrix
+  std::vector<QLEConductanceDerivative2D> m_QLEDerivativeConductance;
+};
 
-	protected:
-		/// TODO: This did not work with reference_wrapper and it should. Check later.
-		/// Reminder: Introduce pair of curve pointer and Property so that curve knows what to use
-		std::vector< std::shared_ptr< IValue > > m_Conductance;
-		std::vector< std::shared_ptr< IValue > > m_Capacitance;
-		std::vector< DerivativeFunction > m_DerivativeConductance;
+//////////////////////////////////////////////////////////////////////////////
+///  ElementThermalLinear2D
+//////////////////////////////////////////////////////////////////////////////
 
-		const Material & m_Material;
+class ElementThermalLinear2D : public IElementLinear2D {
+public:
+  ElementThermalLinear2D(const Node2D &t_Node1, const Node2D &t_Node2,
+                         const Node2D &t_Node3, const Node2D &t_Node4,
+                         const Material &mat);
+};
 
-	private:
-		std::vector< Node2D > m_Node;
+//////////////////////////////////////////////////////////////////////////////
+///  ElementMoistureLinear2D
+//////////////////////////////////////////////////////////////////////////////
 
-		QuadrilateralLinearGlobal2D m_Global2D;
-		QLECapacitance2D m_QLECapacitance2D;
-		QLEConductance2D m_QLEConductance2D;
-		/// This one depends on functions and must be stored for every DerivativeConductance submatrix
-		std::vector< QLEConductanceDerivative2D > m_QLEDerivativeConductance;
-	};
+class ElementMoistureLinear2D : public IElementLinear2D {
+public:
+  ElementMoistureLinear2D(const Node2D &t_Node1, const Node2D &t_Node2,
+                          const Node2D &t_Node3, const Node2D &t_Node4,
+                          const Material &mat);
+};
 
-	//////////////////////////////////////////////////////////////////////////////
-	///  ElementThermalLinear2D
-	//////////////////////////////////////////////////////////////////////////////
-
-	class ElementThermalLinear2D : public IElementLinear2D {
-	public:
-		ElementThermalLinear2D( const Node2D & t_Node1, const Node2D & t_Node2, const Node2D & t_Node3,
-														const Node2D & t_Node4, const Material & mat );
-
-	};
-
-	//////////////////////////////////////////////////////////////////////////////
-	///  ElementMoistureLinear2D
-	//////////////////////////////////////////////////////////////////////////////
-
-	class ElementMoistureLinear2D : public IElementLinear2D {
-	public:
-		ElementMoistureLinear2D( const Node2D & t_Node1, const Node2D & t_Node2, const Node2D & t_Node3,
-														 const Node2D & t_Node4, const Material & mat );
-
-	};
-
-}
+} // namespace MoisThermFEM

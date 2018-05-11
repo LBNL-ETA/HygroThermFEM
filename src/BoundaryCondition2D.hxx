@@ -16,7 +16,7 @@ namespace MoisThermFEM {
 
 		virtual std::vector< double > R_Vector() const override;
 
-		virtual FenestrationCommon::SparceSquareMatrix< double > H_Matrix() const override;
+		virtual FenestrationCommon::SquareMatrix H_Matrix() const override;
 
 	protected:
 		const double m_ConvectionCoefficient;
@@ -47,7 +47,7 @@ namespace MoisThermFEM {
 
 		std::vector< double > R_Vector() const override;
 
-		FenestrationCommon::SparceSquareMatrix< double > H_Matrix() const override;
+		FenestrationCommon::SquareMatrix H_Matrix() const override;
 
 	private:
 		double m_Flux;
@@ -64,7 +64,7 @@ namespace MoisThermFEM {
 
 		virtual std::vector< double > R_Vector() const override;
 
-		virtual FenestrationCommon::SparceSquareMatrix< double > H_Matrix() const override;
+		virtual FenestrationCommon::SquareMatrix H_Matrix() const override;
 
 		/// DHMatrix seems unnecessary for now. Solution did converge without it.
 		/// FenestrationCommon::SquareMatrix< double > D_HMatrix() const override;
@@ -93,7 +93,7 @@ namespace MoisThermFEM {
 
 		virtual std::vector< double > R_Vector() const override;
 
-		virtual FenestrationCommon::SparceSquareMatrix< double > H_Matrix() const override;
+		virtual FenestrationCommon::SquareMatrix H_Matrix() const override;
 
 	protected:
 		double m_ConvectiveCoefficient;

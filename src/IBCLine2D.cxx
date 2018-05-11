@@ -5,7 +5,7 @@
 #include "LineLocal1D.hxx"
 #include "Elements2D.hxx"
 
-using FenestrationCommon::SparceSquareMatrix;
+using FenestrationCommon::SquareMatrix;
 
 namespace MoisThermFEM {
 

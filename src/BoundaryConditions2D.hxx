@@ -4,7 +4,7 @@
 #include <vector>
 #include <functional>
 
-#include "SparceSquareMatrix.hxx"
+#include "SquareMatrix.hxx"
 #include "FEMunique.hxx"
 #include "State.hxx"
 #include "IBCLine2D.hxx"
@@ -19,7 +19,7 @@ namespace MoisThermFEM {
 		BoundaryConditions2D() = default;
 		BoundaryConditions2D( const BoundaryConditions2D & other ) = delete;
 
-		FenestrationCommon::SparceSquareMatrix< double > HMatrix() const;
+		FenestrationCommon::SquareMatrix HMatrix() const;
 
 		/// FenestrationCommon::SquareMatrix< double >DHMatrix() const;
 		std::vector< double > RVector() const;

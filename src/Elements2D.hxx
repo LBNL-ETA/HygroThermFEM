@@ -3,7 +3,7 @@
 #include <memory>
 #include <functional>
 #include "Element2D.hxx"
-#include "SparceSquareMatrix.hxx"
+#include "SquareMatrix.hxx"
 
 namespace MoisThermFEM {
 
@@ -13,12 +13,12 @@ namespace MoisThermFEM {
 	public:
 		explicit ElementsLinear2D();
 
-		FenestrationCommon::SparceSquareMatrix< double > conductanceMatrix();
+		FenestrationCommon::SquareMatrix conductanceMatrix();
 		// FenestrationCommon::SquareMatrix< double > & thermalCapacitanceMatrix();
 
 		/// Creates lumped mass matrix that includes time derivative
 		std::vector< double > getLumpedMass( const double DTime );
-		FenestrationCommon::SparceSquareMatrix< double > getMassMatrix( const double DTime );
+		FenestrationCommon::SquareMatrix getMassMatrix( const double DTime );
 
 		bool isLinear() const;
 
