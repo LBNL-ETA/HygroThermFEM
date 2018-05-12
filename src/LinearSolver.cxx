@@ -44,13 +44,13 @@ namespace FenestrationCommon
     std::vector<double> CLinearSolver::solveEigen( const SquareMatrix & t_MatrixA,
 												   const std::vector< double > & t_VectorB )
     {
-        using Matrix = Eigen::MatrixXd;
+        using Matrix = Eigen::SparseMatrix<double>;
         using Vector = Eigen::VectorXd;
 
         const auto size = t_MatrixA.size();
 
 
-        Matrix A(t_MatrixA.m_Matrix);
+        Matrix A(t_MatrixA.m_Matrix.sparseView());
         Vector B(size);
 
         for(auto j = 0u; j < t_VectorB.size(); ++j)
@@ -58,11 +58,11 @@ namespace FenestrationCommon
             B[j] = t_VectorB[j];
         }
 
-        //Eigen::SparseLU<Matrix> solver;
-        //solver.analyzePattern(A);
-        //solver.factorize(A);
-        //Vector y = solver.solve(B);
-		Vector y = A.colPivHouseholderQr().solve(B);
+        Eigen::SparseLU<Matrix> solver;
+        solver.analyzePattern(A);
+        solver.factorize(A);
+        Vector y = solver.solve(B);
+		//Vector y = A.colPivHouseholderQr().solve(B);
 
         std::vector<double> solution(y.size());
         for(auto i = 0u; i < size; ++i)
