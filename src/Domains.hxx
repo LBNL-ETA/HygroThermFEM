@@ -49,17 +49,17 @@ namespace MoisThermFEM {
 
 		void updateNodeValues( const std::vector< double > & values, const Property property );
 
-		FenestrationCommon::SquareMatrix< double > steadyStateLeftHandSide();
-		FenestrationCommon::Vector< double > steadyStateRightHandSide() const;
+		FenestrationCommon::SquareMatrix steadyStateLeftHandSide();
+		std::vector< double > steadyStateRightHandSide() const;
 
 		/// In matrix equations some structures are showing up in both (linear and nonlinear) cases
 		/// and those matrix operations are separated into functions.
 		/// This function retrieves M+K+H matrix
-		FenestrationCommon::SquareMatrix< double > transientM_K_H_Matrix( const double t_DTime );
+		FenestrationCommon::SquareMatrix transientM_K_H_Matrix( const double t_DTime );
 		/// FenestrationCommon::SquareMatrix< double > transientDH_Matrix();
 
 		/// This function retrieves M*U+R vector (where U is state variable)
-		FenestrationCommon::Vector< double >
+		std::vector< double >
 		transientMT_R_Vector( std::vector< double > & t_PreviousSolution, const double t_DTime );
 
 		bool isLinear() const;

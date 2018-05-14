@@ -12,7 +12,7 @@
 #include "../src/BoundaryCondition2D.hxx"
 #include "../src/BoundaryConditions2D.hxx"
 #include "../src/SquareMatrix.hxx"
-#include "../src/Vector.hxx"
+#include "../src/VectorOperators.hxx"
 #include "../src/LinearSolver.hxx"
 #include "../src/FEMunique.hxx"
 #include "../src/Domains.hxx"

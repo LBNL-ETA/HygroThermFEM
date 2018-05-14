@@ -1,26 +1,25 @@
 #ifndef LINEARSOLVER_H
 #define LINEARSOLVER_H
 
-#include <memory>
 #include <vector>
 
 #include "SquareMatrix.hxx"
 
-namespace FenestrationCommon {
+namespace FenestrationCommon
+{
+    class CLinearSolver
+    {
+    public:
+        CLinearSolver() = default;
 
-  class CLinearSolver {
-  public:
-    CLinearSolver() = default;
+        static std::vector<double> solveEigen( const SquareMatrix & t_MatrixA,
+											   const std::vector< double > & t_VectorB );
 
-    std::vector< double > solveSystem( 
-      FenestrationCommon::SquareMatrix< double > t_MatrixA, 
-      std::vector< double > & t_VectorB ) const;
-
-  private:
-    std::vector< double > checkSingularity( SquareMatrix< double > & t_MatrixA ) const;
-    std::vector< size_t > makeUpperTriangular( SquareMatrix< double > & t_MatrixA ) const;
-
-  };
-}
+    private:
+        std::vector<double> checkSingularity(SquareMatrix & t_MatrixA) const;
+        std::vector<std::vector<size_t>> m_RowIndexes;
+        std::vector<std::vector<size_t>> m_ColumnIndexes;
+    };
+}   // namespace FenestrationCommon
 
 #endif

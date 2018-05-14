@@ -13,12 +13,12 @@ namespace MoisThermFEM {
 	public:
 		explicit ElementsLinear2D();
 
-		FenestrationCommon::SquareMatrix< double > conductanceMatrix();
+		FenestrationCommon::SquareMatrix conductanceMatrix();
 		// FenestrationCommon::SquareMatrix< double > & thermalCapacitanceMatrix();
 
 		/// Creates lumped mass matrix that includes time derivative
-		FenestrationCommon::Vector< double > getLumpedMass( const double DTime );
-		FenestrationCommon::SquareMatrix< double > getMassMatrix( const double DTime );
+		std::vector< double > getLumpedMass( const double DTime );
+		FenestrationCommon::SquareMatrix getMassMatrix( const double DTime );
 
 		bool isLinear() const;
 

@@ -14,9 +14,9 @@ namespace MoisThermFEM {
 		ConvectionBC( const Node2D & t_Node1, const Node2D & t_Node2,
 									const double t_ConvectionCoefficient, const double t_AirTemperature );
 
-		virtual FenestrationCommon::Vector< double > R_Vector() const override;
+		virtual std::vector< double > R_Vector() const override;
 
-		virtual FenestrationCommon::SquareMatrix< double > H_Matrix() const override;
+		virtual FenestrationCommon::SquareMatrix H_Matrix() const override;
 
 	protected:
 		const double m_ConvectionCoefficient;
@@ -45,9 +45,9 @@ namespace MoisThermFEM {
 	public:
 		FluxBC( Node2D & t_Node1, Node2D & t_Node2, const double t_Flux );
 
-		FenestrationCommon::Vector< double > R_Vector() const override;
+		std::vector< double > R_Vector() const override;
 
-		FenestrationCommon::SquareMatrix< double > H_Matrix() const override;
+		FenestrationCommon::SquareMatrix H_Matrix() const override;
 
 	private:
 		double m_Flux;
@@ -62,19 +62,19 @@ namespace MoisThermFEM {
 		BlackBodyRadiationBC( const Node2D & t_Node1, const Node2D & t_Node2,
 													const double t_Emissivity, const double t_RadiationTemperature );
 
-		virtual FenestrationCommon::Vector< double > R_Vector() const override;
+		virtual std::vector< double > R_Vector() const override;
 
-		virtual FenestrationCommon::SquareMatrix< double > H_Matrix() const override;
+		virtual FenestrationCommon::SquareMatrix H_Matrix() const override;
 
 		/// DHMatrix seems unnecessary for now. Solution did converge without it.
 		/// FenestrationCommon::SquareMatrix< double > D_HMatrix() const override;
 
 	private:
 		/// Radiative convective coefficient that needs to be calculated based on current temperatures
-		FenestrationCommon::Vector< double > HRadiative() const;
+		std::vector< double > HRadiative() const;
 
 		/// First derivative of radiative convection coefficient
-		/// FenestrationCommon::Vector< double > DHRadiative() const;
+		/// std::vector< double > DHRadiative() const;
 
 		double m_RadiationTemperature;
 		double m_Emissivity;
@@ -91,9 +91,9 @@ namespace MoisThermFEM {
 								const Material & t_Material, const double t_AirHumidity,
 								const double t_AirTemperature );
 
-		virtual FenestrationCommon::Vector< double > R_Vector() const override;
+		virtual std::vector< double > R_Vector() const override;
 
-		virtual FenestrationCommon::SquareMatrix< double > H_Matrix() const override;
+		virtual FenestrationCommon::SquareMatrix H_Matrix() const override;
 
 	protected:
 		double m_ConvectiveCoefficient;

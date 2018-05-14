@@ -19,10 +19,10 @@ namespace MoisThermFEM {
 		BoundaryConditions2D() = default;
 		BoundaryConditions2D( const BoundaryConditions2D & other ) = delete;
 
-		FenestrationCommon::SquareMatrix< double > HMatrix() const;
+		FenestrationCommon::SquareMatrix HMatrix() const;
 
 		/// FenestrationCommon::SquareMatrix< double >DHMatrix() const;
-		FenestrationCommon::Vector< double > RVector() const;
+		std::vector< double > RVector() const;
 
 		bool isLinear() const;
 

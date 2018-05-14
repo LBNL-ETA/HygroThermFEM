@@ -42,7 +42,7 @@ TEST_F( Analytical_ConvectionBC_Transient, TestExample_1 ) {
 	const auto initialHumidity = 0.0;
 	const auto initialPressure = 101325.0;
 
-	auto state = State( initialTemperature, initialHumidity, initialPressure );
+	const auto state = State( initialTemperature, initialHumidity, initialPressure );
 
 	size_t nodeIndex = 0;
 	for ( auto val : gridXCoordinates ) {
@@ -69,10 +69,10 @@ TEST_F( Analytical_ConvectionBC_Transient, TestExample_1 ) {
 
 	/// Create elements
 	for ( size_t i = 1; i <= ( nodePool.maxIndex() - 2 ) / 2; ++i ) {
-		auto node1 = nodePool.Instance().getNode( 2 * i - 1 );
-		auto node2 = nodePool.Instance().getNode( 2 * i );
-		auto node3 = nodePool.Instance().getNode( 2 * i + 2 );
-		auto node4 = nodePool.Instance().getNode( 2 * i + 1 );
+		const auto node1 = NodePool::Instance().getNode( 2 * i - 1 );
+		const auto node2 = NodePool::Instance().getNode( 2 * i );
+		const auto node3 = NodePool::Instance().getNode( 2 * i + 2 );
+		const auto node4 = NodePool::Instance().getNode( 2 * i + 1 );
 
 		domain.createThermalElement( node1, node2, node3, node4, material );
 	}
@@ -80,8 +80,8 @@ TEST_F( Analytical_ConvectionBC_Transient, TestExample_1 ) {
 	// Create Boundary Conditions
 	const auto tSurface = 0.0;
 
-	auto nodeBC1 = nodePool.Instance().getNode( 21 );
-	auto nodeBC2 = nodePool.Instance().getNode( 22 );
+	auto nodeBC1 = NodePool::Instance().getNode( 21 );
+	auto nodeBC2 = NodePool::Instance().getNode( 22 );
 
 	domain.createTemperatureBC( nodeBC1, nodeBC2, tSurface );
 
@@ -95,7 +95,7 @@ TEST_F( Analytical_ConvectionBC_Transient, TestExample_1 ) {
 		temperatures = domain.transient( temperatures, dTime );
 		solution.push_back( temperatures );
 	}
-
+	
 	std::vector< std::vector< double > > analyticalSolution = {
 			{ 10.171, 7.195, 0.000 },
 			{ 4.064,  2.874, 0.000 },

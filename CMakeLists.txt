@@ -8,6 +8,15 @@ include(cmake/ProjectMacros.cmake)
 include(cmake/internal_utils.cmake)
 include(cmake/CompilerFlags.cmake)
 
+# Include Eigen
+configure_file(CMakeListsEigen.txt.in ${CMAKE_BINARY_DIR}/eigen-download/CMakeLists.txt)
+execute_process(COMMAND ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}" .
+        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/eigen-download)
+execute_process(COMMAND ${CMAKE_COMMAND} --build .
+        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/eigen-download)
+
+include_directories(${CMAKE_BINARY_DIR}/eigen-src)
+
 # google test will not be created by this project if this is not main project. Main project is expected to handle google test.
 get_directory_property(hasParent PARENT_DIRECTORY)
 
@@ -20,7 +29,7 @@ endif ()
 if (BUILD_TESTING)
     set(google_disable_pthreads ON)
     # include(CMakeLists-GTest.txt)
-    configure_file(CMakeLists.txt.in ${CMAKE_BINARY_DIR}/googletest-download/CMakeLists.txt)
+    configure_file(CMakeListsGTest.txt.in ${CMAKE_BINARY_DIR}/googletest-download/CMakeLists.txt)
     execute_process(COMMAND ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}" .
             WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/googletest-download)
     execute_process(COMMAND ${CMAKE_COMMAND} --build .
