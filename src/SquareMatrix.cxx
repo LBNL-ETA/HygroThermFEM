@@ -20,44 +20,44 @@ SquareMatrix::SquareMatrix(
 SquareMatrix::SquareMatrix(
     const std::initializer_list<std::vector<double>> &tInput)
     : m_size(tInput.size()), m_Matrix(m_size, m_size) {
-  //std::vector<Eigen::Triplet<double>> tripletList;
+  // std::vector<Eigen::Triplet<double>> tripletList;
   auto i = 0u;
   for (auto vec : tInput) {
     for (auto j = 0u; j < vec.size(); ++j) {
-      //tripletList.emplace_back(i, j, vec[j]);
-	  m_Matrix.coeffRef(i, j) = vec[j];
+      // tripletList.emplace_back(i, j, vec[j]);
+      m_Matrix.coeffRef(i, j) = vec[j];
     }
     ++i;
   }
-  //m_Matrix.setFromTriplets(tripletList.begin(), tripletList.end());
+  // m_Matrix.setFromTriplets(tripletList.begin(), tripletList.end());
 }
 
 SquareMatrix::SquareMatrix(const std::vector<std::vector<double>> &tInput)
     : m_size(tInput.size()), m_Matrix(m_size, m_size) {
-  //std::vector<Eigen::Triplet<double>> tripletList;
+  // std::vector<Eigen::Triplet<double>> tripletList;
   for (auto i = 0u; i < tInput.size(); ++i) {
     for (auto j = 0u; j < tInput.size(); ++j) {
       if (tInput[i][j] != 0) {
-        //tripletList.emplace_back(i, j, tInput[i][j]);
-		  m_Matrix.coeffRef(i, j) = tInput[i][j];
+        // tripletList.emplace_back(i, j, tInput[i][j]);
+        m_Matrix.coeffRef(i, j) = tInput[i][j];
       }
     }
   }
-  //m_Matrix.setFromTriplets(tripletList.begin(), tripletList.end());
+  // m_Matrix.setFromTriplets(tripletList.begin(), tripletList.end());
 }
 
 SquareMatrix::SquareMatrix(const std::vector<std::vector<double>> &&tInput)
     : m_size(tInput.size()), m_Matrix(m_size, m_size) {
-  //std::vector<Eigen::Triplet<double>> tripletList;
+  // std::vector<Eigen::Triplet<double>> tripletList;
   for (auto i = 0u; i < tInput.size(); ++i) {
     for (auto j = 0u; j < tInput.size(); ++j) {
       if (tInput[i][j] != 0) {
-        //tripletList.emplace_back(i, j, tInput[i][j]);
-		m_Matrix.coeffRef(i, j) = tInput[i][j];
+        // tripletList.emplace_back(i, j, tInput[i][j]);
+        m_Matrix.coeffRef(i, j) = tInput[i][j];
       }
     }
   }
-  //m_Matrix.setFromTriplets(tripletList.begin(), tripletList.end());
+  // m_Matrix.setFromTriplets(tripletList.begin(), tripletList.end());
 }
 
 std::size_t SquareMatrix::size() const { return m_size; }
