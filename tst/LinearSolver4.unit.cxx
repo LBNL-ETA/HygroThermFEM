@@ -4,6 +4,10 @@
 
 #include "MoisThermFEM2D.hxx"
 
+#pragma warning(push,0)
+#include <Eigen/SparseCore>
+#pragma warning(pop)
+
 using namespace FenestrationCommon;
 
 class TestLinearSolver4 : public testing::Test
@@ -26,12 +30,12 @@ TEST_F(TestLinearSolver4, Test1)
 {
     SCOPED_TRACE("Begin Test: Test Linear Solver (4) - Solving large sparse matrix.");
 
-    const size_t size = 10000;
+    const size_t size = 100000;
     const size_t sparseWidth = 2;
-    SquareMatrix aMatrix(size);
     std::vector<double> aVector(size);
 
     // Randomly generated sparse matrix
+	std::vector<Eigen::Triplet<double>> tripletList;
     for(auto i = 0u; i < size; ++i)
     {
         aVector[i] = rand() % 100;
@@ -39,9 +43,11 @@ TEST_F(TestLinearSolver4, Test1)
         const auto lower = i - sparseWidth > size ? i : i - sparseWidth;
         for(auto j = lower; j < upper; ++j)
         {
-            aMatrix(i,j) = rand() % 100;
+			tripletList.emplace_back(int(i), int(j), double(rand() % 100));
         }
     }
+
+	const SquareMatrix aMatrix{ size, tripletList };
 
     auto aSolver = GetSolver();
 

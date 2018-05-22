@@ -5,7 +5,6 @@
 #pragma warning(push, 0)
 #include <Eigen/Sparse>
 #include <Eigen/Cholesky>
-#include <Eigen/Dense>
 #pragma warning(pop) 
 
 #include "LinearSolver.hxx"
@@ -49,8 +48,6 @@ namespace FenestrationCommon
 
         const auto size = t_MatrixA.size();
 
-
-        Matrix A(t_MatrixA.m_Matrix.sparseView());
         Vector B(size);
 
         for(auto j = 0u; j < t_VectorB.size(); ++j)
@@ -59,10 +56,9 @@ namespace FenestrationCommon
         }
 
         Eigen::SparseLU<Matrix> solver;
-        solver.analyzePattern(A);
-        solver.factorize(A);
+        solver.analyzePattern(t_MatrixA.m_Matrix);
+        solver.factorize(t_MatrixA.m_Matrix);
         Vector y = solver.solve(B);
-		//Vector y = A.colPivHouseholderQr().solve(B);
 
         std::vector<double> solution(y.size());
         for(auto i = 0u; i < size; ++i)
