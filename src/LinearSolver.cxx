@@ -56,8 +56,8 @@ namespace FenestrationCommon
         }
 
         Eigen::SparseLU<Matrix> solver;
-        solver.analyzePattern(t_MatrixA.m_Matrix);
-        solver.factorize(t_MatrixA.m_Matrix);
+        solver.analyzePattern(t_MatrixA.getSparseMatrix());
+        solver.factorize(t_MatrixA.getSparseMatrix());
         Vector y = solver.solve(B);
 
         std::vector<double> solution(y.size());
