@@ -24,9 +24,7 @@ protected:
 TEST_F( MaterialPropertiesUnit, TestMaterialProperties ) {
 	SCOPED_TRACE( "Begin Test: Test water and moisture fill." );
 
-	auto & materialPool = MoisThermFEM::MaterialPool::Instance();
-
-	auto & material = materialPool.Instance().createMaterial(
+	auto & material = MoisThermFEM::MaterialPool::Instance().createMaterial(
 			"Cottaer Sandstone",
 			2050, /// density
 			0.22, /// porosity

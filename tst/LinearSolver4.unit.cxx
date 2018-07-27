@@ -32,7 +32,7 @@ TEST_F(TestLinearSolver4, Test1)
 {
     SCOPED_TRACE("Begin Test: Test Linear Solver (4) - Solving large sparse matrix.");
 
-    const size_t size = 100000;
+    const size_t size = 10000;
     const size_t sparseWidth = 2;
     std::vector<double> aVector(size);
     std::default_random_engine generator;

@@ -23,10 +23,6 @@ protected:
 TEST_F( ConvectionBC_2D_2, TestExample_1 ) {
 	SCOPED_TRACE( "Begin Test: Three elements with simple convection BC." );
 
-	// Enter nodes. Arguments are: node number, x-coordinate, y-coordinate, initial temperature
-	auto & nodePool = NodePool::Instance();
-	auto & materialPool = MaterialPool::Instance();
-
 	std::vector< double > gridXCoordinates{ 0, 0.05, 0.1, 0.15 };
 
 	const double initialTemperature = 293.15;
@@ -37,12 +33,12 @@ TEST_F( ConvectionBC_2D_2, TestExample_1 ) {
 	size_t nodeIndex = 0;
 	for ( auto val : gridXCoordinates ) {
 		++nodeIndex;
-		nodePool.createNode( nodeIndex, val, 0.00, state );
+		NodePool::Instance().createNode( nodeIndex, val, 0.00, state );
 		++nodeIndex;
-		nodePool.createNode( nodeIndex, val, 0.05, state );
+		NodePool::Instance().createNode( nodeIndex, val, 0.05, state );
 	}
 
-	auto & material = materialPool.createMaterial(
+	auto & material = MaterialPool::Instance().createMaterial(
 			"Cottaer Sandstone",
 			2050, /// density
 			0.22, /// porosity
@@ -73,11 +69,11 @@ TEST_F( ConvectionBC_2D_2, TestExample_1 ) {
 	Domain domain{ Property::temperature };
 
 	/// Create elements
-	for ( size_t i = 1; i <= ( nodePool.maxIndex() - 2 ) / 2; ++i ) {
-		auto node1 = nodePool.Instance().getNode( 2 * i + 1 );
-		auto node2 = nodePool.Instance().getNode( 2 * i + 2 );
-		auto node3 = nodePool.Instance().getNode( 2 * i );
-		auto node4 = nodePool.Instance().getNode( 2 * i - 1 );
+	for ( size_t i = 1; i <= ( NodePool::Instance().maxIndex() - 2 ) / 2; ++i ) {
+		auto node1 = NodePool::Instance().Instance().getNode( 2 * i + 1 );
+		auto node2 = NodePool::Instance().Instance().getNode( 2 * i + 2 );
+		auto node3 = NodePool::Instance().Instance().getNode( 2 * i );
+		auto node4 = NodePool::Instance().Instance().getNode( 2 * i - 1 );
 		domain.createThermalElement( node1, node2, node3, node4, material );
 	}
 
@@ -85,8 +81,8 @@ TEST_F( ConvectionBC_2D_2, TestExample_1 ) {
 	const auto tSurface = 293.15;
 	const auto hc = 1.0;
 
-	auto node1 = nodePool.Instance().getNode( 1 );
-	auto node2 = nodePool.Instance().getNode( 2 );
+	auto node1 = NodePool::Instance().Instance().getNode( 1 );
+	auto node2 = NodePool::Instance().Instance().getNode( 2 );
 
 	domain.createConvectionBC( node1, node2, hc, tSurface );
 

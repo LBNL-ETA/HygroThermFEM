@@ -169,4 +169,5 @@ std::vector<double> operator*(const std::vector<double> &first,
 Eigen::SparseMatrix<double> SquareMatrix::getSparseMatrix() const {
 	return m_Matrix;
 }
+
 } // namespace FenestrationCommon

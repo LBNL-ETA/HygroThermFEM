@@ -16,7 +16,7 @@ namespace MoisThermFEM {
 	// Interface class for boundary conditions in linear 2D finite elementsCreator.
 	class IBCLinear2D {
 	public:
-		virtual ~IBCLinear2D();
+		virtual ~IBCLinear2D() = default;
 
 		IBCLinear2D() = delete;
 		IBCLinear2D( const Node2D & t_Node1, const Node2D & t_Node2, const bool t_Linear = true );
@@ -55,8 +55,9 @@ namespace MoisThermFEM {
 		/// coefficients and that will depend on type of boundary conditions
 		FenestrationCommon::SquareMatrix m_PsiPsiMatrix;
 
-		/// Vector that is base for all boundary conditions. It needs to be modified for
-		/// coefficients and that will depend on type of boundary conditions
+		/// Vector that is base for all boundary conditions (it depends on psi functions).
+		/// It needs to be modified for coefficients and that will depend on type of boundary
+		/// conditions
 		std::vector< double > m_PsiVector;
 
 	};

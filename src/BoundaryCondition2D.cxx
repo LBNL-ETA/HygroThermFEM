@@ -133,12 +133,11 @@ FenestrationCommon::SquareMatrix MoistureBC::H_Matrix() const {
   const auto humidityByVolume1 = humidityCoeff->value(m_Nodes[0].getState());
   const auto humidityByVolume2 = humidityCoeff->value(m_Nodes[1].getState());
 
-  std::vector<double> coeffs{
-      humidityByVolume1 * m_ConvectiveCoefficient /
-          (Constants::Density_Air * Constants::Cp_Air),
-      humidityByVolume2 * m_ConvectiveCoefficient /
-          (Constants::Density_Air * Constants::Cp_Air),
-  };
+  const auto beta =
+      m_ConvectiveCoefficient / (Constants::Density_Air * Constants::Cp_Air);
+
+  std::vector<double> coeffs{humidityByVolume1 * beta,
+                             humidityByVolume2 * beta};
 
   return m_PsiPsiMatrix.mmultRows(coeffs);
 }

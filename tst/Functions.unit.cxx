@@ -1,5 +1,5 @@
-#include <memory>
 #include <gtest/gtest.h>
+#include <memory>
 
 #include "MoisThermFEM2D.hxx"
 
@@ -9,243 +9,218 @@ using MoisThermFEM::State;
 class CurveTest : public testing::Test {
 
 protected:
-	void
-	SetUp() override {
-	}
+  void SetUp() override {}
 
-	void
-	TearDown() override {
-
-	}
-
+  void TearDown() override {}
 };
 
-TEST_F( CurveTest, TestTabularLinear ) {
-	SCOPED_TRACE( "Begin Test: Test tabular linear." );
-	const MoisThermFEM::TabularFunction curve( { { 1, 10 },
-																							 { 2, 20 },
-																							 { 3, 30 } }, Property::temperature );
+TEST_F(CurveTest, TestTabularLinear) {
+  SCOPED_TRACE("Begin Test: Test tabular linear.");
+  const MoisThermFEM::TabularFunction curve({{1, 10}, {2, 20}, {3, 30}},
+                                            Property::temperature);
 
-	State interpolationPoint( 2.5, 0, 101325 );
+  State interpolationPoint(2.5, 0, 101325);
 
-	auto result = curve.value( interpolationPoint );
+  auto result = curve.value(interpolationPoint);
 
-	EXPECT_NEAR( 25, result, 1e-6 );
+  EXPECT_NEAR(25, result, 1e-6);
 
-	auto max = curve.max();
-	EXPECT_NEAR( 30, max, 1e-6 );
+  auto max = curve.max();
+  EXPECT_NEAR(30, max, 1e-6);
 
-	auto min = curve.min();
-	EXPECT_NEAR( 10, min, 1e-6 );
-
+  auto min = curve.min();
+  EXPECT_NEAR(10, min, 1e-6);
 }
 
-TEST_F( CurveTest, TestFirstDerivative ) {
-	SCOPED_TRACE( "Begin Test: Test first derivative of tabular linear curve." );
-	std::shared_ptr< MoisThermFEM::IValue > table(
-			std::make_shared< MoisThermFEM::TabularFunction >(
-					std::vector< std::pair< double, double > >( { { 1, 10 },
-																												{ 2, 20 },
-																												{ 3, 30 } } ), Property::temperature ) );
-	const MoisThermFEM::Derivative der( table );
+TEST_F(CurveTest, TestFirstDerivative) {
+  SCOPED_TRACE("Begin Test: Test first derivative of tabular linear curve.");
+  std::shared_ptr<MoisThermFEM::IValue> table(
+      std::make_shared<MoisThermFEM::TabularFunction>(
+          std::vector<std::pair<double, double>>({{1, 10}, {2, 20}, {3, 30}}),
+          Property::temperature));
+  const MoisThermFEM::Derivative der(table);
 
-	State interpolationPoint( 2.5, 0, 101325 );
+  State interpolationPoint(2.5, 0, 101325);
 
-	auto result = der.value( interpolationPoint );
+  auto result = der.value(interpolationPoint);
 
-	EXPECT_NEAR( 10, result, 1e-6 );
+  EXPECT_NEAR(10, result, 1e-6);
 }
 
-TEST_F( CurveTest, TestTabularLogarithmic ) {
-	SCOPED_TRACE( "Begin Test: Test tabular logarithmic curve." );
-	const MoisThermFEM::TabularFunction curve( { { 1, 10 },
-																							 { 2, 20 },
-																							 { 3, 30 } },
-																						 Property::temperature,
-																						 FenestrationCommon::Interpolation::Logarithmic );
+TEST_F(CurveTest, TestTabularLogarithmic) {
+  SCOPED_TRACE("Begin Test: Test tabular logarithmic curve.");
+  const MoisThermFEM::TabularFunction curve(
+      {{1, 10}, {2, 20}, {3, 30}}, Property::temperature,
+      FenestrationCommon::Interpolation::Logarithmic);
 
-	State interpolationPoint( 2.5, 0, 101325 );
+  State interpolationPoint(2.5, 0, 101325);
 
-	auto result = curve.value( interpolationPoint );
+  auto result = curve.value(interpolationPoint);
 
-	EXPECT_NEAR( 24.4948974, result, 1e-6 );
-
+  EXPECT_NEAR(24.4948974, result, 1e-6);
 }
 
-TEST_F( CurveTest, TestSuctionCurve ) {
-	SCOPED_TRACE( "Begin Test: Test suction function." );
-	const MoisThermFEM::SuctionFunction curve( { { 1, 10 },
-																							 { 2, 20 },
-																							 { 3, 30 } }, Property::temperature );
+TEST_F(CurveTest, TestSuctionCurve) {
+  SCOPED_TRACE("Begin Test: Test suction function.");
+  const MoisThermFEM::SuctionFunction curve({{1, 10}, {2, 20}, {3, 30}},
+                                            Property::temperature);
 
-	/// First segment should have constant values
-	State interpolationPoint( 1.5, 0, 101325 );
-	auto result = curve.value( interpolationPoint );
-	EXPECT_NEAR( 10, result, 1e-6 );
+  /// First segment should have constant values
+  State interpolationPoint(1.5, 0, 101325);
+  auto result = curve.value(interpolationPoint);
+  EXPECT_NEAR(10, result, 1e-6);
 
-	/// Test outside of curve
-	State interpolationPoint1( 0.5, 0, 101325 );
-	result = curve.value( interpolationPoint1 );
-	EXPECT_NEAR( 10, result, 1e-6 );
+  /// Test outside of curve
+  State interpolationPoint1(0.5, 0, 101325);
+  result = curve.value(interpolationPoint1);
+  EXPECT_NEAR(10, result, 1e-6);
 
-	/// Other segments should have logarithmic interpolation
-	State interpolationPoint2( 2.5, 0, 101325 );
-	result = curve.value( interpolationPoint2 );
-	EXPECT_NEAR( 24.4948974, result, 1e-6 );
-
+  /// Other segments should have logarithmic interpolation
+  State interpolationPoint2(2.5, 0, 101325);
+  result = curve.value(interpolationPoint2);
+  EXPECT_NEAR(24.4948974, result, 1e-6);
 }
 
-TEST_F( CurveTest, TestConstantCurve ) {
-	SCOPED_TRACE( "Begin Test: Test tabular logarithmic." );
-	const MoisThermFEM::Constant cons( 5 );
+TEST_F(CurveTest, TestConstantCurve) {
+  SCOPED_TRACE("Begin Test: Test tabular logarithmic.");
+  const MoisThermFEM::Constant cons(5);
 
-	State interpolationPoint( 2.5, 0, 101325 );
-	auto result = cons.value( interpolationPoint );
-	EXPECT_NEAR( 5, result, 1e-6 );
-
+  State interpolationPoint(2.5, 0, 101325);
+  auto result = cons.value(interpolationPoint);
+  EXPECT_NEAR(5, result, 1e-6);
 }
 
-TEST_F( CurveTest, TestTabularOutOfRangeBack ) {
-	SCOPED_TRACE( "Begin Test: Test tabular out of range." );
-	const MoisThermFEM::TabularFunction curve( { { 1, 10 },
-																							 { 2, 20 },
-																							 { 3, 30 } }, Property::temperature );
+TEST_F(CurveTest, TestTabularOutOfRangeBack) {
+  SCOPED_TRACE("Begin Test: Test tabular out of range.");
+  const MoisThermFEM::TabularFunction curve({{1, 10}, {2, 20}, {3, 30}},
+                                            Property::temperature);
 
-	State interpolationPoint( 3.5, 0, 101325 );
-	auto result = curve.value( interpolationPoint );
-	EXPECT_NEAR( 30, result, 1e-6 );
-
+  State interpolationPoint(3.5, 0, 101325);
+  auto result = curve.value(interpolationPoint);
+  EXPECT_NEAR(30, result, 1e-6);
 }
 
-TEST_F( CurveTest, TestTabularOutOfRangeFront ) {
-	SCOPED_TRACE( "Begin Test: Test tabular out of range." );
-	const MoisThermFEM::TabularFunction curve( { { 1, 10 },
-																							 { 2, 20 },
-																							 { 3, 30 } }, Property::temperature );
+TEST_F(CurveTest, TestTabularOutOfRangeFront) {
+  SCOPED_TRACE("Begin Test: Test tabular out of range.");
+  const MoisThermFEM::TabularFunction curve({{1, 10}, {2, 20}, {3, 30}},
+                                            Property::temperature);
 
-	State interpolationPoint( 0.5, 0, 101325 );
-	auto result = curve.value( interpolationPoint );
-	EXPECT_NEAR( 10, result, 1e-6 );
-
+  State interpolationPoint(0.5, 0, 101325);
+  auto result = curve.value(interpolationPoint);
+  EXPECT_NEAR(10, result, 1e-6);
 }
 
-TEST_F( CurveTest, TestComposition1 ) {
-	SCOPED_TRACE( "Begin Test: Composition (multiplication) of two functions." );
-	std::shared_ptr< MoisThermFEM::IValue > tabular( new MoisThermFEM::TabularFunction( {
-																																													{ 1, 10 },
-																																													{ 2, 20 },
-																																													{ 3, 30 }
-																																											},
-																																											Property::temperature ) );
+TEST_F(CurveTest, TestComposition1) {
+  SCOPED_TRACE("Begin Test: Composition (multiplication) of two functions.");
+  std::shared_ptr<MoisThermFEM::IValue> tabular(
+      new MoisThermFEM::TabularFunction({{1, 10}, {2, 20}, {3, 30}},
+                                        Property::temperature));
 
-	tabular = tabular * 5;
+  tabular = tabular * 5;
 
-	State interpolationPoint( 2.5, 0, 101325 );
+  State interpolationPoint(2.5, 0, 101325);
 
-	auto result = tabular->value( interpolationPoint );
+  auto result = tabular->value(interpolationPoint);
 
-	EXPECT_NEAR( 125, result, 1e-6 );
-
+  EXPECT_NEAR(125, result, 1e-6);
 }
 
-TEST_F( CurveTest, TestPorosityCalculation ) {
-	SCOPED_TRACE( "Begin Test: Calculate liquid and air porosities." );
+TEST_F(CurveTest, TestPorosityCalculation) {
+  SCOPED_TRACE("Begin Test: Calculate liquid and air porosities.");
 
-	std::shared_ptr< MoisThermFEM::IValue > waterContent(
-			new MoisThermFEM::TabularFunction( { { 0.000, 0.0 },
-																					 { 0.500, 0.5 },
-																					 { 0.800, 1.4 },
-																					 { 0.900, 2.6 },
-																					 { 0.930, 3.6 },
-																					 { 0.950, 4.7 },
-																					 { 0.970, 7.1 },
-																					 { 0.990, 14.8 },
-																					 { 0.995, 20.9 },
-																					 { 0.999, 33.0 },
-																					 { 1.000, 40.0 } },
-																				 Property::humidity ) );
+  std::shared_ptr<MoisThermFEM::IValue> waterContent(
+      new MoisThermFEM::TabularFunction({{0.000, 0.0},
+                                         {0.500, 0.5},
+                                         {0.800, 1.4},
+                                         {0.900, 2.6},
+                                         {0.930, 3.6},
+                                         {0.950, 4.7},
+                                         {0.970, 7.1},
+                                         {0.990, 14.8},
+                                         {0.995, 20.9},
+                                         {0.999, 33.0},
+                                         {1.000, 40.0}},
+                                        Property::humidity));
 
+  auto maxWaterContent = waterContent->value(State(0, 1, 0));
+  const auto materialPorosity = 0.05;
 
-	auto maxWaterContent = waterContent->value( State( 0, 1, 0 ) );
-	const auto materialPorosity = 0.05;
+  auto waterFill = materialPorosity / maxWaterContent * waterContent;
 
-	auto waterFill = materialPorosity / maxWaterContent * waterContent;
+  State outdoor(10, 0.98, 101325);
 
-	State outdoor( 10, 0.98, 101325 );
+  auto result = waterFill->value(outdoor);
+  EXPECT_NEAR(0.0136875, result, 1e-6);
 
-	auto result = waterFill->value( outdoor );
-	EXPECT_NEAR( 0.0136875, result, 1e-6 );
+  const auto airFill = materialPorosity - waterFill;
 
-	const auto airFill = materialPorosity - waterFill;
-
-	result = airFill->value( outdoor );
-	EXPECT_NEAR( 0.0363125, result, 1e-6 );
-
+  result = airFill->value(outdoor);
+  EXPECT_NEAR(0.0363125, result, 1e-6);
 }
 
-TEST_F( CurveTest, TestSaturationFunction ) {
-	SCOPED_TRACE( "Begin Test: Test saturation function." );
+TEST_F(CurveTest, TestSaturationFunction) {
+  SCOPED_TRACE("Begin Test: Test saturation function.");
 
-	std::shared_ptr< MoisThermFEM::IValue > waterContent(
-			new MoisThermFEM::TabularFunction( { { 0.000, 0.0 },
-																					 { 0.500, 5.3 },
-																					 { 0.650, 8.4 },
-																					 { 0.800, 12 },
-																					 { 0.930, 17 },
-																					 { 0.950, 25 },
-																					 { 0.990, 63 },
-																					 { 0.995, 83 },
-																					 { 0.999, 120 },
-																					 { 1.000, 180 } }, Property::humidity ) );
+  std::shared_ptr<MoisThermFEM::IValue> waterContent(
+      new MoisThermFEM::TabularFunction({{0.000, 0.0},
+                                         {0.500, 5.3},
+                                         {0.650, 8.4},
+                                         {0.800, 12},
+                                         {0.930, 17},
+                                         {0.950, 25},
+                                         {0.990, 63},
+                                         {0.995, 83},
+                                         {0.999, 120},
+                                         {1.000, 180}},
+                                        Property::humidity));
 
-	auto maxWaterContent = waterContent->value( State( 0, 1, 0 ) );
-	const auto materialPorosity = 0.22;
+  auto maxWaterContent = waterContent->value(State(0, 1, 0));
+  const auto materialPorosity = 0.22;
 
-	std::shared_ptr< MoisThermFEM::IValue > waterFill =
-			materialPorosity / maxWaterContent * waterContent;
+  std::shared_ptr<MoisThermFEM::IValue> waterFill =
+      materialPorosity / maxWaterContent * waterContent;
 
-	std::shared_ptr< MoisThermFEM::IValue > airFill = materialPorosity - waterFill;
+  std::shared_ptr<MoisThermFEM::IValue> airFill = materialPorosity - waterFill;
 
-	std::shared_ptr< MoisThermFEM::IValue > sat(
-			new MoisThermFEM::SaturationFunction( Property::temperature ) );
+  std::shared_ptr<MoisThermFEM::IValue> sat(
+      new MoisThermFEM::SaturationFunction(Property::temperature));
 
-	sat = sat * airFill;
+  sat = sat * airFill;
 
-	State interpolationPoint( 283.15, 0.5, 101325 );
-	auto result = sat->value( interpolationPoint );
-	EXPECT_NEAR( 0.002000939, result, 1e-6 );
-
+  State interpolationPoint(283.15, 0.5, 101325);
+  auto result = sat->value(interpolationPoint);
+  EXPECT_NEAR(0.002000939, result, 1e-6);
 }
 
-TEST_F( CurveTest, TestTabularDerivative ) {
-	SCOPED_TRACE( "Begin Test: Test tabular derivative." );
+TEST_F(CurveTest, TestTabularDerivative) {
+  SCOPED_TRACE("Begin Test: Test tabular derivative.");
 
-	std::shared_ptr< MoisThermFEM::IValue > waterContent(
-			new MoisThermFEM::TabularDerivative( { { 0.000, 0.0 },
-																						 { 0.500, 5.3 },
-																						 { 0.650, 8.4 },
-																						 { 0.800, 12 },
-																						 { 0.930, 17 },
-																						 { 0.950, 25 },
-																						 { 0.990, 63 },
-																						 { 0.995, 83 },
-																						 { 0.999, 120 },
-																						 { 1.000, 180 } }, Property::humidity ) );
+  std::shared_ptr<MoisThermFEM::IValue> waterContent(
+      new MoisThermFEM::TabularDerivative({{0.000, 0.0},
+                                           {0.500, 5.3},
+                                           {0.650, 8.4},
+                                           {0.800, 12},
+                                           {0.930, 17},
+                                           {0.950, 25},
+                                           {0.990, 63},
+                                           {0.995, 83},
+                                           {0.999, 120},
+                                           {1.000, 180}},
+                                          Property::humidity));
 
-	State state1( 273.15, 0, 101325 );
-	auto result = waterContent->value( state1 );
-	EXPECT_NEAR( 10.6, result, 1e-6 );
+  State state1(273.15, 0, 101325);
+  auto result = waterContent->value(state1);
+  EXPECT_NEAR(10.6, result, 1e-6);
 
-	State state2( 273.15, 1.0, 101325 );
-	result = waterContent->value( state2 );
-	EXPECT_NEAR( 60000, result, 1e-6 );
+  State state2(273.15, 1.0, 101325);
+  result = waterContent->value(state2);
+  EXPECT_NEAR(60000, result, 1e-6);
 
-	State state3( 273.15, -1.0, 101325 );
-	result = waterContent->value( state3 );
-	EXPECT_NEAR( 10.6, result, 1e-6 );
+  State state3(273.15, -1.0, 101325);
+  result = waterContent->value(state3);
+  EXPECT_NEAR(10.6, result, 1e-6);
 
-	State state4( 273.15, 2.0, 101325 );
-	result = waterContent->value( state4 );
-	EXPECT_NEAR( 60000, result, 1e-6 );
-
+  State state4(273.15, 2.0, 101325);
+  result = waterContent->value(state4);
+  EXPECT_NEAR(60000, result, 1e-6);
 }

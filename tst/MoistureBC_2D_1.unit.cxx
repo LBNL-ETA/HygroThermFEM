@@ -23,12 +23,8 @@ protected:
 TEST_F( MoistureBC_2D_1, TestExample_1 ) {
 	SCOPED_TRACE( "Begin Test: Simple two elements example with moisture transfer." );
 
-	// Enter nodes. Arguments are: node number, x-coordinate, y-coordinate
-	auto & nodePool = NodePool::Instance();
-	auto & materialPool = MaterialPool::Instance();
-
 	std::vector< double > gridXCoordinates { 0, 0.015, 0.025, 0.035, 0.045, 0.055, 0.065, 0.075,
-																					 0.085, 0.095, 0.105, 0.115, 0.125, 0.135, 0.15 };
+										  0.085, 0.095, 0.105, 0.115, 0.125, 0.135, 0.15 };
 
 	const auto initialTemperature = 293.15;
 	const auto initialHumidity = 0.0;
@@ -38,12 +34,12 @@ TEST_F( MoistureBC_2D_1, TestExample_1 ) {
 	size_t nodeIndex = 0;
 	for ( auto val : gridXCoordinates ) {
 		++nodeIndex;
-		nodePool.createNode( nodeIndex, val, 0.00, state );
+		NodePool::Instance().createNode( nodeIndex, val, 0.00, state );
 		++nodeIndex;
-		nodePool.createNode( nodeIndex, val, 0.05, state );
+		NodePool::Instance().createNode( nodeIndex, val, 0.05, state );
 	}
 
-	auto & material = materialPool.createMaterial(
+	auto & material = MaterialPool::Instance().createMaterial(
 			"Cottaer Sandstone",
 			2050, /// density
 			0.22, /// porosity
@@ -74,11 +70,11 @@ TEST_F( MoistureBC_2D_1, TestExample_1 ) {
 	Domain domain { Property::humidity };
 
 	/// Create elements
-	for ( size_t i = 1; i <= ( nodePool.maxIndex() - 2 ) / 2; ++i ) {
-		auto & node1 = nodePool.Instance().getNode( 2 * i + 1 );
-		auto & node2 = nodePool.Instance().getNode( 2 * i + 2 );
-		auto & node3 = nodePool.Instance().getNode( 2 * i );
-		auto & node4 = nodePool.Instance().getNode( 2 * i - 1 );
+	for ( size_t i = 1; i <= ( MoisThermFEM::NodePool::Instance().maxIndex() - 2 ) / 2; ++i ) {
+		auto & node1 = MoisThermFEM::NodePool::Instance().getNode( 2 * i + 1 );
+		auto & node2 = MoisThermFEM::NodePool::Instance().getNode( 2 * i + 2 );
+		auto & node3 = MoisThermFEM::NodePool::Instance().getNode( 2 * i );
+		auto & node4 = MoisThermFEM::NodePool::Instance().getNode( 2 * i - 1 );
 		domain.createMoistureElement( node1, node2, node3, node4, material );
 	}
 
@@ -87,8 +83,8 @@ TEST_F( MoistureBC_2D_1, TestExample_1 ) {
 	const auto airTemperature = 293.15;
 	const auto airHumidity = 0.5;
 
-	auto & node1 = nodePool.Instance().getNode( 1 );
-	auto & node2 = nodePool.Instance().getNode( 2 );
+	auto & node1 = MoisThermFEM::NodePool::Instance().getNode( 1 );
+	auto & node2 = MoisThermFEM::NodePool::Instance().getNode( 2 );
 
 	domain.createMoistureBC( node1, node2, hc, airHumidity, airTemperature );
 

@@ -23,22 +23,18 @@ protected:
 TEST_F( MoistureBC_2D_2, TestExample_1 ) {
 	SCOPED_TRACE( "Begin Test: Simple two elements example with moisture transfer." );
 
-	// Enter nodes. Arguments are: node number, x-coordinate, y-coordinate
-	auto & nodePool = NodePool::Instance();
-	auto & materialPool = MaterialPool::Instance();
-
 	std::vector< double > gridXCoordinates { 0.15, 0.05, 0.00 };
 
 	auto state = State( 293.15, 0, 101325 );
 	size_t nodeIndex = 0;
 	for ( auto val : gridXCoordinates ) {
 		++nodeIndex;
-		nodePool.createNode( nodeIndex, val, 0.05, state );
+		NodePool::Instance().createNode( nodeIndex, val, 0.05, state );
 		++nodeIndex;
-		nodePool.createNode( nodeIndex, val, 0.00, state );
+		NodePool::Instance().createNode( nodeIndex, val, 0.00, state );
 	}
 
-	auto & material = materialPool.createMaterial(
+	auto & material = MaterialPool::Instance().createMaterial(
 			"Cottaer Sandstone",
 			2050, /// density
 			0.22, /// porosity
@@ -69,11 +65,11 @@ TEST_F( MoistureBC_2D_2, TestExample_1 ) {
 	Domain domain { Property::humidity };
 
 	/// Create elements
-	for ( size_t i = 1; i <= ( nodePool.maxIndex() - 2 ) / 2; ++i ) {
-		auto node1 = nodePool.Instance().getNode( 2 * i + 1 );
-		auto node2 = nodePool.Instance().getNode( 2 * i + 2 );
-		auto node3 = nodePool.Instance().getNode( 2 * i );
-		auto node4 = nodePool.Instance().getNode( 2 * i - 1 );
+	for ( size_t i = 1; i <= ( NodePool::Instance().maxIndex() - 2 ) / 2; ++i ) {
+		auto node1 = NodePool::Instance().Instance().getNode( 2 * i + 1 );
+		auto node2 = NodePool::Instance().Instance().getNode( 2 * i + 2 );
+		auto node3 = NodePool::Instance().Instance().getNode( 2 * i );
+		auto node4 = NodePool::Instance().Instance().getNode( 2 * i - 1 );
 		domain.createMoistureElement( node2, node3, node4, node1, material );
 	}
 
@@ -82,8 +78,8 @@ TEST_F( MoistureBC_2D_2, TestExample_1 ) {
 	const auto airTemperature = 293.15;
 	const auto humidity = 0.5;
 
-	auto node1 = nodePool.Instance().getNode( 5 );
-	auto node2 = nodePool.Instance().getNode( 6 );
+	auto node1 = NodePool::Instance().Instance().getNode( 5 );
+	auto node2 = NodePool::Instance().Instance().getNode( 6 );
 
 	domain.createMoistureBC( node1, node2, hc, humidity, airTemperature );
 
