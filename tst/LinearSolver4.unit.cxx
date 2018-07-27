@@ -1,5 +1,6 @@
 #include <memory>
 #include <gtest/gtest.h>
+#include <random>
 #include <chrono>
 
 #include "MoisThermFEM2D.hxx"
@@ -8,7 +9,8 @@
 #include <Eigen/SparseCore>
 #pragma warning(pop)
 
-using namespace FenestrationCommon;
+using FenestrationCommon::SquareMatrix;
+using FenestrationCommon::CLinearSolver;
 
 class TestLinearSolver4 : public testing::Test
 {
@@ -33,17 +35,18 @@ TEST_F(TestLinearSolver4, Test1)
     const size_t size = 100000;
     const size_t sparseWidth = 2;
     std::vector<double> aVector(size);
-
+    std::default_random_engine generator;
+	std::uniform_int_distribution<int> distribution(1,100);
     // Randomly generated sparse matrix
 	std::vector<Eigen::Triplet<double>> tripletList;
     for(auto i = 0u; i < size; ++i)
     {
-        aVector[i] = rand() % 100;
+        aVector[i] = double(distribution(generator));
         const auto upper = i + sparseWidth > size ? size : i + sparseWidth;
         const auto lower = i - sparseWidth > size ? i : i - sparseWidth;
         for(auto j = lower; j < upper; ++j)
         {
-			tripletList.emplace_back(int(i), int(j), double(rand() % 100));
+			tripletList.emplace_back(int(i), int(j), double(distribution(generator)));
         }
     }
 
