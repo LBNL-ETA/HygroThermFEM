@@ -96,7 +96,7 @@ TEST_F( Analytical_ConvectionBC_Transient, TestExample_1 ) {
 		solution.push_back( temperatures );
 	}
 	
-	std::vector< std::vector< double > > analyticalSolution = {
+	std::vector< std::vector< double > > analyticalSolution{
 			{ 10.171, 7.195, 0.000 },
 			{ 4.064,  2.874, 0.000 },
 			{ 1.623,  1.148, 0.000 },
