@@ -1,5 +1,6 @@
 #include <algorithm>
 
+#include "FEMunique.hxx"
 #include "Functions.hxx"
 #include "State.hxx"
 
@@ -207,6 +208,40 @@ namespace MoisThermFEM
     std::vector<std::pair<double, double>> TabularFunction::getCurve() const
     {
         return m_Curve;
+    }
+
+    std::shared_ptr<TabularFunction>
+      TabularFunction::create(const std::initializer_list<std::pair<double, double>> & list,
+                              const Property property,
+                              const FenestrationCommon::Interpolator interpolator)
+    {
+        return std::shared_ptr<TabularFunction>(new TabularFunction(list, property, interpolator));
+    }
+
+    std::shared_ptr<TabularFunction>
+      TabularFunction::create(const std::vector<std::pair<double, double>> & values,
+                              const Property property,
+                              const FenestrationCommon::Interpolator interpolator)
+    {
+        return std::shared_ptr<TabularFunction>(
+          new TabularFunction(values, property, interpolator));
+    }
+
+    std::unique_ptr<TabularFunction>
+      TabularFunction::createUnique(const std::initializer_list<std::pair<double, double>> & list,
+                                    const Property property,
+                                    const FenestrationCommon::Interpolator interpolator)
+    {
+        return std::unique_ptr<TabularFunction>(new TabularFunction(list, property, interpolator));
+    }
+
+    std::unique_ptr<TabularFunction>
+      TabularFunction::createUnique(const std::vector<std::pair<double, double>> & values,
+                                    const Property property,
+                                    const FenestrationCommon::Interpolator interpolator)
+    {
+        return std::unique_ptr<TabularFunction>(
+          new TabularFunction(values, property, interpolator));
     }
 
     //////////////////////////////////////////////////////////////////

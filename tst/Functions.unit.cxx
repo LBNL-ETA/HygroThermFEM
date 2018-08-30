@@ -5,6 +5,7 @@
 
 using MoisThermFEM::Property;
 using MoisThermFEM::State;
+using MoisThermFEM::TabularFunction;
 
 class CurveTest : public testing::Test
 {
@@ -19,27 +20,25 @@ protected:
 TEST_F(CurveTest, TestTabularLinear)
 {
     SCOPED_TRACE("Begin Test: Test tabular linear.");
-    const MoisThermFEM::TabularFunction curve({{1, 10}, {2, 20}, {3, 30}}, Property::temperature);
+    const auto curve = TabularFunction::create({{1, 10}, {2, 20}, {3, 30}}, Property::temperature);
 
     State interpolationPoint(2.5, 0, 101325);
 
-    auto result = curve.value(interpolationPoint);
+    auto result = curve->value(interpolationPoint);
 
     EXPECT_NEAR(25, result, 1e-6);
 
-    auto max = curve.max();
+    auto max = curve->max();
     EXPECT_NEAR(30, max, 1e-6);
 
-    auto min = curve.min();
+    auto min = curve->min();
     EXPECT_NEAR(10, min, 1e-6);
 }
 
 TEST_F(CurveTest, TestFirstDerivative)
 {
     SCOPED_TRACE("Begin Test: Test first derivative of tabular linear curve.");
-    MoisThermFEM::iValue table(std::make_shared<MoisThermFEM::TabularFunction>(
-      std::vector<std::pair<double, double>>({{1, 10}, {2, 20}, {3, 30}}), Property::temperature));
-    const MoisThermFEM::Derivative der(table);
+    MoisThermFEM::iValue table = TabularFunction::create({{1, 10}, {2, 20}, {3, 30}}, Property::temperature);    const MoisThermFEM::Derivative der(table);
 
     State interpolationPoint(2.5, 0, 101325);
 
@@ -51,13 +50,14 @@ TEST_F(CurveTest, TestFirstDerivative)
 TEST_F(CurveTest, TestTabularLogarithmic)
 {
     SCOPED_TRACE("Begin Test: Test tabular logarithmic curve.");
-    const MoisThermFEM::TabularFunction curve({{1, 10}, {2, 20}, {3, 30}},
-                                              Property::temperature,
-                                              FenestrationCommon::Interpolation::Logarithmic);
+    const auto curve =
+      TabularFunction::createUnique({{1, 10}, {2, 20}, {3, 30}},
+                                    Property::temperature,
+                                    FenestrationCommon::Interpolation::Logarithmic);
 
     State interpolationPoint(2.5, 0, 101325);
 
-    auto result = curve.value(interpolationPoint);
+    auto result = curve->value(interpolationPoint);
 
     EXPECT_NEAR(24.4948974, result, 1e-6);
 }
@@ -96,28 +96,28 @@ TEST_F(CurveTest, TestConstantCurve)
 TEST_F(CurveTest, TestTabularOutOfRangeBack)
 {
     SCOPED_TRACE("Begin Test: Test tabular out of range.");
-    const MoisThermFEM::TabularFunction curve({{1, 10}, {2, 20}, {3, 30}}, Property::temperature);
+    const auto curve = TabularFunction::create({{1, 10}, {2, 20}, {3, 30}}, Property::temperature);
 
     State interpolationPoint(3.5, 0, 101325);
-    auto result = curve.value(interpolationPoint);
+    auto result = curve->value(interpolationPoint);
     EXPECT_NEAR(30, result, 1e-6);
 }
 
 TEST_F(CurveTest, TestTabularOutOfRangeFront)
 {
     SCOPED_TRACE("Begin Test: Test tabular out of range.");
-    const MoisThermFEM::TabularFunction curve({{1, 10}, {2, 20}, {3, 30}}, Property::temperature);
+    const auto curve = TabularFunction::create({{1, 10}, {2, 20}, {3, 30}}, Property::temperature);
 
     State interpolationPoint(0.5, 0, 101325);
-    auto result = curve.value(interpolationPoint);
+    auto result = curve->value(interpolationPoint);
     EXPECT_NEAR(10, result, 1e-6);
 }
 
 TEST_F(CurveTest, TestComposition1)
 {
     SCOPED_TRACE("Begin Test: Composition (multiplication) of two functions.");
-    MoisThermFEM::iValue tabular(std::make_shared<MoisThermFEM::TabularFunction>(
-      std::vector<std::pair<double, double>>{{1, 10}, {2, 20}, {3, 30}}, Property::temperature));
+    MoisThermFEM::iValue tabular =
+      TabularFunction::create({{1, 10}, {2, 20}, {3, 30}}, Property::temperature);
 
     tabular = tabular * 5;
 
@@ -132,18 +132,18 @@ TEST_F(CurveTest, TestPorosityCalculation)
 {
     SCOPED_TRACE("Begin Test: Calculate liquid and air porosities.");
 
-    MoisThermFEM::iValue waterContent(new MoisThermFEM::TabularFunction({{0.000, 0.0},
-                                                                         {0.500, 0.5},
-                                                                         {0.800, 1.4},
-                                                                         {0.900, 2.6},
-                                                                         {0.930, 3.6},
-                                                                         {0.950, 4.7},
-                                                                         {0.970, 7.1},
-                                                                         {0.990, 14.8},
-                                                                         {0.995, 20.9},
-                                                                         {0.999, 33.0},
-                                                                         {1.000, 40.0}},
-                                                                        Property::humidity));
+    MoisThermFEM::iValue waterContent = TabularFunction::create({{0.000, 0.0},
+                                                                 {0.500, 0.5},
+                                                                 {0.800, 1.4},
+                                                                 {0.900, 2.6},
+                                                                 {0.930, 3.6},
+                                                                 {0.950, 4.7},
+                                                                 {0.970, 7.1},
+                                                                 {0.990, 14.8},
+                                                                 {0.995, 20.9},
+                                                                 {0.999, 33.0},
+                                                                 {1.000, 40.0}},
+                                                                Property::humidity);
 
     auto maxWaterContent = waterContent->value(State(0, 1, 0));
     const auto materialPorosity = 0.05;
@@ -165,17 +165,17 @@ TEST_F(CurveTest, TestSaturationFunction)
 {
     SCOPED_TRACE("Begin Test: Test saturation function.");
 
-    MoisThermFEM::iValue waterContent(new MoisThermFEM::TabularFunction({{0.000, 0.0},
-                                                                         {0.500, 5.3},
-                                                                         {0.650, 8.4},
-                                                                         {0.800, 12},
-                                                                         {0.930, 17},
-                                                                         {0.950, 25},
-                                                                         {0.990, 63},
-                                                                         {0.995, 83},
-                                                                         {0.999, 120},
-                                                                         {1.000, 180}},
-                                                                        Property::humidity));
+    MoisThermFEM::iValue waterContent = TabularFunction::create({{0.000, 0.0},
+                                                                 {0.500, 5.3},
+                                                                 {0.650, 8.4},
+                                                                 {0.800, 12},
+                                                                 {0.930, 17},
+                                                                 {0.950, 25},
+                                                                 {0.990, 63},
+                                                                 {0.995, 83},
+                                                                 {0.999, 120},
+                                                                 {1.000, 180}},
+                                                                Property::humidity);
 
     auto maxWaterContent = waterContent->value(State(0, 1, 0));
     const auto materialPorosity = 0.22;

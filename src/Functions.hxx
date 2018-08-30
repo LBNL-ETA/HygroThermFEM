@@ -147,15 +147,25 @@ namespace MoisThermFEM
     class TabularFunction : public IFunction
     {
     public:
-        TabularFunction(const std::vector<std::pair<double, double>> & values,
-                        Property property,
-                        FenestrationCommon::Interpolator interpolator =
-                          FenestrationCommon::Interpolation::Linear);
+    	static std::shared_ptr<TabularFunction> create(const std::vector<std::pair<double, double>> & values,
+													   Property property,
+													   FenestrationCommon::Interpolator interpolator =
+													   FenestrationCommon::Interpolation::Linear);
 
-        TabularFunction(const std::initializer_list<std::pair<double, double>> & list,
-                        Property property,
-                        FenestrationCommon::Interpolator interpolator =
-                          FenestrationCommon::Interpolation::Linear);
+		static std::shared_ptr<TabularFunction> create(const std::initializer_list<std::pair<double, double>> & list,
+													   Property property,
+													   FenestrationCommon::Interpolator interpolator =
+													   FenestrationCommon::Interpolation::Linear);
+
+		static std::unique_ptr<TabularFunction> createUnique(const std::vector<std::pair<double, double>> & values,
+													   Property property,
+													   FenestrationCommon::Interpolator interpolator =
+													   FenestrationCommon::Interpolation::Linear);
+
+		static std::unique_ptr<TabularFunction> createUnique(const std::initializer_list<std::pair<double, double>> & list,
+													   Property property,
+													   FenestrationCommon::Interpolator interpolator =
+													   FenestrationCommon::Interpolation::Linear);
 
         double max() const;
 
@@ -164,6 +174,16 @@ namespace MoisThermFEM
         std::vector<std::pair<double, double>> getCurve() const;
 
     protected:
+		TabularFunction(const std::vector<std::pair<double, double>> & values,
+						Property property,
+						FenestrationCommon::Interpolator interpolator =
+						FenestrationCommon::Interpolation::Linear);
+
+		TabularFunction(const std::initializer_list<std::pair<double, double>> & list,
+						Property property,
+						FenestrationCommon::Interpolator interpolator =
+						FenestrationCommon::Interpolation::Linear);
+
         std::vector<std::pair<double, double>> m_Curve;
         FenestrationCommon::Interpolator m_Interpolator;
 

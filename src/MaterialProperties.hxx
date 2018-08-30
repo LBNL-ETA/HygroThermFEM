@@ -11,9 +11,9 @@ namespace MoisThermFEM {
 
 	class MaterialProperties {
 	public:
-		static std::shared_ptr< MoisThermFEM::IValue > getWaterFill( const Material & mat );
+		static std::shared_ptr< IValue > getWaterFill( const Material & mat );
 
-		static std::shared_ptr< MoisThermFEM::IValue > getAirFill( const Material & mat );
+		static std::shared_ptr< IValue > getAirFill( const Material & mat );
 
 	};
 
