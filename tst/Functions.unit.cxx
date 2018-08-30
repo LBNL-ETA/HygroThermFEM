@@ -6,6 +6,11 @@
 using MoisThermFEM::Property;
 using MoisThermFEM::State;
 using MoisThermFEM::TabularFunction;
+using MoisThermFEM::TabularDerivative;
+using MoisThermFEM::SuctionFunction;
+using MoisThermFEM::SaturationFunction;
+using MoisThermFEM::Derivative;
+using MoisThermFEM::Constant;
 
 class CurveTest : public testing::Test
 {
@@ -38,11 +43,13 @@ TEST_F(CurveTest, TestTabularLinear)
 TEST_F(CurveTest, TestFirstDerivative)
 {
     SCOPED_TRACE("Begin Test: Test first derivative of tabular linear curve.");
-    MoisThermFEM::iValue table = TabularFunction::create({{1, 10}, {2, 20}, {3, 30}}, Property::temperature);    const MoisThermFEM::Derivative der(table);
+    MoisThermFEM::iValue table =
+      TabularFunction::create({{1, 10}, {2, 20}, {3, 30}}, Property::temperature);
+    const auto der = Derivative::create(table);
 
     State interpolationPoint(2.5, 0, 101325);
 
-    auto result = der.value(interpolationPoint);
+    auto result = der->value(interpolationPoint);
 
     EXPECT_NEAR(10, result, 1e-6);
 }
@@ -65,31 +72,31 @@ TEST_F(CurveTest, TestTabularLogarithmic)
 TEST_F(CurveTest, TestSuctionCurve)
 {
     SCOPED_TRACE("Begin Test: Test suction function.");
-    const MoisThermFEM::SuctionFunction curve({{1, 10}, {2, 20}, {3, 30}}, Property::temperature);
+    const auto curve = SuctionFunction::create({{1, 10}, {2, 20}, {3, 30}}, Property::temperature);
 
     /// First segment should have constant values
     State interpolationPoint(1.5, 0, 101325);
-    auto result = curve.value(interpolationPoint);
+    auto result = curve->value(interpolationPoint);
     EXPECT_NEAR(10, result, 1e-6);
 
     /// Test outside of curve
     State interpolationPoint1(0.5, 0, 101325);
-    result = curve.value(interpolationPoint1);
+    result = curve->value(interpolationPoint1);
     EXPECT_NEAR(10, result, 1e-6);
 
     /// Other segments should have logarithmic interpolation
     State interpolationPoint2(2.5, 0, 101325);
-    result = curve.value(interpolationPoint2);
+    result = curve->value(interpolationPoint2);
     EXPECT_NEAR(24.4948974, result, 1e-6);
 }
 
 TEST_F(CurveTest, TestConstantCurve)
 {
     SCOPED_TRACE("Begin Test: Test tabular logarithmic.");
-    const MoisThermFEM::Constant cons(5);
+    const auto cons = Constant::create(5);
 
     State interpolationPoint(2.5, 0, 101325);
-    auto result = cons.value(interpolationPoint);
+    auto result = cons->value(interpolationPoint);
     EXPECT_NEAR(5, result, 1e-6);
 }
 
@@ -184,7 +191,7 @@ TEST_F(CurveTest, TestSaturationFunction)
 
     MoisThermFEM::iValue airFill = materialPorosity - waterFill;
 
-    MoisThermFEM::iValue sat(new MoisThermFEM::SaturationFunction(Property::temperature));
+    MoisThermFEM::iValue sat = SaturationFunction::create(Property::temperature);
 
     sat = sat * airFill;
 
@@ -197,17 +204,17 @@ TEST_F(CurveTest, TestTabularDerivative)
 {
     SCOPED_TRACE("Begin Test: Test tabular derivative.");
 
-    MoisThermFEM::iValue waterContent(new MoisThermFEM::TabularDerivative({{0.000, 0.0},
-                                                                           {0.500, 5.3},
-                                                                           {0.650, 8.4},
-                                                                           {0.800, 12},
-                                                                           {0.930, 17},
-                                                                           {0.950, 25},
-                                                                           {0.990, 63},
-                                                                           {0.995, 83},
-                                                                           {0.999, 120},
-                                                                           {1.000, 180}},
-                                                                          Property::humidity));
+    MoisThermFEM::iValue waterContent = TabularDerivative::create({{0.000, 0.0},
+                                                                   {0.500, 5.3},
+                                                                   {0.650, 8.4},
+                                                                   {0.800, 12},
+                                                                   {0.930, 17},
+                                                                   {0.950, 25},
+                                                                   {0.990, 63},
+                                                                   {0.995, 83},
+                                                                   {0.999, 120},
+                                                                   {1.000, 180}},
+                                                                  Property::humidity);
 
     State state1(273.15, 0, 101325);
     auto result = waterContent->value(state1);

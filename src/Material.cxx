@@ -18,8 +18,8 @@ namespace MoisThermFEM
         m_HeatCapacity(HeatCapacity),
         m_ThermalConductivity(ThermalConductivity),
         m_DiffusionResistanceFactor(DiffusionResistanceFactor),
-        m_LiquidTransportCoefficient(fem::make_unique<MoisThermFEM::SuctionFunction>(
-          LiquidTransportCurve, Property::humidity)),
+        m_LiquidTransportCoefficient(
+          SuctionFunction::createUnique(LiquidTransportCurve, Property::humidity)),
         m_SorptionCurve(TabularFunction::createUnique(SorptionCurve, Property::humidity))
     {}
 

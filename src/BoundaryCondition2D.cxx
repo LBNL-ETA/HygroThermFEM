@@ -107,8 +107,7 @@ MoistureBC::MoistureBC(const Node2D &t_Node1, const Node2D &t_Node2,
 std::vector<double> MoistureBC::R_Vector() const {
   using pValue = iValue;
 
-  pValue saturation(
-      std::make_shared<SaturationFunction>(Property::temperature));
+  pValue saturation = SaturationFunction::create(Property::temperature);
   // pValue airFill = MaterialProperties::getAirFill( m_Material );
   auto humidityCalculator = saturation * m_Material.porosity();
   humidityCalculator = humidityCalculator * m_AirHumidity;
@@ -123,8 +122,7 @@ std::vector<double> MoistureBC::R_Vector() const {
 FenestrationCommon::SquareMatrix MoistureBC::H_Matrix() const {
   using pValue = iValue;
 
-  pValue saturationFunction(
-      std::make_shared<SaturationFunction>(Property::temperature));
+  pValue saturationFunction = SaturationFunction::create(Property::temperature);
 
   // pValue airFill = MaterialProperties::getAirFill( m_Material );
 

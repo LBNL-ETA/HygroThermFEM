@@ -61,10 +61,10 @@ namespace MoisThermFEM
     /// written as ordinary equations.
     class IOperation : public IValue
     {
-    public:
+	public:
         IOperation(iValue & t_Val1, iValue & t_Val2, Operation t_Operation);
 
-    public:
+
         double value(const State & state) const override;
 
     private:
@@ -84,7 +84,7 @@ namespace MoisThermFEM
     ///  Operators
     //////////////////////////////////////////////////////////////////
 
-    iValue operator+(iValue & left, iValue & right);
+	iValue operator+(iValue & left, iValue & right);
 
     iValue operator+(const double left, iValue & right);
 
@@ -116,9 +116,11 @@ namespace MoisThermFEM
     class Constant : public IFunction
     {
     public:
-        Constant(const double value);
+		static std::shared_ptr<Constant> create(const double value);
 
     private:
+		Constant(const double value);
+
         double evaluateFunction(const double t_position) const override;
 
         double m_Value;
@@ -130,11 +132,13 @@ namespace MoisThermFEM
     class Derivative : public IValue
     {
     public:
-        Derivative(iValue & t_Function);
+        static std::shared_ptr<Derivative> create(iValue & t_Function);
 
         double value(const State & state) const override;
 
     private:
+		Derivative(iValue & t_Function);
+
         iValue m_Function;
     };
 
@@ -147,25 +151,29 @@ namespace MoisThermFEM
     class TabularFunction : public IFunction
     {
     public:
-    	static std::shared_ptr<TabularFunction> create(const std::vector<std::pair<double, double>> & values,
-													   Property property,
-													   FenestrationCommon::Interpolator interpolator =
-													   FenestrationCommon::Interpolation::Linear);
+        static std::shared_ptr<TabularFunction>
+          create(const std::vector<std::pair<double, double>> & values,
+                 Property property,
+                 FenestrationCommon::Interpolator interpolator =
+                   FenestrationCommon::Interpolation::Linear);
 
-		static std::shared_ptr<TabularFunction> create(const std::initializer_list<std::pair<double, double>> & list,
-													   Property property,
-													   FenestrationCommon::Interpolator interpolator =
-													   FenestrationCommon::Interpolation::Linear);
+        static std::shared_ptr<TabularFunction>
+          create(const std::initializer_list<std::pair<double, double>> & list,
+                 Property property,
+                 FenestrationCommon::Interpolator interpolator =
+                   FenestrationCommon::Interpolation::Linear);
 
-		static std::unique_ptr<TabularFunction> createUnique(const std::vector<std::pair<double, double>> & values,
-													   Property property,
-													   FenestrationCommon::Interpolator interpolator =
-													   FenestrationCommon::Interpolation::Linear);
+        static std::unique_ptr<TabularFunction>
+          createUnique(const std::vector<std::pair<double, double>> & values,
+                       Property property,
+                       FenestrationCommon::Interpolator interpolator =
+                         FenestrationCommon::Interpolation::Linear);
 
-		static std::unique_ptr<TabularFunction> createUnique(const std::initializer_list<std::pair<double, double>> & list,
-													   Property property,
-													   FenestrationCommon::Interpolator interpolator =
-													   FenestrationCommon::Interpolation::Linear);
+        static std::unique_ptr<TabularFunction>
+          createUnique(const std::initializer_list<std::pair<double, double>> & list,
+                       Property property,
+                       FenestrationCommon::Interpolator interpolator =
+                         FenestrationCommon::Interpolation::Linear);
 
         double max() const;
 
@@ -174,15 +182,15 @@ namespace MoisThermFEM
         std::vector<std::pair<double, double>> getCurve() const;
 
     protected:
-		TabularFunction(const std::vector<std::pair<double, double>> & values,
-						Property property,
-						FenestrationCommon::Interpolator interpolator =
-						FenestrationCommon::Interpolation::Linear);
+        TabularFunction(const std::vector<std::pair<double, double>> & values,
+                        Property property,
+                        FenestrationCommon::Interpolator interpolator =
+                          FenestrationCommon::Interpolation::Linear);
 
-		TabularFunction(const std::initializer_list<std::pair<double, double>> & list,
-						Property property,
-						FenestrationCommon::Interpolator interpolator =
-						FenestrationCommon::Interpolation::Linear);
+        TabularFunction(const std::initializer_list<std::pair<double, double>> & list,
+                        Property property,
+                        FenestrationCommon::Interpolator interpolator =
+                          FenestrationCommon::Interpolation::Linear);
 
         std::vector<std::pair<double, double>> m_Curve;
         FenestrationCommon::Interpolator m_Interpolator;
@@ -204,12 +212,17 @@ namespace MoisThermFEM
     class TabularDerivative : public IFunction
     {
     public:
+        static std::shared_ptr<TabularDerivative>
+          create(const std::vector<std::pair<double, double>> & values, Property property);
+        static std::shared_ptr<TabularDerivative>
+          create(std::initializer_list<std::pair<double, double>> & list, Property property);
+
+    protected:
         TabularDerivative(const std::vector<std::pair<double, double>> & values, Property property);
 
         TabularDerivative(std::initializer_list<std::pair<double, double>> & list,
                           Property property);
 
-    protected:
         std::vector<std::pair<double, double>> m_Curve;
 
         double evaluateFunction(const double t_position) const override;
@@ -228,6 +241,31 @@ namespace MoisThermFEM
     class SuctionFunction : public TabularFunction
     {
     public:
+        static std::shared_ptr<SuctionFunction>
+          create(const std::vector<std::pair<double, double>> & values,
+                 Property property,
+                 const FenestrationCommon::Interpolator & interpolator =
+                   FenestrationCommon::Interpolation::Logarithmic);
+
+        static std::shared_ptr<SuctionFunction>
+          create(const std::initializer_list<std::pair<double, double>> & list,
+                 Property property,
+                 const FenestrationCommon::Interpolator & interpolator =
+                   FenestrationCommon::Interpolation::Logarithmic);
+
+        static std::unique_ptr<SuctionFunction>
+          createUnique(const std::vector<std::pair<double, double>> & values,
+                       Property property,
+                       const FenestrationCommon::Interpolator & interpolator =
+                         FenestrationCommon::Interpolation::Logarithmic);
+
+        static std::unique_ptr<SuctionFunction>
+          createUnique(const std::initializer_list<std::pair<double, double>> & list,
+                       Property property,
+                       const FenestrationCommon::Interpolator & interpolator =
+                         FenestrationCommon::Interpolation::Logarithmic);
+
+    protected:
         SuctionFunction(const std::vector<std::pair<double, double>> & values,
                         Property property,
                         const FenestrationCommon::Interpolator & interpolator =
@@ -238,7 +276,6 @@ namespace MoisThermFEM
                         const FenestrationCommon::Interpolator & interpolator =
                           FenestrationCommon::Interpolation::Logarithmic);
 
-    protected:
         std::pair<std::pair<double, double>, std::pair<double, double>> getInterpolationPoints(
           std::vector<std::pair<double, double>>::const_iterator & it) const override;
     };
@@ -251,9 +288,12 @@ namespace MoisThermFEM
     class SaturationFunction : public IFunction
     {
     public:
-        SaturationFunction(Property property, double saturationCoefficient = 9.2);
+        static std::shared_ptr<SaturationFunction> create(Property property,
+                                                          double saturationCoefficient = 9.2);
 
     private:
+        SaturationFunction(Property property, double saturationCoefficient = 9.2);
+
         double evaluateFunction(const double t_position) const override;
         const double m_SaturationCoefficient;
     };

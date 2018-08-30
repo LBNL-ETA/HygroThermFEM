@@ -38,7 +38,7 @@ namespace MoisThermFEM
         m_Operator[Operation::SUB] = [&](double a, double b) { return a - b; };
     }
 
-    //////////////////////////////////////////////////////////////////
+	//////////////////////////////////////////////////////////////////
     ///  Constant
     //////////////////////////////////////////////////////////////////
 
@@ -50,7 +50,11 @@ namespace MoisThermFEM
         return m_Value;
     }
 
-    //////////////////////////////////////////////////////////////////
+	std::shared_ptr< Constant > Constant::create( const double value ) {
+		return std::shared_ptr< Constant >(new Constant(value));
+	}
+
+	//////////////////////////////////////////////////////////////////
     ///  Operators
     //////////////////////////////////////////////////////////////////
 
@@ -62,7 +66,7 @@ namespace MoisThermFEM
 
     iValue operator+(const double left, iValue & right)
     {
-        iValue aLeft(new MoisThermFEM::Constant(left));
+        iValue aLeft = Constant::create(left);
         return std::make_shared<MoisThermFEM::IOperation>(
           aLeft, right, MoisThermFEM::Operation::ADD);
     }
@@ -80,14 +84,14 @@ namespace MoisThermFEM
 
     iValue operator-(const double left, iValue & right)
     {
-        iValue aLeft(new MoisThermFEM::Constant(left));
+        iValue aLeft = Constant::create(left);
         return std::make_shared<MoisThermFEM::IOperation>(
           aLeft, right, MoisThermFEM::Operation::SUB);
     }
 
     iValue operator-(iValue & left, const double right)
     {
-        iValue aRight(new MoisThermFEM::Constant(right));
+        iValue aRight = Constant::create(right);
         return std::make_shared<MoisThermFEM::IOperation>(
           left, aRight, MoisThermFEM::Operation::SUB);
     }
@@ -100,7 +104,7 @@ namespace MoisThermFEM
 
     iValue operator*(const double left, iValue & right)
     {
-        iValue aLeft(new MoisThermFEM::Constant(left));
+        iValue aLeft = Constant::create(left);
         return std::make_shared<MoisThermFEM::IOperation>(
           aLeft, right, MoisThermFEM::Operation::MULT);
     }
@@ -118,14 +122,14 @@ namespace MoisThermFEM
 
     iValue operator/(const double left, iValue & right)
     {
-        iValue aLeft(new MoisThermFEM::Constant(left));
+        iValue aLeft = Constant::create(left);
         return std::make_shared<MoisThermFEM::IOperation>(
           aLeft, right, MoisThermFEM::Operation::DIV);
     }
 
     iValue operator/(iValue & left, const double right)
     {
-        iValue aRight(new MoisThermFEM::Constant(right));
+        iValue aRight = Constant::create(right);
         return std::make_shared<MoisThermFEM::IOperation>(
           left, aRight, MoisThermFEM::Operation::DIV);
     }
@@ -134,7 +138,7 @@ namespace MoisThermFEM
     ///  Derivative
     //////////////////////////////////////////////////////////////////
 
-    Derivative::Derivative(iValue & t_Value) : IValue(), m_Function(t_Value)
+    Derivative::Derivative(iValue & t_Value) : IValue(), m_Function(std::move(t_Value))
     {}
 
     double Derivative::value(const State & state) const
@@ -149,7 +153,11 @@ namespace MoisThermFEM
         return (val2 - val1) / small;
     }
 
-    //////////////////////////////////////////////////////////////////
+	std::shared_ptr< Derivative > Derivative::create( iValue & t_Function ) {
+		return std::shared_ptr< Derivative >(new Derivative(t_Function));
+	}
+
+	//////////////////////////////////////////////////////////////////
     ///  TabularFunction
     //////////////////////////////////////////////////////////////////
 
@@ -158,7 +166,7 @@ namespace MoisThermFEM
                                      const FenestrationCommon::Interpolator interpolator) :
         IFunction(property),
         m_Curve(values),
-        m_Interpolator(std::move(interpolator))
+        m_Interpolator(interpolator)
     {}
 
     TabularFunction::TabularFunction(const std::initializer_list<std::pair<double, double>> & list,
@@ -166,7 +174,7 @@ namespace MoisThermFEM
                                      const FenestrationCommon::Interpolator interpolator) :
         IFunction(property),
         m_Curve(list),
-        m_Interpolator(std::move(interpolator))
+        m_Interpolator(interpolator)
     {}
 
 
@@ -249,13 +257,13 @@ namespace MoisThermFEM
     //////////////////////////////////////////////////////////////////
 
     TabularDerivative::TabularDerivative(const std::vector<std::pair<double, double>> & values,
-                                         Property property) :
+                                         const Property property) :
         IFunction(property),
         m_Curve(values)
     {}
 
     TabularDerivative::TabularDerivative(std::initializer_list<std::pair<double, double>> & list,
-                                         Property property) :
+                                         const Property property) :
         IFunction(property),
         m_Curve(list)
     {}
@@ -293,6 +301,20 @@ namespace MoisThermFEM
         return std::make_pair(pt1, pt2);
     }
 
+    std::shared_ptr<TabularDerivative>
+      TabularDerivative::create(const std::vector<std::pair<double, double>> & values,
+                                Property property)
+    {
+        return std::shared_ptr<TabularDerivative>(new TabularDerivative(values, property));
+    }
+
+    std::shared_ptr<TabularDerivative>
+      TabularDerivative::create(std::initializer_list<std::pair<double, double>> & list,
+                                Property property)
+    {
+        return std::shared_ptr<TabularDerivative>(new TabularDerivative(list, property));
+    }
+
     //////////////////////////////////////////////////////////////////
     ///  SuctionFunction
     //////////////////////////////////////////////////////////////////
@@ -328,6 +350,40 @@ namespace MoisThermFEM
         return std::make_pair(pt1, pt2);
     }
 
+    std::shared_ptr<SuctionFunction>
+      SuctionFunction::create(const std::vector<std::pair<double, double>> & values,
+                              Property property,
+                              const FenestrationCommon::Interpolator & interpolator)
+    {
+        return std::shared_ptr<SuctionFunction>(
+          new SuctionFunction(values, property, interpolator));
+    }
+
+    std::shared_ptr<SuctionFunction>
+      SuctionFunction::create(const std::initializer_list<std::pair<double, double>> & list,
+                              Property property,
+                              const FenestrationCommon::Interpolator & interpolator)
+    {
+        return std::shared_ptr<SuctionFunction>(new SuctionFunction(list, property, interpolator));
+    }
+
+    std::unique_ptr<SuctionFunction>
+      SuctionFunction::createUnique(const std::vector<std::pair<double, double>> & values,
+                                    Property property,
+                                    const FenestrationCommon::Interpolator & interpolator)
+    {
+        return std::unique_ptr<SuctionFunction>(
+          new SuctionFunction(values, property, interpolator));
+    }
+
+    std::unique_ptr<SuctionFunction>
+      SuctionFunction::createUnique(const std::initializer_list<std::pair<double, double>> & list,
+                                    Property property,
+                                    const FenestrationCommon::Interpolator & interpolator)
+    {
+        return std::unique_ptr<SuctionFunction>(new SuctionFunction(list, property, interpolator));
+    }
+
     //////////////////////////////////////////////////////////////////
     ///  SaturationFunction
     //////////////////////////////////////////////////////////////////
@@ -343,5 +399,12 @@ namespace MoisThermFEM
         temp = std::exp(temp);
         temp = temp / (461.4 * std::pow(t_position, m_SaturationCoefficient));
         return temp;
+    }
+
+    std::shared_ptr<SaturationFunction> SaturationFunction::create(const Property property,
+                                                                   double saturationCoefficient)
+    {
+        return std::shared_ptr<SaturationFunction>(
+          new SaturationFunction(property, saturationCoefficient));
     }
 }   // namespace MoisThermFEM
