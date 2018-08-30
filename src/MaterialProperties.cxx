@@ -5,8 +5,7 @@ namespace MoisThermFEM {
 
 	using iValue = std::shared_ptr< MoisThermFEM::IValue >;
 
-	std::shared_ptr< MoisThermFEM::IValue >
-	MoisThermFEM::MaterialProperties::getWaterFill( const MoisThermFEM::Material & mat ) {
+	iValue MoisThermFEM::MaterialProperties::getWaterFill( const MoisThermFEM::Material & mat ) {
 		/// Calculate air and water content
 		iValue waterContent(
 				std::make_shared< MoisThermFEM::TabularFunction >( mat.sorptionCurve(),
@@ -18,7 +17,7 @@ namespace MoisThermFEM {
 		return mat.porosity() / maxWaterContent * waterContent;
 	}
 
-	std::shared_ptr< MoisThermFEM::IValue > MaterialProperties::getAirFill( const Material & mat ) {
+	iValue MaterialProperties::getAirFill( const Material & mat ) {
 		iValue waterFill = getWaterFill( mat );
 		return mat.porosity() - waterFill;
 	}

@@ -12,8 +12,6 @@ using FenestrationCommon::SquareMatrix;
 
 namespace MoisThermFEM {
 
-using iValue = std::shared_ptr<MoisThermFEM::IValue>;
-
 //////////////////////////////////////////////////////////////////////////////
 ///  IQLEMatrix2D
 //////////////////////////////////////////////////////////////////////////////
@@ -151,8 +149,8 @@ QLECapacitance2D::QLECapacitance2D(const QuadrilateralLinearGlobal2D &t_Element)
 //////////////////////////////////////////////////////////////////////////////
 
 DerivativeFunction::DerivativeFunction(
-    const std::shared_ptr<IValue> &fixedTerm,
-    const std::shared_ptr<IValue> &derivativeTerm)
+    const iValue &fixedTerm,
+    const iValue &derivativeTerm)
     : fixedTerm(fixedTerm), derivativeTerm(derivativeTerm) {}
 
 //////////////////////////////////////////////////////////////////////////////

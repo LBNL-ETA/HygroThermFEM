@@ -31,6 +31,8 @@ namespace MoisThermFEM
         virtual double value(const State & state) const = 0;
     };
 
+    using iValue = std::shared_ptr<IValue>;
+
     //////////////////////////////////////////////////////////////////
     ///  IFunction
     //////////////////////////////////////////////////////////////////
@@ -60,9 +62,7 @@ namespace MoisThermFEM
     class IOperation : public IValue
     {
     public:
-        IOperation(std::shared_ptr<IValue> & t_Val1,
-                   std::shared_ptr<IValue> & t_Val2,
-                   Operation t_Operation);
+        IOperation(iValue & t_Val1, iValue & t_Val2, Operation t_Operation);
 
     public:
         double value(const State & state) const override;
@@ -70,8 +70,8 @@ namespace MoisThermFEM
     private:
         /// Functions can be shared between different operations and that is why it is
         /// necessary to share function
-        std::shared_ptr< IValue > m_Function1;
-        std::shared_ptr< IValue > m_Function2;
+        iValue m_Function1;
+        iValue m_Function2;
 
         Operation m_Operation;
 
@@ -84,33 +84,29 @@ namespace MoisThermFEM
     ///  Operators
     //////////////////////////////////////////////////////////////////
 
-    std::shared_ptr<IValue> operator+(std::shared_ptr<IValue> & left,
-                                      std::shared_ptr<IValue> & right);
+    iValue operator+(iValue & left, iValue & right);
 
-    std::shared_ptr<IValue> operator+(const double left, std::shared_ptr<IValue> & right);
+    iValue operator+(const double left, iValue & right);
 
-    std::shared_ptr<IValue> operator+(std::shared_ptr<IValue> & left, const double right);
+    iValue operator+(iValue & left, const double right);
 
-    std::shared_ptr<IValue> operator-(std::shared_ptr<IValue> & left,
-                                      std::shared_ptr<IValue> & right);
+    iValue operator-(iValue & left, iValue & right);
 
-    std::shared_ptr<IValue> operator-(const double left, std::shared_ptr<IValue> & right);
+    iValue operator-(const double left, iValue & right);
 
-    std::shared_ptr<IValue> operator-(std::shared_ptr<IValue> & left, const double right);
+    iValue operator-(iValue & left, const double right);
 
-    std::shared_ptr<IValue> operator*(std::shared_ptr<IValue> & left,
-                                      std::shared_ptr<IValue> & right);
+    iValue operator*(iValue & left, iValue & right);
 
-    std::shared_ptr<IValue> operator*(const double left, std::shared_ptr<IValue> & right);
+    iValue operator*(const double left, iValue & right);
 
-    std::shared_ptr<IValue> operator*(std::shared_ptr<IValue> & left, const double right);
+    iValue operator*(iValue & left, const double right);
 
-    std::shared_ptr<IValue> operator/(std::shared_ptr<IValue> & left,
-                                      std::shared_ptr<IValue> & right);
+    iValue operator/(iValue & left, iValue & right);
 
-    std::shared_ptr<IValue> operator/(const double left, std::shared_ptr<IValue> & right);
+    iValue operator/(const double left, iValue & right);
 
-    std::shared_ptr<IValue> operator/(std::shared_ptr<IValue> & left, const double right);
+    iValue operator/(iValue & left, const double right);
 
     //////////////////////////////////////////////////////////////////
     ///  Constant
@@ -134,12 +130,12 @@ namespace MoisThermFEM
     class Derivative : public IValue
     {
     public:
-        Derivative(std::shared_ptr<IValue> & t_Function);
+        Derivative(iValue & t_Function);
 
         double value(const State & state) const override;
 
     private:
-        std::shared_ptr<IValue> m_Function;
+        iValue m_Function;
     };
 
     //////////////////////////////////////////////////////////////////
@@ -156,7 +152,7 @@ namespace MoisThermFEM
                         FenestrationCommon::Interpolator interpolator =
                           FenestrationCommon::Interpolation::Linear);
 
-        TabularFunction(std::initializer_list<std::pair<double, double>> & list,
+        TabularFunction(const std::initializer_list<std::pair<double, double>> & list,
                         Property property,
                         FenestrationCommon::Interpolator interpolator =
                           FenestrationCommon::Interpolation::Linear);

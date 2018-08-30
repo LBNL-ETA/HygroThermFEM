@@ -105,7 +105,7 @@ MoistureBC::MoistureBC(const Node2D &t_Node1, const Node2D &t_Node2,
       m_Material(t_Material) {}
 
 std::vector<double> MoistureBC::R_Vector() const {
-  using pValue = std::shared_ptr<IValue>;
+  using pValue = iValue;
 
   pValue saturation(
       std::make_shared<SaturationFunction>(Property::temperature));
@@ -121,7 +121,7 @@ std::vector<double> MoistureBC::R_Vector() const {
 }
 
 FenestrationCommon::SquareMatrix MoistureBC::H_Matrix() const {
-  using pValue = std::shared_ptr<IValue>;
+  using pValue = iValue;
 
   pValue saturationFunction(
       std::make_shared<SaturationFunction>(Property::temperature));
