@@ -29,9 +29,12 @@ namespace MoisThermFEM
     {
     public:
         virtual double value(const State & state) const = 0;
+        virtual ~IValue() = default;
+
+        virtual std::unique_ptr<IValue> clone() const = 0;
     };
 
-    using iValue = std::shared_ptr<IValue>;
+    using iValue = std::unique_ptr<IValue>;
 
     //////////////////////////////////////////////////////////////////
     ///  IFunction
@@ -61,13 +64,15 @@ namespace MoisThermFEM
     /// written as ordinary equations.
     class IOperation : public IValue
     {
-	public:
-        IOperation(iValue & t_Val1, iValue & t_Val2, Operation t_Operation);
-
+    public:
+        IOperation( iValue t_Val1, iValue t_Val2, Operation t_Operation );
 
         double value(const State & state) const override;
 
     private:
+        /// Do not want to make clone of operator publicly available
+        virtual std::unique_ptr<IValue> clone() const override;
+
         /// Functions can be shared between different operations and that is why it is
         /// necessary to share function
         iValue m_Function1;
@@ -84,7 +89,7 @@ namespace MoisThermFEM
     ///  Operators
     //////////////////////////////////////////////////////////////////
 
-	iValue operator+(iValue & left, iValue & right);
+    iValue operator+(iValue & left, iValue & right);
 
     iValue operator+(const double left, iValue & right);
 
@@ -116,10 +121,12 @@ namespace MoisThermFEM
     class Constant : public IFunction
     {
     public:
-		static std::shared_ptr<Constant> create(const double value);
+        static std::unique_ptr<Constant> create(const double value);
+
+        virtual std::unique_ptr<IValue> clone() const override;
 
     private:
-		Constant(const double value);
+        Constant(const double value);
 
         double evaluateFunction(const double t_position) const override;
 
@@ -132,12 +139,14 @@ namespace MoisThermFEM
     class Derivative : public IValue
     {
     public:
-        static std::shared_ptr<Derivative> create(iValue & t_Function);
+        static std::unique_ptr< Derivative > create( const iValue & t_Function );
 
         double value(const State & state) const override;
 
+        virtual std::unique_ptr<IValue> clone() const override;
+
     private:
-		Derivative(iValue & t_Function);
+        Derivative(const iValue & t_Function);
 
         iValue m_Function;
     };
@@ -151,35 +160,25 @@ namespace MoisThermFEM
     class TabularFunction : public IFunction
     {
     public:
-        static std::shared_ptr<TabularFunction>
+        static std::unique_ptr<TabularFunction>
           create(const std::vector<std::pair<double, double>> & values,
                  Property property,
                  FenestrationCommon::Interpolator interpolator =
                    FenestrationCommon::Interpolation::Linear);
 
-        static std::shared_ptr<TabularFunction>
+        static std::unique_ptr<TabularFunction>
           create(const std::initializer_list<std::pair<double, double>> & list,
                  Property property,
                  FenestrationCommon::Interpolator interpolator =
                    FenestrationCommon::Interpolation::Linear);
 
-        static std::unique_ptr<TabularFunction>
-          createUnique(const std::vector<std::pair<double, double>> & values,
-                       Property property,
-                       FenestrationCommon::Interpolator interpolator =
-                         FenestrationCommon::Interpolation::Linear);
-
-        static std::unique_ptr<TabularFunction>
-          createUnique(const std::initializer_list<std::pair<double, double>> & list,
-                       Property property,
-                       FenestrationCommon::Interpolator interpolator =
-                         FenestrationCommon::Interpolation::Linear);
-
-        double max() const;
+	    double max() const;
 
         double min() const;
 
         std::vector<std::pair<double, double>> getCurve() const;
+
+        virtual std::unique_ptr<IValue> clone() const override;
 
     protected:
         TabularFunction(const std::vector<std::pair<double, double>> & values,
@@ -212,10 +211,12 @@ namespace MoisThermFEM
     class TabularDerivative : public IFunction
     {
     public:
-        static std::shared_ptr<TabularDerivative>
+        static std::unique_ptr<TabularDerivative>
           create(const std::vector<std::pair<double, double>> & values, Property property);
-        static std::shared_ptr<TabularDerivative>
+        static std::unique_ptr<TabularDerivative>
           create(std::initializer_list<std::pair<double, double>> & list, Property property);
+
+        virtual std::unique_ptr<IValue> clone() const override;
 
     protected:
         TabularDerivative(const std::vector<std::pair<double, double>> & values, Property property);
@@ -241,29 +242,19 @@ namespace MoisThermFEM
     class SuctionFunction : public TabularFunction
     {
     public:
-        static std::shared_ptr<SuctionFunction>
+        static std::unique_ptr<SuctionFunction>
           create(const std::vector<std::pair<double, double>> & values,
                  Property property,
                  const FenestrationCommon::Interpolator & interpolator =
                    FenestrationCommon::Interpolation::Logarithmic);
 
-        static std::shared_ptr<SuctionFunction>
+        static std::unique_ptr<SuctionFunction>
           create(const std::initializer_list<std::pair<double, double>> & list,
                  Property property,
                  const FenestrationCommon::Interpolator & interpolator =
                    FenestrationCommon::Interpolation::Logarithmic);
 
-        static std::unique_ptr<SuctionFunction>
-          createUnique(const std::vector<std::pair<double, double>> & values,
-                       Property property,
-                       const FenestrationCommon::Interpolator & interpolator =
-                         FenestrationCommon::Interpolation::Logarithmic);
-
-        static std::unique_ptr<SuctionFunction>
-          createUnique(const std::initializer_list<std::pair<double, double>> & list,
-                       Property property,
-                       const FenestrationCommon::Interpolator & interpolator =
-                         FenestrationCommon::Interpolation::Logarithmic);
+	    virtual std::unique_ptr<IValue> clone() const override;
 
     protected:
         SuctionFunction(const std::vector<std::pair<double, double>> & values,
@@ -288,8 +279,10 @@ namespace MoisThermFEM
     class SaturationFunction : public IFunction
     {
     public:
-        static std::shared_ptr<SaturationFunction> create(Property property,
+        static std::unique_ptr<SaturationFunction> create(Property property,
                                                           double saturationCoefficient = 9.2);
+
+        virtual std::unique_ptr<IValue> clone() const override;
 
     private:
         SaturationFunction(Property property, double saturationCoefficient = 9.2);

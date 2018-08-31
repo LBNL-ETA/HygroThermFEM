@@ -161,10 +161,10 @@ namespace MoisThermFEM
     ///  DerivativeFunction
     //////////////////////////////////////////////////////////////////////////////
 
-    DerivativeFunction::DerivativeFunction(const iValue & fixedTerm,
-                                           const iValue & derivativeTerm) :
-        fixedTerm(fixedTerm),
-        derivativeTerm(derivativeTerm)
+    DerivativeFunction::DerivativeFunction( const iValue & fixedTerm,
+                                            const iValue & derivativeTerm ) :
+        fixedTerm(fixedTerm->clone()),
+        derivativeTerm(derivativeTerm->clone())
     {}
 
     //////////////////////////////////////////////////////////////////////////////
@@ -310,7 +310,7 @@ namespace MoisThermFEM
         auto capacitance = waterCapacitance + airCapacitance;
         capacitance = capacitance + dryCapacitance;
 
-        m_Capacitance.push_back(capacitance);
+        m_Capacitance.push_back(std::move(capacitance));
 
         auto waterConductance = waterFill * Constants::K_Water;
         auto airConductance = airFill * Constants::K_Air;
@@ -319,7 +319,7 @@ namespace MoisThermFEM
         auto conductance = waterConductance + airConductance;
         conductance = conductance + dryConductance;
 
-        m_Conductance.push_back(conductance);
+        m_Conductance.push_back(std::move(conductance));
     }
 
     //////////////////////////////////////////////////////////////////////////////
@@ -348,7 +348,7 @@ namespace MoisThermFEM
         //////////////////////////////////////////////////////////////////////////////
         iValue suctionCurve =
           SuctionFunction::create(mat.liquidTransportationCurve(), Property::humidity);
-        m_Conductance.push_back(suctionCurve);
+        m_Conductance.push_back(std::move(suctionCurve));
 
         //////////////////////////////////////////////////////////////////////////////
         /// Creating capacitance function
@@ -356,6 +356,6 @@ namespace MoisThermFEM
         iValue sorptionDerivative =
           TabularDerivative::create(mat.sorptionCurve(), Property::humidity);
 
-        m_Capacitance.push_back(sorptionDerivative);
+        m_Capacitance.push_back(std::move(sorptionDerivative));
     }
 }   // namespace MoisThermFEM
