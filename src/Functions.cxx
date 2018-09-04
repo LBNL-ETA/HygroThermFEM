@@ -28,9 +28,9 @@ namespace MoisThermFEM
         return m_Operator.at(m_Operation)(m_Function1->value(state), m_Function2->value(state));
     }
 
-    IOperation::IOperation(iValue & t_Val1, iValue & t_Val2, Operation t_Operation) :
-        m_Function1(t_Val1),
-        m_Function2(t_Val2),
+    IOperation::IOperation(iValue t_Val1, iValue t_Val2, Operation t_Operation) :
+        m_Function1(t_Val1->clone()),
+        m_Function2(t_Val2->clone()),
         m_Operation(t_Operation)
     {
         m_Operator[Operation::MULT] = [&](double a, double b) { return a * b; };
@@ -39,7 +39,13 @@ namespace MoisThermFEM
         m_Operator[Operation::SUB] = [&](double a, double b) { return a - b; };
     }
 
-	//////////////////////////////////////////////////////////////////
+    std::unique_ptr<IValue> IOperation::clone() const
+    {
+        return fem::make_unique<IOperation>(
+          this->m_Function1->clone(), this->m_Function2->clone(), m_Operation);
+    }
+
+    //////////////////////////////////////////////////////////////////
     ///  Constant
     //////////////////////////////////////////////////////////////////
 
@@ -51,25 +57,31 @@ namespace MoisThermFEM
         return m_Value;
     }
 
-	std::shared_ptr< Constant > Constant::create( const double value ) {
-		return std::shared_ptr< Constant >(new Constant(value));
-	}
+    std::unique_ptr<Constant> Constant::create(const double value)
+    {
+        return std::unique_ptr<Constant>(new Constant(value));
+    }
 
-	//////////////////////////////////////////////////////////////////
+    std::unique_ptr<IValue> Constant::clone() const
+    {
+        return fem::make_unique<Constant>(*this);
+    }
+
+    //////////////////////////////////////////////////////////////////
     ///  Operators
     //////////////////////////////////////////////////////////////////
 
     iValue operator+(iValue & left, iValue & right)
     {
-        return std::make_shared<MoisThermFEM::IOperation>(
-          left, right, MoisThermFEM::Operation::ADD);
+        return std::unique_ptr<IOperation>(
+          new IOperation(left->clone(), right->clone(), Operation::ADD));
     }
 
     iValue operator+(const double left, iValue & right)
     {
         iValue aLeft = Constant::create(left);
-        return std::make_shared<MoisThermFEM::IOperation>(
-          aLeft, right, MoisThermFEM::Operation::ADD);
+        return std::unique_ptr<IOperation>(
+          new IOperation(aLeft->clone(), right->clone(), Operation::ADD));
     }
 
     iValue operator+(iValue & left, const double right)
@@ -79,35 +91,32 @@ namespace MoisThermFEM
 
     iValue operator-(iValue & left, iValue & right)
     {
-        return std::make_shared<MoisThermFEM::IOperation>(
-          left, right, MoisThermFEM::Operation::SUB);
+        return std::unique_ptr<IOperation>(
+          new IOperation(left->clone(), right->clone(), Operation::SUB));
     }
 
     iValue operator-(const double left, iValue & right)
     {
-        iValue aLeft = Constant::create(left);
-        return std::make_shared<MoisThermFEM::IOperation>(
-          aLeft, right, MoisThermFEM::Operation::SUB);
+        return std::unique_ptr<IOperation>(
+          new IOperation(Constant::create(left), right->clone(), Operation::SUB));
     }
 
     iValue operator-(iValue & left, const double right)
     {
-        iValue aRight = Constant::create(right);
-        return std::make_shared<MoisThermFEM::IOperation>(
-          left, aRight, MoisThermFEM::Operation::SUB);
+        return std::unique_ptr<IOperation>(
+          new IOperation(left->clone(), Constant::create(right), Operation::SUB));
     }
 
     iValue operator*(iValue & left, iValue & right)
     {
-        return std::make_shared<MoisThermFEM::IOperation>(
-          left, right, MoisThermFEM::Operation::MULT);
+        return std::unique_ptr<IOperation>(
+          new IOperation(left->clone(), right->clone(), Operation::MULT));
     }
 
     iValue operator*(const double left, iValue & right)
     {
-        iValue aLeft = Constant::create(left);
-        return std::make_shared<MoisThermFEM::IOperation>(
-          aLeft, right, MoisThermFEM::Operation::MULT);
+        return std::unique_ptr<IOperation>(
+          new IOperation(Constant::create(left), right->clone(), MoisThermFEM::Operation::MULT));
     }
 
     iValue operator*(iValue & left, const double right)
@@ -117,29 +126,26 @@ namespace MoisThermFEM
 
     iValue operator/(iValue & left, iValue & right)
     {
-        return std::make_shared<MoisThermFEM::IOperation>(
-          left, right, MoisThermFEM::Operation::DIV);
+        return std::unique_ptr<IOperation>(
+          new IOperation(left->clone(), right->clone(), Operation::DIV));
     }
 
     iValue operator/(const double left, iValue & right)
     {
-        iValue aLeft = Constant::create(left);
-        return std::make_shared<MoisThermFEM::IOperation>(
-          aLeft, right, MoisThermFEM::Operation::DIV);
+        return std::unique_ptr<IOperation>(
+          new IOperation(Constant::create(left), right->clone(), Operation::DIV));
     }
 
     iValue operator/(iValue & left, const double right)
     {
-        iValue aRight = Constant::create(right);
-        return std::make_shared<MoisThermFEM::IOperation>(
-          left, aRight, MoisThermFEM::Operation::DIV);
+        return std::unique_ptr<IOperation>(new IOperation(left->clone(), Constant::create(right), Operation::DIV));
     }
 
     //////////////////////////////////////////////////////////////////
     ///  Derivative
     //////////////////////////////////////////////////////////////////
 
-    Derivative::Derivative(iValue & t_Value) : IValue(), m_Function(std::move(t_Value))
+    Derivative::Derivative(const iValue & t_Value) : IValue(), m_Function(t_Value->clone())
     {}
 
     double Derivative::value(const State & state) const
@@ -154,11 +160,17 @@ namespace MoisThermFEM
         return (val2 - val1) / small;
     }
 
-	std::shared_ptr< Derivative > Derivative::create( iValue & t_Function ) {
-		return std::shared_ptr< Derivative >(new Derivative(t_Function));
-	}
+    std::unique_ptr< Derivative > Derivative::create( const iValue & t_Function )
+    {
+        return std::unique_ptr<Derivative>(new Derivative(t_Function));
+    }
 
-	//////////////////////////////////////////////////////////////////
+    std::unique_ptr<IValue> Derivative::clone() const
+    {
+        return create(m_Function->clone());
+    }
+
+    //////////////////////////////////////////////////////////////////
     ///  TabularFunction
     //////////////////////////////////////////////////////////////////
 
@@ -219,38 +231,25 @@ namespace MoisThermFEM
         return m_Curve;
     }
 
-    std::shared_ptr<TabularFunction>
-      TabularFunction::create(const std::initializer_list<std::pair<double, double>> & list,
-                              const Property property,
-                              const FenestrationCommon::Interpolator interpolator)
-    {
-        return std::shared_ptr<TabularFunction>(new TabularFunction(list, property, interpolator));
-    }
-
-    std::shared_ptr<TabularFunction>
-      TabularFunction::create(const std::vector<std::pair<double, double>> & values,
-                              const Property property,
-                              const FenestrationCommon::Interpolator interpolator)
-    {
-        return std::shared_ptr<TabularFunction>(
-          new TabularFunction(values, property, interpolator));
-    }
-
     std::unique_ptr<TabularFunction>
-      TabularFunction::createUnique(const std::initializer_list<std::pair<double, double>> & list,
-                                    const Property property,
-                                    const FenestrationCommon::Interpolator interpolator)
+      TabularFunction::create(const std::initializer_list<std::pair<double, double>> & list,
+                              Property property,
+                              FenestrationCommon::Interpolator interpolator)
     {
         return std::unique_ptr<TabularFunction>(new TabularFunction(list, property, interpolator));
     }
 
     std::unique_ptr<TabularFunction>
-      TabularFunction::createUnique(const std::vector<std::pair<double, double>> & values,
-                                    const Property property,
-                                    const FenestrationCommon::Interpolator interpolator)
+      TabularFunction::create(const std::vector<std::pair<double, double>> & values,
+                              Property property,
+                              FenestrationCommon::Interpolator interpolator)
     {
-        return std::unique_ptr<TabularFunction>(
-          new TabularFunction(values, property, interpolator));
+        return std::unique_ptr<TabularFunction>(new TabularFunction(values, property, interpolator));
+    }
+
+	std::unique_ptr<IValue> TabularFunction::clone() const
+    {
+        return fem::make_unique<TabularFunction>(*this);
     }
 
     //////////////////////////////////////////////////////////////////
@@ -302,18 +301,23 @@ namespace MoisThermFEM
         return std::make_pair(pt1, pt2);
     }
 
-    std::shared_ptr<TabularDerivative>
+    std::unique_ptr<TabularDerivative>
       TabularDerivative::create(const std::vector<std::pair<double, double>> & values,
                                 Property property)
     {
-        return std::shared_ptr<TabularDerivative>(new TabularDerivative(values, property));
+        return std::unique_ptr<TabularDerivative>(new TabularDerivative(values, property));
     }
 
-    std::shared_ptr<TabularDerivative>
+    std::unique_ptr<TabularDerivative>
       TabularDerivative::create(std::initializer_list<std::pair<double, double>> & list,
                                 Property property)
     {
-        return std::shared_ptr<TabularDerivative>(new TabularDerivative(list, property));
+        return std::unique_ptr<TabularDerivative>(new TabularDerivative(list, property));
+    }
+
+    std::unique_ptr<IValue> TabularDerivative::clone() const
+    {
+        return fem::make_unique<TabularDerivative>(*this);
     }
 
     //////////////////////////////////////////////////////////////////
@@ -351,38 +355,25 @@ namespace MoisThermFEM
         return std::make_pair(pt1, pt2);
     }
 
-    std::shared_ptr<SuctionFunction>
+    std::unique_ptr<SuctionFunction>
       SuctionFunction::create(const std::vector<std::pair<double, double>> & values,
                               Property property,
                               const FenestrationCommon::Interpolator & interpolator)
     {
-        return std::shared_ptr<SuctionFunction>(
-          new SuctionFunction(values, property, interpolator));
+        return std::unique_ptr<SuctionFunction>(new SuctionFunction(values, property, interpolator));
     }
 
-    std::shared_ptr<SuctionFunction>
+    std::unique_ptr<SuctionFunction>
       SuctionFunction::create(const std::initializer_list<std::pair<double, double>> & list,
                               Property property,
                               const FenestrationCommon::Interpolator & interpolator)
     {
-        return std::shared_ptr<SuctionFunction>(new SuctionFunction(list, property, interpolator));
-    }
-
-    std::unique_ptr<SuctionFunction>
-      SuctionFunction::createUnique(const std::vector<std::pair<double, double>> & values,
-                                    Property property,
-                                    const FenestrationCommon::Interpolator & interpolator)
-    {
-        return std::unique_ptr<SuctionFunction>(
-          new SuctionFunction(values, property, interpolator));
-    }
-
-    std::unique_ptr<SuctionFunction>
-      SuctionFunction::createUnique(const std::initializer_list<std::pair<double, double>> & list,
-                                    Property property,
-                                    const FenestrationCommon::Interpolator & interpolator)
-    {
         return std::unique_ptr<SuctionFunction>(new SuctionFunction(list, property, interpolator));
+    }
+
+	std::unique_ptr<IValue> SuctionFunction::clone() const
+    {
+        return fem::make_unique<SuctionFunction>(*this);
     }
 
     //////////////////////////////////////////////////////////////////
@@ -402,10 +393,14 @@ namespace MoisThermFEM
         return temp;
     }
 
-    std::shared_ptr<SaturationFunction> SaturationFunction::create(const Property property,
+    std::unique_ptr<SaturationFunction> SaturationFunction::create(Property property,
                                                                    double saturationCoefficient)
     {
-        return std::shared_ptr<SaturationFunction>(
-          new SaturationFunction(property, saturationCoefficient));
+        return std::unique_ptr<SaturationFunction>( new SaturationFunction(property, saturationCoefficient));
+    }
+
+    std::unique_ptr<IValue> SaturationFunction::clone() const
+    {
+        return fem::make_unique<SaturationFunction>(*this);
     }
 }   // namespace MoisThermFEM

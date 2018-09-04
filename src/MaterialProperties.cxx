@@ -3,8 +3,6 @@
 
 namespace MoisThermFEM
 {
-    using iValue = std::shared_ptr<MoisThermFEM::IValue>;
-
     iValue MoisThermFEM::MaterialProperties::getWaterFill(const MoisThermFEM::Material & mat)
     {
         /// Calculate air and water content

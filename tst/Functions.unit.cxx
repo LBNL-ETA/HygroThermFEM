@@ -57,10 +57,9 @@ TEST_F(CurveTest, TestFirstDerivative)
 TEST_F(CurveTest, TestTabularLogarithmic)
 {
     SCOPED_TRACE("Begin Test: Test tabular logarithmic curve.");
-    const auto curve =
-      TabularFunction::createUnique({{1, 10}, {2, 20}, {3, 30}},
-                                    Property::temperature,
-                                    FenestrationCommon::Interpolation::Logarithmic);
+    const auto curve = TabularFunction::create({{1, 10}, {2, 20}, {3, 30}},
+                                               Property::temperature,
+                                               FenestrationCommon::Interpolation::Logarithmic);
 
     State interpolationPoint(2.5, 0, 101325);
 
