@@ -2,48 +2,66 @@
 
 #include "Domains.hxx"
 
-namespace MoisThermFEM {
+namespace MoisThermFEM
+{
+    struct Solution
+    {
+        Solution(const std::vector<double> & temperature,
+                 const std::vector<double> & humidity,
+                 const std::vector<double> & waterContent,
+                 const std::vector<double> & liquidWaterContent,
+                 const std::vector<double> & vaporContent,
+                 const std::vector<double> & iceContent);
 
-	struct Solution {
-		Solution( const std::vector< double > & temperature, const std::vector< double > & humidity,
-			const std::vector< double > & waterContent );
+        std::vector<double> temperature;
+        std::vector<double> humidity;
+        std::vector<double> waterContent;
+        std::vector<double> liquidWaterContent;
+        std::vector<double> vaporContent;
+        std::vector<double> iceContent;
+    };
 
-		std::vector< double > temperature;
-		std::vector< double > humidity;
-		std::vector< double > waterContent;
-	};
+    class MultiDomain
+    {
+    public:
+        MultiDomain();
 
-	class MultiDomain {
-	public:
-		MultiDomain();
+        /// Calculates next timestep value from current values
+        Solution transient(std::vector<double> & temperature,
+                           std::vector<double> & humidity,
+                           const double t_DTime);
 
-		/// Calculates next timestep value from current values
-		Solution transient( std::vector< double > & temperature, std::vector< double > & humidity,
-							 const double t_DTime );
+        std::vector<double> waterContent() const;
 
-		void createElement( const Node2D & t_Node1, const Node2D & t_Node2, const Node2D & t_Node3,
-												const Node2D & t_Node4, const Material & mat );
+        void createElement(const Node2D & t_Node1,
+                           const Node2D & t_Node2,
+                           const Node2D & t_Node3,
+                           const Node2D & t_Node4,
+                           const Material & mat);
 
-		void createConvectionBC( const Node2D & t_Node1, const Node2D & t_Node2,
-																 const double t_ConvectionCoefficient,
-																 const double t_AirTemperature, const double t_Humidity );
+        void createConvectionBC(const Node2D & t_Node1,
+                                const Node2D & t_Node2,
+                                const double t_ConvectionCoefficient,
+                                const double t_AirTemperature,
+                                const double t_Humidity);
 
-		void createTemperatureBC( Node2D & t_Node1, Node2D & t_Node2, const double t_Temp1,
-															const double t_Temp2 );
+        void createTemperatureBC(Node2D & t_Node1,
+                                 Node2D & t_Node2,
+                                 const double t_Temp1,
+                                 const double t_Temp2);
 
-		void createTemperatureBC( Node2D & t_Node1, Node2D & t_Node2, const double t_Temp );
+        void createTemperatureBC(Node2D & t_Node1, Node2D & t_Node2, const double t_Temp);
 
-		void createBlackBodyRadiationBC( const Node2D & t_Node1, const Node2D & t_Node2,
-																		 const double t_Emissivity,
-																		 const double t_RadiationTemperature );
+        void createBlackBodyRadiationBC(const Node2D & t_Node1,
+                                        const Node2D & t_Node2,
+                                        const double t_Emissivity,
+                                        const double t_RadiationTemperature);
 
-	private:
-		static double
-		normError( const std::vector< double > & vec1, const std::vector< double > & vec2 );
+    private:
+        static double normError(const std::vector<double> & vec1, const std::vector<double> & vec2);
 
-		Domain m_ThermalDomain;
-		Domain m_MoistureDomain;
+        Domain m_ThermalDomain;
+        Domain m_MoistureDomain;
+    };
 
-	};
-
-}
+}   // namespace MoisThermFEM

@@ -70,8 +70,10 @@ namespace MoisThermFEM
 
         void assignMaterial(std::string & t_Material);
 
-        double getWaterContent() const;
-        double getAirContent() const;
+        double waterContent() const;
+        double vaporContent() const;
+        double liquidContent() const;
+        double iceContent() const;
 
     private:
         std::size_t m_NodeNumber{0};

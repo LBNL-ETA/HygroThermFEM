@@ -94,9 +94,8 @@ namespace MoisThermFEM {
 		m_Materials.emplace( material );
 	}
 
-	double Node2D::getWaterContent() const
+	double Node2D::waterContent() const
 	{
-
 		double sum = 0.0;
 		std::size_t count = 0;
 		for (auto & val : m_Materials) {
@@ -106,8 +105,34 @@ namespace MoisThermFEM {
 		return sum / count;
 	}
 
-	double Node2D::getAirContent() const {
-		return 0;
+	double Node2D::vaporContent() const {
+		double sum = 0.0;
+		std::size_t count = 0;
+		for (auto & val : m_Materials) {
+			sum += val.get().vaporContent(m_State);
+			++count;
+		}
+		return sum / count;
+	}
+
+	double Node2D::liquidContent() const {
+		double sum = 0.0;
+		std::size_t count = 0;
+		for (auto & val : m_Materials) {
+			sum += val.get().liquidWaterContent(m_State);
+			++count;
+		}
+		return sum / count;
+	}
+
+	double Node2D::iceContent() const {
+		double sum = 0.0;
+		std::size_t count = 0;
+		for (auto & val : m_Materials) {
+			sum += val.get().iceContent(m_State);
+			++count;
+		}
+		return sum / count;
 	}
 
 	////////////////////////////////////////////////////////////////////////////
