@@ -1,234 +1,294 @@
 #pragma once
 
+#include <functional>
+#include <map>
 #include <memory>
 #include <vector>
-#include <map>
-#include <functional>
 
 #include "Interpolator.hxx"
 
-/// Functions interface is used to build function that are used for matrix building. Functions are
-/// stacked together to make full function that later will be stored in FEM element.
+/// Functions interface is used to build function that are used for matrix
+/// building. Functions are stacked together to make full function that later
+/// will be stored in FEM element.
 
-namespace MoisThermFEM {
+namespace MoisThermFEM
+{
+    enum class Property;
 
-	enum class Property;
+    class State;
 
-	class State;
+    enum class Operation
+    {
+        MULT,
+        DIV,
+        ADD,
+        SUB
+    };
 
-	enum class Operation {
-		MULT, DIV, ADD, SUB
-	};
+    class IValue
+    {
+    public:
+        virtual double value(const State & state) const = 0;
+        virtual ~IValue() = default;
 
-	class IValue {
-	public:
-		virtual double value( const State & state ) const = 0;
-	};
+        virtual std::unique_ptr<IValue> clone() const = 0;
+    };
 
-	//////////////////////////////////////////////////////////////////
-	///  IFunction
-	//////////////////////////////////////////////////////////////////
+    using iValue = std::unique_ptr<IValue>;
 
-	/// Interface for functions
-	class IFunction : public IValue {
-	public:
-		IFunction( Property t_Property );
+    //////////////////////////////////////////////////////////////////
+    ///  IFunction
+    //////////////////////////////////////////////////////////////////
 
-		virtual double value( const State & state ) const;
+    /// Interface for functions
+    class IFunction : public IValue
+    {
+    public:
+        IFunction(Property t_Property);
 
-	protected:
-		virtual double getValue( const double t_position = 0 ) const = 0;
+        virtual double value(const State & state) const;
 
-		Property m_Property;
+    protected:
+        virtual double evaluateFunction(const double t_position = 0) const = 0;
 
-	};
+        /// Property that is used to calculate function value. It is extracted from current
+        /// domain (material) point.
+        const Property m_Property;
+    };
 
-	//////////////////////////////////////////////////////////////////
-	///  IOperation
-	//////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////
+    ///  IOperation
+    //////////////////////////////////////////////////////////////////
 
-	class IOperation : public IValue {
-	public:
-		IOperation( std::shared_ptr< IValue > & t_Val1, std::shared_ptr< IValue > & t_Val2,
-								Operation t_Operation );
+    /// Entire class is used to mimic operator functions so that FEM functions can be
+    /// written as ordinary equations.
+    class IOperation : public IValue
+    {
+    public:
+        IOperation( iValue t_Val1, iValue t_Val2, Operation t_Operation );
 
-	public:
+        double value(const State & state) const override;
 
-		double value( const State & state ) const override;
+    private:
+        /// Do not want to make clone of operator publicly available
+        virtual std::unique_ptr<IValue> clone() const override;
 
-	private:
-		/// Functions can be shared between different operations and that is why it is necessary
-		/// to share function
-		std::shared_ptr< IValue > m_Function1;
-		std::shared_ptr< IValue > m_Function2;
+        /// Functions can be shared between different operations and that is why it is
+        /// necessary to share function
+        iValue m_Function1;
+        iValue m_Function2;
 
-		Operation m_Operation;
-		std::map< Operation, std::function< double( double, double ) > > m_Operator;
+        Operation m_Operation;
 
-	};
+        /// This hold four basic operators (+, -. *. /) which is used to determine
+        /// which function pointer is to be called
+        std::map<Operation, std::function<double(double, double)>> m_Operator;
+    };
 
-	//////////////////////////////////////////////////////////////////
-	///  Operators
-	//////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////
+    ///  Operators
+    //////////////////////////////////////////////////////////////////
 
-	std::shared_ptr< MoisThermFEM::IValue >
-	operator+( std::shared_ptr< IValue > & left, std::shared_ptr< IValue > & right );
+    iValue operator+(iValue & left, iValue & right);
 
-	std::shared_ptr< MoisThermFEM::IValue >
-	operator+( const double left, std::shared_ptr< IValue > & right );
+    iValue operator+(const double left, iValue & right);
 
-	std::shared_ptr< MoisThermFEM::IValue >
-	operator+( std::shared_ptr< IValue > & left, const double right );
+    iValue operator+(iValue & left, const double right);
 
-	std::shared_ptr< MoisThermFEM::IValue >
-	operator-( std::shared_ptr< IValue > & left, std::shared_ptr< IValue > & right );
+    iValue operator-(iValue & left, iValue & right);
 
-	std::shared_ptr< MoisThermFEM::IValue >
-	operator-( const double left, std::shared_ptr< IValue > & right );
+    iValue operator-(const double left, iValue & right);
 
-	std::shared_ptr< MoisThermFEM::IValue >
-	operator-( std::shared_ptr< IValue > & left, const double right );
+    iValue operator-(iValue & left, const double right);
 
-	std::shared_ptr< MoisThermFEM::IValue >
-	operator*( std::shared_ptr< IValue > & left, std::shared_ptr< IValue > & right );
+    iValue operator*(iValue & left, iValue & right);
 
-	std::shared_ptr< MoisThermFEM::IValue >
-	operator*( const double left, std::shared_ptr< IValue > & right );
+    iValue operator*(const double left, iValue & right);
 
-	std::shared_ptr< MoisThermFEM::IValue >
-	operator*( std::shared_ptr< IValue > & left, const double right );
+    iValue operator*(iValue & left, const double right);
 
-	std::shared_ptr< MoisThermFEM::IValue >
-	operator/( std::shared_ptr< IValue > & left, std::shared_ptr< IValue > & right );
+    iValue operator/(iValue & left, iValue & right);
 
-	std::shared_ptr< MoisThermFEM::IValue >
-	operator/( const double left, std::shared_ptr< IValue > & right );
+    iValue operator/(const double left, iValue & right);
 
-	std::shared_ptr< MoisThermFEM::IValue >
-	operator/( std::shared_ptr< IValue > & left, const double right );
+    iValue operator/(iValue & left, const double right);
 
-	//////////////////////////////////////////////////////////////////
-	///  Constant
-	//////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////
+    ///  Constant
+    //////////////////////////////////////////////////////////////////
 
-	/// Simple constant curve.
-	class Constant : public IFunction {
-	public:
-		Constant( const double value );
+    /// Simple constant curve.
+    class Constant : public IFunction
+    {
+    public:
+        static std::unique_ptr<Constant> create(const double value);
 
-	private:
-		double getValue( const double t_position ) const override;
+        virtual std::unique_ptr<IValue> clone() const override;
 
-		double m_Value;
-	};
+    private:
+        Constant(const double value);
 
-	//////////////////////////////////////////////////////////////////
-	///  Derivative
-	//////////////////////////////////////////////////////////////////
-	class Derivative : public IValue {
+        double evaluateFunction(const double t_position) const override;
 
-	public:
-		Derivative( std::shared_ptr< IValue > & t_Function );
+        double m_Value;
+    };
 
-		double value( const State & state ) const override;
+    //////////////////////////////////////////////////////////////////
+    ///  Derivative
+    //////////////////////////////////////////////////////////////////
+    class Derivative : public IValue
+    {
+    public:
+        static std::unique_ptr< Derivative > create( const iValue & t_Function );
 
-	private:
-		std::shared_ptr< IValue > m_Function;
+        double value(const State & state) const override;
 
-	};
+        virtual std::unique_ptr<IValue> clone() const override;
 
-	//////////////////////////////////////////////////////////////////
-	///  TabularFunctions
-	//////////////////////////////////////////////////////////////////
+    private:
+        Derivative(const iValue & t_Function);
 
-	/// Interface for classic tabular curve. There are different interpolation strategies and
-	/// this is base class for all of them.
-	class TabularFunction : public IFunction {
-	public:
-		TabularFunction( const std::vector< std::pair< double, double > > & values, Property property,
-										 FenestrationCommon::Interpolator interpolator = FenestrationCommon::Interpolation::Linear );
+        iValue m_Function;
+    };
 
-		TabularFunction( std::initializer_list< std::pair< double, double > > & list, Property property,
-										 FenestrationCommon::Interpolator interpolator = FenestrationCommon::Interpolation::Linear );
+    //////////////////////////////////////////////////////////////////
+    ///  TabularFunctions
+    //////////////////////////////////////////////////////////////////
 
-		double max() const;
+    /// Interface for classic tabular curve. There are different interpolation
+    /// strategies and this is base class for all of them.
+    class TabularFunction : public IFunction
+    {
+    public:
+        static std::unique_ptr<TabularFunction>
+          create(const std::vector<std::pair<double, double>> & values,
+                 Property property,
+                 FenestrationCommon::Interpolator interpolator =
+                   FenestrationCommon::Interpolation::Linear);
+
+        static std::unique_ptr<TabularFunction>
+          create(const std::initializer_list<std::pair<double, double>> & list,
+                 Property property,
+                 FenestrationCommon::Interpolator interpolator =
+                   FenestrationCommon::Interpolation::Linear);
 
-		double min() const;
+	    double max() const;
+
+        double min() const;
 
-		std::vector< std::pair< double, double > > getCurve() const;
-
-	protected:
-		std::vector< std::pair< double, double > > m_Curve;
-		FenestrationCommon::Interpolator m_Interpolator;
-
-		double getValue( const double t_position ) const override;
-
-		virtual std::pair< std::pair< double, double >, std::pair< double, double > >
-		getInterpolationPoints( std::vector< std::pair< double, double > >::const_iterator & it ) const;
-
-	};
-
-	//////////////////////////////////////////////////////////////////
-	///  TabularDerivative
-	//////////////////////////////////////////////////////////////////
-
-	/// This class is different from ordinary derivative because it extends over the limits. This is
-	/// important in iterations when first derivative really needs to be evaluated outside of limits
-	/// or convergence will produce incorrect results (sorption curve is good example).
-	class TabularDerivative : public IFunction {
-	public:
-		TabularDerivative( const std::vector< std::pair< double, double > > & values,
-											 Property property );
-
-		TabularDerivative( std::initializer_list< std::pair< double, double > > & list,
-											 Property property );
-
-	protected:
-		std::vector< std::pair< double, double > > m_Curve;
-
-		double getValue( const double t_position ) const override;
-
-		virtual std::pair< std::pair< double, double >, std::pair< double, double > >
-		getInterpolationPoints( std::vector< std::pair< double, double > >::const_iterator & it ) const;
-
-	};
-
-	//////////////////////////////////////////////////////////////////
-	///  SuctionFunction
-	//////////////////////////////////////////////////////////////////
-
-	/// Class that behaves like suction curve. It is standard (linear or logarithmic) interpolation
-	/// except for the results in first range where curve will return constant value equal to the
-	/// first point
-	class SuctionFunction : public TabularFunction {
-	public:
-		SuctionFunction( const std::vector< std::pair< double, double > > & values,
-										 Property property,
-										 const FenestrationCommon::Interpolator & interpolator = FenestrationCommon::Interpolation::Logarithmic );
-
-		SuctionFunction( const std::initializer_list< std::pair< double, double > > & list,
-										 Property property,
-										 const FenestrationCommon::Interpolator & interpolator = FenestrationCommon::Interpolation::Logarithmic );
-
-	protected:
-		std::pair< std::pair< double, double >, std::pair< double, double > >
-		getInterpolationPoints(
-				std::vector< std::pair< double, double > >::const_iterator & it ) const override;
-
-	};
-
-	//////////////////////////////////////////////////////////////////
-	///  SaturationFunction
-	//////////////////////////////////////////////////////////////////
-
-	/// Simple constant curve.
-	class SaturationFunction : public IFunction {
-	public:
-		SaturationFunction( Property property );
-
-	private:
-		double getValue( const double t_position ) const override;
-
-	};
-
-}
+        std::vector<std::pair<double, double>> getCurve() const;
+
+        virtual std::unique_ptr<IValue> clone() const override;
+
+    protected:
+        TabularFunction(const std::vector<std::pair<double, double>> & values,
+                        Property property,
+                        FenestrationCommon::Interpolator interpolator =
+                          FenestrationCommon::Interpolation::Linear);
+
+        TabularFunction(const std::initializer_list<std::pair<double, double>> & list,
+                        Property property,
+                        FenestrationCommon::Interpolator interpolator =
+                          FenestrationCommon::Interpolation::Linear);
+
+        std::vector<std::pair<double, double>> m_Curve;
+        FenestrationCommon::Interpolator m_Interpolator;
+
+        double evaluateFunction(const double t_position) const override;
+
+        virtual std::pair<std::pair<double, double>, std::pair<double, double>>
+          getInterpolationPoints(std::vector<std::pair<double, double>>::const_iterator & it) const;
+    };
+
+    //////////////////////////////////////////////////////////////////
+    ///  TabularDerivative
+    //////////////////////////////////////////////////////////////////
+
+    /// This class is different from ordinary derivative because it extends over the
+    /// limits. This is important in iterations when first derivative really needs
+    /// to be evaluated outside of limits or convergence will produce incorrect
+    /// results (sorption curve is good example).
+    class TabularDerivative : public IFunction
+    {
+    public:
+        static std::unique_ptr<TabularDerivative>
+          create(const std::vector<std::pair<double, double>> & values, Property property);
+        static std::unique_ptr<TabularDerivative>
+          create(std::initializer_list<std::pair<double, double>> & list, Property property);
+
+        virtual std::unique_ptr<IValue> clone() const override;
+
+    protected:
+        TabularDerivative(const std::vector<std::pair<double, double>> & values, Property property);
+
+        TabularDerivative(std::initializer_list<std::pair<double, double>> & list,
+                          Property property);
+
+        std::vector<std::pair<double, double>> m_Curve;
+
+        double evaluateFunction(const double t_position) const override;
+
+        virtual std::pair<std::pair<double, double>, std::pair<double, double>>
+          getInterpolationPoints(std::vector<std::pair<double, double>>::const_iterator & it) const;
+    };
+
+    //////////////////////////////////////////////////////////////////
+    ///  SuctionFunction
+    //////////////////////////////////////////////////////////////////
+
+    /// Class that behaves like suction curve. It is standard (linear or
+    /// logarithmic) interpolation except for the results in first range where curve
+    /// will return constant value equal to the first point
+    class SuctionFunction : public TabularFunction
+    {
+    public:
+        static std::unique_ptr<SuctionFunction>
+          create(const std::vector<std::pair<double, double>> & values,
+                 Property property,
+                 const FenestrationCommon::Interpolator & interpolator =
+                   FenestrationCommon::Interpolation::Logarithmic);
+
+        static std::unique_ptr<SuctionFunction>
+          create(const std::initializer_list<std::pair<double, double>> & list,
+                 Property property,
+                 const FenestrationCommon::Interpolator & interpolator =
+                   FenestrationCommon::Interpolation::Logarithmic);
+
+	    virtual std::unique_ptr<IValue> clone() const override;
+
+    protected:
+        SuctionFunction(const std::vector<std::pair<double, double>> & values,
+                        Property property,
+                        const FenestrationCommon::Interpolator & interpolator =
+                          FenestrationCommon::Interpolation::Logarithmic);
+
+        SuctionFunction(const std::initializer_list<std::pair<double, double>> & list,
+                        Property property,
+                        const FenestrationCommon::Interpolator & interpolator =
+                          FenestrationCommon::Interpolation::Logarithmic);
+
+        std::pair<std::pair<double, double>, std::pair<double, double>> getInterpolationPoints(
+          std::vector<std::pair<double, double>>::const_iterator & it) const override;
+    };
+
+    //////////////////////////////////////////////////////////////////
+    ///  SaturationFunction
+    //////////////////////////////////////////////////////////////////
+
+    /// Simple constant curve.
+    class SaturationFunction : public IFunction
+    {
+    public:
+        static std::unique_ptr<SaturationFunction> create(Property property,
+                                                          double saturationCoefficient = 9.2);
+
+        virtual std::unique_ptr<IValue> clone() const override;
+
+    private:
+        SaturationFunction(Property property, double saturationCoefficient = 9.2);
+
+        double evaluateFunction(const double t_position) const override;
+        const double m_SaturationCoefficient;
+    };
+
+}   // namespace MoisThermFEM

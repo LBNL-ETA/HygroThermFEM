@@ -1,6 +1,7 @@
 #include "QuadrilateralLocal2D.hxx"
 #include "Node2D.hxx"
 #include "IntegrationPoints.hxx"
+#include "FEMunique.hxx"
 
 namespace MoisThermFEM {
 
@@ -44,8 +45,7 @@ namespace MoisThermFEM {
 	QuadrilateralLinearLocal2D::QuadrilateralLinearLocal2D() {
 		auto aPoints = IntegrationPoints2D::Instance().getPoints2D();
 		for ( const auto & point : aPoints ) {
-			m_Ksi.push_back( std::unique_ptr< QuadLinearLocalShapeFunctions2D >(
-					new QuadLinearLocalShapeFunctions2D( point ) ) );
+			m_Ksi.push_back( fem::make_unique< QuadLinearLocalShapeFunctions2D >( point ) );
 		}
 	}
 

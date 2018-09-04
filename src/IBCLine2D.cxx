@@ -77,8 +77,4 @@ namespace MoisThermFEM {
 		return m_Nodes.getNode( index );
 	}
 
-	IBCLinear2D::~IBCLinear2D() {
-
-	}
-
 }

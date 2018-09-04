@@ -3,7 +3,8 @@
 
 #include "MoisThermFEM2D.hxx"
 
-using namespace FenestrationCommon;
+using FenestrationCommon::SquareMatrix;
+using FenestrationCommon::CLinearSolver;
 
 class TestLinearSolver2 : public testing::Test
 {

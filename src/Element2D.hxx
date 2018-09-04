@@ -78,11 +78,10 @@ public:
 
 /// Keeping function pointers for QLEConductanceDerivative2D in Elements array
 struct DerivativeFunction {
-  DerivativeFunction(const std::shared_ptr<IValue> &fixedTerm,
-                     const std::shared_ptr<IValue> &derivativeTerm);
+  DerivativeFunction( const iValue & fixedTerm, const iValue & derivativeTerm );
 
-  std::shared_ptr<MoisThermFEM::IValue> fixedTerm;
-  std::shared_ptr<MoisThermFEM::IValue> derivativeTerm;
+  iValue fixedTerm;
+  iValue derivativeTerm;
 };
 
 //////////////////////////////////////////////////////////////////////////////
@@ -117,8 +116,8 @@ protected:
   /// TODO: This did not work with reference_wrapper and it should. Check later.
   /// Reminder: Introduce pair of curve pointer and Property so that curve knows
   /// what to use
-  std::vector<std::shared_ptr<IValue>> m_Conductance;
-  std::vector<std::shared_ptr<IValue>> m_Capacitance;
+  std::vector<iValue> m_Conductance;
+  std::vector<iValue> m_Capacitance;
   std::vector<DerivativeFunction> m_DerivativeConductance;
 
   const Material &m_Material;

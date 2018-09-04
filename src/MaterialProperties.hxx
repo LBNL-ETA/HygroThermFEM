@@ -5,18 +5,20 @@
 
 #include "Material.hxx"
 
-namespace MoisThermFEM {
+namespace MoisThermFEM
+{
+    class IValue;
 
-	class IValue;
+    using iValue = std::unique_ptr<IValue>;
 
-	class MaterialProperties {
-	public:
-		static std::shared_ptr< MoisThermFEM::IValue > getWaterFill( const Material & mat );
+    class MaterialProperties
+    {
+    public:
+        static iValue getWaterFill(const Material & mat);
 
-		static std::shared_ptr< MoisThermFEM::IValue > getAirFill( const Material & mat );
+        static iValue getAirFill(const Material & mat);
+    };
 
-	};
+}   // namespace MoisThermFEM
 
-}
-
-#endif //MOISTHERMFEM_MATERIALPROPERTIES_HXX
+#endif   // MOISTHERMFEM_MATERIALPROPERTIES_HXX

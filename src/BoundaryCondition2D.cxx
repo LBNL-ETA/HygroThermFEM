@@ -105,10 +105,9 @@ MoistureBC::MoistureBC(const Node2D &t_Node1, const Node2D &t_Node2,
       m_Material(t_Material) {}
 
 std::vector<double> MoistureBC::R_Vector() const {
-  using pValue = std::shared_ptr<IValue>;
+  using pValue = iValue;
 
-  pValue saturation(
-      std::make_shared<SaturationFunction>(Property::temperature));
+  pValue saturation = SaturationFunction::create(Property::temperature);
   // pValue airFill = MaterialProperties::getAirFill( m_Material );
   auto humidityCalculator = saturation * m_Material.porosity();
   humidityCalculator = humidityCalculator * m_AirHumidity;
@@ -121,10 +120,9 @@ std::vector<double> MoistureBC::R_Vector() const {
 }
 
 FenestrationCommon::SquareMatrix MoistureBC::H_Matrix() const {
-  using pValue = std::shared_ptr<IValue>;
+  using pValue = iValue;
 
-  pValue saturationFunction(
-      std::make_shared<SaturationFunction>(Property::temperature));
+  pValue saturationFunction = SaturationFunction::create(Property::temperature);
 
   // pValue airFill = MaterialProperties::getAirFill( m_Material );
 
@@ -133,12 +131,11 @@ FenestrationCommon::SquareMatrix MoistureBC::H_Matrix() const {
   const auto humidityByVolume1 = humidityCoeff->value(m_Nodes[0].getState());
   const auto humidityByVolume2 = humidityCoeff->value(m_Nodes[1].getState());
 
-  std::vector<double> coeffs{
-      humidityByVolume1 * m_ConvectiveCoefficient /
-          (Constants::Density_Air * Constants::Cp_Air),
-      humidityByVolume2 * m_ConvectiveCoefficient /
-          (Constants::Density_Air * Constants::Cp_Air),
-  };
+  const auto beta =
+      m_ConvectiveCoefficient / (Constants::Density_Air * Constants::Cp_Air);
+
+  std::vector<double> coeffs{humidityByVolume1 * beta,
+                             humidityByVolume2 * beta};
 
   return m_PsiPsiMatrix.mmultRows(coeffs);
 }

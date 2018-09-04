@@ -11,8 +11,6 @@
 namespace FenestrationCommon {
 // Works only with double
 class SquareMatrix {
-  friend class CLinearSolver;
-
 public:
   explicit SquareMatrix(const std::size_t m_size);
   // Constructor with triplets should be used for huge matrices. For example
@@ -36,6 +34,8 @@ public:
   double &operator()(const std::size_t i, const std::size_t j);
 
   SquareMatrix mmultRows(const std::vector<double> &tInput) const;
+
+  Eigen::SparseMatrix<double> getSparseMatrix() const;
 
   SquareMatrix operator*(const double value) const;
   friend SquareMatrix operator*(const double value, const SquareMatrix &other);

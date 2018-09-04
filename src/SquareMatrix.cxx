@@ -165,4 +165,9 @@ std::vector<double> operator*(const std::vector<double> &first,
   Eigen::VectorXd res = vec.transpose() * second.m_Matrix;
   return std::vector<double>(res.data(), res.data() + res.rows() * res.cols());
 }
+
+Eigen::SparseMatrix<double> SquareMatrix::getSparseMatrix() const {
+	return m_Matrix;
+}
+
 } // namespace FenestrationCommon
