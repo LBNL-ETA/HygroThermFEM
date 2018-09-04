@@ -113,7 +113,7 @@ std::vector<double> MoistureBC::R_Vector() const {
   humidityCalculator = humidityCalculator * m_AirHumidity;
 
   const auto humidityByVolume =
-      humidityCalculator->value(State(m_AirTemperature, m_AirHumidity, 101325));
+      humidityCalculator->value( State( m_AirTemperature, m_AirHumidity, 101325, 0 ) );
   const auto coeff = m_ConvectiveCoefficient * humidityByVolume /
                      (Constants::Density_Air * Constants::Cp_Air);
   return m_PsiVector * coeff;

@@ -10,7 +10,7 @@ namespace MoisThermFEM {
 		static NodePool & Instance();
 
 		Node2D & createNode( const std::size_t t_NodeNumber, const double t_x, const double t_y,
-		                     const State & t_Prop = State() );
+		                     const State & t_Prop = State( 0, 0, 0, 0 ) );
 
 		Node2D & getNode( std::size_t const Index );
 

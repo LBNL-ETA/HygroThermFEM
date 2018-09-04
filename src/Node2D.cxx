@@ -6,7 +6,7 @@
 namespace MoisThermFEM {
 
 	////////////////////////////////////////////////////////////////////////////
-	//   LocalPoint1D
+	///   LocalPoint1D
 	////////////////////////////////////////////////////////////////////////////
 
 	LocalPoint1D::LocalPoint1D( double const t_ksi )
@@ -40,8 +40,7 @@ namespace MoisThermFEM {
 
 	Node2D::Node2D( const std::size_t t_NodeNumber, const double t_x, const double t_y,
 					const State & t_State )
-		: m_NodeNumber( t_NodeNumber ), m_x( t_x ), m_y( t_y ), m_State( t_State )
-	{
+		: m_NodeNumber( t_NodeNumber ), m_x( t_x ), m_y( t_y ), m_State( t_State ) {
 	}
 
 	bool
@@ -91,7 +90,8 @@ namespace MoisThermFEM {
 
 	void Node2D::assignMaterial( std::string & t_Material )
 	{
-		m_Materials.insert( t_Material );
+		auto & material = MaterialPool::Instance().material(t_Material);
+		m_Materials.emplace( material );
 	}
 
 	double Node2D::getWaterContent() const
@@ -100,15 +100,18 @@ namespace MoisThermFEM {
 		double sum = 0.0;
 		std::size_t count = 0;
 		for (auto & val : m_Materials) {
-			auto & material = MaterialPool::Instance().material(val);
-			sum += material.waterContent(m_State.getValue( Property::humidity ));
+			sum += val.get().waterContent(m_State);
 			++count;
 		}
 		return sum / count;
 	}
 
+	double Node2D::getAirContent() const {
+		return 0;
+	}
+
 	////////////////////////////////////////////////////////////////////////////
-	//   INodesStorage
+	///   INodesStorage
 	////////////////////////////////////////////////////////////////////////////
 
 	INodesStorage::INodesStorage( std::initializer_list< Node2D > t_Nodes )

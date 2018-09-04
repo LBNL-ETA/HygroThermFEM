@@ -6,121 +6,130 @@
 #include <initializer_list>
 
 #include "State.hxx"
+#include "Material.hxx"
 
-namespace MoisThermFEM {
+namespace MoisThermFEM
+{
 
-	////////////////////////////////////////////////////////////////////////////
-	//   LocalPoint1D
-	////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////
+    ///   LocalPoint1D
+    ////////////////////////////////////////////////////////////////////////////
 
-	// Structure that holds data for one dimensional point in local coordinate system
-	struct LocalPoint1D {
-		explicit LocalPoint1D( const double t_ksi );
+    // Structure that holds data for one dimensional point in local coordinate system
+    struct LocalPoint1D
+    {
+        explicit LocalPoint1D(const double t_ksi);
 
-		LocalPoint1D( const LocalPoint1D & t_LocalPoint );
+        LocalPoint1D(const LocalPoint1D & t_LocalPoint);
 
-		double ksi { 0 };
+        double ksi{0};
+    };
 
-	};
+    ////////////////////////////////////////////////////////////////////////////
+    ///   LocalPoint2D
+    ////////////////////////////////////////////////////////////////////////////
 
-	////////////////////////////////////////////////////////////////////////////
-	//   LocalPoint2D
-	////////////////////////////////////////////////////////////////////////////
+    // Structure that holds data for two dimensional point in local coordinate system
+    struct LocalPoint2D
+    {
+        LocalPoint2D(const double t_ksi, const double t_eta);
 
-	// Structure that holds data for two dimensional point in local coordinate system
-	struct LocalPoint2D {
-		LocalPoint2D( const double t_ksi, const double t_eta );
+        LocalPoint2D(const LocalPoint2D & t_LocalPoint);
 
-		LocalPoint2D( const LocalPoint2D & t_LocalPoint );
+        double ksi{0};
+        double eta{0};
+    };
 
-		double ksi { 0 };
-		double eta { 0 };
+    ////////////////////////////////////////////////////////////////////////////
+    ////   Node2D
+    ////////////////////////////////////////////////////////////////////////////
 
-	};
+    // Defines nodal point in two dimensional cartesian space.
+    class Node2D
+    {
+    public:
+        Node2D(const std::size_t t_NodeNumber,
+               const double t_x,
+               const double t_y,
+               const State & t_State);
 
-	////////////////////////////////////////////////////////////////////////////
-	////   Node2D
-	////////////////////////////////////////////////////////////////////////////
+        Node2D(const Node2D & t_Node) = default;
+        Node2D & operator=(const Node2D & other) = default;
+        friend bool operator==(const Node2D & first, const Node2D & second);
 
-	// Defines nodal point in two dimensional cartesian space.
-	class Node2D {
-	public:
-		Node2D( const std::size_t t_NodeNumber, const double t_x, const double t_y,
-						const State & t_State );
+        size_t getNodeNumber() const;
 
-		Node2D( const Node2D & t_Node ) = default;
-		Node2D & operator=( const Node2D & other ) = default;
-		friend bool operator==( const Node2D & first, const Node2D & second );
+        double X() const;
+        double Y() const;
 
-		size_t getNodeNumber() const;
+        double getProperty(const Property t_Property,
+                           const Iteration t_Iteration = Iteration::Current) const;
+        void setProperty(const Property t_Property, double t_value);
+        double getDeltaProperty(const Property t_Property) const;
+        const State & getState() const;
 
-		double X() const;
-		double Y() const;
+        void assignMaterial(std::string & t_Material);
 
-		double getProperty( const Property t_Property, const Iteration t_Iteration = Iteration::Current ) const;
-		void setProperty( const Property t_Property, double t_value );
-		double getDeltaProperty( const Property t_Property ) const;
-		const State & getState() const;
+        double getWaterContent() const;
+        double getAirContent() const;
 
-		void assignMaterial(std::string & t_Material );
+    private:
+        std::size_t m_NodeNumber{0};
+        double m_x{0};
+        double m_y{0};
 
-		double getWaterContent() const;
+        State m_State;
 
-	private:
-		std::size_t m_NodeNumber { 0 };
-		double m_x { 0 };
-		double m_y { 0 };
+        /// Node can belong to multiple materials. This will be used to calculate secondary
+        /// properties based on primary properties (water content depends on humidity)
+        std::set<std::reference_wrapper<const Material>> m_Materials;
+    };
 
-		State m_State;
+    ////////////////////////////////////////////////////////////////////////////
+    ////   INodesStorage
+    ////////////////////////////////////////////////////////////////////////////
 
-		/// Node can belong to multiple materials. This will be used to calculate secondary properties
-		/// based on primary properties (water content depends on humidity)
-		std::set< std::string > m_Materials;
+    // Interface that holds all node data in single storage
+    class INodesStorage
+    {
+    public:
+        INodesStorage() = default;
 
-	};
+        INodesStorage(std::initializer_list<Node2D> t_Nodes);
 
-	////////////////////////////////////////////////////////////////////////////
-	////   INodesStorage
-	////////////////////////////////////////////////////////////////////////////
+        Node2D & getNode(const std::size_t Index);
 
-	// Interface that holds all node data in single storage
-	class INodesStorage {
-	public:
-		INodesStorage() = default;
+        Node2D operator[](const std::size_t index) const;
 
-		INodesStorage( std::initializer_list< Node2D > t_Nodes );
+        std::vector<std::size_t> getNodeIndexes() const;
 
-		Node2D & getNode( const std::size_t Index );
+    protected:
+        std::vector<Node2D> m_Nodes;
+    };
 
-		Node2D operator[]( const std::size_t index ) const;
+    ////////////////////////////////////////////////////////////////////////////
+    ////   LineNodes2D
+    ////////////////////////////////////////////////////////////////////////////
 
-		std::vector< std::size_t > getNodeIndexes() const;
+    // Class that store nodes which are part of some boundary conditions in 2D
+    class LineNodes2D : public INodesStorage
+    {
+    public:
+        LineNodes2D(const Node2D & t_Node1, const Node2D & t_Node2);
+    };
 
-	protected:
-		std::vector< Node2D > m_Nodes;
+    ////////////////////////////////////////////////////////////////////////////
+    ////   QuadrilateralNodes2D
+    ////////////////////////////////////////////////////////////////////////////
 
-	};
+    // Class that store nodal data which are part of elementsCreator
+    class QuadrilateralNodes2D : public INodesStorage
+    {
+    public:
+        QuadrilateralNodes2D(const Node2D & t_Node1,
+                             const Node2D & t_Node2,
+                             const Node2D & t_Node3,
+                             const Node2D & t_Node4);
+    };
 
-	////////////////////////////////////////////////////////////////////////////
-	////   LineNodes2D
-	////////////////////////////////////////////////////////////////////////////
-
-	// Class that store nodes which are part of some boundary conditions in 2D
-	class LineNodes2D : public INodesStorage {
-	public:
-		LineNodes2D( const Node2D & t_Node1, const Node2D & t_Node2 );
-
-	};
-
-	////////////////////////////////////////////////////////////////////////////
-	////   QuadrilateralNodes2D
-	////////////////////////////////////////////////////////////////////////////
-
-	// Class that store nodal data which are part of elementsCreator
-	class QuadrilateralNodes2D : public INodesStorage {
-	public:
-		QuadrilateralNodes2D( const Node2D & t_Node1, const Node2D & t_Node2, const Node2D & t_Node3,
-													const Node2D & t_Node4 );
-	};
-
-}
+}   // namespace MoisThermFEM

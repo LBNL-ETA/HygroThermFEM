@@ -39,7 +39,7 @@ TEST_F( MultiDomain_2D_1, TestExample_1 ) {
 	const double initialMoistureContent = 0.0;
 	const double initialPressure = 101325;
 
-	auto state = State( initialTemperature, initialMoistureContent, initialPressure );
+	auto state = State( initialTemperature, initialMoistureContent, initialPressure, 0 );
 	size_t nodeIndex = 0;
 	auto T = 0.0;
 	auto deltaT = 10.0;
@@ -50,12 +50,12 @@ TEST_F( MultiDomain_2D_1, TestExample_1 ) {
 	for ( auto val : gridXCoordinates ) {
 		++nodeIndex;
 		nodePool.createNode( nodeIndex, val, 0.00,
-												 State( initialTemperature + T, initialMoistureContent + H,
-																initialPressure ) );
+							 State( initialTemperature + T, initialMoistureContent + H,
+									initialPressure, 0 ) );
 		++nodeIndex;
 		nodePool.createNode( nodeIndex, val, 0.05,
-												 State( initialTemperature + T, initialMoistureContent + H,
-																initialPressure ) );
+							 State( initialTemperature + T, initialMoistureContent + H,
+									initialPressure, 0 ) );
 		T += deltaT;
 		H += deltaH;
 	}

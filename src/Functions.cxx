@@ -155,7 +155,7 @@ namespace MoisThermFEM
 
         // small depends on exact number that we are calculating
         const double small = val1 != 0 ? val1 / 1e5 : 1e-5;
-        const State smallIncrease(state + State(small, small, small));
+        const State smallIncrease(state + State( small, small, small, 0 ) );
 
         double val2 = m_Function->value(smallIncrease);
         return (val2 - val1) / small;
