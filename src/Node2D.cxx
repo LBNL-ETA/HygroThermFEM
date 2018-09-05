@@ -93,58 +93,58 @@ namespace MoisThermFEM
         return m_State;
     }
 
-    void Node2D::assignMaterial(const std::string & t_Material)
+    void Node2D::assignMaterial( const std::string & t_Material, double weightingCoefficient )
     {
         auto & material = MaterialPool::Instance().material(t_Material);
-        m_Materials.emplace(material);
+        m_Materials.emplace(weightingCoefficient, material);
     }
 
     double Node2D::waterContent() const
     {
         double sum = 0.0;
-        std::size_t count = 0;
+        double weighting = 0;
         for(auto & val : m_Materials)
         {
-            sum += val.get().waterContent(m_State);
-            ++count;
+            sum += val.second.get().waterContent(m_State) * val.first;
+            weighting += val.first;
         }
-        return sum / count;
+        return sum / weighting;
     }
 
     double Node2D::vaporContent() const
     {
-        double sum = 0.0;
-        std::size_t count = 0;
-        for(auto & val : m_Materials)
-        {
-            sum += val.get().vaporContent(m_State);
-            ++count;
-        }
-        return sum / count;
+		double sum = 0.0;
+		double weighting = 0;
+		for(auto & val : m_Materials)
+		{
+			sum += val.second.get().vaporContent(m_State) * val.first;
+			weighting += val.first;
+		}
+		return sum / weighting;
     }
 
     double Node2D::liquidContent() const
     {
-        double sum = 0.0;
-        std::size_t count = 0;
-        for(auto & val : m_Materials)
-        {
-            sum += val.get().liquidWaterContent(m_State);
-            ++count;
-        }
-        return sum / count;
+		double sum = 0.0;
+		double weighting = 0;
+		for(auto & val : m_Materials)
+		{
+			sum += val.second.get().liquidWaterContent(m_State) * val.first;
+			weighting += val.first;
+		}
+		return sum / weighting;
     }
 
     double Node2D::iceContent() const
     {
-        double sum = 0.0;
-        std::size_t count = 0;
-        for(auto & val : m_Materials)
-        {
-            sum += val.get().iceContent(m_State);
-            ++count;
-        }
-        return sum / count;
+		double sum = 0.0;
+		double weighting = 0;
+		for(auto & val : m_Materials)
+		{
+			sum += val.second.get().iceContent(m_State) * val.first;
+			weighting += val.first;
+		}
+		return sum / weighting;
     }
 
     ////////////////////////////////////////////////////////////////////////////

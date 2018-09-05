@@ -188,10 +188,16 @@ namespace MoisThermFEM
         /// which case one of the node numbers will be repeated twice.
         while(!m_Node.last())
         {
-            auto & poolNode = NodePool::Instance().getNode(m_Node.current().getNodeNumber());
+            auto & node1 = NodePool::Instance().getNode(m_Node.current().getNodeNumber());
+            auto & node2 = NodePool::Instance().getNode(m_Node.previous().getNodeNumber());
+            auto & node3 = NodePool::Instance().getNode(m_Node.next().getNodeNumber());
+
+            /// Weighting coefficient depends on angle that is form by nodes next to node1.
+            /// That coefficient is fraction of full circle.
+            const auto weightingCoefficient = angleBetweenNodes(node1, node2, node3) / 360.0;
             /// Node will have possibility to calculate certain properties that will be
             /// material dependent.
-            poolNode.assignMaterial(matName);
+			node1.assignMaterial( matName, weightingCoefficient );
             m_Node.moveToNext();
         }
     }
@@ -294,7 +300,13 @@ namespace MoisThermFEM
         return node1Found && node2Found;
     }
 
-    //////////////////////////////////////////////////////////////////////////////
+	double IElementLinear2D::angleBetweenNodes( const Node2D & node1, const Node2D & node2,
+												const Node2D & node3 ) {
+		return std::atan2(node3.Y() - node1.Y(), node3.X() - node1.X()) -
+		std::atan2(node2.Y() - node1.Y(), node2.X() - node1.X());
+	}
+
+	//////////////////////////////////////////////////////////////////////////////
     ///  ElementThermalLinear2D
     //////////////////////////////////////////////////////////////////////////////
 

@@ -68,7 +68,7 @@ namespace MoisThermFEM
         double getDeltaProperty(const Property t_Property) const;
         const State & getState() const;
 
-        void assignMaterial(const std::string & t_Material);
+        void assignMaterial( const std::string & t_Material, double weightingCoefficient );
 
         double waterContent() const;
         double vaporContent() const;
@@ -84,7 +84,7 @@ namespace MoisThermFEM
 
         /// Node can belong to multiple materials. This will be used to calculate secondary
         /// properties based on primary properties (water content depends on humidity)
-        std::set<std::reference_wrapper<const Material>> m_Materials;
+        std::set<std::pair<double, std::reference_wrapper<const Material>>> m_Materials;
     };
 
     ////////////////////////////////////////////////////////////////////////////

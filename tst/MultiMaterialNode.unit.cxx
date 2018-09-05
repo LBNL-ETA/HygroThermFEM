@@ -86,12 +86,8 @@ TEST_F(MultiMaterialNode, TestExample_1)
        {0.95, 118},
        {1, 150}});
 
-    node1.assignMaterial(material1.name());
-    node1.assignMaterial(material2.name());
-
-    /// Adding same material again should not influence results (or in other words,
-    /// removing this from test case will not change the outcome).
-    node1.assignMaterial(material1.name());
+	node1.assignMaterial( material1.name(), 0.5 );
+	node1.assignMaterial( material2.name(), 0.5 );
 
     EXPECT_NEAR(node1.iceContent(), 0, 1e-6);
     EXPECT_NEAR(node1.vaporContent(), 0.001062, 1e-6);
