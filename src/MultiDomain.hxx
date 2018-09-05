@@ -31,7 +31,7 @@ namespace MoisThermFEM
                            std::vector<double> & humidity,
                            const double t_DTime);
 
-        std::vector<double> waterContent() const;
+        std::vector<double> waterContent(WaterContent content) const;
 
         void createElement(const Node2D & t_Node1,
                            const Node2D & t_Node2,

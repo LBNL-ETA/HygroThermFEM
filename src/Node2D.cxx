@@ -99,52 +99,16 @@ namespace MoisThermFEM
         m_Materials.emplace(weightingCoefficient, material);
     }
 
-    double Node2D::waterContent() const
+    double Node2D::waterContent(WaterContent content) const
     {
         double sum = 0.0;
         double weighting = 0;
         for(auto & val : m_Materials)
         {
-            sum += val.second.get().waterContent(m_State) * val.first;
+            sum += val.second.get().waterContent(m_State, content) * val.first;
             weighting += val.first;
         }
         return sum / weighting;
-    }
-
-    double Node2D::vaporContent() const
-    {
-		double sum = 0.0;
-		double weighting = 0;
-		for(auto & val : m_Materials)
-		{
-			sum += val.second.get().vaporContent(m_State) * val.first;
-			weighting += val.first;
-		}
-		return sum / weighting;
-    }
-
-    double Node2D::liquidContent() const
-    {
-		double sum = 0.0;
-		double weighting = 0;
-		for(auto & val : m_Materials)
-		{
-			sum += val.second.get().liquidWaterContent(m_State) * val.first;
-			weighting += val.first;
-		}
-		return sum / weighting;
-    }
-
-    double Node2D::iceContent() const
-    {
-		double sum = 0.0;
-		double weighting = 0;
-		for(auto & val : m_Materials)
-		{
-			sum += val.second.get().iceContent(m_State) * val.first;
-			weighting += val.first;
-		}
-		return sum / weighting;
     }
 
     ////////////////////////////////////////////////////////////////////////////

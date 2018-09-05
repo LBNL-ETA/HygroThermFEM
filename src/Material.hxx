@@ -9,6 +9,10 @@
 
 namespace MoisThermFEM
 {
+	/// Used to simplify interface for certain classes. Instead of creating four different function,
+	/// it is sufficient only to call one when passing this enum argument.
+	enum class WaterContent{Water, Liquid, Vapor, Ice};
+
     class Material
     {
         friend class MaterialPool;
@@ -26,10 +30,7 @@ namespace MoisThermFEM
 
         std::vector<double> waterContent(const std::vector<double> & humidity) const;
 
-        double waterContent(const State & t_State) const;
-        double vaporContent(const State & t_State) const;
-        double liquidWaterContent(const State & t_State) const;
-        double iceContent(const State & t_State) const;
+        double waterContent(const State & t_State, WaterContent waterContent) const;
 
         std::vector<std::pair<double, double>> sorptionCurve() const;
 
@@ -40,6 +41,11 @@ namespace MoisThermFEM
         friend bool operator>=(const Material & lhs, const Material & rhs);
 
     private:
+		double waterContent(const State & t_State) const;
+		double vaporContent(const State & t_State) const;
+		double liquidWaterContent(const State & t_State) const;
+		double iceContent(const State & t_State) const;
+
         /// Create material by using MaterialPool.
         Material(const std::string & Name,
                  double Density,

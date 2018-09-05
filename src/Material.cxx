@@ -95,6 +95,16 @@ namespace MoisThermFEM
         return temp;
     }
 
+	double Material::waterContent( const State & t_State, WaterContent wContent ) const {
+    	std::map<WaterContent, double> results;
+    	results[WaterContent::Water] = waterContent(t_State);
+    	results[WaterContent::Vapor] = vaporContent(t_State);
+    	results[WaterContent::Liquid] = liquidWaterContent(t_State);
+    	results[WaterContent::Ice] = iceContent(t_State);
+
+		return results.at(wContent);
+	}
+
     double Material::waterContent(const State & t_State) const
     {
         return m_SorptionCurve->value(t_State);

@@ -46,42 +46,12 @@ namespace MoisThermFEM
         return aVector;
     }
 
-    std::vector<double> NodePool::waterContent() const
+    std::vector<double> NodePool::waterContent(WaterContent content) const
     {
         std::vector<double> aVector;
         for(const Node2D & aNode : m_Nodes)
         {
-            aVector.push_back(aNode.waterContent());
-        }
-        return aVector;
-    }
-
-    std::vector<double> NodePool::liquidContent() const
-    {
-        std::vector<double> aVector;
-        for(const Node2D & aNode : m_Nodes)
-        {
-            aVector.push_back( aNode.liquidContent());
-        }
-        return aVector;
-    }
-
-    std::vector<double> NodePool::vaporContent() const
-    {
-        std::vector<double> aVector;
-        for(const Node2D & aNode : m_Nodes)
-        {
-            aVector.push_back(aNode.vaporContent());
-        }
-        return aVector;
-    }
-
-    std::vector<double> NodePool::iceContent() const
-    {
-        std::vector<double> aVector;
-        for(const Node2D & aNode : m_Nodes)
-        {
-            aVector.push_back(aNode.iceContent());
+            aVector.push_back(aNode.waterContent(content));
         }
         return aVector;
     }

@@ -35,14 +35,13 @@ namespace MoisThermFEM
             currentTemperature = temperatureSolution;
         }
 
-        auto & nodePool = NodePool::Instance();
-        nodePool.updateNodeValues(currentHumidity, Property::humidity);
-        nodePool.updateNodeValues(currentTemperature, Property::temperature);
+		NodePool::Instance().updateNodeValues(currentHumidity, Property::humidity);
+		NodePool::Instance().updateNodeValues(currentTemperature, Property::temperature);
 
-        const auto waterContent = nodePool.waterContent();
-        const auto liquidContent = nodePool.liquidContent();
-        const auto vaporContent = nodePool.vaporContent();
-        const auto iceContent = nodePool.iceContent();
+        const auto waterContent = NodePool::Instance().waterContent(WaterContent::Water);
+        const auto liquidContent = NodePool::Instance().waterContent(WaterContent::Liquid);
+        const auto vaporContent = NodePool::Instance().waterContent(WaterContent::Vapor);
+        const auto iceContent = NodePool::Instance().waterContent(WaterContent::Ice);
 
         return Solution{currentTemperature, currentHumidity, waterContent,
 						liquidContent, vaporContent, iceContent};
@@ -102,9 +101,9 @@ namespace MoisThermFEM
         return std::abs(norm1 - norm2) / norm1;
     }
 
-    std::vector<double> MultiDomain::waterContent() const
+    std::vector<double> MultiDomain::waterContent(WaterContent content) const
     {
-        return NodePool::Instance().waterContent();
+        return NodePool::Instance().waterContent(content);
     }
 
     Solution::Solution(const std::vector<double> & temperature,
