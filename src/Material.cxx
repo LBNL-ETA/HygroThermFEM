@@ -102,7 +102,7 @@ namespace MoisThermFEM
 
     double Material::vaporContent(const State & t_State) const
     {
-        return saturatedVaporContent(t_State) * liquidPorosity(t_State)
+        return saturatedVaporContent(t_State) * airPorosity(t_State)
                * t_State.getValue(Property::humidity);
     }
 

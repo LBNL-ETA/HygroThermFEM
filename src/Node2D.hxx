@@ -10,7 +10,6 @@
 
 namespace MoisThermFEM
 {
-
     ////////////////////////////////////////////////////////////////////////////
     ///   LocalPoint1D
     ////////////////////////////////////////////////////////////////////////////
@@ -68,7 +67,7 @@ namespace MoisThermFEM
         double getDeltaProperty(const Property t_Property) const;
         const State & getState() const;
 
-        void assignMaterial(std::string & t_Material);
+        void assignMaterial(const std::string & t_Material);
 
         double waterContent() const;
         double vaporContent() const;
