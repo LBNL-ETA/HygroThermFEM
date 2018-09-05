@@ -123,7 +123,85 @@ protected:
   const Material &m_Material;
 
 private:
-  std::vector<Node2D> m_Node;
+
+	template <typename T> class NodesVector {
+	public:
+		explicit NodesVector(const std::initializer_list<T> &__l)
+			: vec_(__l), currentIndex(0), passedLast(false) {}
+
+		typename std::vector<T>::const_iterator begin() const { return vec_.begin(); }
+
+		typename std::vector<T>::const_iterator end() const { return vec_.end(); }
+
+		std::size_t size() const { return vec_.size(); }
+
+		T & operator[](const std::size_t index) { return vec_[index]; }
+		const T & operator[](const std::size_t index) const { return vec_[index]; }
+
+		/// Keeps iterating over unique elements of the vector
+		T &current() { return vec_[currentIndex]; }
+
+		bool last() { return passedLast; }
+
+		T &previous() {
+
+			auto validIndex = checkPrevIndex(currentIndex);
+
+			while (vec_[validIndex] == vec_[currentIndex]) {
+				validIndex = checkPrevIndex(validIndex);
+			}
+
+			return vec_[validIndex];
+		}
+
+		T &next() {
+			auto validIndex = checkNextIndex(currentIndex);
+			while (vec_[validIndex] == vec_[currentIndex]) {
+				validIndex = checkNextIndex(validIndex);
+			}
+
+			return vec_[validIndex];
+		}
+
+		void moveToNext() {
+			auto nextIndex = checkNextIndex(currentIndex);
+			while (vec_[nextIndex] == vec_[currentIndex]) {
+				nextIndex = checkNextIndex(nextIndex);
+			}
+			passedLast = nextIndex < currentIndex;
+			currentIndex = nextIndex;
+		}
+
+	private:
+		std::size_t checkNextIndex(const std::size_t index) const {
+			auto validIndex = index;
+
+			if (validIndex != vec_.size() - 1) {
+				validIndex = index + 1;
+			} else {
+				validIndex = 0;
+			}
+
+			return validIndex;
+		}
+
+		std::size_t checkPrevIndex(const std::size_t index) const {
+			auto validIndex = index;
+
+			if (validIndex != 0) {
+				validIndex = index - 1;
+			} else {
+				validIndex = vec_.size() - 1;
+			}
+
+			return validIndex;
+		}
+		std::vector<T> vec_;
+		std::size_t currentIndex{0};
+		bool passedLast{false};
+	};
+
+  NodesVector<Node2D> m_Node;
 
   QuadrilateralLinearGlobal2D m_Global2D;
   QLECapacitance2D m_QLECapacitance2D;

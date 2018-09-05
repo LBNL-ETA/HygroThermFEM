@@ -161,8 +161,8 @@ namespace MoisThermFEM
     ///  DerivativeFunction
     //////////////////////////////////////////////////////////////////////////////
 
-    DerivativeFunction::DerivativeFunction( const iValue & fixedTerm,
-                                            const iValue & derivativeTerm ) :
+    DerivativeFunction::DerivativeFunction(const iValue & fixedTerm,
+                                           const iValue & derivativeTerm) :
         fixedTerm(fixedTerm->clone()),
         derivativeTerm(derivativeTerm->clone())
     {}
@@ -183,11 +183,16 @@ namespace MoisThermFEM
         m_QLEConductance2D{m_Global2D}
     {
         auto matName = m_Material.name();
-        auto & nodePool = NodePool::Instance();
-        for(auto & node : m_Node)
+
+        /// Iterating through unique nodes in element. Note that element can be triangular in
+        /// which case one of the node numbers will be repeated twice.
+        while(!m_Node.last())
         {
-            auto & poolNode = nodePool.getNode(node.getNodeNumber());
+            auto & poolNode = NodePool::Instance().getNode(m_Node.current().getNodeNumber());
+            /// Node will have possibility to calculate certain properties that will be
+            /// material dependent.
             poolNode.assignMaterial(matName);
+            m_Node.moveToNext();
         }
     }
 

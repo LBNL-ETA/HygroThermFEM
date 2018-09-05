@@ -55,6 +55,7 @@ namespace MoisThermFEM
         Node2D(const Node2D & t_Node) = default;
         Node2D & operator=(const Node2D & other) = default;
         friend bool operator==(const Node2D & first, const Node2D & second);
+        friend bool operator!=(const Node2D & first, const Node2D & second);
 
         size_t getNodeNumber() const;
 

@@ -45,13 +45,18 @@ namespace MoisThermFEM
     {}
 
     bool operator==(const Node2D & first, const Node2D & second)
-    {
-        bool identical = true;
-        identical = identical && first.m_NodeNumber == second.m_NodeNumber;
-        identical = identical && first.m_x == second.m_x;
-        identical = identical && first.m_y == second.m_y;
-        return identical;
-    }
+	{
+		bool identical = true;
+		identical = identical && first.m_NodeNumber == second.m_NodeNumber;
+		identical = identical && first.m_x == second.m_x;
+		identical = identical && first.m_y == second.m_y;
+		return identical;
+	}
+
+	bool operator!=(const Node2D & first, const Node2D & second)
+	{
+		return !operator==(first, second);
+	}
 
     size_t Node2D::getNodeNumber() const
     {
