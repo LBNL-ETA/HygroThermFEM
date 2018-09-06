@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cmath>
+
 namespace MoisThermFEM {
 	
 	const double ConvergenceError = 1e-5;
@@ -8,6 +10,7 @@ namespace MoisThermFEM {
 }
 
 namespace Constants {
+	static const double PI = atan(1)*4;
 	static const double STEFANBOLTZMANN = 5.6697E-8;
 
 	//// TODO: Keep these constant for now. Gases can calculate these properties.

@@ -5,8 +5,12 @@
 using MoisThermFEM::NodePool;
 using MoisThermFEM::MaterialPool;
 using MoisThermFEM::WaterContent;
+using MoisThermFEM::MultiDomain;
 
-class MultiMaterialNode : public testing::Test
+/// This is example of water content calculation in nodes that are shared between two elements
+/// with different material. In this case, one of the elements is triangular which will lead
+/// to different water content solution at the shared nodes.
+class TwoElementsTwoMaterials_2 : public testing::Test
 {
 protected:
     void SetUp() override
@@ -19,9 +23,10 @@ protected:
     }
 };
 
-TEST_F(MultiMaterialNode, TestExample_1)
+TEST_F(TwoElementsTwoMaterials_2, NodeInTwoMaterials)
 {
-    SCOPED_TRACE("Begin Test: Node with multiple materials in it.");
+    SCOPED_TRACE("Begin Test: Node as part of two elements that have different material and one "
+                 "element is triangular.");
 
     const auto temperature = 283.15;
     const auto humidity = 0.8;
@@ -30,7 +35,11 @@ TEST_F(MultiMaterialNode, TestExample_1)
 
     MoisThermFEM::State state(temperature, humidity, pressure, liquidPercent);
 
-    auto node1 = NodePool::Instance().createNode(1, 0, 0, state);
+    auto node1 = NodePool::Instance().createNode(1, 0, 1, state);
+    auto node2 = NodePool::Instance().createNode(2, 1, 0, state);
+    auto node3 = NodePool::Instance().createNode(3, 1, 1, state);
+    auto node4 = NodePool::Instance().createNode(4, 2, 0, state);
+    auto node5 = NodePool::Instance().createNode(5, 2, 1, state);
 
     auto & material1 =
       MaterialPool::Instance().createMaterial("Cottaer Sandstone",
@@ -86,10 +95,23 @@ TEST_F(MultiMaterialNode, TestExample_1)
        {0.95, 118},
        {1, 150}});
 
-    node1.assignMaterial(material1.name(), 0.5);
-    node1.assignMaterial(material2.name(), 0.5);
+    MultiDomain domain;
 
-    EXPECT_NEAR(node1.waterContent(WaterContent::Ice), 0, 1e-6);
-    EXPECT_NEAR(node1.waterContent(WaterContent::Vapor), 0.001062, 1e-6);
-    EXPECT_NEAR(node1.waterContent(WaterContent::Liquid), 48.498938, 1e-6);
+    domain.createElement(node1, node1, node2, node3, material1);
+    domain.createElement(node2, node4, node5, node3, material2);
+
+    auto iceContent = domain.waterContent(WaterContent::Ice);
+    auto vaporContent = domain.waterContent(WaterContent::Vapor);
+    auto liquidContent = domain.waterContent(WaterContent::Liquid);
+
+    /// Test water content in node number 2 (material 2 will have more influence)
+    EXPECT_NEAR(iceContent[1], 0, 1e-6);
+    EXPECT_NEAR(vaporContent[1], 0.000903, 1e-6);
+    EXPECT_NEAR(liquidContent[1], 60.66576371, 1e-6);
+
+    /// Node number 3 should have different water content from node number 2
+    /// Influence of materials in this node is identical.
+    EXPECT_NEAR(iceContent[2], 0, 1e-6);
+    EXPECT_NEAR(vaporContent[2], 0.001062, 1e-6);
+    EXPECT_NEAR(liquidContent[2], 48.498938, 1e-6);
 }

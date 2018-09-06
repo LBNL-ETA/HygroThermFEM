@@ -194,10 +194,11 @@ namespace MoisThermFEM
 
             /// Weighting coefficient depends on angle that is form by nodes next to node1.
             /// That coefficient is fraction of full circle.
-            const auto weightingCoefficient = angleBetweenNodes(node1, node2, node3) / 360.0;
+            const auto weightingCoefficient =
+              angleBetweenNodes(node1, node2, node3) / Constants::PI;
             /// Node will have possibility to calculate certain properties that will be
             /// material dependent.
-			node1.assignMaterial( matName, weightingCoefficient );
+            node1.assignMaterial(matName, weightingCoefficient);
             m_Node.moveToNext();
         }
     }
@@ -300,13 +301,20 @@ namespace MoisThermFEM
         return node1Found && node2Found;
     }
 
-	double IElementLinear2D::angleBetweenNodes( const Node2D & node1, const Node2D & node2,
-												const Node2D & node3 ) {
-		return std::atan2(node3.Y() - node1.Y(), node3.X() - node1.X()) -
-		std::atan2(node2.Y() - node1.Y(), node2.X() - node1.X());
-	}
+    double IElementLinear2D::angleBetweenNodes(const Node2D & node1,
+                                               const Node2D & node2,
+                                               const Node2D & node3)
+    {
+    	auto angle = std::abs(std::atan2(node3.Y() - node1.Y(), node3.X() - node1.X())
+							  - std::atan2(node2.Y() - node1.Y(), node2.X() - node1.X()));
+    	if(angle > Constants::PI)
+		{
+    		angle -= Constants::PI;
+		}
+        return angle;
+    }
 
-	//////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////
     ///  ElementThermalLinear2D
     //////////////////////////////////////////////////////////////////////////////
 
