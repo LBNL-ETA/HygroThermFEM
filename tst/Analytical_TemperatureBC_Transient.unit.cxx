@@ -36,7 +36,7 @@ TEST_F( Analytical_TemperatureBC_Transient, TestExample_1 ) {
 	const auto initialHumidity = 0.0;
 	const auto initialPressure = 101325.0;
 
-	auto state = State( initialTemperature, initialHumidity, initialPressure );
+	auto state = State( initialTemperature, initialHumidity, initialPressure, 0 );
 
 	size_t nodeIndex = 0;
 	for ( auto val : gridXCoordinates ) {

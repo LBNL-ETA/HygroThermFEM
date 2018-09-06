@@ -25,7 +25,7 @@ TEST_F( MoistureBC_2D_2, TestExample_1 ) {
 
 	std::vector< double > gridXCoordinates { 0.15, 0.05, 0.00 };
 
-	auto state = State( 293.15, 0, 101325 );
+	auto state = State( 293.15, 0, 101325, 0 );
 	size_t nodeIndex = 0;
 	for ( auto val : gridXCoordinates ) {
 		++nodeIndex;

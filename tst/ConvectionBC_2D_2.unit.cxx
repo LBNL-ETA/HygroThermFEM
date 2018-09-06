@@ -29,7 +29,7 @@ TEST_F( ConvectionBC_2D_2, TestExample_1 ) {
 	const double initialMoistureContent = 0;
 	const double initialPressure = 101325;
 
-	auto state = State( initialTemperature, initialMoistureContent, initialPressure );
+	auto state = State( initialTemperature, initialMoistureContent, initialPressure, 0 );
 	size_t nodeIndex = 0;
 	for ( auto val : gridXCoordinates ) {
 		++nodeIndex;

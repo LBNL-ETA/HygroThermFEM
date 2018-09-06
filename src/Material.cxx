@@ -1,3 +1,5 @@
+#include <cmath>
+
 #include "Material.hxx"
 #include "FEMunique.hxx"
 #include "State.hxx"
@@ -22,6 +24,26 @@ namespace MoisThermFEM
           SuctionFunction::create(LiquidTransportCurve, Property::humidity)),
         m_SorptionCurve(TabularFunction::create(SorptionCurve, Property::humidity))
     {}
+
+    bool operator<(const Material & lhs, const Material & rhs)
+    {
+        return lhs.m_Name < rhs.m_Name;
+    }
+
+    bool operator>(const Material & lhs, const Material & rhs)
+    {
+        return rhs < lhs;
+    }
+
+    bool operator<=(const Material & lhs, const Material & rhs)
+    {
+        return !(rhs < lhs);
+    }
+
+    bool operator>=(const Material & lhs, const Material & rhs)
+    {
+        return !(lhs < rhs);
+    }
 
     double Material::density() const
     {
@@ -58,14 +80,50 @@ namespace MoisThermFEM
         std::vector<double> result(humidity.size());
         for(auto i = 0u; i < humidity.size(); ++i)
         {
-            result[i] = waterContent(humidity[i]);
+            result[i] = waterContent(State(0, humidity[i], 0, 0));
         }
         return result;
     }
 
-    double Material::waterContent(const double humidity) const
+    double Material::saturatedVaporContent(const State & t_State) const
     {
-        return m_SorptionCurve->value(State(0, humidity, 0));
+        const auto temperature = t_State.getValue(Property::temperature);
+
+        auto temp = 77.345 + 0.0057 * temperature - 7235.0 / temperature;
+        temp = std::exp(temp);
+        temp = temp / (461.4 * std::pow(temperature, 9.2));
+        return temp;
+    }
+
+	double Material::waterContent( const State & t_State, WaterContent wContent ) const {
+    	std::map<WaterContent, double> results;
+    	results[WaterContent::Water] = waterContent(t_State);
+    	results[WaterContent::Vapor] = vaporContent(t_State);
+    	results[WaterContent::Liquid] = liquidWaterContent(t_State);
+    	results[WaterContent::Ice] = iceContent(t_State);
+
+		return results.at(wContent);
+	}
+
+    double Material::waterContent(const State & t_State) const
+    {
+        return m_SorptionCurve->value(t_State);
+    }
+
+    double Material::vaporContent(const State & t_State) const
+    {
+        return saturatedVaporContent(t_State) * airPorosity(t_State)
+               * t_State.getValue(Property::humidity);
+    }
+
+    double Material::liquidWaterContent(const State & t_State) const
+    {
+        return t_State.getLiquidPercent() * (waterContent(t_State) - vaporContent(t_State));
+    }
+
+    double Material::iceContent(const State & t_State) const
+    {
+        return (1 - t_State.getLiquidPercent()) * (waterContent(t_State) - vaporContent(t_State));
     }
 
     std::vector<std::pair<double, double>> Material::sorptionCurve() const
@@ -76,5 +134,17 @@ namespace MoisThermFEM
     std::string Material::name() const
     {
         return m_Name;
+    }
+
+    double Material::liquidPorosity(const State & t_State) const
+    {
+        const auto waterContent = m_SorptionCurve->value(t_State);
+        const auto maxWaterContent = m_SorptionCurve->max();
+        return waterContent / maxWaterContent * m_Porosity;
+    }
+
+    double Material::airPorosity(const State & t_State) const
+    {
+        return m_Porosity - liquidPorosity(t_State);
     }
 }   // namespace MoisThermFEM

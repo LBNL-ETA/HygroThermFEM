@@ -9,7 +9,7 @@ namespace MoisThermFEM
         iValue waterContent = TabularFunction::create(mat.sorptionCurve(), Property::humidity);
 
         /// Calls sorption curve at 100% humidity to get maximum water content
-        auto maxWaterContent = waterContent->value(State(0, 1, 0));
+        const auto maxWaterContent = waterContent->value( State( 0, 1, 0, 0 ) );
 
         return mat.porosity() / maxWaterContent * waterContent;
     }

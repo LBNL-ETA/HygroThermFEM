@@ -37,7 +37,7 @@ TEST_F( BlackBodyBC_2D_1, TestExample_1 ) {
 	auto & materialPool = MaterialPool::Instance();
 
 	// same temperature in every node (humidity and pressure irrelevant for this example)
-	auto state = State( 0, 0, 101325 );
+	auto state = State( 0, 0, 101325, 0 );
 
 	const auto node1 = nodePool.createNode( 1, 0.15, 0.05, state );
 	const auto node2 = nodePool.createNode( 2, 0.15, 0, state );

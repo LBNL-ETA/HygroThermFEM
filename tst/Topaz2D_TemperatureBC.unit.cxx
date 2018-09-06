@@ -37,7 +37,7 @@ TEST_F( Topaz2D_TemperatureBC, TestExample_1 ) {
 	auto & materialPool = MaterialPool::Instance();
 
 	// same temperature in every node (humidity and pressure irrelevant for this example)
-	auto state = State( 100, 0, 101325 );
+	auto state = State( 100, 0, 101325, 0 );
 
 	const auto node1 = nodePool.createNode( 1, 0.15, 0.05, state );
 	const auto node2 = nodePool.createNode( 2, 0.15, 0, state );

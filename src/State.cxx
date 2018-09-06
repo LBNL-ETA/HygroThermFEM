@@ -6,7 +6,8 @@ namespace MoisThermFEM {
 	///  State
 	////////////////////////////////////////////////////////////////////////////
 
-	State::State( const double t_Temperature, const double t_Humidity, const double t_Pressure )
+	State::State( const double t_Temperature, const double t_Humidity, const double t_Pressure,
+					  const double liquidPercent ) : m_LiquidPercent(liquidPercent)
 	{
 		m_Property[ Iteration::Current ][ Property::temperature ] = t_Temperature;
 		m_Property[ Iteration::Current ][ Property::humidity ] = t_Humidity;
@@ -20,7 +21,7 @@ namespace MoisThermFEM {
 	State
 	operator+( const State & lhs, const State & rhs )
 	{
-		State state;
+		State state( 0, 0, 0, 0 );
 		state.setValue( Property::temperature, lhs.getValue( Property::temperature ) + rhs.getValue( Property::temperature ) );
 		state.setValue( Property::humidity, lhs.getValue( Property::humidity ) + rhs.getValue( Property::humidity ) );
 		state.setValue( Property::pressure, lhs.getValue( Property::pressure ) + rhs.getValue( Property::pressure ) );
@@ -30,7 +31,7 @@ namespace MoisThermFEM {
 	State
 	operator-( const State & lhs, const State & rhs )
 	{
-		State state;
+		State state( 0, 0, 0, 0 );
 		state.setValue( Property::temperature, lhs.getValue( Property::temperature ) - rhs.getValue( Property::temperature ) );
 		state.setValue( Property::humidity, lhs.getValue( Property::humidity ) - rhs.getValue( Property::humidity ) );
 		state.setValue( Property::pressure, lhs.getValue( Property::pressure ) - rhs.getValue( Property::pressure ) );
@@ -61,6 +62,10 @@ namespace MoisThermFEM {
 	State::getCurrentValues() const
 	{
 		return m_Property.at( Iteration::Current );
+	}
+
+	double State::getLiquidPercent() const {
+		return m_LiquidPercent;
 	}
 
 }

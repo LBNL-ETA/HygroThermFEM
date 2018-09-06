@@ -55,7 +55,7 @@ TEST_F( MaterialPropertiesUnit, TestMaterialProperties ) {
 	auto airFill = MaterialProperties::getAirFill( material );
 	auto waterFill = MaterialProperties::getWaterFill( material );
 
-	State state1( 273.15, 0.0, 101325 );
+	State state1( 273.15, 0.0, 101325, 0 );
 
 	auto aFill = airFill->value( state1 );
 	auto wFill = waterFill->value( state1 );
@@ -63,7 +63,7 @@ TEST_F( MaterialPropertiesUnit, TestMaterialProperties ) {
 	EXPECT_NEAR( 0.22, aFill, 1e-6 );
 	EXPECT_NEAR( 0.00, wFill, 1e-6 );
 
-	State state2( 273.15, 1.0, 101325 );
+	State state2( 273.15, 1.0, 101325, 0 );
 
 	aFill = airFill->value( state2 );
 	wFill = waterFill->value( state2 );
@@ -71,7 +71,7 @@ TEST_F( MaterialPropertiesUnit, TestMaterialProperties ) {
 	EXPECT_NEAR( 0.00, aFill, 1e-6 );
 	EXPECT_NEAR( 0.22, wFill, 1e-6 );
 
-	State state3( 273.15, 0.5, 101325 );
+	State state3( 273.15, 0.5, 101325, 0 );
 
 	aFill = airFill->value( state3 );
 	wFill = waterFill->value( state3 );

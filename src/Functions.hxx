@@ -65,13 +65,13 @@ namespace MoisThermFEM
     class IOperation : public IValue
     {
     public:
-        IOperation( iValue t_Val1, iValue t_Val2, Operation t_Operation );
+        IOperation(iValue t_Val1, iValue t_Val2, Operation t_Operation);
 
         double value(const State & state) const override;
 
     private:
         /// Do not want to make clone of operator publicly available
-        virtual std::unique_ptr<IValue> clone() const override;
+        virtual iValue clone() const override;
 
         /// Functions can be shared between different operations and that is why it is
         /// necessary to share function
@@ -139,7 +139,7 @@ namespace MoisThermFEM
     class Derivative : public IValue
     {
     public:
-        static std::unique_ptr< Derivative > create( const iValue & t_Function );
+        static std::unique_ptr<Derivative> create(const iValue & t_Function);
 
         double value(const State & state) const override;
 
@@ -163,16 +163,16 @@ namespace MoisThermFEM
         static std::unique_ptr<TabularFunction>
           create(const std::vector<std::pair<double, double>> & values,
                  Property property,
-                 FenestrationCommon::Interpolator interpolator =
+                 const FenestrationCommon::Interpolator & interpolator =
                    FenestrationCommon::Interpolation::Linear);
 
         static std::unique_ptr<TabularFunction>
           create(const std::initializer_list<std::pair<double, double>> & list,
                  Property property,
-                 FenestrationCommon::Interpolator interpolator =
+                 const FenestrationCommon::Interpolator & interpolator =
                    FenestrationCommon::Interpolation::Linear);
 
-	    double max() const;
+        double max() const;
 
         double min() const;
 
@@ -182,13 +182,13 @@ namespace MoisThermFEM
 
     protected:
         TabularFunction(const std::vector<std::pair<double, double>> & values,
-                        Property property,
-                        FenestrationCommon::Interpolator interpolator =
+                        const Property property,
+                        const FenestrationCommon::Interpolator & interpolator =
                           FenestrationCommon::Interpolation::Linear);
 
         TabularFunction(const std::initializer_list<std::pair<double, double>> & list,
-                        Property property,
-                        FenestrationCommon::Interpolator interpolator =
+                        const Property property,
+                        const FenestrationCommon::Interpolator & interpolator =
                           FenestrationCommon::Interpolation::Linear);
 
         std::vector<std::pair<double, double>> m_Curve;
@@ -214,15 +214,15 @@ namespace MoisThermFEM
         static std::unique_ptr<TabularDerivative>
           create(const std::vector<std::pair<double, double>> & values, Property property);
         static std::unique_ptr<TabularDerivative>
-          create(std::initializer_list<std::pair<double, double>> & list, Property property);
+          create(const std::initializer_list<std::pair<double, double>> & list, Property property);
 
         virtual std::unique_ptr<IValue> clone() const override;
 
     protected:
         TabularDerivative(const std::vector<std::pair<double, double>> & values, Property property);
 
-        TabularDerivative(std::initializer_list<std::pair<double, double>> & list,
-                          Property property);
+        TabularDerivative( const std::initializer_list< std::pair< double, double>> & list,
+						   Property property );
 
         std::vector<std::pair<double, double>> m_Curve;
 
@@ -254,7 +254,7 @@ namespace MoisThermFEM
                  const FenestrationCommon::Interpolator & interpolator =
                    FenestrationCommon::Interpolation::Logarithmic);
 
-	    virtual std::unique_ptr<IValue> clone() const override;
+        virtual std::unique_ptr<IValue> clone() const override;
 
     protected:
         SuctionFunction(const std::vector<std::pair<double, double>> & values,

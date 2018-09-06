@@ -27,7 +27,7 @@ TEST_F(CurveTest, TestTabularLinear)
     SCOPED_TRACE("Begin Test: Test tabular linear.");
     const auto curve = TabularFunction::create({{1, 10}, {2, 20}, {3, 30}}, Property::temperature);
 
-    State interpolationPoint(2.5, 0, 101325);
+    State interpolationPoint( 2.5, 0, 101325, 0 );
 
     auto result = curve->value(interpolationPoint);
 
@@ -47,7 +47,7 @@ TEST_F(CurveTest, TestFirstDerivative)
       TabularFunction::create({{1, 10}, {2, 20}, {3, 30}}, Property::temperature);
     const auto der = Derivative::create(table);
 
-    State interpolationPoint(2.5, 0, 101325);
+    State interpolationPoint( 2.5, 0, 101325, 0 );
 
     auto result = der->value(interpolationPoint);
 
@@ -61,7 +61,7 @@ TEST_F(CurveTest, TestTabularLogarithmic)
                                                Property::temperature,
                                                FenestrationCommon::Interpolation::Logarithmic);
 
-    State interpolationPoint(2.5, 0, 101325);
+    State interpolationPoint( 2.5, 0, 101325, 0 );
 
     auto result = curve->value(interpolationPoint);
 
@@ -74,17 +74,17 @@ TEST_F(CurveTest, TestSuctionCurve)
     const auto curve = SuctionFunction::create({{1, 10}, {2, 20}, {3, 30}}, Property::temperature);
 
     /// First segment should have constant values
-    State interpolationPoint(1.5, 0, 101325);
+    State interpolationPoint( 1.5, 0, 101325, 0 );
     auto result = curve->value(interpolationPoint);
     EXPECT_NEAR(10, result, 1e-6);
 
     /// Test outside of curve
-    State interpolationPoint1(0.5, 0, 101325);
+    State interpolationPoint1( 0.5, 0, 101325, 0 );
     result = curve->value(interpolationPoint1);
     EXPECT_NEAR(10, result, 1e-6);
 
     /// Other segments should have logarithmic interpolation
-    State interpolationPoint2(2.5, 0, 101325);
+    State interpolationPoint2( 2.5, 0, 101325, 0 );
     result = curve->value(interpolationPoint2);
     EXPECT_NEAR(24.4948974, result, 1e-6);
 }
@@ -94,7 +94,7 @@ TEST_F(CurveTest, TestConstantCurve)
     SCOPED_TRACE("Begin Test: Test tabular logarithmic.");
     const auto cons = Constant::create(5);
 
-    State interpolationPoint(2.5, 0, 101325);
+    State interpolationPoint( 2.5, 0, 101325, 0 );
     auto result = cons->value(interpolationPoint);
     EXPECT_NEAR(5, result, 1e-6);
 }
@@ -104,7 +104,7 @@ TEST_F(CurveTest, TestTabularOutOfRangeBack)
     SCOPED_TRACE("Begin Test: Test tabular out of range.");
     const auto curve = TabularFunction::create({{1, 10}, {2, 20}, {3, 30}}, Property::temperature);
 
-    State interpolationPoint(3.5, 0, 101325);
+    State interpolationPoint( 3.5, 0, 101325, 0 );
     auto result = curve->value(interpolationPoint);
     EXPECT_NEAR(30, result, 1e-6);
 }
@@ -114,7 +114,7 @@ TEST_F(CurveTest, TestTabularOutOfRangeFront)
     SCOPED_TRACE("Begin Test: Test tabular out of range.");
     const auto curve = TabularFunction::create({{1, 10}, {2, 20}, {3, 30}}, Property::temperature);
 
-    State interpolationPoint(0.5, 0, 101325);
+    State interpolationPoint( 0.5, 0, 101325, 0 );
     auto result = curve->value(interpolationPoint);
     EXPECT_NEAR(10, result, 1e-6);
 }
@@ -127,7 +127,7 @@ TEST_F(CurveTest, TestComposition1)
 
     tabular = tabular * 5;
 
-    State interpolationPoint(2.5, 0, 101325);
+    State interpolationPoint( 2.5, 0, 101325, 0 );
 
     auto result = tabular->value(interpolationPoint);
 
@@ -151,12 +151,12 @@ TEST_F(CurveTest, TestPorosityCalculation)
                                                                  {1.000, 40.0}},
                                                                 Property::humidity);
 
-    auto maxWaterContent = waterContent->value(State(0, 1, 0));
+    auto maxWaterContent = waterContent->value( State( 0, 1, 0, 0 ) );
     const auto materialPorosity = 0.05;
 
     auto waterFill = materialPorosity / maxWaterContent * waterContent;
 
-    State outdoor(10, 0.98, 101325);
+    State outdoor( 10, 0.98, 101325, 0 );
 
     auto result = waterFill->value(outdoor);
     EXPECT_NEAR(0.0136875, result, 1e-6);
@@ -183,7 +183,7 @@ TEST_F(CurveTest, TestSaturationFunction)
                                                                  {1.000, 180}},
                                                                 Property::humidity);
 
-    auto maxWaterContent = waterContent->value(State(0, 1, 0));
+    auto maxWaterContent = waterContent->value( State( 0, 1, 0, 0 ) );
     const auto materialPorosity = 0.22;
 
     MoisThermFEM::iValue waterFill = materialPorosity / maxWaterContent * waterContent;
@@ -194,7 +194,7 @@ TEST_F(CurveTest, TestSaturationFunction)
 
     sat = sat * airFill;
 
-    State interpolationPoint(283.15, 0.5, 101325);
+    State interpolationPoint( 283.15, 0.5, 101325, 0 );
     auto result = sat->value(interpolationPoint);
     EXPECT_NEAR(0.002000939, result, 1e-6);
 }
@@ -215,19 +215,19 @@ TEST_F(CurveTest, TestTabularDerivative)
                                                                    {1.000, 180}},
                                                                   Property::humidity);
 
-    State state1(273.15, 0, 101325);
+    State state1( 273.15, 0, 101325, 0 );
     auto result = waterContent->value(state1);
     EXPECT_NEAR(10.6, result, 1e-6);
 
-    State state2(273.15, 1.0, 101325);
+    State state2( 273.15, 1.0, 101325, 0 );
     result = waterContent->value(state2);
     EXPECT_NEAR(60000, result, 1e-6);
 
-    State state3(273.15, -1.0, 101325);
+    State state3( 273.15, -1.0, 101325, 0 );
     result = waterContent->value(state3);
     EXPECT_NEAR(10.6, result, 1e-6);
 
-    State state4(273.15, 2.0, 101325);
+    State state4( 273.15, 2.0, 101325, 0 );
     result = waterContent->value(state4);
     EXPECT_NEAR(60000, result, 1e-6);
 }
