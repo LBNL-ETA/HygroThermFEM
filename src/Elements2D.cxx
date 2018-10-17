@@ -1,7 +1,7 @@
 #include "Elements2D.hxx"
 #include "NodePool.hxx"
 
-using namespace FenestrationCommon;
+using FenestrationCommon::SquareMatrix;
 
 namespace MoisThermFEM {
 
@@ -57,8 +57,7 @@ std::vector<double> ElementsLinear2D::getLumpedMass(const double DTime) {
   return M;
 }
 
-FenestrationCommon::SquareMatrix
-ElementsLinear2D::getMassMatrix(const double DTime) {
+FenestrationCommon::SquareMatrix ElementsLinear2D::getMassMatrix(const double DTime) {
   FenestrationCommon::SquareMatrix Capacitance{NodePool::Instance().maxIndex()};
 
   // now integrate element matrices into global matrix

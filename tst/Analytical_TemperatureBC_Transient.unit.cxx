@@ -3,7 +3,8 @@
 
 #include "MoisThermFEM2D.hxx"
 
-using namespace MoisThermFEM;
+using MoisThermFEM::NodePool;
+using MoisThermFEM::MaterialPool;
 
 /////////////////////////////////////////////////////////////////////////////////////
 /// Transient temperature boundary conditions vs Analytical solution
@@ -11,104 +12,106 @@ using namespace MoisThermFEM;
 /// This is test against analytical solution obtained from Carslaw-Jeager: page 97
 /////////////////////////////////////////////////////////////////////////////////////
 
-class Analytical_TemperatureBC_Transient : public testing::Test {
-
+class Analytical_TemperatureBC_Transient : public testing::Test
+{
 protected:
-	void
-	SetUp() override {
-	}
+    void SetUp() override
+    {}
 
-	void
-	TearDown() override {
-		NodePool::Instance().clear();
-		MaterialPool::Instance().clear();
-	}
-
+    void TearDown() override
+    {
+        NodePool::Instance().clear();
+        MaterialPool::Instance().clear();
+    }
 };
 
-TEST_F( Analytical_TemperatureBC_Transient, TestExample_1 ) {
-	SCOPED_TRACE( "Begin Test: Example." );
+TEST_F(Analytical_TemperatureBC_Transient, TestExample_1)
+{
+    SCOPED_TRACE("Begin Test: Example.");
 
-	/// Create slab that is 10 cm long and have nodes at every 1 cm
-	std::vector< double > gridXCoordinates{ 0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0 };
+    /// Create slab that is 10 cm long and have nodes at every 1 cm
+    std::vector<double> gridXCoordinates{0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0};
 
-	const auto initialTemperature = 1.0;
-	const auto initialHumidity = 0.0;
-	const auto initialPressure = 101325.0;
+    const auto initialTemperature = 1.0;
+    const auto initialHumidity = 0.0;
+    const auto initialPressure = 101325.0;
 
-	auto state = State( initialTemperature, initialHumidity, initialPressure, 0 );
+    auto state = MoisThermFEM::State(initialTemperature, initialHumidity, initialPressure, 0);
 
-	size_t nodeIndex = 0;
-	for ( auto val : gridXCoordinates ) {
-		++nodeIndex;
-		NodePool::Instance().createNode( nodeIndex, val, 0.00, state );
-		++nodeIndex;
-		NodePool::Instance().createNode( nodeIndex, val, 0.05, state );
-	}
+    size_t nodeIndex = 0;
+    for(auto val : gridXCoordinates)
+    {
+        ++nodeIndex;
+        NodePool::Instance().createNode(nodeIndex, val, 0.00, state);
+        ++nodeIndex;
+        NodePool::Instance().createNode(nodeIndex, val, 0.05, state);
+    }
 
-	auto & material = MaterialPool::Instance().createMaterial(
-			"Test Material",
-			1.0,    /// Density
-			0.00,    /// Porosity
-			1.0,     /// Specific Heat Capacity (dry)
-			1.0,     /// Thermal Conductivity (dry)
-			/// No need for liquid coefficients
-			15E-6,   /// Diffusion Resistance Factor
-			{ { 0, 0 }, { 180, 7E-7 } },  /// Liquid Transportation Coefficient
-			{ { 0, 0 }, { 1, 5.3 } }   /// Moisture Storage Function
+    auto & material = MaterialPool::Instance().createMaterial(
+      "Test Material",
+      1.0,    /// Density
+      0.00,   /// Porosity
+      1.0,    /// Specific Heat Capacity (dry)
+      1.0,    /// Thermal Conductivity (dry)
+      /// No need for liquid coefficients
+      15E-6,                   /// Diffusion Resistance Factor
+      {{0, 0}, {180, 7E-7}},   /// Liquid Transportation Coefficient
+      {{0, 0}, {1, 5.3}}       /// Moisture Storage Function
 
-	);
+    );
 
-	Domain domain{ Property::temperature };
+    MoisThermFEM::Domain domain{MoisThermFEM::Property::temperature};
 
-	/// Create elements
-	for ( size_t i = 1; i <= ( NodePool::Instance().maxIndex() - 2 ) / 2; ++i ) {
-		auto node1 = NodePool::Instance().Instance().getNode( 2 * i - 1 );
-		auto node2 = NodePool::Instance().Instance().getNode( 2 * i + 1 );
-		auto node3 = NodePool::Instance().Instance().getNode( 2 * i + 2 );
-		auto node4 = NodePool::Instance().Instance().getNode( 2 * i );
+    /// Create elements
+    for(size_t i = 1; i <= (NodePool::Instance().maxIndex() - 2) / 2; ++i)
+    {
+        auto node1 = NodePool::Instance().getNode(2 * i - 1);
+        auto node2 = NodePool::Instance().getNode(2 * i + 1);
+        auto node3 = NodePool::Instance().getNode(2 * i + 2);
+        auto node4 = NodePool::Instance().getNode(2 * i);
 
-		domain.createThermalElement( node1, node2, node3, node4, material );
-	}
+        domain.createThermalElement(node1, node2, node3, node4, material);
+    }
 
-	// Create Boundary Conditions
-	const auto tAir = 0.0;
-	const auto hc = 1.0;
+    // Create Boundary Conditions
+    const auto tAir = 0.0;
+    const auto hc = 1.0;
 
-	auto nodeBC1 = NodePool::Instance().Instance().getNode( 21 );
-	auto nodeBC2 = NodePool::Instance().Instance().getNode( 22 );
+    auto nodeBC1 = NodePool::Instance().getNode(21);
+    auto nodeBC2 = NodePool::Instance().getNode(22);
 
-	domain.createConvectionBC( nodeBC1, nodeBC2, hc, tAir );
+    domain.createConvectionBC(nodeBC1, nodeBC2, hc, tAir);
 
-	const auto dTime = 0.001;
-	const auto nSteps = 1000;
+    const auto dTime = 0.001;
+    const auto nSteps = 1000;
 
-	auto temperatures = NodePool::Instance().nodeProperties( Property::temperature );
-	std::vector< std::vector< double > > solution;
+    auto temperatures = NodePool::Instance().nodeProperties(MoisThermFEM::Property::temperature);
+    std::vector<std::vector<double>> solution;
 
-	for ( unsigned i = 0; i < nSteps; ++i ) {
-		temperatures = domain.transient( temperatures, dTime );
-		solution.push_back( temperatures );
-	}
+    for(unsigned i = 0; i < nSteps; ++i)
+    {
+        temperatures = domain.transient(temperatures, dTime);
+        solution.push_back(temperatures);
+    }
 
-	std::vector< std::vector< double > > analyticalSolution = {
-			{ 0.99311, 0.95051, 0.72358 },
-			{ 0.95064, 0.87925, 0.64339 },
-			{ 0.89180, 0.81526, 0.58885 },
-			{ 0.83095, 0.75671, 0.54417 },
-			{ 0.77253, 0.70260, 0.50452 },
-			{ 0.71768, 0.65243, 0.46827 },
-			{ 0.66656, 0.60587, 0.43478 },
-			{ 0.61903, 0.56264, 0.40374 },
-			{ 0.57487, 0.52250, 0.37493 },
-			{ 0.53386, 0.48522, 0.34818 }
-	};
+    std::vector<std::vector<double>> analyticalSolution = {{0.99311, 0.95051, 0.72358},
+                                                           {0.95064, 0.87925, 0.64339},
+                                                           {0.89180, 0.81526, 0.58885},
+                                                           {0.83095, 0.75671, 0.54417},
+                                                           {0.77253, 0.70260, 0.50452},
+                                                           {0.71768, 0.65243, 0.46827},
+                                                           {0.66656, 0.60587, 0.43478},
+                                                           {0.61903, 0.56264, 0.40374},
+                                                           {0.57487, 0.52250, 0.37493},
+                                                           {0.53386, 0.48522, 0.34818}};
 
-	EXPECT_EQ( solution.size(), analyticalSolution.size() * 100 );
+    EXPECT_EQ(solution.size(), analyticalSolution.size() * 100);
 
-	for ( auto i = 0u; i < analyticalSolution.size(); ++i ) {
-		for ( auto j = 0u; j < analyticalSolution[ i ].size(); ++j ) {
-			EXPECT_NEAR( analyticalSolution[ i ][ j ], solution[ 100 * i + 99 ][ j * 10 ], 0.002 );
-		}
-	}
+    for(auto i = 0u; i < analyticalSolution.size(); ++i)
+    {
+        for(auto j = 0u; j < analyticalSolution[i].size(); ++j)
+        {
+            EXPECT_NEAR(analyticalSolution[i][j], solution[100 * i + 99][j * 10], 0.002);
+        }
+    }
 }

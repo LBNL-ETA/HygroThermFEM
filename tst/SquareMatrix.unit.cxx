@@ -5,7 +5,6 @@
 #include "MoisThermFEM2D.hxx"
 
 using FenestrationCommon::SquareMatrix;
-using std::vector;
 
 class SquareMatrixTest : public testing::Test {
 
@@ -100,7 +99,7 @@ TEST_F(SquareMatrixTest, TestMultiplicationWithVectors) {
   SCOPED_TRACE("Begin Test: Matrix multiplication with vector.");
   SquareMatrix a{{1, 2}, {3, 4}};
 
-  vector<double> b{6, 7};
+  std::vector<double> b{6, 7};
 
   auto result = a * b;
 
@@ -115,7 +114,7 @@ TEST_F(SquareMatrixTest, TestMultiplicationWithVectors) {
   /// Now test inverse multiplication
   result = b * a;
 
-  vector<double> correctInverse{27, 40};
+  std::vector<double> correctInverse{27, 40};
 
   EXPECT_EQ(correctInverse.size(), result.size());
 

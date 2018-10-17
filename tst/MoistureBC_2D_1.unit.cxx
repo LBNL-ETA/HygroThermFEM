@@ -3,7 +3,9 @@
 
 #include "MoisThermFEM2D.hxx"
 
-using namespace MoisThermFEM;
+using MoisThermFEM::NodePool;
+using MoisThermFEM::MaterialPool;
+using MoisThermFEM::State;
 
 class MoistureBC_2D_1 : public testing::Test {
 
@@ -67,7 +69,7 @@ TEST_F( MoistureBC_2D_1, TestExample_1 ) {
 				{ 1, 5.3 } }
 	);
 
-	Domain domain { Property::humidity };
+	MoisThermFEM::Domain domain { MoisThermFEM::Property::humidity };
 
 	/// Create elements
 	for ( size_t i = 1; i <= ( MoisThermFEM::NodePool::Instance().maxIndex() - 2 ) / 2; ++i ) {
@@ -93,7 +95,7 @@ TEST_F( MoistureBC_2D_1, TestExample_1 ) {
 	/// const auto dTime = 60;
 	/// const auto nSteps = 3000;
 
-	auto humidities = NodePool::Instance().nodeProperties( Property::humidity );
+	auto humidities = NodePool::Instance().nodeProperties( MoisThermFEM::Property::humidity );
 	std::vector< std::vector< double > > solution;
 
 	for ( unsigned i = 0; i < nSteps; ++i ) {

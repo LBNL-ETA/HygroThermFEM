@@ -7,11 +7,11 @@
 namespace MoisThermFEM
 {
     Material::Material(const std::string & Name,
-                       double Density,
-                       double Porosity,
-                       double HeatCapacity,
-                       double ThermalConductivity,
-                       double DiffusionResistanceFactor,
+                       const double Density,
+                       const double Porosity,
+                       const double HeatCapacity,
+                       const double ThermalConductivity,
+                       const double DiffusionResistanceFactor,
                        const std::vector<std::pair<double, double>> & LiquidTransportCurve,
                        const std::vector<std::pair<double, double>> & SorptionCurve) :
         m_Name(Name),

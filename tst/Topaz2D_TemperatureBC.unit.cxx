@@ -3,7 +3,8 @@
 
 #include "MoisThermFEM2D.hxx"
 
-using namespace MoisThermFEM;
+using MoisThermFEM::NodePool;
+using MoisThermFEM::MaterialPool;
 
 /////////////////////////////////////////////////////////////////////////////////////
 /// Transient heat transfer example on Sandstone specimen using data from database
@@ -37,7 +38,7 @@ TEST_F( Topaz2D_TemperatureBC, TestExample_1 ) {
 	auto & materialPool = MaterialPool::Instance();
 
 	// same temperature in every node (humidity and pressure irrelevant for this example)
-	auto state = State( 100, 0, 101325, 0 );
+	auto state = MoisThermFEM::State( 100, 0, 101325, 0 );
 
 	const auto node1 = nodePool.createNode( 1, 0.15, 0.05, state );
 	const auto node2 = nodePool.createNode( 2, 0.15, 0, state );
@@ -74,7 +75,7 @@ TEST_F( Topaz2D_TemperatureBC, TestExample_1 ) {
 				{ 1,     180 } }
 	);
 
-	Domain domain{ Property::temperature };
+	MoisThermFEM::Domain domain{ MoisThermFEM::Property::temperature };
 
 	domain.createThermalElement( node1, node2, node4, node3, material );
 	domain.createThermalElement( node5, node3, node4, node6, material );
@@ -88,7 +89,7 @@ TEST_F( Topaz2D_TemperatureBC, TestExample_1 ) {
 	const auto nSteps = 4;
 
 
-	auto temperatures = NodePool::Instance().nodeProperties( Property::temperature );
+	auto temperatures = NodePool::Instance().nodeProperties( MoisThermFEM::Property::temperature );
 	std::vector< std::vector< double > > solution;
 
 	for ( unsigned i = 0; i < nSteps; ++i ) {

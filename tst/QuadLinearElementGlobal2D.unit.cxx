@@ -4,7 +4,7 @@
 
 #include "MoisThermFEM2D.hxx"
 
-using namespace MoisThermFEM;
+using MoisThermFEM::NodePool;
 
 class TestQuadLinearElementGlobal2D : public testing::Test {
 
@@ -25,17 +25,16 @@ TEST_F( TestQuadLinearElementGlobal2D, TestIntegrationPoint1 ) {
             "Begin Test: Quadrilateral linear element 2D in global coordinates - Gauss points." );
 
     // Enter nodes. Arguments are: node number, x-coordinate, y-coordinate
-    auto & nodePool = NodePool::Instance();
 
-    const auto node1 = nodePool.createNode( 1, 0, 0 );
-    const auto node2 = nodePool.createNode( 2, 5, 0 );
-    const auto node3 = nodePool.createNode( 3, 5, 5 );
-    const auto node4 = nodePool.createNode( 4, 0, 5 );
+    const auto node1 = NodePool::Instance().createNode( 1, 0, 0 );
+    const auto node2 = NodePool::Instance().createNode( 2, 5, 0 );
+    const auto node3 = NodePool::Instance().createNode( 3, 5, 5 );
+    const auto node4 = NodePool::Instance().createNode( 4, 0, 5 );
 
-    auto aElement = QuadrilateralLinearGlobal2D( node1, node2, node3, node4 );
+    auto aElement = MoisThermFEM::QuadrilateralLinearGlobal2D( node1, node2, node3, node4 );
 
     /////////////////////////////////////////////////////////
-    //    Integration Point 1
+    ///    Integration Point 1
     /////////////////////////////////////////////////////////
     const size_t intPointIndex1 = 0;
     auto xg = aElement.xg( intPointIndex1 );
@@ -63,7 +62,7 @@ TEST_F( TestQuadLinearElementGlobal2D, TestIntegrationPoint1 ) {
     }
 
     /////////////////////////////////////////////////////////
-    //    Integration Point 2
+    ///    Integration Point 2
     /////////////////////////////////////////////////////////
     const size_t intPointIndex2 = 1;
     xg = aElement.xg( intPointIndex2 );
@@ -91,7 +90,7 @@ TEST_F( TestQuadLinearElementGlobal2D, TestIntegrationPoint1 ) {
     }
 
     /////////////////////////////////////////////////////////
-    //    Integration Point 3
+    ///    Integration Point 3
     /////////////////////////////////////////////////////////
     const size_t intPointIndex3 = 2;
     xg = aElement.xg( intPointIndex3 );
@@ -119,7 +118,7 @@ TEST_F( TestQuadLinearElementGlobal2D, TestIntegrationPoint1 ) {
     }
 
     /////////////////////////////////////////////////////////
-    //    Integration Point 4
+    ///    Integration Point 4
     /////////////////////////////////////////////////////////
     const size_t intPointIndex4 = 3;
     xg = aElement.xg( intPointIndex4 );

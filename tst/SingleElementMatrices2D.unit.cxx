@@ -3,7 +3,8 @@
 
 #include "MoisThermFEM2D.hxx"
 
-using namespace MoisThermFEM;
+using MoisThermFEM::NodePool;
+using MoisThermFEM::MaterialPool;
 
 class TestSingleElementMatrices2D : public testing::Test {
 
@@ -21,16 +22,14 @@ TEST_F(TestSingleElementMatrices2D, TestConductionMatrix) {
                "RhoCp matrix.");
 
   // Enter nodes. Arguments are: node number, x-coordinate, y-coordinate
-  auto &nodePool = NodePool::Instance();
-  auto &materialPool = MaterialPool::Instance();
 
-  const auto node1 = nodePool.createNode(1, 5, 5);
-  const auto node2 = nodePool.createNode(2, 5, 0);
-  const auto node3 = nodePool.createNode(3, 15, 0);
-  const auto node4 = nodePool.createNode(4, 15, 5);
+  const auto node1 = NodePool::Instance().createNode(1, 5, 5);
+  const auto node2 = NodePool::Instance().createNode(2, 5, 0);
+  const auto node3 = NodePool::Instance().createNode(3, 15, 0);
+  const auto node4 = NodePool::Instance().createNode(4, 15, 5);
 
   auto &material =
-      materialPool.createMaterial("Test Material",
+	  MaterialPool::Instance().createMaterial("Test Material",
                                   1,       /// density
                                   0.00,    /// porosity
                                   1,       /// specific heat capacity (dry)
@@ -56,7 +55,7 @@ TEST_F(TestSingleElementMatrices2D, TestConductionMatrix) {
                                    {0.999, 120},
                                    {1, 180}});
 
-  const ElementThermalLinear2D aElem{node1, node2, node3, node4, material};
+  const MoisThermFEM::ElementThermalLinear2D aElem{node1, node2, node3, node4, material};
 
   auto condMat = aElem.conductanceMatrix();
 

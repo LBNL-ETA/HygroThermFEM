@@ -2,8 +2,8 @@
 
 #include "MoisThermFEM2D.hxx"
 
-using namespace MoisThermFEM;
-using namespace FenestrationCommon;
+using MoisThermFEM::NodePool;
+using MoisThermFEM::MaterialPool;
 
 class TestBoundaryConditions2D_test1 : public testing::Test {
 
@@ -11,8 +11,7 @@ protected:
   void SetUp() override {}
 
   void TearDown() override {
-    auto &nodePool = NodePool::Instance();
-    nodePool.clear();
+    NodePool::Instance().clear();
     MaterialPool::Instance().clear();
   }
 };
@@ -21,14 +20,12 @@ TEST_F(TestBoundaryConditions2D_test1, TestIntegrationPoints) {
   SCOPED_TRACE("Begin Test: Convection boundary condition integral test.");
 
   // Enter nodes. Arguments are: node number, x-coordinate, y-coordinate
-  auto &nodePool = NodePool::Instance();
-
-  auto node1 = nodePool.createNode(1, 15, 5);
-  auto node2 = nodePool.createNode(2, 15, 0);
-  auto node3 = nodePool.createNode(3, 5, 5);
-  auto node4 = nodePool.createNode(4, 5, 0);
-  auto node5 = nodePool.createNode(5, 0, 5);
-  auto node6 = nodePool.createNode(6, 0, 0);
+  auto node1 = NodePool::Instance().createNode(1, 15, 5);
+  auto node2 = NodePool::Instance().createNode(2, 15, 0);
+  auto node3 = NodePool::Instance().createNode(3, 5, 5);
+  auto node4 = NodePool::Instance().createNode(4, 5, 0);
+  auto node5 = NodePool::Instance().createNode(5, 0, 5);
+  auto node6 = NodePool::Instance().createNode(6, 0, 0);
 
   auto const hc1 = 20.0;
   auto const Tair1 = 255.15;
@@ -36,7 +33,7 @@ TEST_F(TestBoundaryConditions2D_test1, TestIntegrationPoints) {
   auto const hc2 = 2.4;
   auto const Tair2 = 294.15;
 
-  BoundaryCondition2DFactory BCs;
+	MoisThermFEM::BoundaryCondition2DFactory BCs;
   BCs.createConvectionBC(node1, node2, hc1, Tair1);
   BCs.createConvectionBC(node6, node5, hc2, Tair2);
 

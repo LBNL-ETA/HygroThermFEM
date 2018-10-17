@@ -3,7 +3,8 @@
 
 #include "MoisThermFEM2D.hxx"
 
-using namespace MoisThermFEM;
+using MoisThermFEM::NodePool;
+using MoisThermFEM::MaterialPool;
 
 class MultiDomain_2D_2 : public testing::Test {
 
@@ -33,7 +34,7 @@ TEST_F( MultiDomain_2D_2, TestExample_1 ) {
 	const double initialMoistureContent = 0.0;
 	const double initialPressure = 101325;
 
-	auto state = State( initialTemperature, initialMoistureContent, initialPressure, 0 );
+	auto state = MoisThermFEM::State( initialTemperature, initialMoistureContent, initialPressure, 0 );
 	size_t nodeIndex = 0;
 	for ( auto val : gridXCoordinates ) {
 		++nodeIndex;
@@ -72,14 +73,14 @@ TEST_F( MultiDomain_2D_2, TestExample_1 ) {
 			}
 	);
 
-	MultiDomain domain;
+	MoisThermFEM::MultiDomain domain;
 
 	/// Create elements
 	for ( size_t i = 1; i <= ( nodePool.maxIndex() - 2 ) / 2; ++i ) {
-		auto & node1 = MoisThermFEM::NodePool::Instance().getNode( 2 * i + 1 );
-		auto & node2 = MoisThermFEM::NodePool::Instance().getNode( 2 * i + 2 );
-		auto & node3 = MoisThermFEM::NodePool::Instance().getNode( 2 * i );
-		auto & node4 = MoisThermFEM::NodePool::Instance().getNode( 2 * i - 1 );
+		auto & node1 = NodePool::Instance().getNode( 2 * i + 1 );
+		auto & node2 = NodePool::Instance().getNode( 2 * i + 2 );
+		auto & node3 = NodePool::Instance().getNode( 2 * i );
+		auto & node4 = NodePool::Instance().getNode( 2 * i - 1 );
 		domain.createElement( node1, node2, node3, node4, material );
 	}
 
@@ -96,8 +97,8 @@ TEST_F( MultiDomain_2D_2, TestExample_1 ) {
 	const auto dTime = 36000;
 	const auto nSteps = 100;
 
-	auto temperatures = NodePool::Instance().nodeProperties( Property::temperature );
-	auto humidities = NodePool::Instance().nodeProperties( Property::humidity );
+	auto temperatures = NodePool::Instance().nodeProperties( MoisThermFEM::Property::temperature );
+	auto humidities = NodePool::Instance().nodeProperties( MoisThermFEM::Property::humidity );
 	std::vector< std::vector< double > > temperatureSolution;
 	std::vector< std::vector< double > > waterContentSolution;
 

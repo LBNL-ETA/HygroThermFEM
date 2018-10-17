@@ -3,8 +3,6 @@
 
 #include "MoisThermFEM2D.hxx"
 
-using namespace MoisThermFEM;
-
 class TestVectorOperators : public testing::Test
 {
 protected:
@@ -15,6 +13,8 @@ protected:
 TEST_F(TestVectorOperators, TestAddition)
 {
     SCOPED_TRACE("Begin Test: Test Vector Operator - Addition.");
+
+    using MoisThermFEM::operator+;
 
     const std::vector<double> v1{1, 2, 3};
     const std::vector<double> v2{4, 9, 3};
@@ -32,6 +32,8 @@ TEST_F(TestVectorOperators, TestAddition)
 TEST_F(TestVectorOperators, TestSubtration)
 {
     SCOPED_TRACE("Begin Test: Test Vector Operator - Subtraction.");
+
+    using MoisThermFEM::operator-;
 
     const std::vector<double> v1{1, 2, 3};
     const std::vector<double> v2{4, 9, 3};
@@ -58,6 +60,8 @@ TEST_F(TestVectorOperators, TestSubtration)
 TEST_F(TestVectorOperators, TestMultiplication)
 {
     SCOPED_TRACE("Begin Test: Test Vector Operator - Multiplication.");
+
+    using MoisThermFEM::operator*;
 
     const std::vector<double> v1{1, 2, 3};
     const std::vector<double> v2{4, 9, 3};
@@ -95,6 +99,8 @@ TEST_F(TestVectorOperators, TestMultiplication)
 TEST_F(TestVectorOperators, TestDivision)
 {
     SCOPED_TRACE("Begin Test: Test Vector Operator - Division.");
+
+    using MoisThermFEM::operator/;
 
     const std::vector<double> v1{1, 2, 3};
     const std::vector<double> v2{4, 9, 3};

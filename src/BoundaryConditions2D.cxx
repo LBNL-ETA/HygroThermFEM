@@ -1,7 +1,7 @@
 #include "BoundaryConditions2D.hxx"
 #include "NodePool.hxx"
 
-using namespace FenestrationCommon;
+using FenestrationCommon::SquareMatrix;
 
 namespace MoisThermFEM {
 

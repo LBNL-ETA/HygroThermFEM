@@ -16,8 +16,7 @@ namespace MoisThermFEM
                                   const double t_y,
                                   const State & t_Prop)
     {
-        auto aNode = Node2D(t_NodeNumber, t_x, t_y, t_Prop);
-        m_Nodes.push_back(aNode);
+        m_Nodes.emplace_back(t_NodeNumber, t_x, t_y, t_Prop);
         return m_Nodes.back();
     }
 

@@ -2,7 +2,8 @@
 
 #include "MoisThermFEM2D.hxx"
 
-using namespace MoisThermFEM;
+using MoisThermFEM::NodePool;
+
 
 class TestConvectionBC2D : public testing::Test {
 
@@ -11,8 +12,7 @@ protected:
     }
 
     void TearDown() override {
-        auto & nodePool = NodePool::Instance();
-        nodePool.clear();
+        NodePool::Instance().clear();
     }
 
 };
@@ -30,7 +30,7 @@ TEST_F( TestConvectionBC2D, TestIntegrationPoints ) {
     const auto hc = 20.0;
     const auto tAir = 255.15;
 
-    auto aBc = ConvectionBC( node1, node2, hc, tAir );
+    auto aBc = MoisThermFEM::ConvectionBC( node1, node2, hc, tAir );
 
     auto h = aBc.H_Matrix();
 
