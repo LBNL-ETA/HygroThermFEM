@@ -5,34 +5,36 @@
 #include "Element2D.hxx"
 #include "SquareMatrix.hxx"
 
-namespace MoisThermFEM {
+namespace MoisThermFEM
+{
+    /// Container class to hold all elements connected into global matrix. This is only for elements
+    /// and not for boundary conditions
+    class ElementsLinear2D
+    {
+    public:
+        explicit ElementsLinear2D();
 
-	/// Container class to hold all elements connected into global matrix. This is only for elements
-	/// and not for boundary conditions
-	class ElementsLinear2D {
-	public:
-		explicit ElementsLinear2D();
+        FenestrationCommon::SquareMatrix conductanceMatrix();
+        // FenestrationCommon::SquareMatrix< double > & thermalCapacitanceMatrix();
 
-		FenestrationCommon::SquareMatrix conductanceMatrix();
-		// FenestrationCommon::SquareMatrix< double > & thermalCapacitanceMatrix();
+        /// Creates lumped mass matrix that includes time derivative
+        std::vector<double> getLumpedMass(const double DTime);
+        FenestrationCommon::SquareMatrix getMassMatrix(const double DTime);
 
-		/// Creates lumped mass matrix that includes time derivative
-		std::vector< double > getLumpedMass( const double DTime );
-		FenestrationCommon::SquareMatrix getMassMatrix( const double DTime );
+        bool isLinear() const;
 
-		bool isLinear() const;
+        void updateNodeValues(const std::vector<double> & values, const Property property);
 
-		void updateNodeValues( const std::vector< double > & values, const Property property );
+        IElementLinear2D * findElement(const Node2D & t_Node1, const Node2D & t_Node2);
 
-		IElementLinear2D* findElement( const Node2D & t_Node1, const Node2D & t_Node2 );
+        void assignElement(std::unique_ptr<IElementLinear2D> el);
 
-	protected:
-		/// FenestrationCommon::SquareMatrix< double > m_Conductance;
-		/// FenestrationCommon::SquareMatrix< double > m_Capacitance;
+    protected:
+        /// FenestrationCommon::SquareMatrix< double > m_Conductance;
+        /// FenestrationCommon::SquareMatrix< double > m_Capacitance;
 
-		std::vector< std::unique_ptr< IElementLinear2D > > m_Elements;
-		bool m_Linear;
+        std::vector<std::unique_ptr<IElementLinear2D>> m_Elements;
+        bool m_Linear;
+    };
 
-	};
-
-}
+}   // namespace MoisThermFEM

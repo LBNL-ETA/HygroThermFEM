@@ -2,17 +2,17 @@
 #include <algorithm>
 
 #include "Domains.hxx"
+#include "FEMunique.hxx"
 #include "LinearSolver.hxx"
 #include "Common.hxx"
 #include "FEMMath.hxx"
 #include "VectorOperators.hxx"
+#include "BoundaryCondition2D.hxx"
 
 using FenestrationCommon::CLinearSolver;
 
 namespace MoisThermFEM
 {
-    Domain::Domain(const Property property) : m_Property{property}
-    {}
 
     FenestrationCommon::SquareMatrix Domain::steadyStateLeftHandSide()
     {
@@ -130,76 +130,89 @@ namespace MoisThermFEM
         m_Elements.updateNodeValues(values, property);
     }
 
-    void Domain::createConvectionBC(const Node2D & t_Node1,
+	IElementLinear2D * Domain::findElement(const Node2D & t_Node1, const Node2D & t_Node2)
+	{
+		return m_Elements.findElement(t_Node1, t_Node2);
+	}
+
+	Domain::Domain( const Property property ) : m_Property(property) {
+
+	}
+
+	void ThermalDomain::createConvectionBC(const Node2D & t_Node1,
                                     const Node2D & t_Node2,
                                     const double t_ConvectionCoefficient,
                                     const double t_AirTemperature)
     {
-        m_BCs.createConvectionBC(t_Node1, t_Node2, t_ConvectionCoefficient, t_AirTemperature);
+    	m_BCs.assignBC(fem::make_unique<ConvectionBC>(
+			t_Node1, t_Node2, t_ConvectionCoefficient, t_AirTemperature));
     }
 
-    void Domain::createTemperatureBC(Node2D & t_Node1,
+    void ThermalDomain::createTemperatureBC(Node2D & t_Node1,
                                      Node2D & t_Node2,
                                      const double t_Temp1,
                                      const double t_Temp2)
     {
-        m_BCs.createTemperatureBC(t_Node1, t_Node2, t_Temp1, t_Temp2);
+    	m_BCs.assignBC(fem::make_unique<TemperatureBC>(t_Node1, t_Node2, t_Temp1, t_Temp2));
     }
 
-    void Domain::createTemperatureBC(Node2D & t_Node1, Node2D & t_Node2, const double t_Temp)
+    void ThermalDomain::createTemperatureBC(Node2D & t_Node1, Node2D & t_Node2, const double t_Temp)
     {
-        m_BCs.createTemperatureBC(t_Node1, t_Node2, t_Temp);
+    	m_BCs.assignBC(fem::make_unique<TemperatureBC>(t_Node1, t_Node2, t_Temp));
     }
 
-    void Domain::createFluxBC(Node2D & t_Node1, Node2D & t_Node2, const double t_Flux)
+    void ThermalDomain::createFluxBC(Node2D & t_Node1, Node2D & t_Node2, const double t_Flux)
     {
-        m_BCs.createFluxBC(t_Node1, t_Node2, t_Flux);
+    	m_BCs.assignBC(fem::make_unique<FluxBC>(t_Node1, t_Node2, t_Flux));
     }
 
-    void Domain::createBlackBodyRadiationBC(const Node2D & t_Node1,
+    void ThermalDomain::createBlackBodyRadiationBC(const Node2D & t_Node1,
                                             const Node2D & t_Node2,
                                             const double t_Emissivity,
                                             const double t_RadiationTemperature)
     {
-        m_BCs.createBlackBodyRadiationBC(t_Node1, t_Node2, t_Emissivity, t_RadiationTemperature);
+    	m_BCs.assignBC(fem::make_unique<BlackBodyRadiationBC>(
+			t_Node1, t_Node2, t_Emissivity, t_RadiationTemperature));
     }
 
-    void Domain::createMoistureBC(const Node2D & t_Node1,
-                                  const Node2D & t_Node2,
-                                  const double t_ConvectiveCoefficient,
-                                  const double t_AirHumidity,
-                                  const double t_AirTemperature)
-    {
-        /// Need to pull material for current moisture boundary condition
-        auto & Material = findElement(t_Node1, t_Node2)->getMaterial();
-        m_BCs.createMoistureBC(
-          t_Node1, t_Node2, t_ConvectiveCoefficient, Material, t_AirHumidity, t_AirTemperature);
-    }
-
-    void Domain::createThermalElement(const Node2D & t_Node1,
+    void ThermalDomain::createElement(const Node2D & t_Node1,
                                       const Node2D & t_Node2,
                                       const Node2D & t_Node3,
                                       const Node2D & t_Node4,
                                       const Material & mat)
     {
-        m_Elements.createThermalElement(t_Node1, t_Node2, t_Node3, t_Node4, mat);
+        m_Elements.assignElement(
+          fem::make_unique<ElementThermalLinear2D>(t_Node1, t_Node2, t_Node3, t_Node4, mat));
     }
 
-    void Domain::createMoistureElement(const Node2D & t_Node1,
+	ThermalDomain::ThermalDomain() : Domain(Property::temperature) {
+
+	}
+
+	void MoistureDomain::createElement(const Node2D & t_Node1,
                                        const Node2D & t_Node2,
                                        const Node2D & t_Node3,
                                        const Node2D & t_Node4,
                                        const Material & mat)
     {
-        m_Elements.createMoistureElement(t_Node1, t_Node2, t_Node3, t_Node4, mat);
+        m_Elements.assignElement(
+          fem::make_unique<ElementMoistureLinear2D>(t_Node1, t_Node2, t_Node3, t_Node4, mat));
     }
 
-    IElementLinear2D * Domain::findElement(const Node2D & t_Node1, const Node2D & t_Node2)
-    {
-        return m_Elements.findElement(t_Node1, t_Node2);
-    }
+	void MoistureDomain::createMoistureBC(const Node2D & t_Node1,
+										  const Node2D & t_Node2,
+										  const double t_ConvectiveCoefficient,
+										  const double t_AirHumidity,
+										  const double t_AirTemperature)
+	{
+		/// Need to pull material for current moisture boundary condition
+		auto & Material = m_Elements.findElement(t_Node1, t_Node2)->getMaterial();
+		m_BCs.assignBC(fem::make_unique<MoisThermFEM::MoistureBC>(
+			t_Node1, t_Node2, t_ConvectiveCoefficient, Material, t_AirHumidity, t_AirTemperature));
+	}
 
-    /// FenestrationCommon::SquareMatrix< double > Domain::transientDH_Matrix() {
-    /// 	return m_BCs.DHMatrix();;
-    /// }
+	MoistureDomain::MoistureDomain() : Domain(Property::humidity) {
+
+	}
+
 }   // namespace MoisThermFEM

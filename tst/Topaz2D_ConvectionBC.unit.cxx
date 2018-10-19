@@ -77,10 +77,10 @@ TEST_F( Topaz2D_ConvectionBC, TestExample_1 ) {
 				{ 1,     180 } }
 	);
 
-	MoisThermFEM::Domain domain { MoisThermFEM::Property::temperature };
+	MoisThermFEM::ThermalDomain domain;
 
-	domain.createThermalElement( node3, node4, node2, node1, material );
-	domain.createThermalElement( node6, node4, node3, node5, material );
+	domain.createElement( node3, node4, node2, node1, material );
+	domain.createElement( node6, node4, node3, node5, material );
 
 	// Create Boundary Conditions
 	const auto tSurface = 20.0;

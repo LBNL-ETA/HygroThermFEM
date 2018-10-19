@@ -60,8 +60,8 @@ namespace MoisThermFEM
     private:
         static double normError(const std::vector<double> & vec1, const std::vector<double> & vec2);
 
-        Domain m_ThermalDomain;
-        Domain m_MoistureDomain;
+        ThermalDomain m_ThermalDomain;
+        MoistureDomain m_MoistureDomain;
     };
 
 }   // namespace MoisThermFEM

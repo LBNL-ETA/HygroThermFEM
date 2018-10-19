@@ -72,10 +72,10 @@ TEST_F(BlackBodyBC_2D_1, TestExample_1)
                                                    {0.999, 120},
                                                    {1, 180}});
 
-    MoisThermFEM::Domain domain{MoisThermFEM::Property::temperature};
+    MoisThermFEM::ThermalDomain domain;
 
-    domain.createThermalElement(node3, node4, node2, node1, material);
-    domain.createThermalElement(node6, node4, node3, node5, material);
+    domain.createElement(node3, node4, node2, node1, material);
+    domain.createElement(node6, node4, node3, node5, material);
 
     // Create Boundary Conditions
     const auto tRadiation = 200.0;
