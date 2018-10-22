@@ -28,7 +28,7 @@ namespace MoisThermFEM {
 
 		void updateNodeValues(const std::vector< double > & values, const Property property);
 
-		void assignBC(std::unique_ptr<IBCLinear2D> bc);
+		void assignBC(std::unique_ptr<IBCLinear2D> && bc);
 
 	protected:
 		std::vector< std::unique_ptr< IBCLinear2D > > m_BCs;

@@ -84,7 +84,7 @@ namespace MoisThermFEM
         m_Linear(true)
     {}
 
-	void BoundaryConditions2D::assignBC( std::unique_ptr< IBCLinear2D > bc ) {
+	void BoundaryConditions2D::assignBC( std::unique_ptr< IBCLinear2D > && bc ) {
 		m_Linear = m_Linear && bc->isLinear();
 		m_BCs.push_back(std::move(bc));
 	}
