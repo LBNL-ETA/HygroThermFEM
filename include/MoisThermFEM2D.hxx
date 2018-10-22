@@ -19,8 +19,6 @@
 #include "../src/Functions.hxx"
 #include "../src/Interpolator.hxx"
 #include "../src/MaterialPool.hxx"
-#include "../src/BoundaryCondition2DFactory.hxx"
-#include "../src/Element2DFactory.hxx"
 #include "../src/FEMMath.hxx"
 #include "../src/MultiDomain.hxx"
 #include "../src/MaterialProperties.hxx"

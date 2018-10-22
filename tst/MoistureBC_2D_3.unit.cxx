@@ -67,7 +67,7 @@ TEST_F(MoistureBC_2D_3, TestExample_1)
                                                {0.999, 120},
                                                {1, 180}});
 
-    MoisThermFEM::Domain domain{MoisThermFEM::Property::humidity};
+    MoisThermFEM::MoistureDomain domain;
 
     /// Create elements
     for(size_t i = 1; i <= (NodePool::Instance().maxIndex() - 2) / 2; ++i)
@@ -76,7 +76,7 @@ TEST_F(MoistureBC_2D_3, TestExample_1)
         auto node2 = NodePool::Instance().getNode(2 * i + 2);
         auto node3 = NodePool::Instance().getNode(2 * i);
         auto node4 = NodePool::Instance().getNode(2 * i - 1);
-        domain.createMoistureElement(node1, node2, node3, node4, material);
+        domain.createElement(node1, node2, node3, node4, material);
     }
 
     // Create Boundary Conditions

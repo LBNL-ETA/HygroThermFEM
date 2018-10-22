@@ -16,7 +16,7 @@ namespace MoisThermFEM {
 	class BoundaryConditions2D {
 	public:
 
-		BoundaryConditions2D() = default;
+		explicit BoundaryConditions2D();
 		BoundaryConditions2D( const BoundaryConditions2D & other ) = delete;
 
 		FenestrationCommon::SquareMatrix HMatrix() const;
@@ -26,7 +26,9 @@ namespace MoisThermFEM {
 
 		bool isLinear() const;
 
-		void updateNodeValues( const std::vector< double > & values, const Property property );
+		void updateNodeValues(const std::vector< double > & values, const Property property);
+
+		void assignBC(std::unique_ptr<IBCLinear2D> && bc);
 
 	protected:
 		std::vector< std::unique_ptr< IBCLinear2D > > m_BCs;

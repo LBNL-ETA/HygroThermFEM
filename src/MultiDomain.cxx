@@ -8,8 +8,8 @@
 namespace MoisThermFEM
 {
     MultiDomain::MultiDomain() :
-        m_ThermalDomain(Property::temperature),
-        m_MoistureDomain(Property::humidity)
+        m_ThermalDomain(),
+        m_MoistureDomain()
     {}
 
     Solution MultiDomain::transient(std::vector<double> & temperature,
@@ -53,8 +53,8 @@ namespace MoisThermFEM
                                     const Node2D & t_Node4,
                                     const Material & mat)
     {
-        m_ThermalDomain.createThermalElement(t_Node1, t_Node2, t_Node3, t_Node4, mat);
-        m_MoistureDomain.createMoistureElement(t_Node1, t_Node2, t_Node3, t_Node4, mat);
+        m_ThermalDomain.createElement(t_Node1, t_Node2, t_Node3, t_Node4, mat);
+        m_MoistureDomain.createElement(t_Node1, t_Node2, t_Node3, t_Node4, mat);
     }
 
     void MultiDomain::createConvectionBC(const Node2D & t_Node1,

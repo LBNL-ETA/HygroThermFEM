@@ -60,7 +60,7 @@ TEST_F(Analytical_TemperatureBC_Transient, TestExample_1)
 
     );
 
-    MoisThermFEM::Domain domain{MoisThermFEM::Property::temperature};
+    MoisThermFEM::ThermalDomain domain;
 
     /// Create elements
     for(size_t i = 1; i <= (NodePool::Instance().maxIndex() - 2) / 2; ++i)
@@ -70,7 +70,7 @@ TEST_F(Analytical_TemperatureBC_Transient, TestExample_1)
         auto node3 = NodePool::Instance().getNode(2 * i + 2);
         auto node4 = NodePool::Instance().getNode(2 * i);
 
-        domain.createThermalElement(node1, node2, node3, node4, material);
+        domain.createElement(node1, node2, node3, node4, material);
     }
 
     // Create Boundary Conditions
