@@ -18,7 +18,7 @@ namespace MoisThermFEM
         std::vector<double> steadyState();
 
         /// Calculates next timestep value from current values
-        std::vector<double> transient(std::vector<double> & currentStateValues, double t_DTime);
+        std::vector<double> transient(const std::vector<double> & currentStateValues, double t_DTime);
 
         virtual void createElement(const Node2D & t_Node1,
                                    const Node2D & t_Node2,
@@ -43,7 +43,7 @@ namespace MoisThermFEM
         /// FenestrationCommon::SquareMatrix< double > transientDH_Matrix();
 
         /// This function retrieves M*U+R vector (where U is state variable)
-        std::vector<double> transientMT_R_Vector(std::vector<double> & t_PreviousSolution,
+        std::vector<double> transientMT_R_Vector(const std::vector<double> & t_PreviousSolution,
                                                  const double t_DTime);
 
         bool isLinear() const;

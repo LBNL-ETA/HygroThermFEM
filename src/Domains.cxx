@@ -40,7 +40,7 @@ namespace MoisThermFEM
         return M_K_H;
     }
 
-    std::vector<double> Domain::transientMT_R_Vector(std::vector<double> & t_PreviousSolution,
+    std::vector<double> Domain::transientMT_R_Vector(const std::vector<double> & t_PreviousSolution,
                                                      const double t_DTime)
     {
         std::vector<double> M{m_Elements.getLumpedMass(t_DTime)};
@@ -57,7 +57,7 @@ namespace MoisThermFEM
         return CLinearSolver::solveEigen(steadyStateLeftHandSide(), B);
     }
 
-    std::vector<double> Domain::transient(std::vector<double> & currentStateValues,
+    std::vector<double> Domain::transient(const std::vector<double> & currentStateValues,
                                           const double t_DTime)
     {
         auto A = transientM_K_H_Matrix(t_DTime);
