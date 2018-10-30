@@ -14,7 +14,7 @@ namespace MoisThermFEM
     class MaterialProperties
     {
     public:
-        static iValue getWaterFill(const Material & mat);
+        static iValue getLiquidWaterFill( const Material & mat );
 
         static iValue getAirFill(const Material & mat);
     };

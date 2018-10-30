@@ -3,7 +3,8 @@
 
 namespace MoisThermFEM
 {
-    iValue MoisThermFEM::MaterialProperties::getWaterFill(const MoisThermFEM::Material & mat)
+    iValue MoisThermFEM::MaterialProperties::getLiquidWaterFill(
+		const MoisThermFEM::Material & mat )
     {
         /// Calculate air and water content
         iValue waterContent = TabularFunction::create(mat.sorptionCurve(), Property::humidity);
@@ -16,7 +17,7 @@ namespace MoisThermFEM
 
     iValue MaterialProperties::getAirFill(const Material & mat)
     {
-        iValue waterFill = getWaterFill(mat);
+        iValue waterFill = getLiquidWaterFill( mat );
         return mat.porosity() - waterFill;
     }
 

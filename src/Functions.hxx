@@ -133,6 +133,21 @@ namespace MoisThermFEM
         double m_Value;
     };
 
+	//////////////////////////////////////////////////////////////////
+	///  State value
+	//////////////////////////////////////////////////////////////////
+
+	class StateValue : public IFunction
+	{
+	public:
+		static std::unique_ptr<StateValue> create( Property property );
+
+		virtual std::unique_ptr<IValue> clone() const override;
+	private:
+		StateValue(Property property);
+		double evaluateFunction(const double t_position) const override;
+	};
+
     //////////////////////////////////////////////////////////////////
     ///  Derivative
     //////////////////////////////////////////////////////////////////

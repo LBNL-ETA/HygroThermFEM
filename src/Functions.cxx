@@ -68,6 +68,27 @@ namespace MoisThermFEM
     }
 
     //////////////////////////////////////////////////////////////////
+    ///  State value
+    //////////////////////////////////////////////////////////////////
+
+    StateValue::StateValue(Property property) : IFunction(property)
+    {}
+
+    double StateValue::evaluateFunction(const double t_position) const
+    {
+        return t_position;
+    }
+
+    std::unique_ptr<StateValue> StateValue::create(Property property)
+    {
+        return std::unique_ptr<StateValue>(new StateValue(property));
+    }
+
+	iValue StateValue::clone() const {
+		return fem::make_unique<StateValue>(*this);
+	}
+
+	//////////////////////////////////////////////////////////////////
     ///  Operators
     //////////////////////////////////////////////////////////////////
 
@@ -155,7 +176,7 @@ namespace MoisThermFEM
 
         // small depends on exact number that we are calculating
         const double small = val1 != 0 ? val1 / 1e5 : 1e-5;
-        const State smallIncrease(state + State( small, small, small, 0 ) );
+        const State smallIncrease(state + State(small, small, small, 0));
 
         double val2 = m_Function->value(smallIncrease);
         return (val2 - val1) / small;
@@ -265,8 +286,7 @@ namespace MoisThermFEM
     {}
 
     TabularDerivative::TabularDerivative(
-		const std::initializer_list< std::pair< double, double>> & list,
-		const Property property ) :
+      const std::initializer_list<std::pair<double, double>> & list, const Property property) :
         IFunction(property),
         m_Curve(list)
     {}
@@ -312,8 +332,8 @@ namespace MoisThermFEM
     }
 
     std::unique_ptr<TabularDerivative>
-      TabularDerivative::create( const std::initializer_list< std::pair< double, double>> & list,
-								 Property property )
+      TabularDerivative::create(const std::initializer_list<std::pair<double, double>> & list,
+                                Property property)
     {
         return std::unique_ptr<TabularDerivative>(new TabularDerivative(list, property));
     }
@@ -384,7 +404,8 @@ namespace MoisThermFEM
     ///  SaturationFunction
     //////////////////////////////////////////////////////////////////
 
-    SaturationFunction::SaturationFunction(const Property property, const double saturationCoefficient) :
+    SaturationFunction::SaturationFunction(const Property property,
+                                           const double saturationCoefficient) :
         IFunction(property),
         m_SaturationCoefficient(saturationCoefficient)
     {}
@@ -408,4 +429,5 @@ namespace MoisThermFEM
     {
         return fem::make_unique<SaturationFunction>(*this);
     }
+
 }   // namespace MoisThermFEM

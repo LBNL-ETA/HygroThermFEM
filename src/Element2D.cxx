@@ -305,12 +305,12 @@ namespace MoisThermFEM
                                                const Node2D & node2,
                                                const Node2D & node3)
     {
-    	auto angle = std::abs(std::atan2(node3.Y() - node1.Y(), node3.X() - node1.X())
-							  - std::atan2(node2.Y() - node1.Y(), node2.X() - node1.X()));
-    	if(angle > Constants::PI)
-		{
-    		angle -= Constants::PI;
-		}
+        auto angle = std::abs(std::atan2(node3.Y() - node1.Y(), node3.X() - node1.X())
+                              - std::atan2(node2.Y() - node1.Y(), node2.X() - node1.X()));
+        if(angle > Constants::PI)
+        {
+            angle -= Constants::PI;
+        }
         return angle;
     }
 
@@ -325,7 +325,7 @@ namespace MoisThermFEM
                                                    const Material & mat) :
         IElementLinear2D(t_Node1, t_Node2, t_Node3, t_Node4, mat)
     {
-        iValue waterFill = MaterialProperties::getWaterFill(mat);
+        iValue waterFill = MaterialProperties::getLiquidWaterFill(mat);
         iValue airFill = MaterialProperties::getAirFill(mat);
 
         auto waterCapacitance = waterFill * (Constants::Density_Water * Constants::Cp_Water);
@@ -337,12 +337,26 @@ namespace MoisThermFEM
 
         m_Capacitance.push_back(std::move(capacitance));
 
-        auto waterConductance = waterFill * Constants::K_Water;
-        auto airConductance = airFill * Constants::K_Air;
-        auto dryConductance = (1 - mat.porosity()) * mat.thermalConductivity();
+        /// Conductance
 
-        auto conductance = waterConductance + airConductance;
-        conductance = conductance + dryConductance;
+        /// material
+        iValue materialConductivity = Constant::create(mat.thermalConductivity());
+
+        /// vapor
+        iValue delta = Constant::create(2.5E-5 / mat.diffusionResistanceFactor());
+        iValue vaporConductivity = Constants::Cp_Vapor * delta;
+		vaporConductivity = vaporConductivity * airFill;
+
+		/// liquid
+		iValue liquidConductivity =
+			SuctionFunction::create(mat.liquidTransportationCurve(), Property::humidity);
+		iValue humidity = StateValue::create(Property::humidity);
+		liquidConductivity = liquidConductivity * Constants::Cp_Water;
+		liquidConductivity = liquidConductivity * humidity;
+
+        //iValue conductance = materialConductivity + vaporConductivity + liquidConductivity;
+        iValue conductance = materialConductivity + vaporConductivity;
+        conductance = conductance + liquidConductivity;
 
         m_Conductance.push_back(std::move(conductance));
     }

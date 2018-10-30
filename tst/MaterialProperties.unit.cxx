@@ -53,7 +53,7 @@ TEST_F( MaterialPropertiesUnit, TestMaterialProperties ) {
 	);
 
 	auto airFill = MaterialProperties::getAirFill( material );
-	auto waterFill = MaterialProperties::getWaterFill( material );
+	auto waterFill = MaterialProperties::getLiquidWaterFill( material );
 
 	State state1( 273.15, 0.0, 101325, 0 );
 

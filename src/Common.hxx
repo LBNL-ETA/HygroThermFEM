@@ -27,4 +27,6 @@ namespace Constants {
 	static const double Cp_Ice = 2108;
 	static const double K_Ice = 2.22;
 
+	static const double Cp_Vapor = 1850;
+
 }
