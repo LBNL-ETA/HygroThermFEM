@@ -6,8 +6,8 @@
 #include "LinearSolver.hxx"
 #include "Common.hxx"
 #include "FEMMath.hxx"
-#include "VectorOperators.hxx"
 #include "BoundaryCondition2D.hxx"
+#include "VectorOperators.hxx"
 
 using FenestrationCommon::CLinearSolver;
 
@@ -46,9 +46,16 @@ namespace MoisThermFEM
         std::vector<double> M{m_Elements.getLumpedMass(t_DTime)};
         auto R = m_BCs.RVector();
 
-        auto B = t_PreviousSolution * M + R;
+		std::vector<double> result(t_PreviousSolution.size(), 0);
+		std::transform(t_PreviousSolution.begin(), t_PreviousSolution.end(),
+					   M.begin(), result.begin(),
+					   std::multiplies<double>());
 
-        return B;
+		std::transform(result.begin(), result.end(),
+					   R.begin(), R.begin(),
+					   std::plus<double>());
+
+        return result;
     }
 
     std::vector<double> Domain::steadyState()
@@ -99,8 +106,10 @@ namespace MoisThermFEM
                 // 	solution[i] += dU[i];
                 // }
 
-                std::transform(
-                  dU.begin(), dU.end(), solution.begin(), solution.begin(), std::plus<double>());
+                //std::transform(
+                //  dU.begin(), dU.end(), solution.begin(), solution.begin(), std::plus<double>());
+
+                solution = solution + dU;
 
                 ++numOfIterations;
 

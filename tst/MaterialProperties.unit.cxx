@@ -5,7 +5,6 @@
 
 using MoisThermFEM::Property;
 using MoisThermFEM::State;
-using MoisThermFEM::MaterialProperties;
 
 class MaterialPropertiesUnit : public testing::Test {
 
@@ -52,29 +51,29 @@ TEST_F( MaterialPropertiesUnit, TestMaterialProperties ) {
 				{ 1,     180 } }
 	);
 
-	auto airFill = MaterialProperties::getAirFill( material );
-	auto waterFill = MaterialProperties::getLiquidWaterFill( material );
+	auto airFill = getAirFill( material );
+	auto waterFill = getLiquidWaterFill( material );
 
 	State state1( 273.15, 0.0, 101325, 0 );
 
-	auto aFill = airFill->value( state1 );
-	auto wFill = waterFill->value( state1 );
+	auto aFill = airFill.value( state1 );
+	auto wFill = waterFill.value( state1 );
 
 	EXPECT_NEAR( 0.22, aFill, 1e-6 );
 	EXPECT_NEAR( 0.00, wFill, 1e-6 );
 
 	State state2( 273.15, 1.0, 101325, 0 );
 
-	aFill = airFill->value( state2 );
-	wFill = waterFill->value( state2 );
+	aFill = airFill.value( state2 );
+	wFill = waterFill.value( state2 );
 
 	EXPECT_NEAR( 0.00, aFill, 1e-6 );
 	EXPECT_NEAR( 0.22, wFill, 1e-6 );
 
 	State state3( 273.15, 0.5, 101325, 0 );
 
-	aFill = airFill->value( state3 );
-	wFill = waterFill->value( state3 );
+	aFill = airFill.value( state3 );
+	wFill = waterFill.value( state3 );
 
 	EXPECT_NEAR( 0.213522, aFill, 1e-6 );
 	EXPECT_NEAR( 0.006478, wFill, 1e-6 );

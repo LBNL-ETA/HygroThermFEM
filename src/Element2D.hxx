@@ -78,10 +78,11 @@ public:
 
 /// Keeping function pointers for QLEConductanceDerivative2D in Elements array
 struct DerivativeFunction {
-  DerivativeFunction( const iValue & fixedTerm, const iValue & derivativeTerm );
+  DerivativeFunction( std::unique_ptr<IValue> fixedTerm,
+  	std::unique_ptr<IValue> derivativeTerm );
 
-  iValue fixedTerm;
-  iValue derivativeTerm;
+  std::unique_ptr<IValue> fixedTerm;
+  std::unique_ptr<IValue> derivativeTerm;
 };
 
 //////////////////////////////////////////////////////////////////////////////
