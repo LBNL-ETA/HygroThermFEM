@@ -7,6 +7,7 @@
 
 #include "Interpolator.hxx"
 #include "VectorOperators.hxx"
+#include "State.hxx"
 
 /// Functions interface is used to build function that are used for matrix
 /// building. Functions are stacked together to make full function that later

@@ -48,7 +48,9 @@ protected:
 // Class to handle conductance matrix in global coordinate system
 class QLEConductance2D : public IQLEMatrix2D {
 public:
-  QLEConductance2D(const QuadrilateralLinearGlobal2D &t_Element);
+	virtual ~QLEConductance2D() = default;
+
+	QLEConductance2D(const QuadrilateralLinearGlobal2D &t_Element);
 };
 
 //////////////////////////////////////////////////////////////////////////////
@@ -58,7 +60,9 @@ public:
 // Handles conductance part with derivative term
 class QLEConductanceDerivative2D : public IQLEMatrix2D {
 public:
-  QLEConductanceDerivative2D(const QuadrilateralLinearGlobal2D &t_Element);
+	virtual ~QLEConductanceDerivative2D() = default;
+
+	QLEConductanceDerivative2D(const QuadrilateralLinearGlobal2D &t_Element);
 
   // This updates integration matrix with new derivative values
   void updateIntegrationMatrix(const std::vector<double> &t_Values);
@@ -73,7 +77,9 @@ public:
 // Class to handle capacitance matrix in global coordinate system
 class QLECapacitance2D : public IQLEMatrix2D {
 public:
-  QLECapacitance2D(const QuadrilateralLinearGlobal2D &t_Element);
+	virtual ~QLECapacitance2D() = default;
+
+	QLECapacitance2D(const QuadrilateralLinearGlobal2D &t_Element);
 };
 
 /// Keeping function pointers for QLEConductanceDerivative2D in Elements array
