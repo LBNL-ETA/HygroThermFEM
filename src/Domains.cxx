@@ -61,7 +61,6 @@ namespace MoisThermFEM
                                           const double t_DTime)
     {
         auto A = transientM_K_H_Matrix(t_DTime);
-        auto a = A.toVector();
         auto B = transientMT_R_Vector(currentStateValues, t_DTime);
 
         // CLinearSolver aSolver;
