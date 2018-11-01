@@ -25,7 +25,7 @@ TEST_F(MoistureBC_2D_2, TestExample_1)
 
     std::vector<double> gridXCoordinates{0.15, 0.05, 0.00};
 
-    auto state = MoisThermFEM::State(293.15, 0, 101325, 0);
+    MoisThermFEM::State state(293.15, 0, 101325, 0);
     size_t nodeIndex = 0;
     for(auto val : gridXCoordinates)
     {
@@ -96,7 +96,7 @@ TEST_F(MoistureBC_2D_2, TestExample_1)
         solution.push_back(material.waterContent(humidities));
     }
 
-    std::vector<std::vector<double>> correctSolution = {
+    std::vector<std::vector<double>> correctSolution{
       {0.0025399387, 0.0025399387, 0.13271657, 0.13271657, 5.2992847, 5.2992847},
       {0.0074773153, 0.0074773153, 0.26052713, 0.26052713, 5.2999506, 5.2999506},
       {0.014676106, 0.014676106, 0.38362762, 0.38362762, 5.2999519, 5.2999519},

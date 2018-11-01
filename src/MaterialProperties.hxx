@@ -4,20 +4,29 @@
 #include <memory>
 
 #include "Material.hxx"
+#include "State.hxx"
+#include "Functions.hxx"
 
 namespace MoisThermFEM
 {
-    class IValue;
-
-    using iValue = std::unique_ptr<IValue>;
-
-    class MaterialProperties
+    inline IOperation<Constant, TabularFunction>
+        getLiquidWaterFill(const Material & mat)
     {
-    public:
-        static iValue getWaterFill(const Material & mat);
+        /// Calculate air and water content
+        auto waterContent = TabularFunction(mat.sorptionCurve(), Property::humidity);
 
-        static iValue getAirFill(const Material & mat);
-    };
+        /// Calls sorption curve at 100% humidity to get maximum water content
+        const auto maxWaterContent = waterContent.value(State(0, 1, 0, 0));
+
+        return mat.porosity() / maxWaterContent * waterContent;
+    }
+
+    inline IOperation<Constant, IOperation<Constant, TabularFunction>>
+        getAirFill(const Material & mat)
+    {
+        const auto waterFill = getLiquidWaterFill(mat);
+        return mat.porosity() - waterFill;
+    }
 
 }   // namespace MoisThermFEM
 

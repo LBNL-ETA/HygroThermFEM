@@ -31,7 +31,6 @@ TEST_F(Analytical_ConvectionBC_Transient, TestExample_1)
     SCOPED_TRACE("Begin Test: Example.");
 
     // Enter nodes. Arguments are: node number, x-coordinate, y-coordinate, initial temperature
-    auto & nodePool = NodePool::Instance();
 
     /// Create slab that is 10 cm long and have nodes at every 1 cm
     std::vector<double> gridXCoordinates{
@@ -41,15 +40,15 @@ TEST_F(Analytical_ConvectionBC_Transient, TestExample_1)
     const auto initialHumidity = 0.0;
     const auto initialPressure = 101325.0;
 
-    const auto state = MoisThermFEM::State(initialTemperature, initialHumidity, initialPressure, 0);
+    const MoisThermFEM::State state(initialTemperature, initialHumidity, initialPressure, 0);
 
     size_t nodeIndex = 0;
     for(auto val : gridXCoordinates)
     {
         ++nodeIndex;
-        nodePool.createNode(nodeIndex, val, 0.00, state);
+        NodePool::Instance().createNode(nodeIndex, val, 0.00, state);
         ++nodeIndex;
-        nodePool.createNode(nodeIndex, val, 0.05, state);
+        NodePool::Instance().createNode(nodeIndex, val, 0.05, state);
     }
 
     auto & material = MaterialPool::Instance().createMaterial(
@@ -68,7 +67,7 @@ TEST_F(Analytical_ConvectionBC_Transient, TestExample_1)
     MoisThermFEM::ThermalDomain domain;
 
     /// Create elements
-    for(size_t i = 1; i <= (nodePool.maxIndex() - 2) / 2; ++i)
+    for(size_t i = 1; i <= (NodePool::Instance().maxIndex() - 2) / 2; ++i)
     {
         const auto node1 = NodePool::Instance().getNode(2 * i - 1);
         const auto node2 = NodePool::Instance().getNode(2 * i);

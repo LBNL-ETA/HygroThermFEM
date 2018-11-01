@@ -5,7 +5,7 @@
 
 #include "MoisThermFEM2D.hxx"
 
-#pragma warning(push,0)
+#pragma warning(push, 0)
 #include <Eigen/SparseCore>
 #pragma warning(pop)
 
@@ -36,9 +36,9 @@ TEST_F(TestLinearSolver4, Test1)
     const size_t sparseWidth = 2;
     std::vector<double> aVector(size);
     std::default_random_engine generator;
-	std::uniform_int_distribution<int> distribution(1,100);
+    std::uniform_int_distribution<int> distribution(1, 100);
     // Randomly generated sparse matrix
-	std::vector<Eigen::Triplet<double>> tripletList;
+    std::vector<Eigen::Triplet<double>> tripletList;
     for(auto i = 0u; i < size; ++i)
     {
         aVector[i] = double(distribution(generator));
@@ -46,16 +46,16 @@ TEST_F(TestLinearSolver4, Test1)
         const auto lower = i - sparseWidth > size ? i : i - sparseWidth;
         for(auto j = lower; j < upper; ++j)
         {
-			tripletList.emplace_back(int(i), int(j), double(distribution(generator)));
+            tripletList.emplace_back(int(i), int(j), double(distribution(generator)));
         }
     }
 
-	const SquareMatrix aMatrix{ size, tripletList };
+    const SquareMatrix aMatrix{size, tripletList};
 
     auto aSolver = GetSolver();
 
     const auto startTime = std::chrono::high_resolution_clock::now();
-    auto aSolution = CLinearSolver::solveEigen( aMatrix, aVector );
+    auto aSolution = CLinearSolver::solveEigen(aMatrix, aVector);
     const auto endTime = std::chrono::high_resolution_clock::now();
     const auto duration{
       std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count()};

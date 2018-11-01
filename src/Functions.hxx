@@ -6,6 +6,8 @@
 #include <vector>
 
 #include "Interpolator.hxx"
+#include "VectorOperators.hxx"
+#include "State.hxx"
 
 /// Functions interface is used to build function that are used for matrix
 /// building. Functions are stacked together to make full function that later
@@ -30,8 +32,6 @@ namespace MoisThermFEM
     public:
         virtual double value(const State & state) const = 0;
         virtual ~IValue() = default;
-
-        virtual std::unique_ptr<IValue> clone() const = 0;
     };
 
     using iValue = std::unique_ptr<IValue>;
@@ -46,7 +46,7 @@ namespace MoisThermFEM
     public:
         IFunction(Property t_Property);
 
-        virtual double value(const State & state) const;
+        virtual double value(const State & state) const override;
 
     protected:
         virtual double evaluateFunction(const double t_position = 0) const = 0;
@@ -57,63 +57,6 @@ namespace MoisThermFEM
     };
 
     //////////////////////////////////////////////////////////////////
-    ///  IOperation
-    //////////////////////////////////////////////////////////////////
-
-    /// Entire class is used to mimic operator functions so that FEM functions can be
-    /// written as ordinary equations.
-    class IOperation : public IValue
-    {
-    public:
-        IOperation(iValue t_Val1, iValue t_Val2, Operation t_Operation);
-
-        double value(const State & state) const override;
-
-    private:
-        /// Do not want to make clone of operator publicly available
-        virtual iValue clone() const override;
-
-        /// Functions can be shared between different operations and that is why it is
-        /// necessary to share function
-        iValue m_Function1;
-        iValue m_Function2;
-
-        Operation m_Operation;
-
-        /// This hold four basic operators (+, -. *. /) which is used to determine
-        /// which function pointer is to be called
-        std::map<Operation, std::function<double(double, double)>> m_Operator;
-    };
-
-    //////////////////////////////////////////////////////////////////
-    ///  Operators
-    //////////////////////////////////////////////////////////////////
-
-    iValue operator+(iValue & left, iValue & right);
-
-    iValue operator+(const double left, iValue & right);
-
-    iValue operator+(iValue & left, const double right);
-
-    iValue operator-(iValue & left, iValue & right);
-
-    iValue operator-(const double left, iValue & right);
-
-    iValue operator-(iValue & left, const double right);
-
-    iValue operator*(iValue & left, iValue & right);
-
-    iValue operator*(const double left, iValue & right);
-
-    iValue operator*(iValue & left, const double right);
-
-    iValue operator/(iValue & left, iValue & right);
-
-    iValue operator/(const double left, iValue & right);
-
-    iValue operator/(iValue & left, const double right);
-
-    //////////////////////////////////////////////////////////////////
     ///  Constant
     //////////////////////////////////////////////////////////////////
 
@@ -121,34 +64,195 @@ namespace MoisThermFEM
     class Constant : public IFunction
     {
     public:
-        static std::unique_ptr<Constant> create(const double value);
-
-        virtual std::unique_ptr<IValue> clone() const override;
-
-    private:
         Constant(const double value);
 
+    private:
         double evaluateFunction(const double t_position) const override;
 
         double m_Value;
     };
 
     //////////////////////////////////////////////////////////////////
+    ///  IOperation
+    //////////////////////////////////////////////////////////////////
+
+    /// Entire class is used to mimic operator functions so that FEM functions can be
+    /// written as ordinary equations.
+    template<class T, class U>
+    class IOperation : public IValue
+    {
+    public:
+        IOperation(const T t, const U s, const Operation & op) :
+            m_Function1(std::move(t)),
+            m_Function2(std::move(s)),
+            m_Operation(op)
+        {
+            m_Operator[Operation::MULT] = [&](double a, double b) { return a * b; };
+            m_Operator[Operation::DIV] = [&](double a, double b) { return a / b; };
+            m_Operator[Operation::ADD] = [&](double a, double b) { return a + b; };
+            m_Operator[Operation::SUB] = [&](double a, double b) { return a - b; };
+        }
+
+        double value(const State & state) const override
+        {
+            return m_Operator.at(m_Operation)(m_Function1.value(state),
+            	m_Function2.value(state));
+        };
+
+    private:
+        /// Functions can be shared between different operations and that is why it is
+        /// necessary to share function
+        const T m_Function1;
+        const U m_Function2;
+
+        const Operation m_Operation;
+
+        /// This hold four basic operators (+, -. *. /) which is used to determine
+        /// which function pointer is to be called
+        std::map<Operation, std::function<double(double, double)>> m_Operator;
+    };
+
+    //////////////////////////////////////////////////////////////////
+    ///  Operators for IValue
+    //////////////////////////////////////////////////////////////////
+
+    ////	operator+
+
+	template <typename T, typename U>
+	typename std::enable_if<std::is_base_of<IValue, T>::value, IOperation<T, U>>::type
+	operator+(const T &t, const U &u)
+	{
+		return IOperation<T, U>(t, u, Operation::ADD);
+	}
+
+	template <typename T>
+	typename std::enable_if<std::is_base_of<IValue, T>::value, IOperation<T, Constant>>::type
+	operator+(const T &t, const double &u)
+	{
+		Constant con{u};
+		return IOperation<T, Constant>(t, con, Operation::ADD);
+	}
+
+	template <typename U>
+	typename std::enable_if<std::is_base_of<IValue, U>::value, IOperation<Constant, U>>::type
+	operator+(const double &t, const U &u)
+	{
+		Constant con{t};
+		return IOperation<Constant, U>(con, u, Operation::ADD);
+	}
+
+	////	operator-
+
+	template <typename T, typename U>
+	typename std::enable_if<std::is_base_of<IValue, T>::value, IOperation<T, U>>::type
+	operator-(const T &t, const U &u)
+	{
+		return IOperation<T, U>(t, u, Operation::SUB);
+	}
+
+	template <typename T>
+	typename std::enable_if<std::is_base_of<IValue, T>::value, IOperation<T, Constant>>::type
+	operator-(const T &t, const double &u)
+	{
+		Constant con{u};
+		return IOperation<T, Constant>(t, con, Operation::SUB);
+	}
+
+	template <typename U>
+	typename std::enable_if<std::is_base_of<IValue, U>::value, IOperation<Constant, U>>::type
+	operator-(const double &t, const U &u)
+	{
+		Constant con{t};
+		return IOperation<Constant, U>(con, u, Operation::SUB);
+	}
+
+	////	operator*
+
+	template <typename T, typename U>
+	typename std::enable_if<std::is_base_of<IValue, T>::value, IOperation<T, U>>::type
+	operator*(const T &t, const U &u)
+	{
+		return IOperation<T, U>(t, u, Operation::MULT);
+	}
+
+	template <typename T>
+	typename std::enable_if<std::is_base_of<IValue, T>::value, IOperation<T, Constant>>::type
+	operator*(const T &t, const double &u)
+	{
+		Constant con{u};
+		return IOperation<T, Constant>(t, con, Operation::MULT);
+	}
+
+	template <typename U>
+	typename std::enable_if<std::is_base_of<IValue, U>::value, IOperation<Constant, U>>::type
+	operator*(const double &t, const U &u)
+	{
+		Constant con{t};
+		return IOperation<Constant, U>(con, u, Operation::MULT);
+	}
+
+	////	operator/
+
+	template <typename T, typename U>
+	typename std::enable_if<std::is_base_of<IValue, T>::value, IOperation<T, U>>::type
+	operator/(const T &t, const U &u)
+	{
+		return IOperation<T, U>(t, u, Operation::DIV);
+	}
+
+	template <typename T>
+	typename std::enable_if<std::is_base_of<IValue, T>::value, IOperation<T, Constant>>::type
+	operator/(const T &t, const double &u)
+	{
+		Constant con{u};
+		return IOperation<T, Constant>(t, con, Operation::DIV);
+	}
+
+	template <typename U>
+	typename std::enable_if<std::is_base_of<IValue, U>::value, IOperation<Constant, U>>::type
+	operator/(const double &t, const U &u)
+	{
+		Constant con{t};
+		return IOperation<Constant, U>(con, u, Operation::DIV);
+	}
+
+    //////////////////////////////////////////////////////////////////
+    ///  State value
+    //////////////////////////////////////////////////////////////////
+
+    class StateValue : public IFunction
+    {
+    public:
+        StateValue(Property property);
+
+    private:
+        double evaluateFunction(const double t_position) const override;
+    };
+
+    //////////////////////////////////////////////////////////////////
     ///  Derivative
     //////////////////////////////////////////////////////////////////
+    template<class T>
     class Derivative : public IValue
     {
     public:
-        static std::unique_ptr<Derivative> create(const iValue & t_Function);
+        Derivative(const T & t_Value) : IValue(), m_Function(t_Value)
+        {}
 
-        double value(const State & state) const override;
+        double value(const State & state) const override
+        {
+            double val1 = m_Function.value(state);
 
-        virtual std::unique_ptr<IValue> clone() const override;
+            // small depends on exact number that we are calculating
+            const double small = val1 != 0 ? val1 / 1e5 : 1e-5;
+            const State smallIncrease(state + State(small, small, small, 0));
+
+            double val2 = m_Function.value(smallIncrease);
+            return (val2 - val1) / small;
+        }
 
     private:
-        Derivative(const iValue & t_Function);
-
-        iValue m_Function;
+        const T m_Function;
     };
 
     //////////////////////////////////////////////////////////////////
@@ -160,27 +264,6 @@ namespace MoisThermFEM
     class TabularFunction : public IFunction
     {
     public:
-        static std::unique_ptr<TabularFunction>
-          create(const std::vector<std::pair<double, double>> & values,
-                 Property property,
-                 const FenestrationCommon::Interpolator & interpolator =
-                   FenestrationCommon::Interpolation::Linear);
-
-        static std::unique_ptr<TabularFunction>
-          create(const std::initializer_list<std::pair<double, double>> & list,
-                 Property property,
-                 const FenestrationCommon::Interpolator & interpolator =
-                   FenestrationCommon::Interpolation::Linear);
-
-        double max() const;
-
-        double min() const;
-
-        std::vector<std::pair<double, double>> getCurve() const;
-
-        virtual std::unique_ptr<IValue> clone() const override;
-
-    protected:
         TabularFunction(const std::vector<std::pair<double, double>> & values,
                         const Property property,
                         const FenestrationCommon::Interpolator & interpolator =
@@ -191,6 +274,13 @@ namespace MoisThermFEM
                         const FenestrationCommon::Interpolator & interpolator =
                           FenestrationCommon::Interpolation::Linear);
 
+        double max() const;
+
+        double min() const;
+
+        std::vector<std::pair<double, double>> getCurve() const;
+
+    protected:
         std::vector<std::pair<double, double>> m_Curve;
         FenestrationCommon::Interpolator m_Interpolator;
 
@@ -211,19 +301,12 @@ namespace MoisThermFEM
     class TabularDerivative : public IFunction
     {
     public:
-        static std::unique_ptr<TabularDerivative>
-          create(const std::vector<std::pair<double, double>> & values, Property property);
-        static std::unique_ptr<TabularDerivative>
-          create(const std::initializer_list<std::pair<double, double>> & list, Property property);
-
-        virtual std::unique_ptr<IValue> clone() const override;
-
-    protected:
         TabularDerivative(const std::vector<std::pair<double, double>> & values, Property property);
 
-        TabularDerivative( const std::initializer_list< std::pair< double, double>> & list,
-						   Property property );
+        TabularDerivative(const std::initializer_list<std::pair<double, double>> & list,
+                          Property property);
 
+    protected:
         std::vector<std::pair<double, double>> m_Curve;
 
         double evaluateFunction(const double t_position) const override;
@@ -242,21 +325,6 @@ namespace MoisThermFEM
     class SuctionFunction : public TabularFunction
     {
     public:
-        static std::unique_ptr<SuctionFunction>
-          create(const std::vector<std::pair<double, double>> & values,
-                 Property property,
-                 const FenestrationCommon::Interpolator & interpolator =
-                   FenestrationCommon::Interpolation::Logarithmic);
-
-        static std::unique_ptr<SuctionFunction>
-          create(const std::initializer_list<std::pair<double, double>> & list,
-                 Property property,
-                 const FenestrationCommon::Interpolator & interpolator =
-                   FenestrationCommon::Interpolation::Logarithmic);
-
-        virtual std::unique_ptr<IValue> clone() const override;
-
-    protected:
         SuctionFunction(const std::vector<std::pair<double, double>> & values,
                         Property property,
                         const FenestrationCommon::Interpolator & interpolator =
@@ -267,6 +335,7 @@ namespace MoisThermFEM
                         const FenestrationCommon::Interpolator & interpolator =
                           FenestrationCommon::Interpolation::Logarithmic);
 
+    protected:
         std::pair<std::pair<double, double>, std::pair<double, double>> getInterpolationPoints(
           std::vector<std::pair<double, double>>::const_iterator & it) const override;
     };
@@ -279,14 +348,9 @@ namespace MoisThermFEM
     class SaturationFunction : public IFunction
     {
     public:
-        static std::unique_ptr<SaturationFunction> create(Property property,
-                                                          double saturationCoefficient = 9.2);
-
-        virtual std::unique_ptr<IValue> clone() const override;
-
-    private:
         SaturationFunction(Property property, double saturationCoefficient = 9.2);
 
+    private:
         double evaluateFunction(const double t_position) const override;
         const double m_SaturationCoefficient;
     };
