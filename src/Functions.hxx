@@ -78,13 +78,13 @@ namespace MoisThermFEM
 
     /// Entire class is used to mimic operator functions so that FEM functions can be
     /// written as ordinary equations.
-    template<class T, class U, class OPERATION>
+    template<class T, class U>
     class IOperation : public IValue
     {
     public:
-        IOperation(const T & t, const U & s, const OPERATION & op) :
-            m_Function1(t),
-            m_Function2(s),
+        IOperation(const T t, const U s, const Operation & op) :
+            m_Function1(std::move(t)),
+            m_Function2(std::move(s)),
             m_Operation(op)
         {
             m_Operator[Operation::MULT] = [&](double a, double b) { return a * b; };
@@ -95,7 +95,8 @@ namespace MoisThermFEM
 
         double value(const State & state) const override
         {
-            return m_Operator.at(m_Operation)(m_Function1.value(state), m_Function2.value(state));
+            return m_Operator.at(m_Operation)(m_Function1.value(state),
+            	m_Function2.value(state));
         };
 
     private:
@@ -104,7 +105,7 @@ namespace MoisThermFEM
         const T m_Function1;
         const U m_Function2;
 
-        const OPERATION m_Operation;
+        const Operation m_Operation;
 
         /// This hold four basic operators (+, -. *. /) which is used to determine
         /// which function pointer is to be called
@@ -112,88 +113,108 @@ namespace MoisThermFEM
     };
 
     //////////////////////////////////////////////////////////////////
-    ///  Operators
+    ///  Operators for IValue
     //////////////////////////////////////////////////////////////////
 
-    template<class T>
-    IOperation<T, Constant, Operation> operator+(const T & t, double u)
-    {
-        Constant con{u};
-        return IOperation<T, Constant, Operation>(t, con, Operation::ADD);
-    }
+    ////	operator+
 
-    template<class T>
-    IOperation<Constant, T, Operation> operator+(double u, const T & t)
-    {
-        Constant con{u};
-        return IOperation<Constant, T, Operation>(con, t, Operation::ADD);
-    }
+	template <typename T, typename U>
+	typename std::enable_if<std::is_base_of<IValue, T>::value, IOperation<T, U>>::type
+	operator+(const T &t, const U &u)
+	{
+		return IOperation<T, U>(t, u, Operation::ADD);
+	}
 
-    template<class T, class U>
-    IOperation<T, U, Operation> operator+(T const & t, U const & u)
-    {
-        return IOperation<T, U, Operation>(t, u, Operation::ADD);
-    }
+	template <typename T>
+	typename std::enable_if<std::is_base_of<IValue, T>::value, IOperation<T, Constant>>::type
+	operator+(const T &t, const double &u)
+	{
+		Constant con{u};
+		return IOperation<T, Constant>(t, con, Operation::ADD);
+	}
 
-    template<class T>
-    IOperation<T, Constant, Operation> operator-(const T & t, double u)
-    {
-        Constant con{u};
-        return IOperation<T, Constant, Operation>(t, con, Operation::SUB);
-    }
+	template <typename U>
+	typename std::enable_if<std::is_base_of<IValue, U>::value, IOperation<Constant, U>>::type
+	operator+(const double &t, const U &u)
+	{
+		Constant con{t};
+		return IOperation<Constant, U>(con, u, Operation::ADD);
+	}
 
-    template<class T>
-    IOperation<Constant, T, Operation> operator-(double u, const T & t)
-    {
-        Constant con{u};
-        return IOperation<Constant, T, Operation>(con, t, Operation::SUB);
-    }
+	////	operator-
 
-    template<class T, class U>
-    IOperation<T, U, Operation> operator-(T const & t, U const & u)
-    {
-        return IOperation<T, U, Operation>(t, u, Operation::SUB);
-    }
+	template <typename T, typename U>
+	typename std::enable_if<std::is_base_of<IValue, T>::value, IOperation<T, U>>::type
+	operator-(const T &t, const U &u)
+	{
+		return IOperation<T, U>(t, u, Operation::SUB);
+	}
 
-    template<class T>
-    IOperation<T, Constant, Operation> operator*(const T & t, double u)
-    {
-        Constant con{u};
-        return IOperation<T, Constant, Operation>(t, con, Operation::MULT);
-    }
+	template <typename T>
+	typename std::enable_if<std::is_base_of<IValue, T>::value, IOperation<T, Constant>>::type
+	operator-(const T &t, const double &u)
+	{
+		Constant con{u};
+		return IOperation<T, Constant>(t, con, Operation::SUB);
+	}
 
-    template<class T>
-    IOperation<Constant, T, Operation> operator*(double u, const T & t)
-    {
-        Constant con{u};
-        return IOperation<Constant, T, Operation>(con, t, Operation::MULT);
-    }
+	template <typename U>
+	typename std::enable_if<std::is_base_of<IValue, U>::value, IOperation<Constant, U>>::type
+	operator-(const double &t, const U &u)
+	{
+		Constant con{t};
+		return IOperation<Constant, U>(con, u, Operation::SUB);
+	}
 
-    template<class T, class U>
-    IOperation<T, U, Operation> operator*(T const & t, U const & u)
-    {
-        return IOperation<T, U, Operation>(t, u, Operation::MULT);
-    }
+	////	operator*
 
-    template<class T>
-    IOperation<T, Constant, Operation> operator/(const T & t, double u)
-    {
-        Constant con{u};
-        return IOperation<T, Constant, Operation>(t, con, Operation::DIV);
-    }
+	template <typename T, typename U>
+	typename std::enable_if<std::is_base_of<IValue, T>::value, IOperation<T, U>>::type
+	operator*(const T &t, const U &u)
+	{
+		return IOperation<T, U>(t, u, Operation::MULT);
+	}
 
-    template<class T>
-    IOperation<Constant, T, Operation> operator/(double u, const T & t)
-    {
-        Constant con{u};
-        return IOperation<Constant, T, Operation>(con, t, Operation::DIV);
-    }
+	template <typename T>
+	typename std::enable_if<std::is_base_of<IValue, T>::value, IOperation<T, Constant>>::type
+	operator*(const T &t, const double &u)
+	{
+		Constant con{u};
+		return IOperation<T, Constant>(t, con, Operation::MULT);
+	}
 
-    template<class T, class U>
-    IOperation<T, U, Operation> operator/(T const & t, U const & u)
-    {
-        return IOperation<T, U, Operation>(t, u, Operation::DIV);
-    }
+	template <typename U>
+	typename std::enable_if<std::is_base_of<IValue, U>::value, IOperation<Constant, U>>::type
+	operator*(const double &t, const U &u)
+	{
+		Constant con{t};
+		return IOperation<Constant, U>(con, u, Operation::MULT);
+	}
+
+	////	operator/
+
+	template <typename T, typename U>
+	typename std::enable_if<std::is_base_of<IValue, T>::value, IOperation<T, U>>::type
+	operator/(const T &t, const U &u)
+	{
+		return IOperation<T, U>(t, u, Operation::DIV);
+	}
+
+	template <typename T>
+	typename std::enable_if<std::is_base_of<IValue, T>::value, IOperation<T, Constant>>::type
+	operator/(const T &t, const double &u)
+	{
+		Constant con{u};
+		return IOperation<T, Constant>(t, con, Operation::DIV);
+	}
+
+	template <typename U>
+	typename std::enable_if<std::is_base_of<IValue, U>::value, IOperation<Constant, U>>::type
+	operator/(const double &t, const U &u)
+	{
+		Constant con{t};
+		return IOperation<Constant, U>(con, u, Operation::DIV);
+	}
 
     //////////////////////////////////////////////////////////////////
     ///  State value

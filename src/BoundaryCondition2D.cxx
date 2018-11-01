@@ -21,11 +21,7 @@ ConvectionBC::ConvectionBC(const Node2D &t_Node1, const Node2D &t_Node2,
       m_AirTemperature(t_AirTemperature) {}
 
 std::vector<double> ConvectionBC::R_Vector() const {
-	double temp = m_ConvectionCoefficient * m_AirTemperature;
-	std::vector<double> result(m_PsiVector.size(), 0);
-	std::transform(m_PsiVector.begin(), m_PsiVector.end(), result.begin(),
-		std::bind1st(std::multiplies<double>(), temp));
-  return result;
+  return m_PsiVector * m_ConvectionCoefficient * m_AirTemperature;
 }
 
 FenestrationCommon::SquareMatrix ConvectionBC::H_Matrix() const {

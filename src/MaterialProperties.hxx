@@ -9,7 +9,7 @@
 
 namespace MoisThermFEM
 {
-    inline IOperation<Constant, TabularFunction, Operation>
+    inline IOperation<Constant, TabularFunction>
         getLiquidWaterFill(const Material & mat)
     {
         /// Calculate air and water content
@@ -21,7 +21,7 @@ namespace MoisThermFEM
         return mat.porosity() / maxWaterContent * waterContent;
     }
 
-    inline IOperation<Constant, IOperation<Constant, TabularFunction, Operation>, Operation>
+    inline IOperation<Constant, IOperation<Constant, TabularFunction>>
         getAirFill(const Material & mat)
     {
         const auto waterFill = getLiquidWaterFill(mat);

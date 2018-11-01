@@ -46,16 +46,9 @@ namespace MoisThermFEM
         std::vector<double> M{m_Elements.getLumpedMass(t_DTime)};
         auto R = m_BCs.RVector();
 
-		std::vector<double> result(t_PreviousSolution.size(), 0);
-		std::transform(t_PreviousSolution.begin(), t_PreviousSolution.end(),
-					   M.begin(), result.begin(),
-					   std::multiplies<double>());
+		auto B = t_PreviousSolution * M + R;
 
-		std::transform(result.begin(), result.end(),
-					   R.begin(), R.begin(),
-					   std::plus<double>());
-
-        return result;
+		return B;
     }
 
     std::vector<double> Domain::steadyState()
@@ -68,6 +61,7 @@ namespace MoisThermFEM
                                           const double t_DTime)
     {
         auto A = transientM_K_H_Matrix(t_DTime);
+        auto a = A.toVector();
         auto B = transientMT_R_Vector(currentStateValues, t_DTime);
 
         // CLinearSolver aSolver;

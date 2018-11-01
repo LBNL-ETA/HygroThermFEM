@@ -1,5 +1,4 @@
-#ifndef VECTOR_OPERATORS_HXX
-#define VECTOR_OPERATORS_HXX
+#pragma once
 
 #include <algorithm>
 
@@ -7,129 +6,130 @@ namespace MoisThermFEM
 {
     /// Operator +
 
-    std::vector<double> operator+(const std::vector<double> & first,
-                                  const std::vector<double> & second)
+    template<class T>
+    std::vector<T> operator+(const std::vector<T> & first, const std::vector<T> & second)
     {
         if(first.size() != second.size())
         {
             throw std::runtime_error("Vectors must be identical in size.");
         }
 
-        std::vector<double> result(first.size(), 0);
-        std::transform(first.begin(), first.end(), second.begin(), result.begin(), std::plus<double>());
+        std::vector<T> result(first.size(), 0);
+        std::transform(first.begin(), first.end(), second.begin(), result.begin(), std::plus<T>());
 
         return result;
     }
 
-    std::vector<double> operator+(const std::vector<double> & first, const double second)
+    template<class T>
+    std::vector<T> operator+(const std::vector<T> & first, const T second)
     {
-        std::vector<double> result(first.size(), 0);
+        std::vector<T> result(first.size(), 0);
         std::transform(
-          first.begin(), first.end(), result.begin(), std::bind1st(std::plus<double>(), second));
+          first.begin(), first.end(), result.begin(), std::bind1st(std::plus<T>(), second));
 
         return result;
     }
 
-    std::vector<double> operator+(const double first, const std::vector<double> & second)
+    template<class T>
+    std::vector<T> operator+(const T first, const std::vector<T> & second)
     {
         return operator+(second, first);
     }
 
     /// Operator -
-
-    std::vector<double> operator-(const std::vector<double> & first,
-                                  const std::vector<double> & second)
+    template<class T>
+    std::vector<T> operator-(const std::vector<T> & first, const std::vector<T> & second)
     {
         if(first.size() != second.size())
         {
             throw std::runtime_error("Vectors must be identical in size.");
         }
 
-        std::vector<double> result(first.size(), 0);
-        std::transform(first.begin(), first.end(), second.begin(), result.begin(), std::minus<double>());
+        std::vector<T> result(first.size(), 0);
+        std::transform(first.begin(), first.end(), second.begin(), result.begin(), std::minus<T>());
 
         return result;
     }
 
-    std::vector<double> operator-(const std::vector<double> & first, const double second)
+    template<class T>
+    std::vector<T> operator-(const std::vector<T> & first, const T second)
     {
-        std::vector<double> result(first.size(), 0);
+        std::vector<T> result(first.size(), 0);
         std::transform(
-          first.begin(), first.end(), result.begin(), std::bind1st(std::minus<double>(), second));
+          first.begin(), first.end(), result.begin(), std::bind1st(std::minus<T>(), second));
 
         return result;
     }
 
-    std::vector<double> operator-(const double first, const std::vector<double> & second)
+    template<class T>
+    std::vector<T> operator-(const T first, const std::vector<T> & second)
     {
         return operator-(second, first);
     }
 
     /// Operator *
 
-    std::vector<double> operator*(const std::vector<double> & first,
-                                  const std::vector<double> & second)
+    template<class T>
+    std::vector<T> operator*(const std::vector<T> & first, const std::vector<T> & second)
     {
         if(first.size() != second.size())
         {
             throw std::runtime_error("Vectors must be identical in size.");
         }
 
-        std::vector<double> result(first.size(), 0);
+        std::vector<T> result(first.size(), 0);
         std::transform(
-          first.begin(), first.end(), second.begin(), result.begin(), std::multiplies<double>());
+          first.begin(), first.end(), second.begin(), result.begin(), std::multiplies<T>());
 
         return result;
     }
 
-    std::vector<double> operator*(const std::vector<double> & first, const double second)
+    template<class T>
+    std::vector<T> operator*(const std::vector<T> & first, const T second)
     {
-        std::vector<double> result(first.size(), 0);
+        std::vector<T> result(first.size(), 0);
         std::transform(
-          first.begin(), first.end(), result.begin(), std::bind1st(std::multiplies<double>(), second));
+          first.begin(), first.end(), result.begin(), std::bind1st(std::multiplies<T>(), second));
 
         return result;
     }
 
-    std::vector<double> operator*(const double first, const std::vector<double> & second)
+    template<class T>
+    std::vector<T> operator*(const T first, const std::vector<T> & second)
     {
         return operator*(second, first);
     }
 
     /// Operator /
 
-    std::vector<double> operator/(const std::vector<double> & first,
-                                  const std::vector<double> & second)
+    template<class T>
+    std::vector<T> operator/(const std::vector<T> & first, const std::vector<T> & second)
     {
         if(first.size() != second.size())
         {
             throw std::runtime_error("Vectors must be identical in size.");
         }
 
-        std::vector<double> result(first.size(), 0);
+        std::vector<T> result(first.size(), 0);
         std::transform(
-          first.begin(), first.end(), second.begin(), result.begin(), std::divides<double>());
+          first.begin(), first.end(), second.begin(), result.begin(), std::divides<T>());
 
         return result;
     }
 
-    std::vector<double> operator/(const std::vector<double> & first, const double second)
+    template<class T>
+    std::vector<T> operator/(const std::vector<T> & lhs, const T value)
     {
-        std::vector<double> result(first.size(), 0);
-        std::transform(
-          first.begin(), first.end(), result.begin(), std::bind1st(std::divides<double>(), second));
-
-        return result;
+        return lhs * (1 / value);
     }
 
-    std::vector<double> operator/(const double first, const std::vector<double> & second)
+    template<class T>
+    std::vector<T> operator/(const T value, const std::vector<T> & lhs)
     {
-        std::vector<double> result(second.size(), 0);
-        std::transform(
-          second.begin(), second.end(), result.begin(), [&](double t) { return first / t; });
+        std::vector<T> result(lhs.size(), 0);
+        std::transform(lhs.begin(), lhs.end(), result.begin(), [&](T t) { return value / t; });
 
         return result;
     }
+
 }   // namespace MoisThermFEM
-
-#endif

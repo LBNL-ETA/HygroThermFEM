@@ -51,6 +51,8 @@ public:
   friend std::vector<double> operator*(const std::vector<double> &first,
                                        const SquareMatrix &second);
 
+  std::vector<std::vector<double>> toVector() const;
+
 private:
   // explicit SquareMatrix(Eigen::MatrixXd && tMatrix);
   explicit SquareMatrix(Eigen::SparseMatrix<double> &&tMatrix);
