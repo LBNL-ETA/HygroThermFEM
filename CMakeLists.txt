@@ -1,6 +1,11 @@
-cmake_minimum_required(VERSION 2.8.11)
+
+cmake_minimum_required(VERSION 3.12)
 
 set(target_name MoisThermFEM)
+
+set(CMAKE_PROJECT_VERSION_MAJOR "1")
+set(CMAKE_PROJECT_VERSION_MINOR "0")
+set(CMAKE_PROJECT_VERSION_PATCH "0")
 
 project(${target_name} CXX)
 

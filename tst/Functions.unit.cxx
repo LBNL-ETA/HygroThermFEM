@@ -127,7 +127,7 @@ TEST_F(CurveTest, TestComposition1)
 
 	State interpolationPoint(2.5, 0, 101325, 0);
 
-	auto result = tabular.value(interpolationPoint);
+	auto result = tabular1.value(interpolationPoint);
 
 	EXPECT_NEAR(125, result, 1e-6);
 }
