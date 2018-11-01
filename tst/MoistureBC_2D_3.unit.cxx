@@ -29,8 +29,7 @@ TEST_F(MoistureBC_2D_3, TestExample_1)
     const double initialMoistureContent = 0;
     const double initialPressure = 0;
 
-    auto state =
-      MoisThermFEM::State(initialTemperature, initialMoistureContent, initialPressure, 0);
+    MoisThermFEM::State state(initialTemperature, initialMoistureContent, initialPressure, 0);
     size_t nodeIndex = 0;
     for(auto val : gridXCoordinates)
     {

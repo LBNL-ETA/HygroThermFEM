@@ -31,8 +31,6 @@ TEST_F(MultiDomain_2D_1, TestExample_1)
     SCOPED_TRACE("Begin Test: Simple two elements example with moisture and heat transfer.");
 
     // Enter nodes. Arguments are: node number, x-coordinate, y-coordinate
-    auto & nodePool = NodePool::Instance();
-    auto & materialPool = MaterialPool::Instance();
 
     std::vector<double> gridXCoordinates{0, 0.05, 0.1};
 
@@ -51,13 +49,13 @@ TEST_F(MultiDomain_2D_1, TestExample_1)
     for(auto val : gridXCoordinates)
     {
         ++nodeIndex;
-        nodePool.createNode(
+        NodePool::Instance().createNode(
           nodeIndex,
           val,
           0.00,
           State(initialTemperature + T, initialMoistureContent + H, initialPressure, 0));
         ++nodeIndex;
-        nodePool.createNode(
+        NodePool::Instance().createNode(
           nodeIndex,
           val,
           0.05,
@@ -66,36 +64,37 @@ TEST_F(MultiDomain_2D_1, TestExample_1)
         H += deltaH;
     }
 
-    auto & material = materialPool.createMaterial("Cottaer Sandstone",
-                                                  2050,      /// density
-                                                  0.22,      /// porosity
-                                                  850,       /// specific heat capacity (dry)
-                                                  1.8,       /// thermal conductivity (dry)
-                                                  15,        /// diffusion resistance factor
-                                                  {{0, 0},   /// liquid transportation coefficient
-                                                   {27, 1E-8},
-                                                   {45, 1.1E-8},
-                                                   {90, 2E-8},
-                                                   {126, 3.5E-8},
-                                                   {144, 5E-8},
-                                                   {162, 1E-7},
-                                                   {171, 2E-7},
-                                                   {180, 7E-7}},
-                                                  {{0, 0},   /// sorption curve
-                                                   {0.5, 5.3},
-                                                   {0.65, 8.4},
-                                                   {0.8, 12},
-                                                   {0.93, 17},
-                                                   {0.95, 25},
-                                                   {0.99, 63},
-                                                   {0.995, 83},
-                                                   {0.999, 120},
-                                                   {1, 180}});
+    auto & material =
+      MaterialPool::Instance().createMaterial("Cottaer Sandstone",
+                                              2050,      /// density
+                                              0.22,      /// porosity
+                                              850,       /// specific heat capacity (dry)
+                                              1.8,       /// thermal conductivity (dry)
+                                              15,        /// diffusion resistance factor
+                                              {{0, 0},   /// liquid transportation coefficient
+                                               {27, 1E-8},
+                                               {45, 1.1E-8},
+                                               {90, 2E-8},
+                                               {126, 3.5E-8},
+                                               {144, 5E-8},
+                                               {162, 1E-7},
+                                               {171, 2E-7},
+                                               {180, 7E-7}},
+                                              {{0, 0},   /// sorption curve
+                                               {0.5, 5.3},
+                                               {0.65, 8.4},
+                                               {0.8, 12},
+                                               {0.93, 17},
+                                               {0.95, 25},
+                                               {0.99, 63},
+                                               {0.995, 83},
+                                               {0.999, 120},
+                                               {1, 180}});
 
     MoisThermFEM::MultiDomain domain;
 
     /// Create elements
-    for(size_t i = 1; i <= (nodePool.maxIndex() - 2) / 2; ++i)
+    for(size_t i = 1; i <= (NodePool::Instance().maxIndex() - 2) / 2; ++i)
     {
         auto & node1 = NodePool::Instance().getNode(2 * i + 1);
         auto & node2 = NodePool::Instance().getNode(2 * i + 2);

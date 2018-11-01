@@ -31,8 +31,8 @@ TEST_F(TestLinearIntegrationPointsTwoPointFormula1D, TestIntegrationPoints)
 
     const auto aElement = GetIntPoints();
 
-    std::vector<MoisThermFEM::LocalPoint1D> correctPoints = {MoisThermFEM::LocalPoint1D(-point),
-                                                             MoisThermFEM::LocalPoint1D(point)};
+    std::vector<MoisThermFEM::LocalPoint1D> correctPoints{MoisThermFEM::LocalPoint1D(-point),
+                                                          MoisThermFEM::LocalPoint1D(point)};
 
     auto points = aElement->getPoints();
 
