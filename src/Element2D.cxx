@@ -331,8 +331,8 @@ namespace MoisThermFEM
         /// liquid
         auto humidity = StateValue(Property::humidity);
         auto liquidConductivity =
-          SuctionFunction(mat.liquidTransportationCurve(), Property::humidity) * Constants::Cp_Water
-          * humidity;
+			SuctionCurve( mat.liquidTransportationCurve() ) * Constants::Cp_Water
+			* humidity;
 
         // iValue conductance = materialConductivity + vaporConductivity + liquidConductivity;
         auto conductance = materialConductivity + vaporConductivity + liquidConductivity;
@@ -365,8 +365,7 @@ namespace MoisThermFEM
         //////////////////////////////////////////////////////////////////////////////
         /// Creating conductance function for liquid
         //////////////////////////////////////////////////////////////////////////////
-        auto suctionCurve = SuctionFunction(mat.liquidTransportationCurve(), Property::humidity);
-        m_Conductance.emplace_back(new decltype(suctionCurve)(suctionCurve));
+        m_Conductance.emplace_back(new SuctionCurve(mat.liquidTransportationCurve()));
 
         //////////////////////////////////////////////////////////////////////////////
         /// Creating capacitance function

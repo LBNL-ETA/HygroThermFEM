@@ -21,7 +21,7 @@ namespace MoisThermFEM
         m_ThermalConductivity(ThermalConductivity),
         m_DiffusionResistanceFactor(DiffusionResistanceFactor),
         m_LiquidTransportCoefficient(
-          new SuctionFunction(LiquidTransportCurve, Property::humidity)),
+			new SuctionCurve( LiquidTransportCurve ) ),
         m_SorptionCurve(new TabularFunction(SorptionCurve, Property::humidity))
     {}
 

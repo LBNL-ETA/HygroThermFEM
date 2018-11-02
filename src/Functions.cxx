@@ -8,19 +8,19 @@
 
 namespace MoisThermFEM
 {
+    //////////////////////////////////////////////////////////////////
+    ///  IValue
+    //////////////////////////////////////////////////////////////////
 
-	//////////////////////////////////////////////////////////////////
-	///  IValue
-	//////////////////////////////////////////////////////////////////
-
-	std::vector< double > IValue::values(const INodes & nodes) const {
-		std::vector< double > result(nodes.size(), 0);
-		for(size_t i = 0u; i < nodes.size(); ++i)
-		{
-			result[i] = value(nodes[i].getState());
-		}
-		return result;
-	}
+    std::vector<double> IValue::values(const INodes & nodes) const
+    {
+        std::vector<double> result(nodes.size(), 0);
+        for(size_t i = 0u; i < nodes.size(); ++i)
+        {
+            result[i] = value(nodes[i].getState());
+        }
+        return result;
+    }
 
 
     //////////////////////////////////////////////////////////////////
@@ -173,20 +173,18 @@ namespace MoisThermFEM
     ///  SuctionFunction
     //////////////////////////////////////////////////////////////////
 
-    SuctionFunction::SuctionFunction(const std::vector<std::pair<double, double>> & values,
-                                     const Property property,
-                                     const FenestrationCommon::Interpolator & interpolator) :
-        TabularFunction(values, property, interpolator)
+    SuctionCurve::SuctionCurve(const std::vector<std::pair<double, double>> & values,
+                               const FenestrationCommon::Interpolator & interpolator) :
+        TabularFunction(values, Property::humidity, interpolator)
     {}
 
-    SuctionFunction::SuctionFunction(const std::initializer_list<std::pair<double, double>> & list,
-                                     const Property property,
-                                     const FenestrationCommon::Interpolator & interpolator) :
-        TabularFunction(list, property, interpolator)
+    SuctionCurve::SuctionCurve(const std::initializer_list<std::pair<double, double>> & list,
+                               const FenestrationCommon::Interpolator & interpolator) :
+        TabularFunction(list, Property::humidity, interpolator)
     {}
 
     std::pair<std::pair<double, double>, std::pair<double, double>>
-      SuctionFunction::getInterpolationPoints(
+      SuctionCurve::getInterpolationPoints(
         std::vector<std::pair<double, double>>::const_iterator & it) const
     {
         /// Suction curve takes care that first segment of curve always return value of first
@@ -208,7 +206,7 @@ namespace MoisThermFEM
     ///  SaturationFunction
     //////////////////////////////////////////////////////////////////
 
-    SaturationFunction::SaturationFunction( const double saturationCoefficient ) :
+    SaturationFunction::SaturationFunction(const double saturationCoefficient) :
         IFunction(Property::temperature),
         m_SaturationCoefficient(saturationCoefficient)
     {}

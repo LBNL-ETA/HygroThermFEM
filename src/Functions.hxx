@@ -31,7 +31,7 @@ namespace MoisThermFEM
     {
     public:
         virtual double value(const State & state) const = 0;
-		virtual std::vector<double> values(const INodes & nodes) const;
+        virtual std::vector<double> values(const INodes & nodes) const;
         virtual ~IValue() = default;
     };
 
@@ -322,18 +322,16 @@ namespace MoisThermFEM
     /// Class that behaves like suction curve. It is standard (linear or
     /// logarithmic) interpolation except for the results in first range where curve
     /// will return constant value equal to the first point
-    class SuctionFunction : public TabularFunction
+    class SuctionCurve : public TabularFunction
     {
     public:
-        SuctionFunction(const std::vector<std::pair<double, double>> & values,
-                        Property property,
-                        const FenestrationCommon::Interpolator & interpolator =
-                          FenestrationCommon::Interpolation::Logarithmic);
+        SuctionCurve(const std::vector<std::pair<double, double>> & values,
+                     const FenestrationCommon::Interpolator & interpolator =
+                       FenestrationCommon::Interpolation::Logarithmic);
 
-        SuctionFunction(const std::initializer_list<std::pair<double, double>> & list,
-                        Property property,
-                        const FenestrationCommon::Interpolator & interpolator =
-                          FenestrationCommon::Interpolation::Logarithmic);
+        SuctionCurve(const std::initializer_list<std::pair<double, double>> & list,
+                     const FenestrationCommon::Interpolator & interpolator =
+                       FenestrationCommon::Interpolation::Logarithmic);
 
     protected:
         std::pair<std::pair<double, double>, std::pair<double, double>> getInterpolationPoints(

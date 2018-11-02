@@ -7,7 +7,7 @@ using MoisThermFEM::Property;
 using MoisThermFEM::State;
 using MoisThermFEM::TabularFunction;
 using MoisThermFEM::TabularDerivative;
-using MoisThermFEM::SuctionFunction;
+using MoisThermFEM::SuctionCurve;
 using MoisThermFEM::SaturationFunction;
 using MoisThermFEM::Derivative;
 using MoisThermFEM::Constant;
@@ -70,20 +70,22 @@ TEST_F(CurveTest, TestTabularLogarithmic)
 TEST_F(CurveTest, TestSuctionCurve)
 {
     SCOPED_TRACE("Begin Test: Test suction function.");
-    const SuctionFunction curve({{1, 10}, {2, 20}, {3, 30}}, Property::temperature);
+    const SuctionCurve curve( { { 0.1, 10 },
+								{ 0.2, 20 },
+								{ 0.3, 30 } } );
 
     /// First segment should have constant values
-    State interpolationPoint(1.5, 0, 101325, 0);
+    State interpolationPoint(0, 0.15, 101325, 0);
     auto result = curve.value(interpolationPoint);
     EXPECT_NEAR(10, result, 1e-6);
 
     /// Test outside of curve
-    State interpolationPoint1(0.5, 0, 101325, 0);
+    State interpolationPoint1(0, 0.05, 101325, 0);
     result = curve.value(interpolationPoint1);
     EXPECT_NEAR(10, result, 1e-6);
 
     /// Other segments should have logarithmic interpolation
-    State interpolationPoint2(2.5, 0, 101325, 0);
+    State interpolationPoint2(0, 0.25, 101325, 0);
     result = curve.value(interpolationPoint2);
     EXPECT_NEAR(24.4948974, result, 1e-6);
 }
