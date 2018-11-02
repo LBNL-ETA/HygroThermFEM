@@ -192,9 +192,8 @@ namespace MoisThermFEM
     ///  SaturationFunction
     //////////////////////////////////////////////////////////////////
 
-    SaturationFunction::SaturationFunction(const Property property,
-                                           const double saturationCoefficient) :
-        IFunction(property),
+    SaturationFunction::SaturationFunction( const double saturationCoefficient ) :
+        IFunction(Property::temperature),
         m_SaturationCoefficient(saturationCoefficient)
     {}
 

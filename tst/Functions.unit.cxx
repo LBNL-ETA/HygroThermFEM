@@ -188,9 +188,7 @@ TEST_F(CurveTest, TestSaturationFunction)
 
     auto airFill = materialPorosity - waterFill;
 
-    auto sat = SaturationFunction(Property::temperature);
-
-    auto sat1 = sat * airFill;
+    auto sat1 = SaturationFunction() * airFill;
 
     State interpolationPoint(283.15, 0.5, 101325, 0);
     auto result = sat1.value(interpolationPoint);

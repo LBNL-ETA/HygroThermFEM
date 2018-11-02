@@ -372,14 +372,13 @@ namespace MoisThermFEM
         /// Creating conductance function for vapor
         //////////////////////////////////////////////////////////////////////////////
         auto delta = Constant(2.5E-5 / mat.diffusionResistanceFactor());
-        auto saturationFunction = SaturationFunction(Property::temperature);
-        auto conductance = delta * saturationFunction;
+        auto conductance = delta * SaturationFunction();
 
         m_Conductance.emplace_back(new decltype(conductance)(conductance));
 
         m_DerivativeConductance.emplace_back(
           std::unique_ptr<IValue>(new decltype(delta)(delta)),
-          std::unique_ptr<IValue>(new decltype(saturationFunction)(saturationFunction)));
+          std::unique_ptr<IValue>(new SaturationFunction()));
 
         //////////////////////////////////////////////////////////////////////////////
         /// Creating conductance function for liquid
