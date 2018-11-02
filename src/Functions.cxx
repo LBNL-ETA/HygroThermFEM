@@ -4,9 +4,25 @@
 #include "FEMunique.hxx"
 #include "Functions.hxx"
 #include "State.hxx"
+#include "Node2D.hxx"
 
 namespace MoisThermFEM
 {
+
+	//////////////////////////////////////////////////////////////////
+	///  IValue
+	//////////////////////////////////////////////////////////////////
+
+	std::vector< double > IValue::values(const INodes & nodes) const {
+		std::vector< double > result(nodes.size(), 0);
+		for(size_t i = 0u; i < nodes.size(); ++i)
+		{
+			result[i] = value(nodes[i].getState());
+		}
+		return result;
+	}
+
+
     //////////////////////////////////////////////////////////////////
     ///  IFunction
     //////////////////////////////////////////////////////////////////

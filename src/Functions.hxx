@@ -6,7 +6,6 @@
 #include <vector>
 
 #include "Interpolator.hxx"
-#include "VectorOperators.hxx"
 #include "State.hxx"
 
 /// Functions interface is used to build function that are used for matrix
@@ -18,6 +17,7 @@ namespace MoisThermFEM
     enum class Property;
 
     class State;
+    class INodes;
 
     enum class Operation
     {
@@ -31,6 +31,7 @@ namespace MoisThermFEM
     {
     public:
         virtual double value(const State & state) const = 0;
+		virtual std::vector<double> values(const INodes & nodes) const;
         virtual ~IValue() = default;
     };
 

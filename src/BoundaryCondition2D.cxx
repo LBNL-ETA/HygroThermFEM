@@ -149,12 +149,8 @@ namespace MoisThermFEM
     {
         const auto humidityCoeff = m_Material.porosity() * SaturationFunction();
 
-        const auto humidityByVolume1 = humidityCoeff.value(m_Nodes[0].getState());
-        const auto humidityByVolume2 = humidityCoeff.value(m_Nodes[1].getState());
-
-        const auto beta = m_ConvectiveCoefficient / (Constants::Density_Air * Constants::Cp_Air);
-
-        std::vector<double> coeffs{humidityByVolume1 * beta, humidityByVolume2 * beta};
+        const auto coeffs = humidityCoeff.values(m_Nodes) * m_ConvectiveCoefficient
+                            / (Constants::Density_Air * Constants::Cp_Air);
 
         return m_PsiPsiMatrix.mmultRows(coeffs);
     }

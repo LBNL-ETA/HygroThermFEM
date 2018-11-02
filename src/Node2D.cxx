@@ -45,18 +45,18 @@ namespace MoisThermFEM
     {}
 
     bool operator==(const Node2D & first, const Node2D & second)
-	{
-		bool identical = true;
-		identical = identical && first.m_NodeNumber == second.m_NodeNumber;
-		identical = identical && first.m_x == second.m_x;
-		identical = identical && first.m_y == second.m_y;
-		return identical;
-	}
+    {
+        bool identical = true;
+        identical = identical && first.m_NodeNumber == second.m_NodeNumber;
+        identical = identical && first.m_x == second.m_x;
+        identical = identical && first.m_y == second.m_y;
+        return identical;
+    }
 
-	bool operator!=(const Node2D & first, const Node2D & second)
-	{
-		return !operator==(first, second);
-	}
+    bool operator!=(const Node2D & first, const Node2D & second)
+    {
+        return !operator==(first, second);
+    }
 
     size_t Node2D::getNodeNumber() const
     {
@@ -93,7 +93,7 @@ namespace MoisThermFEM
         return m_State;
     }
 
-    void Node2D::assignMaterial( const std::string & t_Material, double weightingCoefficient )
+    void Node2D::assignMaterial(const std::string & t_Material, double weightingCoefficient)
     {
         auto & material = MaterialPool::Instance().material(t_Material);
         m_Materials.emplace(weightingCoefficient, material);
@@ -115,16 +115,16 @@ namespace MoisThermFEM
     ///   INodesStorage
     ////////////////////////////////////////////////////////////////////////////
 
-    INodesStorage::INodesStorage(std::initializer_list<Node2D> t_Nodes) : m_Nodes(t_Nodes)
+    INodes::INodes(std::initializer_list<Node2D> t_Nodes) : m_Nodes(t_Nodes)
     {}
 
-    Node2D & INodesStorage::getNode(const std::size_t Index)
+    Node2D & INodes::getNode(const std::size_t Index)
     {
         assert(Index < m_Nodes.size());
         return m_Nodes[Index];
     }
 
-    std::vector<std::size_t> INodesStorage::getNodeIndexes() const
+    std::vector<std::size_t> INodes::getNodeIndexes() const
     {
         std::vector<std::size_t> indexes;
         for(const auto & aNode : m_Nodes)
@@ -134,7 +134,7 @@ namespace MoisThermFEM
         return indexes;
     }
 
-    Node2D INodesStorage::operator[](const std::size_t index) const
+    Node2D INodes::operator[](const std::size_t index) const
     {
         if(index >= m_Nodes.size())
         {
@@ -143,12 +143,17 @@ namespace MoisThermFEM
         return m_Nodes[index];
     }
 
+    std::size_t INodes::size() const
+    {
+        return m_Nodes.size();
+    }
+
     ////////////////////////////////////////////////////////////////////////////
     ///   LineNodes2D
     ////////////////////////////////////////////////////////////////////////////
 
     LineNodes2D::LineNodes2D(const Node2D & t_Node1, const Node2D & t_Node2) :
-        INodesStorage{t_Node1, t_Node2}
+        INodes{t_Node1, t_Node2}
     {}
 
     ////////////////////////////////////////////////////////////////////////////
@@ -159,6 +164,6 @@ namespace MoisThermFEM
                                                const Node2D & t_Node2,
                                                const Node2D & t_Node3,
                                                const Node2D & t_Node4) :
-        INodesStorage({t_Node1, t_Node2, t_Node3, t_Node4})
+        INodes({t_Node1, t_Node2, t_Node3, t_Node4})
     {}
 }   // namespace MoisThermFEM

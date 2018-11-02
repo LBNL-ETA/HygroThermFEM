@@ -85,22 +85,24 @@ namespace MoisThermFEM
     };
 
     ////////////////////////////////////////////////////////////////////////////
-    ////   INodesStorage
+    ////   INodes
     ////////////////////////////////////////////////////////////////////////////
 
     // Interface that holds all node data in single storage
-    class INodesStorage
+    class INodes
     {
     public:
-        INodesStorage() = default;
+        INodes() = default;
 
-        INodesStorage(std::initializer_list<Node2D> t_Nodes);
+        INodes(std::initializer_list<Node2D> t_Nodes);
 
         Node2D & getNode(const std::size_t Index);
 
         Node2D operator[](const std::size_t index) const;
 
         std::vector<std::size_t> getNodeIndexes() const;
+
+        std::size_t size() const;
 
     protected:
         std::vector<Node2D> m_Nodes;
@@ -111,7 +113,7 @@ namespace MoisThermFEM
     ////////////////////////////////////////////////////////////////////////////
 
     // Class that store nodes which are part of some boundary conditions in 2D
-    class LineNodes2D : public INodesStorage
+    class LineNodes2D : public INodes
     {
     public:
         LineNodes2D(const Node2D & t_Node1, const Node2D & t_Node2);
@@ -122,7 +124,7 @@ namespace MoisThermFEM
     ////////////////////////////////////////////////////////////////////////////
 
     // Class that store nodal data which are part of elementsCreator
-    class QuadrilateralNodes2D : public INodesStorage
+    class QuadrilateralNodes2D : public INodes
     {
     public:
         QuadrilateralNodes2D(const Node2D & t_Node1,

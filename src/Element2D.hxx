@@ -134,7 +134,8 @@ private:
 	/// calculates angle between two vectors made of (node1-node2) and (node1-node3)
 	double angleBetweenNodes(const Node2D & node1, const Node2D & node2, const Node2D & node3);
 
-	template <typename T> class NodesVector {
+	template <typename T>
+	class NodesVector {
 	public:
 		explicit NodesVector(const std::initializer_list<T> &__l)
 			: vec_(__l), currentIndex(0), passedLast(false) {}
