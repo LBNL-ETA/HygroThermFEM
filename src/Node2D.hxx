@@ -99,6 +99,7 @@ namespace MoisThermFEM
         Node2D & getNode(const std::size_t Index);
 
         Node2D operator[](const std::size_t index) const;
+        Node2D & operator[](const std::size_t index);
 
         std::vector<std::size_t> getNodeIndexes() const;
 

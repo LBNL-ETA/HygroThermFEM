@@ -134,49 +134,46 @@ private:
 	/// calculates angle between two vectors made of (node1-node2) and (node1-node3)
 	double angleBetweenNodes(const Node2D & node1, const Node2D & node2, const Node2D & node3);
 
-	template <typename T>
-	class NodesVector {
+
+	/// Class introduced to handle itarations so that it will be easier to calculate angle
+	/// between nodes.
+	class NodesVector : public INodes {
 	public:
-		explicit NodesVector(const std::initializer_list<T> &__l)
-			: vec_(__l), currentIndex(0), passedLast(false) {}
+		explicit NodesVector(const std::initializer_list<Node2D> &__l)
+			: INodes(__l), currentIndex(0), passedLast(false) {}
 
-		typename std::vector<T>::const_iterator begin() const { return vec_.begin(); }
+		typename std::vector<Node2D>::const_iterator begin() const { return m_Nodes.begin(); }
 
-		typename std::vector<T>::const_iterator end() const { return vec_.end(); }
-
-		std::size_t size() const { return vec_.size(); }
-
-		T & operator[](const std::size_t index) { return vec_[index]; }
-		const T & operator[](const std::size_t index) const { return vec_[index]; }
+		typename std::vector<Node2D>::const_iterator end() const { return m_Nodes.end(); }
 
 		/// Keeps iterating over unique elements of the vector
-		T &current() { return vec_[currentIndex]; }
+		Node2D &current() { return m_Nodes[currentIndex]; }
 
 		bool last() { return passedLast; }
 
-		T &previous() {
+		Node2D &previous() {
 
 			auto validIndex = checkPrevIndex(currentIndex);
 
-			while (vec_[validIndex] == vec_[currentIndex]) {
+			while (m_Nodes[validIndex] == m_Nodes[currentIndex]) {
 				validIndex = checkPrevIndex(validIndex);
 			}
 
-			return vec_[validIndex];
+			return m_Nodes[validIndex];
 		}
 
-		T &next() {
+		Node2D &next() {
 			auto validIndex = checkNextIndex(currentIndex);
-			while (vec_[validIndex] == vec_[currentIndex]) {
+			while (m_Nodes[validIndex] == m_Nodes[currentIndex]) {
 				validIndex = checkNextIndex(validIndex);
 			}
 
-			return vec_[validIndex];
+			return m_Nodes[validIndex];
 		}
 
 		void moveToNext() {
 			auto nextIndex = checkNextIndex(currentIndex);
-			while (vec_[nextIndex] == vec_[currentIndex]) {
+			while (m_Nodes[nextIndex] == m_Nodes[currentIndex]) {
 				nextIndex = checkNextIndex(nextIndex);
 			}
 			passedLast = nextIndex < currentIndex;
@@ -187,7 +184,7 @@ private:
 		std::size_t checkNextIndex(const std::size_t index) const {
 			auto validIndex = index;
 
-			if (validIndex != vec_.size() - 1) {
+			if (validIndex != m_Nodes.size() - 1) {
 				validIndex = index + 1;
 			} else {
 				validIndex = 0;
@@ -202,17 +199,16 @@ private:
 			if (validIndex != 0) {
 				validIndex = index - 1;
 			} else {
-				validIndex = vec_.size() - 1;
+				validIndex = m_Nodes.size() - 1;
 			}
 
 			return validIndex;
 		}
-		std::vector<T> vec_;
 		std::size_t currentIndex{0};
 		bool passedLast{false};
 	};
 
-  NodesVector<Node2D> m_Node;
+  NodesVector m_Nodes;
 
   QuadrilateralLinearGlobal2D m_Global2D;
   QLECapacitance2D m_QLECapacitance2D;
