@@ -25,33 +25,35 @@ namespace MoisThermFEM
     {
         const auto count = IntegrationPoints2D::Instance().count2D();
 
-        std::vector<std::vector<double>> aMatrix(numOfQuadrilateralNodes,
-                                                 std::vector<double>(numOfQuadrilateralNodes, 0));
+        SquareMatrix aMatrix(numOfQuadrilateralNodes);
 
         for(auto integrationPoint = 0u; integrationPoint < count; ++integrationPoint)
         {
-            calculateMatrixInIntegrationPoint(t_Values, integrationPoint, aMatrix);
+            aMatrix += calculateMatrixInIntegrationPoint(t_Values, integrationPoint);
         }
 
-        return SquareMatrix{aMatrix};
+        return aMatrix;
     }
 
-    void IQLEMatrix2D::calculateMatrixInIntegrationPoint(
-      const std::vector<double> & t_Values,
-      const std::size_t t_IntegrationPointIndex,
-      std::vector<std::vector<double>> & t_Matrix) const
+    FenestrationCommon::SquareMatrix IQLEMatrix2D::calculateMatrixInIntegrationPoint(
+      const std::vector<double> & t_Values, const std::size_t t_IntegrationPointIndex) const
     {
         assert(t_Values.size() == 4);
 
         auto & intPointMatrix = m_IntegrationMatrix[t_IntegrationPointIndex];
 
-        for(size_t i = 0; i < t_Matrix.size(); ++i)
+        // Filling matrix from triples is faster then putting it directly into matrix
+	SquareMatrix aMatrix{4};
+
+        for(size_t i = 0; i < t_Values.size(); ++i)
         {
-            for(size_t j = 0; j < t_Matrix.size(); ++j)
+            for(size_t j = 0; j < t_Values.size(); ++j)
             {
-                t_Matrix[i][j] += intPointMatrix(i, j) * 0.5 * (t_Values[i] + t_Values[j]);
+                aMatrix(i, j) = intPointMatrix(i, j) * 0.5 * (t_Values[i] + t_Values[j]);
             }
         }
+         
+        return aMatrix;
     }
 
     //////////////////////////////////////////////////////////////////////////////
@@ -187,7 +189,7 @@ namespace MoisThermFEM
         /// which case one of the node numbers will be repeated twice.
         while(!m_Nodes.last())
         {
-        	/// Form triangle of nodes. node1 is in center and angle is calculated at that node.
+            /// Form triangle of nodes. node1 is in center and angle is calculated at that node.
             auto & node1 = NodePool::Instance().getNode(m_Nodes.current().getNodeNumber());
             auto & node2 = NodePool::Instance().getNode(m_Nodes.previous().getNodeNumber());
             auto & node3 = NodePool::Instance().getNode(m_Nodes.next().getNodeNumber());
