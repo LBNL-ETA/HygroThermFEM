@@ -29,31 +29,32 @@ namespace MoisThermFEM
 
         for(auto integrationPoint = 0u; integrationPoint < count; ++integrationPoint)
         {
-            aMatrix += calculateMatrixInIntegrationPoint(t_Values, integrationPoint);
+        	// Passing reference to matrix is faster then returning matrix from function
+        	// just because new matrix needs to be created and assigned. This was causing
+        	// some 40% slowdown.
+            calculateMatrixInIntegrationPoint(aMatrix, t_Values, integrationPoint);
         }
 
         return aMatrix;
     }
 
-    FenestrationCommon::SquareMatrix IQLEMatrix2D::calculateMatrixInIntegrationPoint(
-      const std::vector<double> & t_Values, const std::size_t t_IntegrationPointIndex) const
+    void IQLEMatrix2D::calculateMatrixInIntegrationPoint(
+		SquareMatrix & matrix,
+		const std::vector< double > & t_Values,
+		const std::size_t t_IntegrationPointIndex ) const
     {
         assert(t_Values.size() == 4);
+        assert(matrix.size() == 4);
 
         auto & intPointMatrix = m_IntegrationMatrix[t_IntegrationPointIndex];
-
-        // Filling matrix from triples is faster then putting it directly into matrix
-	SquareMatrix aMatrix{4};
 
         for(size_t i = 0; i < t_Values.size(); ++i)
         {
             for(size_t j = 0; j < t_Values.size(); ++j)
             {
-                aMatrix(i, j) = intPointMatrix(i, j) * 0.5 * (t_Values[i] + t_Values[j]);
+                matrix(i, j) += intPointMatrix(i, j) * 0.5 * (t_Values[i] + t_Values[j]);
             }
         }
-         
-        return aMatrix;
     }
 
     //////////////////////////////////////////////////////////////////////////////
@@ -331,8 +332,7 @@ namespace MoisThermFEM
         /// liquid
         auto humidity = StateValue(Property::humidity);
         auto liquidConductivity =
-			SuctionCurve( mat.liquidTransportationCurve() ) * Constants::Cp_Water
-			* humidity;
+          SuctionCurve(mat.liquidTransportationCurve()) * Constants::Cp_Water * humidity;
 
         // iValue conductance = materialConductivity + vaporConductivity + liquidConductivity;
         auto conductance = materialConductivity + vaporConductivity + liquidConductivity;

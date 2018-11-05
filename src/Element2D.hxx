@@ -32,8 +32,9 @@ namespace MoisThermFEM
           integrate(const std::vector<double> & t_Values) const final;
 
     protected:
-        virtual FenestrationCommon::SquareMatrix
-          calculateMatrixInIntegrationPoint(const std::vector<double> & t_Values,
+        virtual void
+          calculateMatrixInIntegrationPoint(FenestrationCommon::SquareMatrix & matrix,
+                                            const std::vector<double> & t_Values,
                                             const std::size_t t_IntegrationPointIndex) const final;
 
         const QuadrilateralLinearGlobal2D & m_Global2D;
