@@ -12,10 +12,9 @@ namespace MoisThermFEM
     class ElementsLinear2D
     {
     public:
-        explicit ElementsLinear2D();
+        explicit ElementsLinear2D() = default;
 
         FenestrationCommon::SquareMatrix conductanceMatrix();
-        // FenestrationCommon::SquareMatrix< double > & thermalCapacitanceMatrix();
 
         /// Creates lumped mass matrix that includes time derivative
         std::vector<double> getLumpedMass(const double DTime);
@@ -27,14 +26,13 @@ namespace MoisThermFEM
 
         IElementLinear2D * findElement(const Node2D & t_Node1, const Node2D & t_Node2);
 
-        void assignElement(std::unique_ptr<IElementLinear2D> el);
+        void assignElement( std::unique_ptr< IElementLinear2D > && el );
 
     protected:
         /// FenestrationCommon::SquareMatrix< double > m_Conductance;
         /// FenestrationCommon::SquareMatrix< double > m_Capacitance;
 
         std::vector<std::unique_ptr<IElementLinear2D>> m_Elements;
-        bool m_Linear;
     };
 
 }   // namespace MoisThermFEM

@@ -111,7 +111,8 @@ namespace MoisThermFEM
                          const Node2D & t_Node2,
                          const Node2D & t_Node3,
                          const Node2D & t_Node4,
-                         const Material & t_Material);
+                         const Material & t_Material,
+                         const bool isLinear = true);
 
         FenestrationCommon::SquareMatrix conductanceMatrix() const;
 
@@ -126,6 +127,8 @@ namespace MoisThermFEM
         std::vector<std::size_t> nodeIndexes() const;
 
         const Material & getMaterial() const;
+
+        virtual bool isLinear() const final;
 
     protected:
         /// TODO: This did not work with reference_wrapper and it should. Check later.
@@ -252,6 +255,8 @@ namespace MoisThermFEM
         /// This one depends on functions and must be stored for every
         /// DerivativeConductance submatrix
         std::vector<QLEConductanceDerivative2D> m_QLEDerivativeConductance;
+
+        const bool m_Linear;
     };
 
     //////////////////////////////////////////////////////////////////////////////

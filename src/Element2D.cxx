@@ -29,9 +29,9 @@ namespace MoisThermFEM
 
         for(auto integrationPoint = 0u; integrationPoint < count; ++integrationPoint)
         {
-        	// Passing reference to matrix is faster then returning matrix from function
-        	// just because new matrix needs to be created and assigned. This was causing
-        	// some 40% slowdown.
+            // Passing reference to matrix is faster then returning matrix from function
+            // just because new matrix needs to be created and assigned. This was causing
+            // some 40% slowdown.
             calculateMatrixInIntegrationPoint(aMatrix, t_Values, integrationPoint);
         }
 
@@ -39,9 +39,9 @@ namespace MoisThermFEM
     }
 
     void IQLEMatrix2D::calculateMatrixInIntegrationPoint(
-		SquareMatrix & matrix,
-		const std::vector< double > & t_Values,
-		const std::size_t t_IntegrationPointIndex ) const
+      SquareMatrix & matrix,
+      const std::vector<double> & t_Values,
+      const std::size_t t_IntegrationPointIndex) const
     {
         assert(t_Values.size() == 4);
         assert(matrix.size() == 4);
@@ -177,12 +177,14 @@ namespace MoisThermFEM
                                        const Node2D & t_Node2,
                                        const Node2D & t_Node3,
                                        const Node2D & t_Node4,
-                                       const Material & t_Material) :
+                                       const Material & t_Material,
+                                       const bool isLinear) :
         m_Material{t_Material},
         m_Nodes{{t_Node1, t_Node2, t_Node3, t_Node4}},
         m_Global2D{t_Node1, t_Node2, t_Node3, t_Node4},
         m_QLECapacitance2D{m_Global2D},
-        m_QLEConductance2D{m_Global2D}
+        m_QLEConductance2D{m_Global2D},
+        m_Linear{isLinear}
     {
         auto matName = m_Material.name();
 
@@ -298,6 +300,11 @@ namespace MoisThermFEM
         return angle;
     }
 
+    bool IElementLinear2D::isLinear() const
+    {
+        return m_Linear;
+    }
+
     //////////////////////////////////////////////////////////////////////////////
     ///  ElementThermalLinear2D
     //////////////////////////////////////////////////////////////////////////////
@@ -349,7 +356,7 @@ namespace MoisThermFEM
                                                      const Node2D & t_Node3,
                                                      const Node2D & t_Node4,
                                                      const Material & mat) :
-        IElementLinear2D(t_Node1, t_Node2, t_Node3, t_Node4, mat)
+        IElementLinear2D(t_Node1, t_Node2, t_Node3, t_Node4, mat, false)
     {
         //////////////////////////////////////////////////////////////////////////////
         /// Creating conductance function for vapor

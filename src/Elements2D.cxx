@@ -25,10 +25,6 @@ namespace MoisThermFEM
         return result;
     }
 
-    //	SquareMatrix< double > & ElementsLinear2D::thermalCapacitanceMatrix() {
-    //		return m_Capacitance;
-    //	}
-
     std::vector<double> ElementsLinear2D::getLumpedMass(const double DTime)
     {
         std::vector<std::vector<double>> Capacitance(
@@ -86,13 +82,18 @@ namespace MoisThermFEM
         return Capacitance;
     }
 
-    ElementsLinear2D::ElementsLinear2D() :
-        m_Linear(true)
-    {}
-
     bool ElementsLinear2D::isLinear() const
     {
-        return m_Linear;
+    	bool isLinear = true;
+    	for(auto & elem : m_Elements)
+		{
+    		isLinear = isLinear && elem->isLinear();
+    		if(!isLinear) // no need to waste time in loop
+			{
+    			break;
+			}
+		}
+        return isLinear;
     }
 
     void ElementsLinear2D::updateNodeValues(const std::vector<double> & values, const Property property)
@@ -121,7 +122,7 @@ namespace MoisThermFEM
         return el;
     }
 
-    void ElementsLinear2D::assignElement(std::unique_ptr<IElementLinear2D> el)
+    void ElementsLinear2D::assignElement( std::unique_ptr< IElementLinear2D > && el )
     {
         m_Elements.push_back(std::move(el));
     }
