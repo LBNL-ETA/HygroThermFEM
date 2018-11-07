@@ -43,17 +43,17 @@ namespace MoisThermFEM
     };
 
     //////////////////////////////////////////////////////////////////////////////
-    ///  QLEConductance2D
+    ///  QLEDDUIntegrator2D
     //////////////////////////////////////////////////////////////////////////////
 
     // Class to handle conductance matrix in global coordinate system
     // Conductance equation is D/Dx(Du/Dx)+D/Dy(Du/Dy) where u is state variable
-    class QLEDDUConductance2D : public IQLEMatrix2D
+    class QLEDDUIntegrator2D : public IQLEMatrix2D
     {
     public:
-        virtual ~QLEDDUConductance2D() = default;
+        virtual ~QLEDDUIntegrator2D() = default;
 
-        QLEDDUConductance2D(const QuadrilateralLinearGlobal2D & t_Element);
+        QLEDDUIntegrator2D(const QuadrilateralLinearGlobal2D & t_Element);
     };
 
     //////////////////////////////////////////////////////////////////////////////
@@ -115,7 +115,7 @@ namespace MoisThermFEM
                          const Material & t_Material,
                          const bool isLinear = true);
 
-        FenestrationCommon::SquareMatrix conductanceMatrix() const;
+        FenestrationCommon::SquareMatrix DDuMatrices() const;
 
         FenestrationCommon::SquareMatrix conductanceDerivativeMatrix();
 
@@ -132,7 +132,7 @@ namespace MoisThermFEM
         virtual bool isLinear() const final;
 
     protected:
-        std::vector<iValue> m_Conductance;
+        std::vector<iValue> m_DDUFunctions;
         std::vector<iValue> m_Capacitance;
         std::vector<DerivativeFunction> m_DerivativeConductance;
 
@@ -249,7 +249,7 @@ namespace MoisThermFEM
 
         QuadrilateralLinearGlobal2D m_Global2D;
         QLECapacitance2D m_QLECapacitance2D;
-        QLEDDUConductance2D m_DDU;
+        QLEDDUIntegrator2D m_DDUIntegrator;
         /// This one depends on functions and must be stored for every
         /// DerivativeConductance submatrix
         std::vector<QLEConductanceDerivative2D> m_QLEDerivativeConductance;

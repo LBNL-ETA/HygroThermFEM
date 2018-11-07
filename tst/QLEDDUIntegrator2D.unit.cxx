@@ -5,7 +5,7 @@
 
 using MoisThermFEM::NodePool;
 using MoisThermFEM::QuadrilateralLinearGlobal2D;
-using MoisThermFEM::QLEDDUConductance2D;
+using MoisThermFEM::QLEDDUIntegrator2D;
 
 class TestQLEDDUConductance2D : public testing::Test
 {
@@ -33,7 +33,7 @@ TEST_F(TestQLEDDUConductance2D, TestConductionMatrix)
 
     QuadrilateralLinearGlobal2D element{node1, node2, node3, node4};
 
-    QLEDDUConductance2D matrix{element};
+    QLEDDUIntegrator2D matrix{element};
 
     std::vector<double> conductance{2, 2, 3, 6};
 

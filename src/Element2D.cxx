@@ -61,7 +61,7 @@ namespace MoisThermFEM
     ///  QLEDDUConductance2D
     //////////////////////////////////////////////////////////////////////////////
 
-    QLEDDUConductance2D::QLEDDUConductance2D(const QuadrilateralLinearGlobal2D & t_Element) :
+    QLEDDUIntegrator2D::QLEDDUIntegrator2D(const QuadrilateralLinearGlobal2D & t_Element) :
         IQLEMatrix2D{t_Element}
     {
         const auto numOfIntegrationPoints = IntegrationPoints2D::Instance().count2D();
@@ -183,7 +183,7 @@ namespace MoisThermFEM
         m_Nodes{{t_Node1, t_Node2, t_Node3, t_Node4}},
         m_Global2D{t_Node1, t_Node2, t_Node3, t_Node4},
         m_QLECapacitance2D{m_Global2D},
-        m_DDU{m_Global2D},
+        m_DDUIntegrator{m_Global2D},
         m_Linear{isLinear}
     {
         auto matName = m_Material.name();
@@ -208,13 +208,13 @@ namespace MoisThermFEM
         }
     }
 
-    FenestrationCommon::SquareMatrix IElementLinear2D::conductanceMatrix() const
+    FenestrationCommon::SquareMatrix IElementLinear2D::DDuMatrices() const
     {
         FenestrationCommon::SquareMatrix result{numOfQuadrilateralNodes};
-        for(const auto & cond : m_Conductance)
+        for(const auto & cond : m_DDUFunctions)
         {
             const auto values = cond->values(m_Nodes);
-            result += m_DDU.integrate(values);
+            result += m_DDUIntegrator.integrate(values);
         }
 
         return result;
@@ -344,7 +344,7 @@ namespace MoisThermFEM
         // iValue conductance = materialConductivity + vaporConductivity + liquidConductivity;
         auto conductance = materialConductivity + vaporConductivity + liquidConductivity;
 
-        m_Conductance.emplace_back(new decltype(conductance)(conductance));
+        m_DDUFunctions.emplace_back(new decltype(conductance)(conductance));
     }
 
     //////////////////////////////////////////////////////////////////////////////
@@ -364,7 +364,7 @@ namespace MoisThermFEM
         auto delta = Constant(2.5E-5 / mat.diffusionResistanceFactor());
         auto conductance = delta * SaturationFunction();
 
-        m_Conductance.emplace_back(new decltype(conductance)(conductance));
+        m_DDUFunctions.emplace_back(new decltype(conductance)(conductance));
 
         m_DerivativeConductance.emplace_back(std::unique_ptr<IValue>(new decltype(delta)(delta)),
                                              std::unique_ptr<IValue>(new SaturationFunction()));
@@ -372,7 +372,7 @@ namespace MoisThermFEM
         //////////////////////////////////////////////////////////////////////////////
         /// Creating conductance function for liquid
         //////////////////////////////////////////////////////////////////////////////
-        m_Conductance.emplace_back(new SuctionCurve(mat.liquidTransportationCurve()));
+        m_DDUFunctions.emplace_back(new SuctionCurve(mat.liquidTransportationCurve()));
 
         //////////////////////////////////////////////////////////////////////////////
         /// Creating capacitance function
