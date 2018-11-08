@@ -137,7 +137,7 @@ namespace MoisThermFEM
 
     protected:
         std::vector<iValue> m_DDuFunctions;
-        std::vector<iValue> m_Capacitance;
+        std::vector<iValue> m_CapacitanceFunctions;
         std::vector<DerivativeFunction> m_DpDuFunctions;
 
         const Material & m_Material;

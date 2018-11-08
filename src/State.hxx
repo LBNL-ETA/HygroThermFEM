@@ -8,7 +8,8 @@ namespace MoisThermFEM
     {
         temperature,
         humidity,
-        pressure
+        pressure,
+        liquidPercent
     };
 
     enum class Iteration

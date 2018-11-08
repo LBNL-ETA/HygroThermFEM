@@ -9,8 +9,9 @@
 
 namespace MoisThermFEM
 {
-    inline IOperation<Constant, TabularFunction>
-        getLiquidWaterFill(const Material & mat)
+    /// Function to return total water content in any state (ice, liquid)
+    inline auto getWaterFill(const Material & mat)
+      -> decltype(Constant(0) * TabularFunction(mat.sorptionCurve(), Property::humidity))
     {
         /// Calculate air and water content
         auto waterContent = TabularFunction(mat.sorptionCurve(), Property::humidity);
@@ -21,10 +22,21 @@ namespace MoisThermFEM
         return mat.porosity() / maxWaterContent * waterContent;
     }
 
-    inline IOperation<Constant, IOperation<Constant, TabularFunction>>
-        getAirFill(const Material & mat)
+    inline auto getLiquidWaterFill(const Material & mat)
+      -> decltype(StateValue(Property::liquidPercent) * getWaterFill(mat))
     {
-        const auto waterFill = getLiquidWaterFill(mat);
+        return StateValue(Property::liquidPercent) * getWaterFill(mat);
+    }
+
+    inline auto getIceFill(const Material & mat)
+      -> decltype((Constant(1) - StateValue(Property::liquidPercent)) * getWaterFill(mat))
+    {
+        return (Constant(1) - StateValue(Property::liquidPercent)) * getWaterFill(mat);
+    }
+
+    inline auto getAirFill(const Material & mat) -> decltype(mat.porosity() - getWaterFill(mat))
+    {
+        const auto waterFill = getWaterFill(mat);
         return mat.porosity() - waterFill;
     }
 
