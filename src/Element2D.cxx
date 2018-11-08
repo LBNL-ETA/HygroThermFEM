@@ -317,8 +317,8 @@ namespace MoisThermFEM
                                                    const Material & mat) :
         IElementLinear2D(t_Node1, t_Node2, t_Node3, t_Node4, mat)
     {
-        auto liquidWaterFill = getLiquidWaterFill(mat);
-        auto airFill = getAirFill(mat);
+        auto liquidWaterFill = getMaterialLiquidWaterFill( mat );
+        auto airFill = getMaterialAirFill( mat );
 
         auto waterCapacitance = liquidWaterFill * (Constants::Density_Water * Constants::Cp_Water);
         auto airCapacitance = airFill * (Constants::Density_Air * Constants::Cp_Air);

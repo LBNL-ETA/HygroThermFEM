@@ -1,5 +1,4 @@
-#ifndef MOISTHERMFEM_MATERIALPROPERTIES_HXX
-#define MOISTHERMFEM_MATERIALPROPERTIES_HXX
+#pragma once
 
 #include <memory>
 
@@ -9,37 +8,38 @@
 
 namespace MoisThermFEM
 {
-    /// Function to return total water content in any state (ice, liquid)
-    inline auto getWaterFill(const Material & mat)
-      -> decltype(Constant(0) * TabularFunction(mat.sorptionCurve(), Property::humidity))
+    /// Function to return total water content in liquid + ice
+    inline auto getMaterialWaterFill( const Material & mat )
+      -> decltype(1.0 * TabularFunction(mat.sorptionCurve(), Property::humidity))
     {
         /// Calculate air and water content
         auto waterContent = TabularFunction(mat.sorptionCurve(), Property::humidity);
 
-        /// Calls sorption curve at 100% humidity to get maximum water content
-        const auto maxWaterContent = waterContent.value(State(0, 1, 0, 0));
+        const auto maxWaterContent = waterContent.max();
 
         return mat.porosity() / maxWaterContent * waterContent;
     }
 
-    inline auto getLiquidWaterFill(const Material & mat)
-      -> decltype(StateValue(Property::liquidPercent) * getWaterFill(mat))
+    /// Water content in liquid state
+    inline auto getMaterialLiquidWaterFill( const Material & mat )
+      -> decltype(StateValue(Property::liquidPercent) * getMaterialWaterFill( mat ))
     {
-        return StateValue(Property::liquidPercent) * getWaterFill(mat);
+        return StateValue(Property::liquidPercent) * getMaterialWaterFill( mat );
     }
 
-    inline auto getIceFill(const Material & mat)
-      -> decltype((Constant(1) - StateValue(Property::liquidPercent)) * getWaterFill(mat))
+    /// Water content in frozen state
+    inline auto getMaterialIceFill( const Material & mat )
+      -> decltype((1.0 - StateValue(Property::liquidPercent)) * getMaterialWaterFill( mat ))
     {
-        return (Constant(1) - StateValue(Property::liquidPercent)) * getWaterFill(mat);
+        return (1.0 - StateValue(Property::liquidPercent)) * getMaterialWaterFill( mat );
     }
 
-    inline auto getAirFill(const Material & mat) -> decltype(mat.porosity() - getWaterFill(mat))
+    /// Air content
+    inline auto getMaterialAirFill( const Material & mat ) -> decltype(mat.porosity() -
+		getMaterialWaterFill( mat ))
     {
-        const auto waterFill = getWaterFill(mat);
+        const auto waterFill = getMaterialWaterFill( mat );
         return mat.porosity() - waterFill;
     }
 
 }   // namespace MoisThermFEM
-
-#endif   // MOISTHERMFEM_MATERIALPROPERTIES_HXX

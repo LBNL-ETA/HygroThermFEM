@@ -49,9 +49,9 @@ TEST_F(MaterialPropertiesUnit, TestMaterialProperties)
        {0.999, 120},
        {1, 180}});
 
-    auto airFill = getAirFill(material);
-    auto waterFill = getLiquidWaterFill(material);
-    auto iceFill = getIceFill(material);
+    auto airFill = getMaterialAirFill( material );
+    auto waterFill = getMaterialLiquidWaterFill( material );
+    auto iceFill = getMaterialIceFill( material );
 
     State state1(273.15, 0.0, 101325, 1.0);
 
