@@ -34,7 +34,7 @@ namespace MoisThermFEM
         for(auto & aElement : m_Elements)
         {
             auto indexes = aElement->nodeIndexes();
-            auto capacitance = aElement->capacitanceMatrix();
+            auto capacitance = aElement->capacitanceMatrices();
             for(size_t i = 0; i < numOfQuadrilateralNodes; ++i)
             {
                 for(size_t j = 0; j < numOfQuadrilateralNodes; ++j)
@@ -69,7 +69,7 @@ namespace MoisThermFEM
         for(auto & aElement : m_Elements)
         {
             auto indexes = aElement->nodeIndexes();
-            auto capacitance = aElement->capacitanceMatrix();
+            auto capacitance = aElement->capacitanceMatrices();
             for(size_t i = 0; i < numOfQuadrilateralNodes; ++i)
             {
                 for(size_t j = 0; j < numOfQuadrilateralNodes; ++j)

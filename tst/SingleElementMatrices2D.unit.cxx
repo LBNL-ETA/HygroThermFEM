@@ -71,7 +71,7 @@ TEST_F(TestSingleElementMatrices2D, TestConductionMatrix) {
     }
   }
 
-  auto rhoCpMat = aElem.capacitanceMatrix();
+  auto rhoCpMat = aElem.capacitanceMatrices();
 
   std::vector<std::vector<double>> correctRhoCpMat = {
       {5.555555556, 2.777777778, 1.388888889, 2.777777778},
