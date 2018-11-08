@@ -16,12 +16,12 @@ namespace MoisThermFEM
     //////////////////////////////////////////////////////////////////////////////
     ///  IQLEMatrix2D
     //////////////////////////////////////////////////////////////////////////////
-    IQLEMatrix2D::IQLEMatrix2D(const QuadrilateralLinearGlobal2D & t_Element) :
+    IQLEIntegrator2D::IQLEIntegrator2D(const QuadrilateralLinearGlobal2D & t_Element) :
         m_Global2D{t_Element},
-        m_IntegrationMatrix{numOfQuadrilateralNodes, SquareMatrix{numOfQuadrilateralNodes}}
+        m_DPsiDxDyMatrix{numOfQuadrilateralNodes, SquareMatrix{numOfQuadrilateralNodes}}
     {}
 
-    SquareMatrix IQLEMatrix2D::integrate(const std::vector<double> & t_Values) const
+    SquareMatrix IQLEIntegrator2D::integrate(const std::vector<double> & t_Values) const
     {
         const auto count = IntegrationPoints2D::Instance().count2D();
 
@@ -38,7 +38,7 @@ namespace MoisThermFEM
         return aMatrix;
     }
 
-    void IQLEMatrix2D::calculateMatrixInIntegrationPoint(
+    void IQLEIntegrator2D::calculateMatrixInIntegrationPoint(
       SquareMatrix & matrix,
       const std::vector<double> & t_Values,
       const std::size_t t_IntegrationPointIndex) const
@@ -46,7 +46,7 @@ namespace MoisThermFEM
         assert(t_Values.size() == 4);
         assert(matrix.size() == 4);
 
-        auto & intPointMatrix = m_IntegrationMatrix[t_IntegrationPointIndex];
+        auto & intPointMatrix = m_DPsiDxDyMatrix[t_IntegrationPointIndex];
 
         for(size_t i = 0; i < t_Values.size(); ++i)
         {
@@ -58,11 +58,11 @@ namespace MoisThermFEM
     }
 
     //////////////////////////////////////////////////////////////////////////////
-    ///  QLEConductance2D
+    ///  QLEDDUConductance2D
     //////////////////////////////////////////////////////////////////////////////
 
-    QLEConductance2D::QLEConductance2D(const QuadrilateralLinearGlobal2D & t_Element) :
-        IQLEMatrix2D{t_Element}
+    QLEDDuIntegrator2D::QLEDDuIntegrator2D(const QuadrilateralLinearGlobal2D & t_Element) :
+        IQLEIntegrator2D{t_Element}
     {
         const auto numOfIntegrationPoints = IntegrationPoints2D::Instance().count2D();
 
@@ -73,7 +73,7 @@ namespace MoisThermFEM
             auto DPsiDy = m_Global2D.DPsiDy(integrationPoint);
             const auto det = m_Global2D.det(integrationPoint);
 
-            auto & DPsiDxDyMatrix = m_IntegrationMatrix[integrationPoint];
+            auto & DPsiDxDyMatrix = m_DPsiDxDyMatrix[integrationPoint];
             for(auto i = 0u; i < DPsiDxDyMatrix.size(); ++i)
             {
                 for(auto j = 0u; j < DPsiDxDyMatrix.size(); ++j)
@@ -88,12 +88,12 @@ namespace MoisThermFEM
     ///  QLEConductanceDerivative2D
     //////////////////////////////////////////////////////////////////////////////
 
-    QLEConductanceDerivative2D::QLEConductanceDerivative2D(
+    QLEDpDuIntegrator2D::QLEDpDuIntegrator2D(
       const QuadrilateralLinearGlobal2D & t_Element) :
-        IQLEMatrix2D{t_Element}
+        IQLEIntegrator2D{t_Element}
     {}
 
-    void QLEConductanceDerivative2D::updateIntegrationMatrix(const std::vector<double> & t_Values)
+    void QLEDpDuIntegrator2D::setIndependentVariables( const std::vector< double > & t_Values )
     {
         const auto numOfIntegrationPoints = IntegrationPoints2D::Instance().count2D();
         auto & aElement = QuadrilateralLinearLocal2D::Instance();
@@ -116,7 +116,7 @@ namespace MoisThermFEM
                 gammaY += DPsiDy[k] * t_Values[k];
             }
 
-            auto & psiPsiMatrix = m_IntegrationMatrix[integrationPoint];
+            auto & psiPsiMatrix = m_DPsiDxDyMatrix[integrationPoint];
             for(auto i = 0u; i < numOfIntegrationPoints; ++i)
             {
                 for(auto j = 0u; j < numOfIntegrationPoints; ++j)
@@ -128,9 +128,9 @@ namespace MoisThermFEM
         }
     }
 
-    void QLEConductanceDerivative2D::clearIntegrationMatrix()
+    void QLEDpDuIntegrator2D::clearIntegrationMatrix()
     {
-        m_IntegrationMatrix.clear();
+        m_DPsiDxDyMatrix.clear();
     }
 
     //////////////////////////////////////////////////////////////////////////////
@@ -138,7 +138,7 @@ namespace MoisThermFEM
     //////////////////////////////////////////////////////////////////////////////
 
     QLECapacitance2D::QLECapacitance2D(const QuadrilateralLinearGlobal2D & t_Element) :
-        IQLEMatrix2D{t_Element}
+        IQLEIntegrator2D{t_Element}
     {
         const auto numOfIntegrationPoints = IntegrationPoints2D::Instance().count2D();
         auto & aElement = QuadrilateralLinearLocal2D::Instance();
@@ -149,7 +149,7 @@ namespace MoisThermFEM
             const auto & psi = aElement.VPsi(integrationPoint);
             const auto det = m_Global2D.det(integrationPoint);
 
-            auto & psiPsiMatrix = m_IntegrationMatrix[integrationPoint];
+            auto & psiPsiMatrix = m_DPsiDxDyMatrix[integrationPoint];
             for(auto i = 0u; i < numOfIntegrationPoints; ++i)
             {
                 for(auto j = 0u; j < numOfIntegrationPoints; ++j)
@@ -164,9 +164,9 @@ namespace MoisThermFEM
     ///  DerivativeFunction
     //////////////////////////////////////////////////////////////////////////////
 
-    DerivativeFunction::DerivativeFunction(iValue fixedTerm, iValue derivativeTerm) :
-        fixedTerm(std::move(fixedTerm)),
-        derivativeTerm(std::move(derivativeTerm))
+    DerivativeFunction::DerivativeFunction(iValue fixedValue, iValue derivativeValue) :
+        fixedValue(std::move(fixedValue)),
+        derivativeValue(std::move(derivativeValue))
     {}
 
     //////////////////////////////////////////////////////////////////////////////
@@ -183,7 +183,7 @@ namespace MoisThermFEM
         m_Nodes{{t_Node1, t_Node2, t_Node3, t_Node4}},
         m_Global2D{t_Node1, t_Node2, t_Node3, t_Node4},
         m_QLECapacitance2D{m_Global2D},
-        m_QLEConductance2D{m_Global2D},
+        m_DDuIntegrator{m_Global2D},
         m_Linear{isLinear}
     {
         auto matName = m_Material.name();
@@ -208,40 +208,41 @@ namespace MoisThermFEM
         }
     }
 
-    FenestrationCommon::SquareMatrix IElementLinear2D::conductanceMatrix() const
+    FenestrationCommon::SquareMatrix IElementLinear2D::DDuMatrices() const
     {
         FenestrationCommon::SquareMatrix result{numOfQuadrilateralNodes};
-        for(const auto & cond : m_Conductance)
+        for(const auto & cond : m_DDuFunctions)
         {
             const auto values = cond->values(m_Nodes);
-            result += m_QLEConductance2D.integrate(values);
+            result += m_DDuIntegrator.integrate(values);
         }
 
         return result;
     }
 
-    FenestrationCommon::SquareMatrix IElementLinear2D::conductanceDerivativeMatrix()
+    FenestrationCommon::SquareMatrix IElementLinear2D::DpDuMatrices()
     {
         FenestrationCommon::SquareMatrix result{numOfQuadrilateralNodes};
 
-        /// Integration matrix must be created every time
+        /// Integration matrix must be created every time because independent
+        /// variables changed as well.
 
         auto count = 0u;
-        m_QLEDerivativeConductance.clear();
-        for(const auto & cond : m_DerivativeConductance)
+        m_QLEDpDuIntegrator2D.clear();
+        for(const auto & cond : m_DuDpFunctions)
         {
-            m_QLEDerivativeConductance.emplace_back(m_Global2D);
+            m_QLEDpDuIntegrator2D.emplace_back(m_Global2D);
             const auto aDerivatives = cond.derivativeTerm->values(m_Nodes);
-            m_QLEDerivativeConductance[count].updateIntegrationMatrix(aDerivatives);
+			m_QLEDpDuIntegrator2D[ count ].setIndependentVariables(aDerivatives);
             ++count;
         }
 
         /// Now rest of integration is performed as usual
         count = 0u;
-        for(const auto & cond : m_DerivativeConductance)
+        for(const auto & cond : m_DuDpFunctions)
         {
             const auto values = cond.fixedTerm->values(m_Nodes);
-            result += m_QLEDerivativeConductance[count].integrate(values);
+            result += m_QLEDpDuIntegrator2D[count].integrate(values);
             ++count;
         }
 
@@ -344,7 +345,7 @@ namespace MoisThermFEM
         // iValue conductance = materialConductivity + vaporConductivity + liquidConductivity;
         auto conductance = materialConductivity + vaporConductivity + liquidConductivity;
 
-        m_Conductance.emplace_back(new decltype(conductance)(conductance));
+        m_DDuFunctions.emplace_back(new decltype(conductance)(conductance));
     }
 
     //////////////////////////////////////////////////////////////////////////////
@@ -364,15 +365,15 @@ namespace MoisThermFEM
         auto delta = Constant(2.5E-5 / mat.diffusionResistanceFactor());
         auto conductance = delta * SaturationFunction();
 
-        m_Conductance.emplace_back(new decltype(conductance)(conductance));
+        m_DDuFunctions.emplace_back(new decltype(conductance)(conductance));
 
-        m_DerivativeConductance.emplace_back(std::unique_ptr<IValue>(new decltype(delta)(delta)),
+        m_DuDpFunctions.emplace_back(std::unique_ptr<IValue>(new decltype(delta)(delta)),
                                              std::unique_ptr<IValue>(new SaturationFunction()));
 
         //////////////////////////////////////////////////////////////////////////////
         /// Creating conductance function for liquid
         //////////////////////////////////////////////////////////////////////////////
-        m_Conductance.emplace_back(new SuctionCurve(mat.liquidTransportationCurve()));
+        m_DDuFunctions.emplace_back(new SuctionCurve(mat.liquidTransportationCurve()));
 
         //////////////////////////////////////////////////////////////////////////////
         /// Creating capacitance function

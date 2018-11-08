@@ -57,7 +57,7 @@ TEST_F(TestSingleElementMatrices2D, TestConductionMatrix) {
 
   const MoisThermFEM::ElementThermalLinear2D aElem{node1, node2, node3, node4, material};
 
-  auto condMat = aElem.conductanceMatrix();
+  auto condMat = aElem.DDuMatrices();
 
   std::vector<std::vector<double>> correctCondMat = {
       {0.833333333, -0.583333333, -0.416666667, 0.166666667},

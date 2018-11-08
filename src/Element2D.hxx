@@ -22,10 +22,10 @@ namespace MoisThermFEM
     // version Depending on equations, matrices will have different calculation
     // methods (for example capacitance and conductance matrices have different
     // form)
-    class IQLEMatrix2D
+    class IQLEIntegrator2D
     {
     public:
-        IQLEMatrix2D(const QuadrilateralLinearGlobal2D & t_Element);
+        IQLEIntegrator2D(const QuadrilateralLinearGlobal2D & t_Element);
 
         // Integrate matrix over all points of integration
         virtual FenestrationCommon::SquareMatrix
@@ -39,36 +39,39 @@ namespace MoisThermFEM
 
         const QuadrilateralLinearGlobal2D & m_Global2D;
 
-        std::vector<FenestrationCommon::SquareMatrix> m_IntegrationMatrix;
+        std::vector<FenestrationCommon::SquareMatrix> m_DPsiDxDyMatrix;
     };
 
     //////////////////////////////////////////////////////////////////////////////
-    ///  QLEConductance2D
+    ///  QLEDDuIntegrator2D
     //////////////////////////////////////////////////////////////////////////////
 
     // Class to handle conductance matrix in global coordinate system
-    class QLEConductance2D : public IQLEMatrix2D
+    // Conductance equation is D/Dx(Du/Dx)+D/Dy(Du/Dy) where u is state variable
+    class QLEDDuIntegrator2D : public IQLEIntegrator2D
     {
     public:
-        virtual ~QLEConductance2D() = default;
+        virtual ~QLEDDuIntegrator2D() = default;
 
-        QLEConductance2D(const QuadrilateralLinearGlobal2D & t_Element);
+        QLEDDuIntegrator2D(const QuadrilateralLinearGlobal2D & t_Element);
     };
 
     //////////////////////////////////////////////////////////////////////////////
-    ///  QLEConductanceDerivative2D
+    ///  QLEDpDuIntegrator2D
     //////////////////////////////////////////////////////////////////////////////
 
-    // Handles conductance part with derivative term
-    class QLEConductanceDerivative2D : public IQLEMatrix2D
+    // Class to handle double derivative matrix in global coordinate system
+    // Equation is (Dp/Dx)(Du/Dx)+(Dp/Dy)(Du/Dy) where u is state variable and
+    // p is independent variable that can have different values in different nodes.
+    class QLEDpDuIntegrator2D : public IQLEIntegrator2D
     {
     public:
-        virtual ~QLEConductanceDerivative2D() = default;
+        virtual ~QLEDpDuIntegrator2D() = default;
 
-        QLEConductanceDerivative2D(const QuadrilateralLinearGlobal2D & t_Element);
+        QLEDpDuIntegrator2D(const QuadrilateralLinearGlobal2D & t_Element);
 
-        // This updates integration matrix with new derivative values
-        void updateIntegrationMatrix(const std::vector<double> & t_Values);
+        // Update independent variables (corresponds to variable p in above equation)
+        void setIndependentVariables(const std::vector<double> & t_Values);
 
         void clearIntegrationMatrix();
     };
@@ -78,7 +81,7 @@ namespace MoisThermFEM
     //////////////////////////////////////////////////////////////////////////////
 
     // Class to handle capacitance matrix in global coordinate system
-    class QLECapacitance2D : public IQLEMatrix2D
+    class QLECapacitance2D : public IQLEIntegrator2D
     {
     public:
         virtual ~QLECapacitance2D() = default;
@@ -86,14 +89,16 @@ namespace MoisThermFEM
         QLECapacitance2D(const QuadrilateralLinearGlobal2D & t_Element);
     };
 
-    /// Keeping function pointers for QLEConductanceDerivative2D in Elements array
+    /// Equation k*(Dp/Dx)(Du/Dx) + k*(Dp/Dy)(Du/Dy) have fixed function (k) and
+    /// independent function (p) that is part of derivative. Note that u is state
+    /// variable for which matrix equations will be formed.
     struct DerivativeFunction
     {
-        DerivativeFunction(std::unique_ptr<IValue> fixedTerm,
-                           std::unique_ptr<IValue> derivativeTerm);
+        DerivativeFunction(std::unique_ptr<IValue> fixedValue,
+                           std::unique_ptr<IValue> derivativeValue);
 
-        std::unique_ptr<IValue> fixedTerm;
-        std::unique_ptr<IValue> derivativeTerm;
+        std::unique_ptr<IValue> fixedValue;
+        std::unique_ptr<IValue> derivativeValue;
     };
 
     //////////////////////////////////////////////////////////////////////////////
@@ -114,9 +119,9 @@ namespace MoisThermFEM
                          const Material & t_Material,
                          const bool isLinear = true);
 
-        FenestrationCommon::SquareMatrix conductanceMatrix() const;
+        FenestrationCommon::SquareMatrix DDuMatrices() const;
 
-        FenestrationCommon::SquareMatrix conductanceDerivativeMatrix();
+        FenestrationCommon::SquareMatrix DpDuMatrices();
 
         FenestrationCommon::SquareMatrix capacitanceMatrix() const;
 
@@ -131,12 +136,9 @@ namespace MoisThermFEM
         virtual bool isLinear() const final;
 
     protected:
-        /// TODO: This did not work with reference_wrapper and it should. Check later.
-        /// Reminder: Introduce pair of curve pointer and Property so that curve knows
-        /// what to use
-        std::vector<iValue> m_Conductance;
+        std::vector<iValue> m_DDuFunctions;
         std::vector<iValue> m_Capacitance;
-        std::vector<DerivativeFunction> m_DerivativeConductance;
+        std::vector<DerivativeFunction> m_DuDpFunctions;
 
         const Material & m_Material;
 
@@ -145,12 +147,13 @@ namespace MoisThermFEM
         double angleBetweenNodes(const Node2D & node1, const Node2D & node2, const Node2D & node3);
 
 
-        /// Class introduced to handle itarations so that it will be easier to calculate angle
-        /// between nodes.
-        class NodesVector : public INodes
+        /// Circular vector connects first and last node so that program can easily iterate
+        /// through nodes. Vector iterator will skip identical nodes (in trianglular element
+        /// for example). Angle between nodes algorithm is using this vector.
+        class CircularNodesVector : public INodes
         {
         public:
-            explicit NodesVector(const std::initializer_list<Node2D> & __l) :
+            explicit CircularNodesVector(const std::initializer_list<Node2D> & __l) :
                 INodes(__l),
                 currentIndex(0),
                 passedLast(false)
@@ -247,14 +250,13 @@ namespace MoisThermFEM
             bool passedLast{false};
         };
 
-        NodesVector m_Nodes;
+        CircularNodesVector m_Nodes;
 
         QuadrilateralLinearGlobal2D m_Global2D;
         QLECapacitance2D m_QLECapacitance2D;
-        QLEConductance2D m_QLEConductance2D;
-        /// This one depends on functions and must be stored for every
-        /// DerivativeConductance submatrix
-        std::vector<QLEConductanceDerivative2D> m_QLEDerivativeConductance;
+        QLEDDuIntegrator2D m_DDuIntegrator;
+        /// This one depends on functions and must be stored for every submatrix
+        std::vector<QLEDpDuIntegrator2D> m_QLEDpDuIntegrator2D;
 
         const bool m_Linear;
     };

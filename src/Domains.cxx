@@ -18,7 +18,7 @@ namespace MoisThermFEM
     {
         auto condMat = m_Elements.conductanceMatrix();
         const auto h = m_BCs.HMatrix();
-        condMat = condMat + h;
+        condMat += h;
 
         return condMat;
     }
