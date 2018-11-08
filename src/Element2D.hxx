@@ -143,12 +143,13 @@ namespace MoisThermFEM
         double angleBetweenNodes(const Node2D & node1, const Node2D & node2, const Node2D & node3);
 
 
-        /// Class introduced to handle itarations so that it will be easier to calculate angle
-        /// between nodes.
-        class NodesVector : public INodes
+        /// Circular vector connects first and last node so that program can easily iterate
+        /// through nodes. Vector iterator will skip identical nodes (in trianglular element
+        /// for example). Angle between nodes algorithm is using this vector.
+        class CircularNodesVector : public INodes
         {
         public:
-            explicit NodesVector(const std::initializer_list<Node2D> & __l) :
+            explicit CircularNodesVector(const std::initializer_list<Node2D> & __l) :
                 INodes(__l),
                 currentIndex(0),
                 passedLast(false)
@@ -245,7 +246,7 @@ namespace MoisThermFEM
             bool passedLast{false};
         };
 
-        NodesVector m_Nodes;
+        CircularNodesVector m_Nodes;
 
         QuadrilateralLinearGlobal2D m_Global2D;
         QLECapacitance2D m_QLECapacitance2D;
