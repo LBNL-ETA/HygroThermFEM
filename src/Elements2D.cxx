@@ -13,7 +13,7 @@ namespace MoisThermFEM
         {
             auto indexes = aElement->nodeIndexes();
             auto conductance = aElement->DDuMatrices();
-            auto condDer = aElement->conductanceDerivativeMatrix();
+            auto condDer = aElement->DpDuMatrices();
             for(size_t i = 0; i < numOfQuadrilateralNodes; ++i)
             {
                 for(size_t j = 0; j < numOfQuadrilateralNodes; ++j)
