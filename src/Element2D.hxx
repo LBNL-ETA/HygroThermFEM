@@ -81,12 +81,12 @@ namespace MoisThermFEM
     //////////////////////////////////////////////////////////////////////////////
 
     // Class to handle capacitance matrix in global coordinate system
-    class QLECapacitance2D : public IQLEIntegrator2D
+    class QLECapacitanceIntegrator2D : public IQLEIntegrator2D
     {
     public:
-        virtual ~QLECapacitance2D() = default;
+        virtual ~QLECapacitanceIntegrator2D() = default;
 
-        QLECapacitance2D(const QuadrilateralLinearGlobal2D & t_Element);
+        QLECapacitanceIntegrator2D(const QuadrilateralLinearGlobal2D & t_Element);
     };
 
     /// Equation k*(Dp/Dx)(Du/Dx) + k*(Dp/Dy)(Du/Dy) have fixed function (k) and
@@ -123,7 +123,7 @@ namespace MoisThermFEM
 
         FenestrationCommon::SquareMatrix DpDuMatrices();
 
-        FenestrationCommon::SquareMatrix capacitanceMatrix() const;
+        FenestrationCommon::SquareMatrix capacitanceMatrices() const;
 
         Node2D & getNode(std::size_t index);
 
@@ -138,7 +138,7 @@ namespace MoisThermFEM
     protected:
         std::vector<iValue> m_DDuFunctions;
         std::vector<iValue> m_Capacitance;
-        std::vector<DerivativeFunction> m_DuDpFunctions;
+        std::vector<DerivativeFunction> m_DpDuFunctions;
 
         const Material & m_Material;
 
@@ -253,7 +253,7 @@ namespace MoisThermFEM
         CircularNodesVector m_Nodes;
 
         QuadrilateralLinearGlobal2D m_Global2D;
-        QLECapacitance2D m_QLECapacitance2D;
+        QLECapacitanceIntegrator2D m_QLECapacitance2D;
         QLEDDuIntegrator2D m_DDuIntegrator;
         /// This one depends on functions and must be stored for every submatrix
         std::vector<QLEDpDuIntegrator2D> m_QLEDpDuIntegrator2D;

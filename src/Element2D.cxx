@@ -137,7 +137,7 @@ namespace MoisThermFEM
     ///  QLECapacitance2D
     //////////////////////////////////////////////////////////////////////////////
 
-    QLECapacitance2D::QLECapacitance2D(const QuadrilateralLinearGlobal2D & t_Element) :
+    QLECapacitanceIntegrator2D::QLECapacitanceIntegrator2D(const QuadrilateralLinearGlobal2D & t_Element) :
         IQLEIntegrator2D{t_Element}
     {
         const auto numOfIntegrationPoints = IntegrationPoints2D::Instance().count2D();
@@ -188,8 +188,8 @@ namespace MoisThermFEM
     {
         auto matName = m_Material.name();
 
-        /// Iterating through unique nodes in element. Note that element can be triangular in
-        /// which case one of the node numbers will be repeated twice.
+        /// Evaluating material influence in every node (This is important to know when
+        /// calculating water content).
         while(!m_Nodes.last())
         {
             /// Form triangle of nodes. node1 is in center and angle is calculated at that node.
@@ -229,19 +229,19 @@ namespace MoisThermFEM
 
         auto count = 0u;
         m_QLEDpDuIntegrator2D.clear();
-        for(const auto & cond : m_DuDpFunctions)
+        for(const auto & cond : m_DpDuFunctions)
         {
             m_QLEDpDuIntegrator2D.emplace_back(m_Global2D);
-            const auto aDerivatives = cond.derivativeTerm->values(m_Nodes);
+            const auto aDerivatives = cond.derivativeValue->values(m_Nodes);
 			m_QLEDpDuIntegrator2D[ count ].setIndependentVariables(aDerivatives);
             ++count;
         }
 
         /// Now rest of integration is performed as usual
         count = 0u;
-        for(const auto & cond : m_DuDpFunctions)
+        for(const auto & cond : m_DpDuFunctions)
         {
-            const auto values = cond.fixedTerm->values(m_Nodes);
+            const auto values = cond.fixedValue->values(m_Nodes);
             result += m_QLEDpDuIntegrator2D[count].integrate(values);
             ++count;
         }
@@ -249,7 +249,7 @@ namespace MoisThermFEM
         return result;
     }
 
-    FenestrationCommon::SquareMatrix IElementLinear2D::capacitanceMatrix() const
+    FenestrationCommon::SquareMatrix IElementLinear2D::capacitanceMatrices() const
     {
         FenestrationCommon::SquareMatrix result{numOfQuadrilateralNodes};
         for(const auto & cap : m_Capacitance)
@@ -367,7 +367,7 @@ namespace MoisThermFEM
 
         m_DDuFunctions.emplace_back(new decltype(conductance)(conductance));
 
-        m_DuDpFunctions.emplace_back(std::unique_ptr<IValue>(new decltype(delta)(delta)),
+        m_DpDuFunctions.emplace_back(std::unique_ptr<IValue>(new decltype(delta)(delta)),
                                              std::unique_ptr<IValue>(new SaturationFunction()));
 
         //////////////////////////////////////////////////////////////////////////////
