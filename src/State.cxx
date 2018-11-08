@@ -9,8 +9,7 @@ namespace MoisThermFEM
     State::State(const double t_Temperature,
                  const double t_Humidity,
                  const double t_Pressure,
-                 const double liquidPercent) :
-        m_LiquidPercent(liquidPercent)
+                 const double liquidPercent)
     {
         m_Property[Iteration::Current][Property::temperature] = t_Temperature;
         m_Property[Iteration::Current][Property::humidity] = t_Humidity;
@@ -78,7 +77,7 @@ namespace MoisThermFEM
 
     double State::getLiquidPercent() const
     {
-        return m_LiquidPercent;
+        return m_Property.at(Iteration::Current).at(Property::liquidPercent);
     }
 
 }   // namespace MoisThermFEM

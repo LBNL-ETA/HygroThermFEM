@@ -44,10 +44,6 @@ namespace MoisThermFEM
 
     private:
         std::map<Iteration, std::map<Property, double>> m_Property;
-
-        /// Keeps fraction of liquid water that is in liquid state. Opposite would
-        /// be frozen state.
-        double m_LiquidPercent;
     };
 
 }   // namespace MoisThermFEM
