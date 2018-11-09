@@ -53,7 +53,7 @@ TEST_F(MaterialPropertiesUnit, TestMaterialProperties)
     auto waterFill = getMaterialLiquidWaterFill( material );
     auto iceFill = getMaterialIceFill( material );
 
-    State state1(273.15, 0.0, 101325, 1.0);
+    State state1(0.0, 0.0, 101325, 1.0);
 
     auto aFill = airFill.value(state1);
     auto wFill = waterFill.value(state1);
@@ -63,7 +63,7 @@ TEST_F(MaterialPropertiesUnit, TestMaterialProperties)
     EXPECT_NEAR(0.00, wFill, 1e-6);
     EXPECT_NEAR(0.00, iFill, 1e-6);
 
-    State state2(273.15, 1.0, 101325, 1.0);
+    State state2(0.0, 1.0, 101325, 1.0);
 
     aFill = airFill.value(state2);
     wFill = waterFill.value(state2);
@@ -73,7 +73,7 @@ TEST_F(MaterialPropertiesUnit, TestMaterialProperties)
     EXPECT_NEAR(0.22, wFill, 1e-6);
 	EXPECT_NEAR(0.00, iFill, 1e-6);
 
-    State state3(273.15, 0.5, 101325, 1.0);
+    State state3(0.0, 0.5, 101325, 1.0);
 
     aFill = airFill.value(state3);
     wFill = waterFill.value(state3);
@@ -83,7 +83,7 @@ TEST_F(MaterialPropertiesUnit, TestMaterialProperties)
     EXPECT_NEAR(0.006478, wFill, 1e-6);
 	EXPECT_NEAR(0.00, iFill, 1e-6);
 
-	State state4(273.15, 0.5, 101325, 0.0);
+	State state4(0.0, 0.5, 101325, 0.0);
 
 	aFill = airFill.value(state4);
 	wFill = waterFill.value(state4);

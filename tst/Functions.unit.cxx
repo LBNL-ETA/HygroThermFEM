@@ -192,7 +192,7 @@ TEST_F(CurveTest, TestSaturationFunction)
 
     auto sat1 = SaturationFunction() * airFill;
 
-    State interpolationPoint(283.15, 0.5, 101325, 0);
+    State interpolationPoint(10.0, 0.5, 101325, 0);
     auto result = sat1.value(interpolationPoint);
     EXPECT_NEAR(0.002000939, result, 1e-6);
 }

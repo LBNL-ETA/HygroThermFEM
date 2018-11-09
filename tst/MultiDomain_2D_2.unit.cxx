@@ -27,7 +27,7 @@ TEST_F(MultiDomain_2D_2, TestExample_1)
 
     std::vector<double> gridXCoordinates{0, 0.05, 0.1};
 
-    const double initialTemperature = 273.15;
+    const double initialTemperature = 0.0;
     const double initialMoistureContent = 0.0;
     const double initialPressure = 101325;
 
@@ -82,8 +82,8 @@ TEST_F(MultiDomain_2D_2, TestExample_1)
     }
 
     /// Create Boundary Conditions
-    const auto hc = 1;
-    const auto airTemperature = 293.15;
+    const auto hc = 1.0;
+    const auto airTemperature = 20.0;
     const auto humidity = 0.2;
 
     auto & node1 = MoisThermFEM::NodePool::Instance().getNode(1);

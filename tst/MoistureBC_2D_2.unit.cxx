@@ -25,7 +25,7 @@ TEST_F(MoistureBC_2D_2, TestExample_1)
 
     std::vector<double> gridXCoordinates{0.15, 0.05, 0.00};
 
-    MoisThermFEM::State state(293.15, 0, 101325, 0);
+    MoisThermFEM::State state(20, 0, 101325, 0);
     size_t nodeIndex = 0;
     for(auto val : gridXCoordinates)
     {
@@ -76,7 +76,7 @@ TEST_F(MoistureBC_2D_2, TestExample_1)
 
     // Create Boundary Conditions
     const auto hc = 20;
-    const auto airTemperature = 293.15;
+    const auto airTemperature = 20;
     const auto humidity = 0.5;
 
     auto node1 = NodePool::Instance().getNode(5);

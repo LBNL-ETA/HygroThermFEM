@@ -25,7 +25,7 @@ TEST_F(ConvectionBC_2D_2, TestExample_1)
 
     std::vector<double> gridXCoordinates{0, 0.05, 0.1, 0.15};
 
-    const double initialTemperature = 293.15;
+    const double initialTemperature = 20;
     const double initialMoistureContent = 0;
     const double initialPressure = 101325;
 
@@ -79,7 +79,7 @@ TEST_F(ConvectionBC_2D_2, TestExample_1)
     }
 
     // Create Boundary Conditions
-    const auto tSurface = 293.15;
+    const auto tSurface = 20;
     const auto hc = 1.0;
 
     auto node1 = NodePool::Instance().getNode(1);
@@ -101,10 +101,10 @@ TEST_F(ConvectionBC_2D_2, TestExample_1)
     }
 
     std::vector<std::vector<double>> correctSolution{
-      {293.15, 293.15, 293.15, 293.15, 293.15, 293.15, 293.15, 293.15},
-      {293.15, 293.15, 293.15, 293.15, 293.15, 293.15, 293.15, 293.15},
-      {293.15, 293.15, 293.15, 293.15, 293.15, 293.15, 293.15, 293.15},
-      {293.15, 293.15, 293.15, 293.15, 293.15, 293.15, 293.15, 293.15}};
+      {20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0},
+      {20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0},
+      {20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0},
+      {20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0}};
 
     EXPECT_EQ(solution.size(), correctSolution.size());
 
