@@ -1,6 +1,7 @@
 #pragma once
 
 #include <map>
+#include <unordered_map>
 
 namespace MoisThermFEM
 {
@@ -40,10 +41,8 @@ namespace MoisThermFEM
         double getDeltaValue(const Property t_Property) const;
         double getLiquidPercent() const;
 
-        const std::map<Property, double> & getCurrentValues() const;
-
     private:
-        std::map<Iteration, std::map<Property, double>> m_Property;
+        std::unordered_map<Iteration, std::unordered_map<Property, double>> m_Property;
     };
 
 }   // namespace MoisThermFEM
