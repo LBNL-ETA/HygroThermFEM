@@ -8,7 +8,8 @@ namespace MoisThermFEM
     {
         temperature,
         humidity,
-        pressure
+        pressure,
+        liquidPercent
     };
 
     enum class Iteration
@@ -26,10 +27,6 @@ namespace MoisThermFEM
                        const double t_Pressure = 101325,
                        const double liquidPercent = 1.0);
 
-        State(const State & other) = default;
-
-        State & operator=(const State & other) = default;
-
         friend State operator+(const State & lhs, const State & rhs);
         friend State operator-(const State & lhs, const State & rhs);
 
@@ -39,14 +36,8 @@ namespace MoisThermFEM
         double getDeltaValue(const Property t_Property) const;
         double getLiquidPercent() const;
 
-        const std::map<Property, double> & getCurrentValues() const;
-
     private:
         std::map<Iteration, std::map<Property, double>> m_Property;
-
-        /// Keeps fraction of liquid water that is in liquid state. Opposite would
-        /// be frozen state.
-        double m_LiquidPercent;
     };
 
 }   // namespace MoisThermFEM

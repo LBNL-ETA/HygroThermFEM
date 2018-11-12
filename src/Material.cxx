@@ -89,9 +89,11 @@ namespace MoisThermFEM
     {
         const auto temperature = t_State.getValue(Property::temperature);
 
-        auto temp = 77.345 + 0.0057 * temperature - 7235.0 / temperature;
+        const auto tempinK = temperature + 273.15;
+
+        auto temp = 77.345 + 0.0057 * tempinK - 7235.0 / tempinK;
         temp = std::exp(temp);
-        temp = temp / (461.4 * std::pow(temperature, 9.2));
+        temp = temp / (461.4 * std::pow(tempinK, 9.2));
         return temp;
     }
 

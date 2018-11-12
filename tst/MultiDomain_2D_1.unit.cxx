@@ -34,7 +34,7 @@ TEST_F(MultiDomain_2D_1, TestExample_1)
 
     std::vector<double> gridXCoordinates{0, 0.05, 0.1};
 
-    const double initialTemperature = 300.00;
+    const double initialTemperature = 20;
     const double initialMoistureContent = 0.0;
     const double initialPressure = 101325;
 

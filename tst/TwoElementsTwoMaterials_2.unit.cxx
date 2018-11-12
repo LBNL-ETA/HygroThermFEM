@@ -28,7 +28,7 @@ TEST_F(TwoElementsTwoMaterials_2, NodeInTwoMaterials)
     SCOPED_TRACE("Begin Test: Node as part of two elements that have different material and one "
                  "element is triangular.");
 
-    const auto temperature = 283.15;
+    const auto temperature = 10.0;
     const auto humidity = 0.8;
     const auto pressure = 101325.0;
     const auto liquidPercent = 1.0;

@@ -22,7 +22,6 @@ namespace MoisThermFEM
         return result;
     }
 
-
     //////////////////////////////////////////////////////////////////
     ///  IFunction
     //////////////////////////////////////////////////////////////////
@@ -213,9 +212,10 @@ namespace MoisThermFEM
 
     double SaturationFunction::evaluateFunction(const double t_position) const
     {
-        auto temp = 77.345 + 0.0057 * t_position - 7235.0 / t_position;
+    	auto temperature = t_position + 273.15;
+        auto temp = 77.345 + 0.0057 * temperature - 7235.0 / temperature;
         temp = std::exp(temp);
-        temp = temp / (461.4 * std::pow(t_position, m_SaturationCoefficient));
+        temp = temp / (461.4 * std::pow(temperature, m_SaturationCoefficient));
         return temp;
     }
 

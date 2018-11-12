@@ -25,7 +25,7 @@ TEST_F(MoistureBC_2D_3, TestExample_1)
 
     std::vector<double> gridXCoordinates{0, 0.05, 0.1, 0.15};
 
-    const double initialTemperature = 293.15;
+    const double initialTemperature = 20;
     const double initialMoistureContent = 0;
     const double initialPressure = 0;
 
@@ -80,7 +80,7 @@ TEST_F(MoistureBC_2D_3, TestExample_1)
 
     // Create Boundary Conditions
     const auto hc = 1;
-    const auto airTemperature = 293.15;
+    const auto airTemperature = 20;
     const auto humidity = 0.5;
 
     auto node1 = NodePool::Instance().getNode(1);

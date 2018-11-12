@@ -40,7 +40,7 @@ TEST_F(MoistureBC_2D_1, TestExample_1)
                                          0.135,
                                          0.15};
 
-    const auto initialTemperature = 293.15;
+    const auto initialTemperature = 20;
     const auto initialHumidity = 0.0;
     const auto initialPressure = 101325.0;
 
@@ -95,7 +95,7 @@ TEST_F(MoistureBC_2D_1, TestExample_1)
 
     // Create Boundary Conditions
     const auto hc = 20;
-    const auto airTemperature = 293.15;
+    const auto airTemperature = 20;
     const auto airHumidity = 0.5;
 
     auto & node1 = MoisThermFEM::NodePool::Instance().getNode(1);

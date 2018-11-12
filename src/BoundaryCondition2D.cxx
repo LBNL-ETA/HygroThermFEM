@@ -135,7 +135,7 @@ namespace MoisThermFEM
 
     std::vector<double> MoistureBC::R_Vector() const
     {
-        // pValue airFill = MaterialProperties::getAirFill( m_Material );
+        // pValue airFill = MaterialProperties::getMaterialAirFill( m_Material );
         auto humidityCalculator = SaturationFunction() * m_Material.porosity() * m_AirHumidity;
 
         const auto humidityByVolume =
