@@ -1,7 +1,6 @@
 #pragma once
 
 #include <map>
-#include <unordered_map>
 
 namespace MoisThermFEM
 {
@@ -28,10 +27,6 @@ namespace MoisThermFEM
                        const double t_Pressure = 101325,
                        const double liquidPercent = 1.0);
 
-        State(const State & other) = default;
-
-        State & operator=(const State & other) = default;
-
         friend State operator+(const State & lhs, const State & rhs);
         friend State operator-(const State & lhs, const State & rhs);
 
@@ -42,7 +37,7 @@ namespace MoisThermFEM
         double getLiquidPercent() const;
 
     private:
-        std::unordered_map<Iteration, std::unordered_map<Property, double>> m_Property;
+        std::map<Iteration, std::map<Property, double>> m_Property;
     };
 
 }   // namespace MoisThermFEM
