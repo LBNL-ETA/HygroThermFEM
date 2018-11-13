@@ -3,13 +3,13 @@
 
 #include "MoisThermFEM2D.hxx"
 
-using MoisThermFEM::StateProperty;
+using MoisThermFEM::Property;
 using MoisThermFEM::State;
+using MoisThermFEM::Node2D;
 using MoisThermFEM::TabularFunction;
 using MoisThermFEM::TabularDerivative;
 using MoisThermFEM::SuctionCurve;
 using MoisThermFEM::SaturationFunction;
-using MoisThermFEM::Derivative;
 using MoisThermFEM::Constant;
 
 class CurveTest : public testing::Test
@@ -25,11 +25,12 @@ protected:
 TEST_F(CurveTest, TestTabularLinear)
 {
     SCOPED_TRACE("Begin Test: Test tabular linear.");
-    const TabularFunction curve({{1, 10}, {2, 20}, {3, 30}}, StateProperty::temperature);
+    const TabularFunction curve({{1, 10}, {2, 20}, {3, 30}}, Property::temperature);
 
     State interpolationPoint(2.5, 0, 101325, 0);
+    Node2D node(0, 0, 0, interpolationPoint);
 
-    auto result = curve.value(interpolationPoint);
+    auto result = curve.value(node);
 
     EXPECT_NEAR(25, result, 1e-6);
 
@@ -40,29 +41,17 @@ TEST_F(CurveTest, TestTabularLinear)
     EXPECT_NEAR(10, min, 1e-6);
 }
 
-TEST_F(CurveTest, TestFirstDerivative)
-{
-    SCOPED_TRACE("Begin Test: Test first derivative of tabular linear curve.");
-    TabularFunction table({{1, 10}, {2, 20}, {3, 30}}, StateProperty::temperature);
-    const auto der = Derivative<decltype(table)>(table);
-
-    State interpolationPoint(2.5, 0, 101325, 0);
-
-    auto result = der.value(interpolationPoint);
-
-    EXPECT_NEAR(10, result, 1e-6);
-}
-
 TEST_F(CurveTest, TestTabularLogarithmic)
 {
     SCOPED_TRACE("Begin Test: Test tabular logarithmic curve.");
     const TabularFunction curve({{1, 10}, {2, 20}, {3, 30}},
-                                StateProperty::temperature,
+                                Property::temperature,
                                 FenestrationCommon::Interpolation::Logarithmic);
 
     State interpolationPoint(2.5, 0, 101325, 0);
+	Node2D node(0, 0, 0, interpolationPoint);
 
-    auto result = curve.value(interpolationPoint);
+    auto result = curve.value(node);
 
     EXPECT_NEAR(24.4948974, result, 1e-6);
 }
@@ -76,17 +65,22 @@ TEST_F(CurveTest, TestSuctionCurve)
 
     /// First segment should have constant values
     State interpolationPoint(0, 0.15, 101325, 0);
-    auto result = curve.value(interpolationPoint);
+	Node2D node(0, 0, 0, interpolationPoint);
+
+    auto result = curve.value(node);
     EXPECT_NEAR(10, result, 1e-6);
 
     /// Test outside of curve
     State interpolationPoint1(0, 0.05, 101325, 0);
-    result = curve.value(interpolationPoint1);
+	Node2D node1(0, 0, 0, interpolationPoint1);
+
+    result = curve.value(node1);
     EXPECT_NEAR(10, result, 1e-6);
 
     /// Other segments should have logarithmic interpolation
     State interpolationPoint2(0, 0.25, 101325, 0);
-    result = curve.value(interpolationPoint2);
+	Node2D node2(0, 0, 0, interpolationPoint2);
+    result = curve.value(node2);
     EXPECT_NEAR(24.4948974, result, 1e-6);
 }
 
@@ -96,40 +90,47 @@ TEST_F(CurveTest, TestConstantCurve)
     const auto cons = Constant(5.0);
 
     State interpolationPoint(2.5, 0, 101325, 0);
-    auto result = cons.value(interpolationPoint);
+	Node2D node(0, 0, 0, interpolationPoint);
+
+    auto result = cons.value(node);
     EXPECT_NEAR(5, result, 1e-6);
 }
 
 TEST_F(CurveTest, TestTabularOutOfRangeBack)
 {
     SCOPED_TRACE("Begin Test: Test tabular out of range.");
-    const TabularFunction curve({{1, 10}, {2, 20}, {3, 30}}, StateProperty::temperature);
+    const TabularFunction curve({{1, 10}, {2, 20}, {3, 30}}, Property::temperature);
 
     State interpolationPoint(3.5, 0, 101325, 0);
-    auto result = curve.value(interpolationPoint);
+	Node2D node(0, 0, 0, interpolationPoint);
+
+    auto result = curve.value(node);
     EXPECT_NEAR(30, result, 1e-6);
 }
 
 TEST_F(CurveTest, TestTabularOutOfRangeFront)
 {
     SCOPED_TRACE("Begin Test: Test tabular out of range.");
-    const TabularFunction curve({{1, 10}, {2, 20}, {3, 30}}, StateProperty::temperature);
+    const TabularFunction curve({{1, 10}, {2, 20}, {3, 30}}, Property::temperature);
 
     State interpolationPoint(0.5, 0, 101325, 0);
-    auto result = curve.value(interpolationPoint);
+	Node2D node(0, 0, 0, interpolationPoint);
+
+    auto result = curve.value(node);
     EXPECT_NEAR(10, result, 1e-6);
 }
 
 TEST_F(CurveTest, TestComposition1)
 {
     SCOPED_TRACE("Begin Test: Composition (multiplication) of two functions.");
-    TabularFunction tabular({{1, 10}, {2, 20}, {3, 30}}, StateProperty::temperature);
+    TabularFunction tabular({{1, 10}, {2, 20}, {3, 30}}, Property::temperature);
 
     auto tabular1 = tabular * 5.0;
 
     State interpolationPoint(2.5, 0, 101325, 0);
+	Node2D node(0, 0, 0, interpolationPoint);
 
-    auto result = tabular1.value(interpolationPoint);
+    auto result = tabular1.value(node);
 
     EXPECT_NEAR(125, result, 1e-6);
 }
@@ -149,14 +150,16 @@ TEST_F(CurveTest, TestPorosityCalculation)
                                   {0.995, 20.9},
                                   {0.999, 33.0},
                                   {1.000, 40.0}},
-                                 StateProperty::humidity);
+                                 Property::humidity);
 
-    auto maxWaterContent = waterContent.value(State(0, 1, 0, 0));
+	Node2D node(0, 0, 0, State(0, 1, 0, 0));
+
+    auto maxWaterContent = waterContent.value(node);
     const auto materialPorosity = 0.05;
 
     auto waterFill = materialPorosity / maxWaterContent * waterContent;
 
-    State outdoor(10, 0.98, 101325, 0);
+	Node2D outdoor(0,0,0, State(10, 0.98, 101325, 0));
 
     auto result = waterFill.value(outdoor);
     EXPECT_NEAR(0.0136875, result, 1e-6);
@@ -181,9 +184,9 @@ TEST_F(CurveTest, TestSaturationFunction)
                                   {0.995, 83},
                                   {0.999, 120},
                                   {1.000, 180}},
-                                 StateProperty::humidity);
+                                 Property::humidity);
 
-    auto maxWaterContent = waterContent.value(State(0, 1, 0, 0));
+    auto maxWaterContent = waterContent.value(Node2D(0,0,0,State(0, 1, 0, 0)));
     const auto materialPorosity = 0.22;
 
     auto waterFill = materialPorosity / maxWaterContent * waterContent;
@@ -193,7 +196,9 @@ TEST_F(CurveTest, TestSaturationFunction)
     auto sat1 = SaturationFunction() * airFill;
 
     State interpolationPoint(10.0, 0.5, 101325, 0);
-    auto result = sat1.value(interpolationPoint);
+    Node2D node(0,0,0,interpolationPoint);
+
+    auto result = sat1.value(node);
     EXPECT_NEAR(0.002000939, result, 1e-6);
 }
 
@@ -211,21 +216,21 @@ TEST_F(CurveTest, TestTabularDerivative)
                                     {0.995, 83},
                                     {0.999, 120},
                                     {1.000, 180}},
-                                   StateProperty::humidity);
+                                   Property::humidity);
 
-    State state1(273.15, 0, 101325, 0);
-    auto result = waterContent.value(state1);
+    Node2D node1(0, 0, 0, State(273.15, 0, 101325, 0));
+    auto result = waterContent.value(node1);
     EXPECT_NEAR(10.6, result, 1e-6);
 
-    State state2(273.15, 1.0, 101325, 0);
-    result = waterContent.value(state2);
+	Node2D node2(0, 0, 0, State(273.15, 1.0, 101325, 0));
+    result = waterContent.value(node2);
     EXPECT_NEAR(60000, result, 1e-6);
 
-    State state3(273.15, -1.0, 101325, 0);
-    result = waterContent.value(state3);
+	Node2D node3(0, 0, 0, State(273.15, -1.0, 101325, 0));
+    result = waterContent.value(node3);
     EXPECT_NEAR(10.6, result, 1e-6);
 
-    State state4(273.15, 2.0, 101325, 0);
-    result = waterContent.value(state4);
+	Node2D node4(0, 0, 0, State(273.15, 2.0, 101325, 0));
+    result = waterContent.value(node4);
     EXPECT_NEAR(60000, result, 1e-6);
 }

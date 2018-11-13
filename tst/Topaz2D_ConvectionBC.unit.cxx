@@ -88,7 +88,7 @@ TEST_F(Topaz2D_ConvectionBC, TestExample_1)
     const auto nSteps = 4;
 
 
-    auto temperatures = NodePool::Instance().nodeProperties(MoisThermFEM::StateProperty::temperature);
+    auto temperatures = NodePool::Instance().properties(MoisThermFEM::Property::temperature);
     std::vector<std::vector<double>> solution;
 
     for(unsigned i = 0; i < nSteps; ++i)

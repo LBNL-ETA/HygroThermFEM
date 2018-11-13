@@ -100,9 +100,9 @@ TEST_F(TwoElementsTwoMaterials_1, NodeInTwoMaterials)
     domain.createElement(node1, node3, node4, node2, material1);
     domain.createElement(node3, node5, node6, node4, material2);
 
-    auto iceContent = domain.waterContent(WaterContent::Ice);
-    auto vaporContent = domain.waterContent(WaterContent::Vapor);
-    auto liquidContent = domain.waterContent(WaterContent::Liquid);
+	auto iceContent = domain.property(MoisThermFEM::Property::ice);
+	auto vaporContent = domain.property(MoisThermFEM::Property::vapor);
+	auto liquidContent = domain.property(MoisThermFEM::Property::liquid);
 
     /// Test various water contents in node number 3. It should be exactly half of influence between
     /// materials because of two rectangular nodes

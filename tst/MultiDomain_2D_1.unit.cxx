@@ -108,8 +108,8 @@ TEST_F(MultiDomain_2D_1, TestExample_1)
     const auto nSteps = 10;
     /// const auto nSteps = 10;
 
-    auto temperatures = NodePool::Instance().nodeProperties(MoisThermFEM::StateProperty::temperature);
-    auto humidities = NodePool::Instance().nodeProperties(MoisThermFEM::StateProperty::humidity);
+    auto temperatures = NodePool::Instance().properties(MoisThermFEM::Property::temperature);
+    auto humidities = NodePool::Instance().properties(MoisThermFEM::Property::humidity);
     std::vector<std::vector<double>> temperatureSolution;
     std::vector<std::vector<double>> waterContentSolution;
 

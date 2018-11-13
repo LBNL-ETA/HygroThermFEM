@@ -4,7 +4,6 @@
 
 #include "BoundaryCondition2D.hxx"
 #include "Common.hxx"
-#include "MaterialProperties.hxx"
 #include "VectorOperators.hxx"
 
 namespace MoisThermFEM

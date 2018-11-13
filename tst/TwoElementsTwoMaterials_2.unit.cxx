@@ -100,9 +100,9 @@ TEST_F(TwoElementsTwoMaterials_2, NodeInTwoMaterials)
     domain.createElement(node1, node1, node2, node3, material1);
     domain.createElement(node2, node4, node5, node3, material2);
 
-    auto iceContent = domain.waterContent(WaterContent::Ice);
-    auto vaporContent = domain.waterContent(WaterContent::Vapor);
-    auto liquidContent = domain.waterContent(WaterContent::Liquid);
+    auto iceContent = domain.property(MoisThermFEM::Property::ice);
+    auto vaporContent = domain.property(MoisThermFEM::Property::vapor);
+    auto liquidContent = domain.property(MoisThermFEM::Property::liquid);
 
     /// Test water content in node number 2 (material 2 will have more influence)
     EXPECT_NEAR(iceContent[1], 0, 1e-6);

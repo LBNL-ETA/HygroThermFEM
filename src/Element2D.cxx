@@ -4,7 +4,6 @@
 #include "Common.hxx"
 #include "Element2D.hxx"
 #include "IntegrationPoints.hxx"
-#include "MaterialProperties.hxx"
 #include "NodePool.hxx"
 #include "QuadrilateralLocal2D.hxx"
 #include "FEMunique.hxx"
@@ -322,9 +321,10 @@ namespace MoisThermFEM
 		//////////////////////////////////////////////////////////////////////////////////////
 
         auto dryContent = (1 - mat.porosity()) * mat.density();
-        auto liquidContent = getMaterialLiquidWaterFill(mat);
-        auto iceContent = getMaterialIceFill(mat);
-        auto airContent = getMaterialAirFill(mat);
+        StateValue liquidContent(Property::liquid);
+        StateValue iceContent(Property::ice);
+        //auto airContent = getMaterialAirFill(mat);
+        StateValue airContent(Property::vapor);
 
         auto equivalentDensity =
           (dryContent * mat.density() + iceContent * Constants::Density_Ice
