@@ -51,8 +51,9 @@ TEST_F(Analytical_ConvectionBC_Transient, TestExample_1)
         NodePool::Instance().createNode(nodeIndex, val, 0.05, state);
     }
 
-    auto & material = MaterialPool::Instance().createMaterial(
-      "Test Material",
+    std::string materialName = "Test Material";
+    MaterialPool::Instance().createMaterial(
+      materialName,
       2050,   /// Density
       0.00,   /// Porosity
       850,    /// Specific Heat Capacity (dry)
@@ -67,14 +68,14 @@ TEST_F(Analytical_ConvectionBC_Transient, TestExample_1)
     MoisThermFEM::ThermalDomain domain;
 
     /// Create elements
-    for(size_t i = 1; i <= (NodePool::Instance().maxIndex() - 2) / 2; ++i)
+    for(size_t i = 1u; i <= (NodePool::Instance().maxIndex() - 2) / 2; ++i)
     {
-        auto node1 = NodePool::Instance().getNode(2 * i - 1);
-        auto node2 = NodePool::Instance().getNode(2 * i);
-        auto node3 = NodePool::Instance().getNode(2 * i + 2);
-        auto node4 = NodePool::Instance().getNode(2 * i + 1);
+        const auto index1 = 2u * i - 1u;
+        const auto index2 = 2u * i;
+        const auto index3 = 2u * i + 2u;
+        const auto index4 = 2u * i + 1u;
 
-        domain.createElement(node1, node2, node3, node4, material);
+        domain.createElement(index1, index2, index3, index4, materialName);
     }
 
     // Create Boundary Conditions

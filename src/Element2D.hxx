@@ -112,12 +112,12 @@ namespace MoisThermFEM
     class IElementLinear2D
     {
     public:
-        IElementLinear2D(Node2D & t_Node1,
-                         Node2D & t_Node2,
-                         Node2D & t_Node3,
-                         Node2D & t_Node4,
-                         const Material & t_Material,
-                         const bool isLinear = true);
+        IElementLinear2D( const size_t index1,
+						  const size_t index2,
+						  const size_t index3,
+						  const size_t index4,
+						  const std::string & materialName,
+						  const bool isLinear = true );
 
         FenestrationCommon::SquareMatrix DDuMatrices() const;
 
@@ -127,7 +127,7 @@ namespace MoisThermFEM
 
         Node2D & getNode(std::size_t index);
 
-        bool haveBothNodes(const Node2D & t_Node1, const Node2D & t_Node2) const;
+        bool haveBothNodes( const size_t index1, const size_t index2 ) const;
 
         std::vector<std::size_t> nodeIndexes() const;
 
@@ -153,7 +153,8 @@ namespace MoisThermFEM
         class CircularNodesVector : public INodes
         {
         public:
-            explicit CircularNodesVector(const std::initializer_list<std::reference_wrapper<Node2D>> & __l) :
+            explicit CircularNodesVector(
+              const std::initializer_list<std::reference_wrapper<Node2D>> & __l) :
                 INodes(__l),
                 currentIndex(0),
                 passedLast(false)
@@ -165,11 +166,13 @@ namespace MoisThermFEM
                 passedLast(false)
             {}
 
-            explicit CircularNodesVector(Node2D & node1, Node2D & node2,
-                        Node2D & node3, Node2D & node4) :
-                    INodes(node1, node2, node3, node4),
-                    currentIndex(0),
-                    passedLast(false)
+            explicit CircularNodesVector(Node2D & node1,
+                                         Node2D & node2,
+                                         Node2D & node3,
+                                         Node2D & node4) :
+                INodes(node1, node2, node3, node4),
+                currentIndex(0),
+                passedLast(false)
             {}
 
             typename std::vector<std::reference_wrapper<Node2D>>::const_iterator begin() const
@@ -281,11 +284,11 @@ namespace MoisThermFEM
     class ElementThermalLinear2D : public IElementLinear2D
     {
     public:
-        ElementThermalLinear2D(Node2D &t_Node1,
-                               Node2D &t_Node2,
-                               Node2D &t_Node3,
-                               Node2D &t_Node4,
-                               const Material &mat);
+        ElementThermalLinear2D( const size_t index1,
+								const size_t index2,
+								const size_t index3,
+								const size_t index4,
+								const std::string & materialName );
     };
 
     //////////////////////////////////////////////////////////////////////////////
@@ -295,11 +298,11 @@ namespace MoisThermFEM
     class ElementMoistureLinear2D : public IElementLinear2D
     {
     public:
-        ElementMoistureLinear2D(Node2D &t_Node1,
-                                Node2D &t_Node2,
-                                Node2D &t_Node3,
-                                Node2D &t_Node4,
-                                const Material &mat);
+        ElementMoistureLinear2D( const size_t index1,
+								 const size_t index2,
+								 const size_t index3,
+								 const size_t index4,
+								 const std::string & materialName );
     };
 
 }   // namespace MoisThermFEM

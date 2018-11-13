@@ -183,7 +183,7 @@ namespace MoisThermFEM
         return indexes;
     }
 
-    Node2D INodes::operator[](const std::size_t index) const
+    Node2D & INodes::operator[](const std::size_t index) const
     {
         if(index >= m_Nodes.size())
         {

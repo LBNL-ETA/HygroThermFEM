@@ -109,12 +109,12 @@ namespace MoisThermFEM
         }
     }
 
-    IElementLinear2D * ElementsLinear2D::findElement(const Node2D & t_Node1, const Node2D & t_Node2)
+    IElementLinear2D * ElementsLinear2D::findElement( const size_t index1, const size_t index2 )
     {
         IElementLinear2D * el = nullptr;
         for(auto & element : m_Elements)
         {
-            if(element->haveBothNodes(t_Node1, t_Node2))
+            if(element->haveBothNodes(index1, index2))
             {
                 el = element.get();
             }

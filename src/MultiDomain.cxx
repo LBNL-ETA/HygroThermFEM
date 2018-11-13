@@ -7,9 +7,7 @@
 
 namespace MoisThermFEM
 {
-    MultiDomain::MultiDomain() :
-        m_ThermalDomain(),
-        m_MoistureDomain()
+    MultiDomain::MultiDomain() : m_ThermalDomain(), m_MoistureDomain()
     {}
 
     Solution MultiDomain::transient(std::vector<double> & temperature,
@@ -35,61 +33,67 @@ namespace MoisThermFEM
             currentTemperature = temperatureSolution;
         }
 
-		NodePool::Instance().updateNodeValues(currentHumidity, StateProperty::humidity);
-		NodePool::Instance().updateNodeValues(currentTemperature, StateProperty::temperature);
+        NodePool::Instance().updateNodeValues(currentHumidity, StateProperty::humidity);
+        NodePool::Instance().updateNodeValues(currentTemperature, StateProperty::temperature);
 
         const auto waterContent = NodePool::Instance().properties(Property::water);
         const auto liquidContent = NodePool::Instance().properties(Property::liquid);
         const auto vaporContent = NodePool::Instance().properties(Property::vapor);
         const auto iceContent = NodePool::Instance().properties(Property::ice);
 
-        return Solution{currentTemperature, currentHumidity, waterContent,
-						liquidContent, vaporContent, iceContent};
+        return Solution{currentTemperature,
+                        currentHumidity,
+                        waterContent,
+                        liquidContent,
+                        vaporContent,
+                        iceContent};
     }
 
-    void MultiDomain::createElement(Node2D &t_Node1,
-                                    Node2D &t_Node2,
-                                    Node2D &t_Node3,
-                                    Node2D &t_Node4,
-                                    const Material &mat)
+    void MultiDomain::createElement(const size_t index1,
+                                    const size_t index2,
+                                    const size_t index3,
+                                    const size_t index4,
+                                    const std::string & materialName)
     {
-        m_ThermalDomain.createElement(t_Node1, t_Node2, t_Node3, t_Node4, mat);
-        m_MoistureDomain.createElement(t_Node1, t_Node2, t_Node3, t_Node4, mat);
+        m_ThermalDomain.createElement(index1, index2, index3, index4, materialName);
+        m_MoistureDomain.createElement(index1, index2, index3, index4, materialName);
     }
 
-    void MultiDomain::createConvectionBC(Node2D &t_Node1,
-                                         Node2D &t_Node2,
+    void MultiDomain::createConvectionBC(const size_t index1,
+                                         const size_t index2,
                                          const double t_ConvectionCoefficient,
                                          const double t_AirTemperature,
                                          const double t_Humidity)
     {
         m_ThermalDomain.createConvectionBC(
-          t_Node1, t_Node2, t_ConvectionCoefficient, t_AirTemperature);
+          index1, index2, t_ConvectionCoefficient, t_AirTemperature);
 
         m_MoistureDomain.createMoistureBC(
-          t_Node1, t_Node2, t_ConvectionCoefficient, t_Humidity, t_AirTemperature);
+          index1, index2, t_ConvectionCoefficient, t_Humidity, t_AirTemperature);
     }
 
-    void MultiDomain::createTemperatureBC(Node2D & t_Node1,
-                                          Node2D & t_Node2,
+    void MultiDomain::createTemperatureBC(const size_t index1,
+                                          const size_t index2,
                                           const double t_Temp1,
                                           const double t_Temp2)
     {
-        m_ThermalDomain.createTemperatureBC(t_Node1, t_Node2, t_Temp1, t_Temp2);
+        m_ThermalDomain.createTemperatureBC(index1, index2, t_Temp1, t_Temp2);
     }
 
-    void MultiDomain::createTemperatureBC(Node2D & t_Node1, Node2D & t_Node2, const double t_Temp)
+    void MultiDomain::createTemperatureBC(const size_t index1,
+                                          const size_t index2,
+                                          const double t_Temp)
     {
-        m_ThermalDomain.createTemperatureBC(t_Node1, t_Node2, t_Temp);
+        m_ThermalDomain.createTemperatureBC(index1, index2, t_Temp);
     }
 
-    void MultiDomain::createBlackBodyRadiationBC(Node2D &t_Node1,
-                                                 Node2D &t_Node2,
+    void MultiDomain::createBlackBodyRadiationBC(const size_t index1,
+                                                 const size_t index2,
                                                  const double t_Emissivity,
                                                  const double t_RadiationTemperature)
     {
         m_ThermalDomain.createBlackBodyRadiationBC(
-          t_Node1, t_Node2, t_Emissivity, t_RadiationTemperature);
+          index1, index2, t_Emissivity, t_RadiationTemperature);
     }
 
     double MultiDomain::normError(const std::vector<double> & vec1,
@@ -109,10 +113,9 @@ namespace MoisThermFEM
     Solution::Solution(const std::vector<double> & temperature,
                        const std::vector<double> & humidity,
                        const std::vector<double> & waterContent,
-					   const std::vector<double> & liquidWaterContent,
-					   const std::vector<double> & vaporContent,
-					   const std::vector<double> & iceContent
-                       ) :
+                       const std::vector<double> & liquidWaterContent,
+                       const std::vector<double> & vaporContent,
+                       const std::vector<double> & iceContent) :
         temperature(temperature),
         humidity(humidity),
         waterContent(waterContent),

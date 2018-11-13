@@ -18,15 +18,16 @@ namespace MoisThermFEM
         std::vector<double> steadyState();
 
         /// Calculates next timestep value from current values
-        std::vector<double> transient(const std::vector<double> & currentStateValues, double t_DTime);
+        std::vector<double> transient(const std::vector<double> & currentStateValues,
+                                      double t_DTime);
 
-        virtual void createElement(Node2D &t_Node1,
-								   Node2D &t_Node2,
-								   Node2D &t_Node3,
-								   Node2D &t_Node4,
-								   const Material &mat) = 0;
+        virtual void createElement(const size_t index1,
+                                   const size_t index2,
+                                   const size_t index3,
+                                   const size_t index4,
+                                   const std::string & materialName) = 0;
 
-        IElementLinear2D * findElement(const Node2D & t_Node1, const Node2D & t_Node2);
+        IElementLinear2D * findElement( const size_t index1, const size_t index2 );
 
     protected:
         friend class MultiDomain;
@@ -58,47 +59,48 @@ namespace MoisThermFEM
     public:
         ThermalDomain();
 
-		void createConvectionBC(Node2D &t_Node1,
-								Node2D &t_Node2,
-								double t_ConvectionCoefficient,
-								double t_AirTemperature);
+        void createConvectionBC(const size_t index1,
+                                const size_t index2,
+                                double t_ConvectionCoefficient,
+                                double t_AirTemperature);
 
-		void
-		createTemperatureBC(Node2D & t_Node1, Node2D & t_Node2, double t_Temp1, double t_Temp2);
+        void createTemperatureBC(const size_t index1,
+                                 const size_t index2,
+                                 double t_Temp1,
+                                 double t_Temp2);
 
-		void createTemperatureBC(Node2D & t_Node1, Node2D & t_Node2, const double t_Temp);
+        void createTemperatureBC(const size_t index1, const size_t index2, const double t_Temp);
 
-		void createFluxBC(Node2D & t_Node1, Node2D & t_Node2, const double t_Flux);
+        void createFluxBC(const size_t index1, const size_t index2, const double t_Flux);
 
-		void createBlackBodyRadiationBC(Node2D &t_Node1,
-										Node2D &t_Node2,
-										const double t_Emissivity,
-										const double t_RadiationTemperature);
+        void createBlackBodyRadiationBC(const size_t index1,
+                                        const size_t index2,
+                                        const double t_Emissivity,
+                                        const double t_RadiationTemperature);
 
-        virtual void createElement(Node2D &t_Node1,
-								   Node2D &t_Node2,
-								   Node2D &t_Node3,
-								   Node2D &t_Node4,
-								   const Material &mat) override;
-
+        virtual void createElement(const size_t index1,
+                                   const size_t index2,
+                                   const size_t index3,
+                                   const size_t index4,
+                                   const std::string & materialName) override;
     };
 
     class MoistureDomain : public Domain
     {
     public:
-    	MoistureDomain();
+        MoistureDomain();
 
-		void createMoistureBC(Node2D &t_Node1,
-							  Node2D &t_Node2,
-							  const double t_ConvectiveCoefficient,
-							  const double t_AirHumidity,
-							  const double t_AirTemperature);
+        void createMoistureBC(const size_t index1,
+                              const size_t index2,
+                              const double t_ConvectiveCoefficient,
+                              const double t_AirHumidity,
+                              const double t_AirTemperature);
 
-		virtual void createElement(Node2D &t_Node1,
-								   Node2D &t_Node2,
-								   Node2D &t_Node3,
-								   Node2D &t_Node4,
-								   const Material &mat) override;
+        virtual void createElement(const size_t index1,
+                                   const size_t index2,
+                                   const size_t index3,
+                                   const size_t index4,
+                                   const std::string & materialName) override;
     };
 
 }   // namespace MoisThermFEM

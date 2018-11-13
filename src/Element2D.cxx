@@ -5,6 +5,7 @@
 #include "Element2D.hxx"
 #include "IntegrationPoints.hxx"
 #include "NodePool.hxx"
+#include "MaterialPool.hxx"
 #include "QuadrilateralLocal2D.hxx"
 #include "FEMunique.hxx"
 
@@ -172,15 +173,21 @@ namespace MoisThermFEM
     ///  IElementLinear2D
     //////////////////////////////////////////////////////////////////////////////
 
-    IElementLinear2D::IElementLinear2D(Node2D & t_Node1,
-                                       Node2D & t_Node2,
-                                       Node2D & t_Node3,
-                                       Node2D & t_Node4,
-                                       const Material & t_Material,
+    IElementLinear2D::IElementLinear2D(const size_t index1,
+                                       const size_t index2,
+                                       const size_t index3,
+                                       const size_t index4,
+                                       const std::string & materialName,
                                        const bool isLinear) :
-        m_Material{t_Material},
-        m_Nodes{t_Node1, t_Node2, t_Node3, t_Node4},
-        m_Global2D{t_Node1, t_Node2, t_Node3, t_Node4},
+        m_Material{MaterialPool::Instance().material(materialName)},
+        m_Nodes{NodePool::Instance().getNode(index1),
+                NodePool::Instance().getNode(index2),
+                NodePool::Instance().getNode(index3),
+                NodePool::Instance().getNode(index4)},
+        m_Global2D{NodePool::Instance().getNode(index1),
+                   NodePool::Instance().getNode(index2),
+                   NodePool::Instance().getNode(index3),
+                   NodePool::Instance().getNode(index4)},
         m_QLECapacitance2D{m_Global2D},
         m_DDuIntegrator{m_Global2D},
         m_Linear{isLinear}
@@ -275,14 +282,14 @@ namespace MoisThermFEM
         return m_Material;
     }
 
-    bool IElementLinear2D::haveBothNodes(const Node2D & t_Node1, const Node2D & t_Node2) const
+    bool IElementLinear2D::haveBothNodes( const size_t index1, const size_t index2 ) const
     {
         bool node1Found = false;
         bool node2Found = false;
         for(auto & node : m_Nodes)
         {
-            node1Found = node1Found || node == t_Node1;
-            node2Found = node2Found || node == t_Node2;
+            node1Found = node1Found || node.get().getNodeNumber() == index1;
+            node2Found = node2Found || node.get().getNodeNumber() == index2;
         }
         return node1Found && node2Found;
     }
@@ -309,30 +316,30 @@ namespace MoisThermFEM
     ///  ElementThermalLinear2D
     //////////////////////////////////////////////////////////////////////////////
 
-    ElementThermalLinear2D::ElementThermalLinear2D(Node2D &t_Node1,
-                                                   Node2D &t_Node2,
-                                                   Node2D &t_Node3,
-                                                   Node2D &t_Node4,
-                                                   const Material &mat) :
-        IElementLinear2D(t_Node1, t_Node2, t_Node3, t_Node4, mat)
+    ElementThermalLinear2D::ElementThermalLinear2D( const size_t index1,
+													const size_t index2,
+													const size_t index3,
+													const size_t index4,
+													const std::string & materialName ) :
+        IElementLinear2D(index1, index2, index3, index4, materialName)
     {
         //////////////////////////////////////////////////////////////////////////////////////
         /// Capacitance functions
-		//////////////////////////////////////////////////////////////////////////////////////
+        //////////////////////////////////////////////////////////////////////////////////////
 
-        auto dryContent = (1 - mat.porosity()) * mat.density();
+        auto dryContent = (1 - m_Material.porosity()) * m_Material.density();
         StateValue liquidContent(Property::liquid);
         StateValue iceContent(Property::ice);
-        //auto airContent = getMaterialAirFill(mat);
+        // auto airContent = getMaterialAirFill(mat);
         StateValue airContent(Property::vapor);
 
         auto equivalentDensity =
-          (dryContent * mat.density() + iceContent * Constants::Density_Ice
+          (dryContent * m_Material.density() + iceContent * Constants::Density_Ice
            + liquidContent * Constants::Density_Water + airContent * Constants::Density_Air)
           / (dryContent + iceContent + liquidContent + airContent);
 
         auto equivalentCapacitance =
-          (dryContent * mat.heatCapacity() + iceContent * Constants::Cp_Ice
+          (dryContent * m_Material.heatCapacity() + iceContent * Constants::Cp_Ice
            + liquidContent * Constants::Cp_Water + airContent * Constants::Cp_Air)
           / (dryContent + iceContent + liquidContent + airContent);
 
@@ -343,16 +350,16 @@ namespace MoisThermFEM
         /// Conductance
 
         /// material
-        auto materialConductivity = Constant(mat.thermalConductivity());
+        auto materialConductivity = Constant(m_Material.thermalConductivity());
 
         /// vapor
-        auto delta = Constant(2.5E-5 / mat.diffusionResistanceFactor());
+        auto delta = Constant(2.5E-5 / m_Material.diffusionResistanceFactor());
         auto vaporConductivity = Constants::Cp_Vapor * delta * airContent;
 
         /// liquid
         auto humidity = StateValue(Property::humidity);
         auto liquidConductivity =
-          SuctionCurve(mat.liquidTransportationCurve()) * Constants::Cp_Water * humidity;
+          SuctionCurve(m_Material.liquidTransportationCurve()) * Constants::Cp_Water * humidity;
 
         // iValue conductance = materialConductivity + vaporConductivity + liquidConductivity;
         auto conductance = materialConductivity + vaporConductivity + liquidConductivity;
@@ -364,17 +371,17 @@ namespace MoisThermFEM
     ///  ElementMoistureLinear2D
     //////////////////////////////////////////////////////////////////////////////
 
-    ElementMoistureLinear2D::ElementMoistureLinear2D(Node2D &t_Node1,
-                                                     Node2D &t_Node2,
-                                                     Node2D &t_Node3,
-                                                     Node2D &t_Node4,
-                                                     const Material &mat) :
-        IElementLinear2D(t_Node1, t_Node2, t_Node3, t_Node4, mat, false)
+    ElementMoistureLinear2D::ElementMoistureLinear2D( const size_t index1,
+													  const size_t index2,
+													  const size_t index3,
+													  const size_t index4,
+													  const std::string & materialName ) :
+        IElementLinear2D(index1, index2, index3, index4, materialName, false)
     {
         //////////////////////////////////////////////////////////////////////////////
         /// Water vapor diffusion
         //////////////////////////////////////////////////////////////////////////////
-        Constant delta(2.5E-5 / mat.diffusionResistanceFactor());
+        Constant delta(2.5E-5 / m_Material.diffusionResistanceFactor());
         auto conductance = delta * SaturationFunction();
 
         m_DDuFunctions.emplace_back(new decltype(conductance)(conductance));
@@ -385,12 +392,12 @@ namespace MoisThermFEM
         //////////////////////////////////////////////////////////////////////////////
         /// Water liquid transportation
         //////////////////////////////////////////////////////////////////////////////
-        m_DDuFunctions.emplace_back(new SuctionCurve(mat.liquidTransportationCurve()));
+        m_DDuFunctions.emplace_back(new SuctionCurve(m_Material.liquidTransportationCurve()));
 
         //////////////////////////////////////////////////////////////////////////////
         /// Creating capacitance function
         //////////////////////////////////////////////////////////////////////////////
-        auto sorptionDerivative = TabularDerivative(mat.sorptionCurve(), Property::humidity);
+        auto sorptionDerivative = TabularDerivative(m_Material.sorptionCurve(), Property::humidity);
 
         m_CapacitanceFunctions.emplace_back(new decltype(sorptionDerivative)(sorptionDerivative));
     }

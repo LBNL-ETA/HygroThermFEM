@@ -5,6 +5,8 @@
 #include "BoundaryCondition2D.hxx"
 #include "Common.hxx"
 #include "VectorOperators.hxx"
+#include "NodePool.hxx"
+#include "MaterialPool.hxx"
 
 namespace MoisThermFEM
 {
@@ -12,11 +14,11 @@ namespace MoisThermFEM
     /// ConvectionBC
     ////////////////////////////////////////////////////////
 
-    ConvectionBC::ConvectionBC(Node2D &t_Node1,
-                               Node2D &t_Node2,
-                               const double t_ConvectionCoefficient,
-                               const double t_AirTemperature) :
-        IBCLinear2D(t_Node1, t_Node2),
+    ConvectionBC::ConvectionBC( const size_t index1,
+								const size_t index2,
+								const double t_ConvectionCoefficient,
+								const double t_AirTemperature ) :
+        IBCLinear2D(index1, index2),
         m_ConvectionCoefficient(t_ConvectionCoefficient),
         m_AirTemperature(t_AirTemperature)
     {}
@@ -35,31 +37,35 @@ namespace MoisThermFEM
     /// TemperatureBC
     ////////////////////////////////////////////////////////
 
-    TemperatureBC::TemperatureBC(Node2D & t_Node1,
-                                 Node2D & t_Node2,
-                                 const double t_NodeTemperatures) :
-        ConvectionBC(t_Node1, t_Node2, 1e18, t_NodeTemperatures)
+    TemperatureBC::TemperatureBC( const size_t index1,
+								  const size_t index2,
+								  const double t_NodeTemperatures ) :
+        ConvectionBC(index1, index2, 1e18, t_NodeTemperatures)
     {
-		t_Node1.setStateProperty( StateProperty::temperature, t_NodeTemperatures );
-		t_Node2.setStateProperty( StateProperty::temperature, t_NodeTemperatures );
+    	auto & node1 = NodePool::Instance().getNode(index1);
+    	auto & node2 = NodePool::Instance().getNode(index2);
+		node1.setStateProperty( StateProperty::temperature, t_NodeTemperatures );
+		node2.setStateProperty( StateProperty::temperature, t_NodeTemperatures );
     }
 
-    TemperatureBC::TemperatureBC(Node2D & t_Node1,
-                                 Node2D & t_Node2,
-                                 const double t_Temp1,
-                                 const double t_Temp2) :
-        ConvectionBC(t_Node1, t_Node2, 1e18, (t_Temp1 + t_Temp2) / 2)
+    TemperatureBC::TemperatureBC( const size_t index1,
+								  const size_t index2,
+								  const double t_Temp1,
+								  const double t_Temp2 ) :
+        ConvectionBC(index1, index2, 1e18, (t_Temp1 + t_Temp2) / 2)
     {
-		t_Node1.setStateProperty( StateProperty::temperature, t_Temp1 );
-		t_Node2.setStateProperty( StateProperty::temperature, t_Temp2 );
+		auto & node1 = NodePool::Instance().getNode(index1);
+		auto & node2 = NodePool::Instance().getNode(index2);
+		node1.setStateProperty( StateProperty::temperature, t_Temp1 );
+		node2.setStateProperty( StateProperty::temperature, t_Temp2 );
     }
 
     ////////////////////////////////////////////////////////
     /// Flux BC
     ////////////////////////////////////////////////////////
 
-    FluxBC::FluxBC(Node2D & t_Node1, Node2D & t_Node2, const double t_Flux) :
-        IBCLinear2D(t_Node1, t_Node2),
+    FluxBC::FluxBC( const size_t index1, const size_t index2, const double t_Flux ) :
+        IBCLinear2D(index1, index2),
         m_Flux(t_Flux)
     {}
 
@@ -83,11 +89,11 @@ namespace MoisThermFEM
     /// BlackBodyRadiationBC
     ////////////////////////////////////////////////////////
 
-    BlackBodyRadiationBC::BlackBodyRadiationBC(Node2D &t_Node1,
-                                               Node2D &t_Node2,
-                                               const double t_Emissivity,
-                                               const double t_RadiationTemperature) :
-        IBCLinear2D(t_Node1, t_Node2, false),
+    BlackBodyRadiationBC::BlackBodyRadiationBC( const size_t index1,
+												const size_t index2,
+												const double t_Emissivity,
+												const double t_RadiationTemperature ) :
+        IBCLinear2D(index1, index2, false),
         m_RadiationTemperature{t_RadiationTemperature},
         m_Emissivity{t_Emissivity}
     {}
@@ -119,17 +125,14 @@ namespace MoisThermFEM
     /// MoistureBC
     /////////////////////////////////////////////////////
 
-    MoistureBC::MoistureBC(Node2D &t_Node1,
-                           Node2D &t_Node2,
-                           const double t_ConvectiveCoefficient,
-                           const Material &t_Material,
-                           const double t_AirHumidity,
-                           const double t_AirTemperature) :
-        IBCLinear2D(t_Node1, t_Node2),
+    MoistureBC::MoistureBC( const size_t index1, const size_t index2, const std::string & materialName,
+								const double t_ConvectiveCoefficient, const double t_AirHumidity,
+								const double t_AirTemperature ) :
+        IBCLinear2D(index1, index2),
         m_ConvectiveCoefficient(t_ConvectiveCoefficient),
         m_AirHumidity(t_AirHumidity),
         m_AirTemperature(t_AirTemperature),
-        m_Material(t_Material)
+        m_Material(MaterialPool::Instance().material(materialName))
     {}
 
     std::vector<double> MoistureBC::R_Vector() const

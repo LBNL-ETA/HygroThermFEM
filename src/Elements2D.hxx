@@ -24,7 +24,7 @@ namespace MoisThermFEM
 
         void updateNodeValues(const std::vector<double> & values, const StateProperty property);
 
-        IElementLinear2D * findElement(const Node2D & t_Node1, const Node2D & t_Node2);
+        IElementLinear2D * findElement( const size_t index1, const size_t index2 );
 
         void assignElement( std::unique_ptr< IElementLinear2D > && el );
 

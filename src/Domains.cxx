@@ -13,7 +13,6 @@ using FenestrationCommon::CLinearSolver;
 
 namespace MoisThermFEM
 {
-
     FenestrationCommon::SquareMatrix Domain::steadyStateLeftHandSide()
     {
         auto condMat = m_Elements.conductanceMatrix();
@@ -46,9 +45,9 @@ namespace MoisThermFEM
         std::vector<double> M{m_Elements.getLumpedMass(t_DTime)};
         auto R = m_BCs.RVector();
 
-		auto B = t_PreviousSolution * M + R;
+        auto B = t_PreviousSolution * M + R;
 
-		return B;
+        return B;
     }
 
     std::vector<double> Domain::steadyState()
@@ -100,7 +99,7 @@ namespace MoisThermFEM
                 // 	solution[i] += dU[i];
                 // }
 
-                //std::transform(
+                // std::transform(
                 //  dU.begin(), dU.end(), solution.begin(), solution.begin(), std::plus<double>());
 
                 solution = solution + dU;
@@ -133,89 +132,92 @@ namespace MoisThermFEM
         m_Elements.updateNodeValues(values, property);
     }
 
-	IElementLinear2D * Domain::findElement(const Node2D & t_Node1, const Node2D & t_Node2)
-	{
-		return m_Elements.findElement(t_Node1, t_Node2);
-	}
+    IElementLinear2D * Domain::findElement(const size_t index1, const size_t index2)
+    {
+        return m_Elements.findElement(index1, index2);
+    }
 
-	Domain::Domain( const StateProperty property ) : m_Property(property) {
+    Domain::Domain(const StateProperty property) : m_Property(property)
+    {}
 
-	}
-
-	void ThermalDomain::createConvectionBC(Node2D &t_Node1,
-                                           Node2D &t_Node2,
+    void ThermalDomain::createConvectionBC(const size_t index1,
+                                           const size_t index2,
                                            double t_ConvectionCoefficient,
                                            double t_AirTemperature)
     {
-    	m_BCs.assignBC(fem::make_unique<ConvectionBC>(
-			t_Node1, t_Node2, t_ConvectionCoefficient, t_AirTemperature));
+        m_BCs.assignBC(fem::make_unique<ConvectionBC>(
+          index1, index2, t_ConvectionCoefficient, t_AirTemperature));
     }
 
-    void ThermalDomain::createTemperatureBC(Node2D & t_Node1,
-                                     Node2D & t_Node2,
-                                     const double t_Temp1,
-                                     const double t_Temp2)
+    void ThermalDomain::createTemperatureBC(const size_t index1,
+                                            const size_t index2,
+                                            double t_Temp1,
+                                            double t_Temp2)
     {
-    	m_BCs.assignBC(fem::make_unique<TemperatureBC>(t_Node1, t_Node2, t_Temp1, t_Temp2));
+        m_BCs.assignBC(fem::make_unique<TemperatureBC>(index1, index2, t_Temp1, t_Temp2));
     }
 
-    void ThermalDomain::createTemperatureBC(Node2D & t_Node1, Node2D & t_Node2, const double t_Temp)
+    void ThermalDomain::createTemperatureBC(const size_t index1,
+                                            const size_t index2,
+                                            const double t_Temp)
     {
-    	m_BCs.assignBC(fem::make_unique<TemperatureBC>(t_Node1, t_Node2, t_Temp));
+        m_BCs.assignBC(fem::make_unique<TemperatureBC>(index1, index2, t_Temp));
     }
 
-    void ThermalDomain::createFluxBC(Node2D & t_Node1, Node2D & t_Node2, const double t_Flux)
+    void ThermalDomain::createFluxBC(const size_t index1, const size_t index2, const double t_Flux)
     {
-    	m_BCs.assignBC(fem::make_unique<FluxBC>(t_Node1, t_Node2, t_Flux));
+        m_BCs.assignBC(fem::make_unique<FluxBC>(index1, index2, t_Flux));
     }
 
-    void ThermalDomain::createBlackBodyRadiationBC(Node2D &t_Node1,
-                                                   Node2D &t_Node2,
+    void ThermalDomain::createBlackBodyRadiationBC(const size_t index1,
+                                                   const size_t index2,
                                                    const double t_Emissivity,
                                                    const double t_RadiationTemperature)
     {
-    	m_BCs.assignBC(fem::make_unique<BlackBodyRadiationBC>(
-			t_Node1, t_Node2, t_Emissivity, t_RadiationTemperature));
+        m_BCs.assignBC(fem::make_unique<BlackBodyRadiationBC>(
+          index1, index2, t_Emissivity, t_RadiationTemperature));
     }
 
-    void ThermalDomain::createElement(Node2D &t_Node1,
-                                      Node2D &t_Node2,
-                                      Node2D &t_Node3,
-                                      Node2D &t_Node4,
-                                      const Material &mat)
+    void ThermalDomain::createElement(const size_t index1,
+                                      const size_t index2,
+                                      const size_t index3,
+                                      const size_t index4,
+                                      const std::string & materialName)
     {
         m_Elements.assignElement(
-          fem::make_unique<ElementThermalLinear2D>(t_Node1, t_Node2, t_Node3, t_Node4, mat));
+          fem::make_unique<ElementThermalLinear2D>(index1, index2, index3, index4, materialName));
     }
 
-	ThermalDomain::ThermalDomain() : Domain(StateProperty::temperature) {
+    ThermalDomain::ThermalDomain() : Domain(StateProperty::temperature)
+    {}
 
-	}
-
-	void MoistureDomain::createElement(Node2D &t_Node1,
-                                       Node2D &t_Node2,
-                                       Node2D &t_Node3,
-                                       Node2D &t_Node4,
-                                       const Material &mat)
+    void MoistureDomain::createElement(const size_t index1,
+                                       const size_t index2,
+                                       const size_t index3,
+                                       const size_t index4,
+                                       const std::string & materialName)
     {
         m_Elements.assignElement(
-          fem::make_unique<ElementMoistureLinear2D>(t_Node1, t_Node2, t_Node3, t_Node4, mat));
+          fem::make_unique<ElementMoistureLinear2D>(index1, index2, index3, index4, materialName));
     }
 
-	void MoistureDomain::createMoistureBC(Node2D &t_Node1,
-                                          Node2D &t_Node2,
+    void MoistureDomain::createMoistureBC(const size_t index1,
+                                          const size_t index2,
                                           const double t_ConvectiveCoefficient,
                                           const double t_AirHumidity,
                                           const double t_AirTemperature)
-	{
-		/// Need to pull material for current moisture boundary condition
-		auto & Material = m_Elements.findElement(t_Node1, t_Node2)->getMaterial();
-		m_BCs.assignBC(fem::make_unique<MoisThermFEM::MoistureBC>(
-			t_Node1, t_Node2, t_ConvectiveCoefficient, Material, t_AirHumidity, t_AirTemperature));
-	}
+    {
+        /// Need to pull material for current moisture boundary condition
+        auto & Material = m_Elements.findElement(index1, index2)->getMaterial();
+        m_BCs.assignBC(fem::make_unique<MoisThermFEM::MoistureBC>(index1,
+                                                                  index2,
+                                                                  Material.name(),
+                                                                  t_ConvectiveCoefficient,
+                                                                  t_AirHumidity,
+                                                                  t_AirTemperature));
+    }
 
-	MoistureDomain::MoistureDomain() : Domain(StateProperty::humidity) {
-
-	}
+    MoistureDomain::MoistureDomain() : Domain(StateProperty::humidity)
+    {}
 
 }   // namespace MoisThermFEM
