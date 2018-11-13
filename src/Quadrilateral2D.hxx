@@ -13,10 +13,10 @@ namespace MoisThermFEM
     class QuadrilateralLinearGlobal2D
     {
     public:
-        QuadrilateralLinearGlobal2D(const Node2D & t_Node1,
-                                    const Node2D & t_Node2,
-                                    const Node2D & t_Node3,
-                                    const Node2D & t_Node4);
+        QuadrilateralLinearGlobal2D(Node2D & t_Node1,
+                                    Node2D & t_Node2,
+                                    Node2D & t_Node3,
+                                    Node2D & t_Node4);
 
         QuadrilateralLinearGlobal2D(const QuadrilateralLinearGlobal2D & t_Element);
 

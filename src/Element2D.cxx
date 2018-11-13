@@ -172,14 +172,14 @@ namespace MoisThermFEM
     ///  IElementLinear2D
     //////////////////////////////////////////////////////////////////////////////
 
-    IElementLinear2D::IElementLinear2D(const Node2D & t_Node1,
-                                       const Node2D & t_Node2,
-                                       const Node2D & t_Node3,
-                                       const Node2D & t_Node4,
+    IElementLinear2D::IElementLinear2D(Node2D & t_Node1,
+                                       Node2D & t_Node2,
+                                       Node2D & t_Node3,
+                                       Node2D & t_Node4,
                                        const Material & t_Material,
                                        const bool isLinear) :
         m_Material{t_Material},
-        m_Nodes{{t_Node1, t_Node2, t_Node3, t_Node4}},
+        m_Nodes{t_Node1, t_Node2, t_Node3, t_Node4},
         m_Global2D{t_Node1, t_Node2, t_Node3, t_Node4},
         m_QLECapacitance2D{m_Global2D},
         m_DDuIntegrator{m_Global2D},
@@ -309,11 +309,11 @@ namespace MoisThermFEM
     ///  ElementThermalLinear2D
     //////////////////////////////////////////////////////////////////////////////
 
-    ElementThermalLinear2D::ElementThermalLinear2D(const Node2D & t_Node1,
-                                                   const Node2D & t_Node2,
-                                                   const Node2D & t_Node3,
-                                                   const Node2D & t_Node4,
-                                                   const Material & mat) :
+    ElementThermalLinear2D::ElementThermalLinear2D(Node2D &t_Node1,
+                                                   Node2D &t_Node2,
+                                                   Node2D &t_Node3,
+                                                   Node2D &t_Node4,
+                                                   const Material &mat) :
         IElementLinear2D(t_Node1, t_Node2, t_Node3, t_Node4, mat)
     {
         //////////////////////////////////////////////////////////////////////////////////////
@@ -364,11 +364,11 @@ namespace MoisThermFEM
     ///  ElementMoistureLinear2D
     //////////////////////////////////////////////////////////////////////////////
 
-    ElementMoistureLinear2D::ElementMoistureLinear2D(const Node2D & t_Node1,
-                                                     const Node2D & t_Node2,
-                                                     const Node2D & t_Node3,
-                                                     const Node2D & t_Node4,
-                                                     const Material & mat) :
+    ElementMoistureLinear2D::ElementMoistureLinear2D(Node2D &t_Node1,
+                                                     Node2D &t_Node2,
+                                                     Node2D &t_Node3,
+                                                     Node2D &t_Node4,
+                                                     const Material &mat) :
         IElementLinear2D(t_Node1, t_Node2, t_Node3, t_Node4, mat, false)
     {
         //////////////////////////////////////////////////////////////////////////////

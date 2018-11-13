@@ -12,10 +12,10 @@ namespace MoisThermFEM
     //   QuadrilateralLinearGlobal2D
     ////////////////////////////////////////////////////////////////////////////
 
-    QuadrilateralLinearGlobal2D::QuadrilateralLinearGlobal2D(const Node2D & t_Node1,
-                                                             const Node2D & t_Node2,
-                                                             const Node2D & t_Node3,
-                                                             const Node2D & t_Node4) :
+    QuadrilateralLinearGlobal2D::QuadrilateralLinearGlobal2D(Node2D & t_Node1,
+                                                             Node2D & t_Node2,
+                                                             Node2D & t_Node3,
+                                                             Node2D & t_Node4) :
         m_Nodes(t_Node1, t_Node2, t_Node3, t_Node4)
     {
         // Setting up gauss points in global coordinate system

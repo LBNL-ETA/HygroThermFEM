@@ -61,6 +61,7 @@ namespace MoisThermFEM
                                           const double t_DTime)
     {
         auto A = transientM_K_H_Matrix(t_DTime);
+
         auto B = transientMT_R_Vector(currentStateValues, t_DTime);
 
         // CLinearSolver aSolver;
@@ -141,10 +142,10 @@ namespace MoisThermFEM
 
 	}
 
-	void ThermalDomain::createConvectionBC(const Node2D & t_Node1,
-                                    const Node2D & t_Node2,
-                                    const double t_ConvectionCoefficient,
-                                    const double t_AirTemperature)
+	void ThermalDomain::createConvectionBC(Node2D &t_Node1,
+                                           Node2D &t_Node2,
+                                           double t_ConvectionCoefficient,
+                                           double t_AirTemperature)
     {
     	m_BCs.assignBC(fem::make_unique<ConvectionBC>(
 			t_Node1, t_Node2, t_ConvectionCoefficient, t_AirTemperature));
@@ -168,20 +169,20 @@ namespace MoisThermFEM
     	m_BCs.assignBC(fem::make_unique<FluxBC>(t_Node1, t_Node2, t_Flux));
     }
 
-    void ThermalDomain::createBlackBodyRadiationBC(const Node2D & t_Node1,
-                                            const Node2D & t_Node2,
-                                            const double t_Emissivity,
-                                            const double t_RadiationTemperature)
+    void ThermalDomain::createBlackBodyRadiationBC(Node2D &t_Node1,
+                                                   Node2D &t_Node2,
+                                                   const double t_Emissivity,
+                                                   const double t_RadiationTemperature)
     {
     	m_BCs.assignBC(fem::make_unique<BlackBodyRadiationBC>(
 			t_Node1, t_Node2, t_Emissivity, t_RadiationTemperature));
     }
 
-    void ThermalDomain::createElement(const Node2D & t_Node1,
-                                      const Node2D & t_Node2,
-                                      const Node2D & t_Node3,
-                                      const Node2D & t_Node4,
-                                      const Material & mat)
+    void ThermalDomain::createElement(Node2D &t_Node1,
+                                      Node2D &t_Node2,
+                                      Node2D &t_Node3,
+                                      Node2D &t_Node4,
+                                      const Material &mat)
     {
         m_Elements.assignElement(
           fem::make_unique<ElementThermalLinear2D>(t_Node1, t_Node2, t_Node3, t_Node4, mat));
@@ -191,21 +192,21 @@ namespace MoisThermFEM
 
 	}
 
-	void MoistureDomain::createElement(const Node2D & t_Node1,
-                                       const Node2D & t_Node2,
-                                       const Node2D & t_Node3,
-                                       const Node2D & t_Node4,
-                                       const Material & mat)
+	void MoistureDomain::createElement(Node2D &t_Node1,
+                                       Node2D &t_Node2,
+                                       Node2D &t_Node3,
+                                       Node2D &t_Node4,
+                                       const Material &mat)
     {
         m_Elements.assignElement(
           fem::make_unique<ElementMoistureLinear2D>(t_Node1, t_Node2, t_Node3, t_Node4, mat));
     }
 
-	void MoistureDomain::createMoistureBC(const Node2D & t_Node1,
-										  const Node2D & t_Node2,
-										  const double t_ConvectiveCoefficient,
-										  const double t_AirHumidity,
-										  const double t_AirTemperature)
+	void MoistureDomain::createMoistureBC(Node2D &t_Node1,
+                                          Node2D &t_Node2,
+                                          const double t_ConvectiveCoefficient,
+                                          const double t_AirHumidity,
+                                          const double t_AirTemperature)
 	{
 		/// Need to pull material for current moisture boundary condition
 		auto & Material = m_Elements.findElement(t_Node1, t_Node2)->getMaterial();

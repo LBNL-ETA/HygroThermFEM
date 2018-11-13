@@ -11,8 +11,8 @@ namespace MoisThermFEM {
 
 	class ConvectionBC : public IBCLinear2D {
 	public:
-		ConvectionBC( const Node2D & t_Node1, const Node2D & t_Node2,
-									const double t_ConvectionCoefficient, const double t_AirTemperature );
+		ConvectionBC(Node2D &t_Node1, Node2D &t_Node2,
+					 const double t_ConvectionCoefficient, const double t_AirTemperature);
 
 		virtual std::vector< double > R_Vector() const override;
 
@@ -59,8 +59,8 @@ namespace MoisThermFEM {
 
 	class BlackBodyRadiationBC : public IBCLinear2D {
 	public:
-		BlackBodyRadiationBC( const Node2D & t_Node1, const Node2D & t_Node2,
-													const double t_Emissivity, const double t_RadiationTemperature );
+		BlackBodyRadiationBC(Node2D &t_Node1, Node2D &t_Node2,
+							 const double t_Emissivity, const double t_RadiationTemperature);
 
 		virtual std::vector< double > R_Vector() const override;
 
@@ -86,10 +86,10 @@ namespace MoisThermFEM {
 	/////////////////////////////////////////////////////
 	class MoistureBC : public IBCLinear2D {
 	public:
-		MoistureBC( const Node2D & t_Node1, const Node2D & t_Node2,
-								const double t_ConvectiveCoefficient,
-								const Material & t_Material, const double t_AirHumidity,
-								const double t_AirTemperature );
+		MoistureBC(Node2D &t_Node1, Node2D &t_Node2,
+				   const double t_ConvectiveCoefficient,
+				   const Material &t_Material, const double t_AirHumidity,
+				   const double t_AirTemperature);
 
 		virtual std::vector< double > R_Vector() const override;
 

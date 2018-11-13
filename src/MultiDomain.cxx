@@ -47,18 +47,18 @@ namespace MoisThermFEM
 						liquidContent, vaporContent, iceContent};
     }
 
-    void MultiDomain::createElement(const Node2D & t_Node1,
-                                    const Node2D & t_Node2,
-                                    const Node2D & t_Node3,
-                                    const Node2D & t_Node4,
-                                    const Material & mat)
+    void MultiDomain::createElement(Node2D &t_Node1,
+                                    Node2D &t_Node2,
+                                    Node2D &t_Node3,
+                                    Node2D &t_Node4,
+                                    const Material &mat)
     {
         m_ThermalDomain.createElement(t_Node1, t_Node2, t_Node3, t_Node4, mat);
         m_MoistureDomain.createElement(t_Node1, t_Node2, t_Node3, t_Node4, mat);
     }
 
-    void MultiDomain::createConvectionBC(const Node2D & t_Node1,
-                                         const Node2D & t_Node2,
+    void MultiDomain::createConvectionBC(Node2D &t_Node1,
+                                         Node2D &t_Node2,
                                          const double t_ConvectionCoefficient,
                                          const double t_AirTemperature,
                                          const double t_Humidity)
@@ -83,8 +83,8 @@ namespace MoisThermFEM
         m_ThermalDomain.createTemperatureBC(t_Node1, t_Node2, t_Temp);
     }
 
-    void MultiDomain::createBlackBodyRadiationBC(const Node2D & t_Node1,
-                                                 const Node2D & t_Node2,
+    void MultiDomain::createBlackBodyRadiationBC(Node2D &t_Node1,
+                                                 Node2D &t_Node2,
                                                  const double t_Emissivity,
                                                  const double t_RadiationTemperature)
     {

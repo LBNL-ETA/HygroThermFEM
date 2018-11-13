@@ -25,10 +25,10 @@ TEST_F(TestQuadLinearElementGlobal2D, TestIntegrationPoint1)
 
     // Enter nodes. Arguments are: node number, x-coordinate, y-coordinate
 
-    const auto node1 = NodePool::Instance().createNode(1, 0, 0);
-    const auto node2 = NodePool::Instance().createNode(2, 5, 0);
-    const auto node3 = NodePool::Instance().createNode(3, 5, 5);
-    const auto node4 = NodePool::Instance().createNode(4, 0, 5);
+    auto node1 = NodePool::Instance().createNode(1, 0, 0);
+    auto node2 = NodePool::Instance().createNode(2, 5, 0);
+    auto node3 = NodePool::Instance().createNode(3, 5, 5);
+    auto node4 = NodePool::Instance().createNode(4, 0, 5);
 
     auto aElement = MoisThermFEM::QuadrilateralLinearGlobal2D(node1, node2, node3, node4);
 

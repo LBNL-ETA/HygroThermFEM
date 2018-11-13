@@ -163,7 +163,8 @@ namespace MoisThermFEM
     ///   INodesStorage
     ////////////////////////////////////////////////////////////////////////////
 
-    INodes::INodes(std::initializer_list<Node2D> t_Nodes) : m_Nodes(t_Nodes)
+    INodes::INodes(std::initializer_list<std::reference_wrapper<Node2D>> t_Nodes) :
+    m_Nodes(t_Nodes)
     {}
 
     Node2D & INodes::getNode(const std::size_t Index)
@@ -177,7 +178,7 @@ namespace MoisThermFEM
         std::vector<std::size_t> indexes;
         for(const auto & aNode : m_Nodes)
         {
-            indexes.push_back(aNode.getNodeNumber());
+            indexes.push_back(aNode.get().getNodeNumber());
         }
         return indexes;
     }
@@ -205,7 +206,7 @@ namespace MoisThermFEM
     ///   LineNodes2D
     ////////////////////////////////////////////////////////////////////////////
 
-    LineNodes2D::LineNodes2D(const Node2D & t_Node1, const Node2D & t_Node2) :
+    LineNodes2D::LineNodes2D(Node2D & t_Node1, Node2D & t_Node2) :
         INodes{t_Node1, t_Node2}
     {}
 
@@ -213,10 +214,10 @@ namespace MoisThermFEM
     ///   QuadrilateralNodes2D
     ////////////////////////////////////////////////////////////////////////////
 
-    QuadrilateralNodes2D::QuadrilateralNodes2D(const Node2D & t_Node1,
-                                               const Node2D & t_Node2,
-                                               const Node2D & t_Node3,
-                                               const Node2D & t_Node4) :
+    QuadrilateralNodes2D::QuadrilateralNodes2D(Node2D & t_Node1,
+                                               Node2D & t_Node2,
+                                               Node2D & t_Node3,
+                                               Node2D & t_Node4) :
         INodes({t_Node1, t_Node2, t_Node3, t_Node4})
     {}
 }   // namespace MoisThermFEM

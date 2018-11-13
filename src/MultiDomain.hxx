@@ -33,14 +33,14 @@ namespace MoisThermFEM
 
         std::vector<double> property(Property property) const;
 
-        void createElement(const Node2D & t_Node1,
-                           const Node2D & t_Node2,
-                           const Node2D & t_Node3,
-                           const Node2D & t_Node4,
-                           const Material & mat);
+        void createElement(Node2D &t_Node1,
+                           Node2D &t_Node2,
+                           Node2D &t_Node3,
+                           Node2D &t_Node4,
+                           const Material &mat);
 
-        void createConvectionBC(const Node2D & t_Node1,
-                                const Node2D & t_Node2,
+        void createConvectionBC(Node2D &t_Node1,
+                                Node2D &t_Node2,
                                 const double t_ConvectionCoefficient,
                                 const double t_AirTemperature,
                                 const double t_Humidity);
@@ -52,8 +52,8 @@ namespace MoisThermFEM
 
         void createTemperatureBC(Node2D & t_Node1, Node2D & t_Node2, const double t_Temp);
 
-        void createBlackBodyRadiationBC(const Node2D & t_Node1,
-                                        const Node2D & t_Node2,
+        void createBlackBodyRadiationBC(Node2D &t_Node1,
+                                        Node2D &t_Node2,
                                         const double t_Emissivity,
                                         const double t_RadiationTemperature);
 

@@ -23,10 +23,10 @@ TEST_F(TestSingleElementMatrices2D, TestConductionMatrix) {
 
   // Enter nodes. Arguments are: node number, x-coordinate, y-coordinate
 
-  const auto node1 = NodePool::Instance().createNode(1, 5, 5);
-  const auto node2 = NodePool::Instance().createNode(2, 5, 0);
-  const auto node3 = NodePool::Instance().createNode(3, 15, 0);
-  const auto node4 = NodePool::Instance().createNode(4, 15, 5);
+  auto node1 = NodePool::Instance().createNode(1, 5, 5);
+  auto node2 = NodePool::Instance().createNode(2, 5, 0);
+  auto node3 = NodePool::Instance().createNode(3, 15, 0);
+  auto node4 = NodePool::Instance().createNode(4, 15, 5);
 
   auto &material =
 	  MaterialPool::Instance().createMaterial("Test Material",

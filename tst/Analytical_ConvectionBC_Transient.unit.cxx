@@ -69,10 +69,10 @@ TEST_F(Analytical_ConvectionBC_Transient, TestExample_1)
     /// Create elements
     for(size_t i = 1; i <= (NodePool::Instance().maxIndex() - 2) / 2; ++i)
     {
-        const auto node1 = NodePool::Instance().getNode(2 * i - 1);
-        const auto node2 = NodePool::Instance().getNode(2 * i);
-        const auto node3 = NodePool::Instance().getNode(2 * i + 2);
-        const auto node4 = NodePool::Instance().getNode(2 * i + 1);
+        auto node1 = NodePool::Instance().getNode(2 * i - 1);
+        auto node2 = NodePool::Instance().getNode(2 * i);
+        auto node3 = NodePool::Instance().getNode(2 * i + 2);
+        auto node4 = NodePool::Instance().getNode(2 * i + 1);
 
         domain.createElement(node1, node2, node3, node4, material);
     }

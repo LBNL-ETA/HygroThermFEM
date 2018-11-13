@@ -116,7 +116,22 @@ namespace MoisThermFEM
     public:
         INodes() = default;
 
-        INodes(std::initializer_list<Node2D> t_Nodes);
+        INodes(std::initializer_list<std::reference_wrapper<Node2D>> t_Nodes);
+
+        INodes(Node2D & node1, Node2D & node2)
+        {
+            m_Nodes.push_back(node1);
+            m_Nodes.push_back(node2);
+        }
+
+        INodes(Node2D & node1, Node2D & node2,
+                    Node2D & node3, Node2D & node4)
+        {
+            m_Nodes.push_back(node1);
+            m_Nodes.push_back(node2);
+            m_Nodes.push_back(node3);
+            m_Nodes.push_back(node4);
+        }
 
         Node2D & getNode(const std::size_t Index);
 
@@ -128,7 +143,7 @@ namespace MoisThermFEM
         std::size_t size() const;
 
     protected:
-        std::vector<Node2D> m_Nodes;
+        std::vector<std::reference_wrapper<Node2D>> m_Nodes;
     };
 
     ////////////////////////////////////////////////////////////////////////////
@@ -139,7 +154,7 @@ namespace MoisThermFEM
     class LineNodes2D : public INodes
     {
     public:
-        LineNodes2D(const Node2D & t_Node1, const Node2D & t_Node2);
+        LineNodes2D(Node2D & t_Node1, Node2D & t_Node2);
     };
 
     ////////////////////////////////////////////////////////////////////////////
@@ -150,10 +165,10 @@ namespace MoisThermFEM
     class QuadrilateralNodes2D : public INodes
     {
     public:
-        QuadrilateralNodes2D(const Node2D & t_Node1,
-                             const Node2D & t_Node2,
-                             const Node2D & t_Node3,
-                             const Node2D & t_Node4);
+        QuadrilateralNodes2D(Node2D & t_Node1,
+                             Node2D & t_Node2,
+                             Node2D & t_Node3,
+                             Node2D & t_Node4);
     };
 
 }   // namespace MoisThermFEM

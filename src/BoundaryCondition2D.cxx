@@ -12,8 +12,8 @@ namespace MoisThermFEM
     /// ConvectionBC
     ////////////////////////////////////////////////////////
 
-    ConvectionBC::ConvectionBC(const Node2D & t_Node1,
-                               const Node2D & t_Node2,
+    ConvectionBC::ConvectionBC(Node2D &t_Node1,
+                               Node2D &t_Node2,
                                const double t_ConvectionCoefficient,
                                const double t_AirTemperature) :
         IBCLinear2D(t_Node1, t_Node2),
@@ -83,8 +83,8 @@ namespace MoisThermFEM
     /// BlackBodyRadiationBC
     ////////////////////////////////////////////////////////
 
-    BlackBodyRadiationBC::BlackBodyRadiationBC(const Node2D & t_Node1,
-                                               const Node2D & t_Node2,
+    BlackBodyRadiationBC::BlackBodyRadiationBC(Node2D &t_Node1,
+                                               Node2D &t_Node2,
                                                const double t_Emissivity,
                                                const double t_RadiationTemperature) :
         IBCLinear2D(t_Node1, t_Node2, false),
@@ -119,10 +119,10 @@ namespace MoisThermFEM
     /// MoistureBC
     /////////////////////////////////////////////////////
 
-    MoistureBC::MoistureBC(const Node2D & t_Node1,
-                           const Node2D & t_Node2,
+    MoistureBC::MoistureBC(Node2D &t_Node1,
+                           Node2D &t_Node2,
                            const double t_ConvectiveCoefficient,
-                           const Material & t_Material,
+                           const Material &t_Material,
                            const double t_AirHumidity,
                            const double t_AirTemperature) :
         IBCLinear2D(t_Node1, t_Node2),

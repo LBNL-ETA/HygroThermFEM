@@ -25,12 +25,12 @@ TEST_F(ConvectionBC_2D_1, TestExample_1)
 
     // Enter nodes. Arguments are: node number, x-coordinate, y-coordinate
 
-    const auto node1 = NodePool::Instance().createNode(1, 15, 5);
-    const auto node2 = NodePool::Instance().createNode(2, 15, 0);
-    const auto node3 = NodePool::Instance().createNode(3, 5, 5);
-    const auto node4 = NodePool::Instance().createNode(4, 5, 0);
-    const auto node5 = NodePool::Instance().createNode(5, 0, 5);
-    const auto node6 = NodePool::Instance().createNode(6, 0, 0);
+    auto node1 = NodePool::Instance().createNode(1, 15, 5);
+    auto node2 = NodePool::Instance().createNode(2, 15, 0);
+    auto node3 = NodePool::Instance().createNode(3, 5, 5);
+    auto node4 = NodePool::Instance().createNode(4, 5, 0);
+    auto node5 = NodePool::Instance().createNode(5, 0, 5);
+    auto node6 = NodePool::Instance().createNode(6, 0, 0);
 
     auto & material =
       MaterialPool::Instance().createMaterial("Test Material",

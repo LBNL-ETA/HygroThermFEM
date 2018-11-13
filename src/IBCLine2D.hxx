@@ -19,7 +19,7 @@ namespace MoisThermFEM {
 		virtual ~IBCLinear2D() = default;
 
 		IBCLinear2D() = delete;
-		IBCLinear2D( const Node2D & t_Node1, const Node2D & t_Node2, const bool t_Linear = true );
+		IBCLinear2D(Node2D &t_Node1, Node2D &t_Node2, const bool t_Linear = true);
 
 		std::vector< std::size_t > getNodeIndexes() const;
 		Node2D & getNode( const std::size_t index );

@@ -112,10 +112,10 @@ namespace MoisThermFEM
     class IElementLinear2D
     {
     public:
-        IElementLinear2D(const Node2D & t_Node1,
-                         const Node2D & t_Node2,
-                         const Node2D & t_Node3,
-                         const Node2D & t_Node4,
+        IElementLinear2D(Node2D & t_Node1,
+                         Node2D & t_Node2,
+                         Node2D & t_Node3,
+                         Node2D & t_Node4,
                          const Material & t_Material,
                          const bool isLinear = true);
 
@@ -153,24 +153,37 @@ namespace MoisThermFEM
         class CircularNodesVector : public INodes
         {
         public:
-            explicit CircularNodesVector(const std::initializer_list<Node2D> & __l) :
+            explicit CircularNodesVector(const std::initializer_list<std::reference_wrapper<Node2D>> & __l) :
                 INodes(__l),
                 currentIndex(0),
                 passedLast(false)
             {}
 
-            typename std::vector<Node2D>::const_iterator begin() const
+            explicit CircularNodesVector(Node2D & node1, Node2D & node2) :
+                INodes(node1, node2),
+                currentIndex(0),
+                passedLast(false)
+            {}
+
+            explicit CircularNodesVector(Node2D & node1, Node2D & node2,
+                        Node2D & node3, Node2D & node4) :
+                    INodes(node1, node2, node3, node4),
+                    currentIndex(0),
+                    passedLast(false)
+            {}
+
+            typename std::vector<std::reference_wrapper<Node2D>>::const_iterator begin() const
             {
                 return m_Nodes.begin();
             }
 
-            typename std::vector<Node2D>::const_iterator end() const
+            typename std::vector<std::reference_wrapper<Node2D>>::const_iterator end() const
             {
                 return m_Nodes.end();
             }
 
             /// Keeps iterating over unique elements of the vector
-            Node2D & current()
+            const Node2D & current()
             {
                 return m_Nodes[currentIndex];
             }
@@ -180,7 +193,7 @@ namespace MoisThermFEM
                 return passedLast;
             }
 
-            Node2D & previous()
+            const Node2D & previous()
             {
                 auto validIndex = checkPrevIndex(currentIndex);
 
@@ -192,7 +205,7 @@ namespace MoisThermFEM
                 return m_Nodes[validIndex];
             }
 
-            Node2D & next()
+            const Node2D & next()
             {
                 auto validIndex = checkNextIndex(currentIndex);
                 while(m_Nodes[validIndex] == m_Nodes[currentIndex])
@@ -268,11 +281,11 @@ namespace MoisThermFEM
     class ElementThermalLinear2D : public IElementLinear2D
     {
     public:
-        ElementThermalLinear2D(const Node2D & t_Node1,
-                               const Node2D & t_Node2,
-                               const Node2D & t_Node3,
-                               const Node2D & t_Node4,
-                               const Material & mat);
+        ElementThermalLinear2D(Node2D &t_Node1,
+                               Node2D &t_Node2,
+                               Node2D &t_Node3,
+                               Node2D &t_Node4,
+                               const Material &mat);
     };
 
     //////////////////////////////////////////////////////////////////////////////
@@ -282,11 +295,11 @@ namespace MoisThermFEM
     class ElementMoistureLinear2D : public IElementLinear2D
     {
     public:
-        ElementMoistureLinear2D(const Node2D & t_Node1,
-                                const Node2D & t_Node2,
-                                const Node2D & t_Node3,
-                                const Node2D & t_Node4,
-                                const Material & mat);
+        ElementMoistureLinear2D(Node2D &t_Node1,
+                                Node2D &t_Node2,
+                                Node2D &t_Node3,
+                                Node2D &t_Node4,
+                                const Material &mat);
     };
 
 }   // namespace MoisThermFEM

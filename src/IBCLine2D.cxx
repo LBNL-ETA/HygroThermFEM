@@ -9,8 +9,8 @@ using FenestrationCommon::SquareMatrix;
 
 namespace MoisThermFEM {
 
-	IBCLinear2D::IBCLinear2D( const Node2D & t_Node1, const Node2D & t_Node2,
-														const bool t_Linear )
+	IBCLinear2D::IBCLinear2D(Node2D &t_Node1, Node2D &t_Node2,
+							 const bool t_Linear)
 			: m_Nodes( t_Node1, t_Node2 ), m_Linear( t_Linear ),
 				m_PsiPsiMatrix( numOfBCNodes ),
 				m_PsiVector( numOfBCNodes, 0 ) {
