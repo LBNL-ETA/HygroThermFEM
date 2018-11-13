@@ -8,9 +8,15 @@
 
 namespace MoisThermFEM
 {
-	/// Used to simplify interface for certain classes. Instead of creating four different function,
-	/// it is sufficient only to call one when passing this enum argument.
-	enum class WaterContent{Water, Liquid, Vapor, Ice};
+    /// Used to simplify interface for certain classes. Instead of creating four different function,
+    /// it is sufficient only to call one when passing this enum argument.
+    enum class WaterContent
+    {
+        Water,
+        Liquid,
+        Vapor,
+        Ice
+    };
 
     class Material
     {
@@ -27,9 +33,7 @@ namespace MoisThermFEM
         double diffusionResistanceFactor() const;
         std::vector<std::pair<double, double>> liquidTransportationCurve() const;
 
-        std::vector<double> waterContent(const std::vector<double> & humidity) const;
-
-        double waterContent(const State & t_State, WaterContent waterContent) const;
+        double waterContent(const Node2D & node, WaterContent waterContent) const;
 
         std::vector<std::pair<double, double>> sorptionCurve() const;
 
@@ -40,10 +44,10 @@ namespace MoisThermFEM
         friend bool operator>=(const Material & lhs, const Material & rhs);
 
     private:
-		double waterContent(const State & t_State) const;
-		double vaporContent(const State & t_State) const;
-		double liquidWaterContent(const State & t_State) const;
-		double iceContent(const State & t_State) const;
+        double waterContent(const Node2D & node) const;
+        double vaporContent(const Node2D & node) const;
+        double liquidWaterContent(const Node2D & node) const;
+        double iceContent(const Node2D & node) const;
 
         /// Create material by using MaterialPool.
         Material(const std::string & Name,
@@ -64,9 +68,9 @@ namespace MoisThermFEM
         std::unique_ptr<MoisThermFEM::TabularFunction> m_LiquidTransportCoefficient;
         std::unique_ptr<MoisThermFEM::TabularFunction> m_SorptionCurve;
 
-		double saturatedVaporContent(const State & t_State) const;
-        double liquidPorosity(const State & t_State) const;
-        double airPorosity(const State & t_State) const;
+        double saturatedVaporContent(const Node2D & node) const;
+        double liquidPorosity(const Node2D & node) const;
+        double airPorosity(const Node2D & node) const;
     };
 
 }   // namespace MoisThermFEM

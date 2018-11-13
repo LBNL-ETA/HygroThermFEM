@@ -58,13 +58,13 @@ namespace MoisThermFEM
 			case Property::liquidPercent:
 				return m_State.at(iteration).getValue(StateProperty::liquidPercent);
 			case Property::water:
-				return waterContent(WaterContent::Water, iteration);
+				return waterContent( WaterContent::Water );
 			case Property::liquid:
-				return waterContent(WaterContent::Liquid, iteration);
+				return waterContent( WaterContent::Liquid );
 			case Property::vapor:
-				return waterContent(WaterContent::Vapor, iteration);
+				return waterContent( WaterContent::Vapor );
 			case Property::ice:
-				waterContent(WaterContent::Ice, iteration);
+				waterContent( WaterContent::Ice );
 		}
 		return 0;
 	}
@@ -86,13 +86,16 @@ namespace MoisThermFEM
             return m_State.at(Timestep::Current).getValue(StateProperty::liquidPercent) - 
                 m_State.at(Timestep::Previous).getValue(StateProperty::liquidPercent);
         case Property::water:
-            return waterContent(WaterContent::Water, Timestep::Current) - waterContent(WaterContent::Water, Timestep::Previous);
+            return waterContent( WaterContent::Water ) -
+				   waterContent( WaterContent::Water );
         case Property::liquid:
-            return waterContent(WaterContent::Liquid, Timestep::Current) - waterContent(WaterContent::Liquid, Timestep::Previous);
+            return waterContent( WaterContent::Liquid ) -
+				   waterContent( WaterContent::Liquid );
         case Property::vapor:
-            return waterContent(WaterContent::Vapor, Timestep::Current) - waterContent(WaterContent::Vapor, Timestep::Previous);
+            return waterContent( WaterContent::Vapor ) -
+				   waterContent( WaterContent::Vapor );
         case Property::ice:
-            waterContent(WaterContent::Ice, Timestep::Current) - waterContent(WaterContent::Ice, Timestep::Previous);
+			return waterContent( WaterContent::Ice ) - waterContent( WaterContent::Ice );
         }
         return 0;
     }
@@ -144,13 +147,13 @@ namespace MoisThermFEM
         m_Materials.emplace(weightingCoefficient, material);
     }
 
-    double Node2D::waterContent(const WaterContent content, const Timestep iteration) const
+    double Node2D::waterContent( const WaterContent content ) const
     {
         double sum = 0.0;
         double weighting = 0;
         for(auto & val : m_Materials)
         {
-            sum += val.second.get().waterContent(m_State.at(iteration), content) * val.first;
+            sum += val.second.get().waterContent(*this, content) * val.first;
             weighting += val.first;
         }
         return sum / weighting;

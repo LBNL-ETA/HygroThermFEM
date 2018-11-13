@@ -21,8 +21,7 @@ namespace MoisThermFEM
         m_HeatCapacity(HeatCapacity),
         m_ThermalConductivity(ThermalConductivity),
         m_DiffusionResistanceFactor(DiffusionResistanceFactor),
-        m_LiquidTransportCoefficient(
-			new SuctionCurve( LiquidTransportCurve ) ),
+        m_LiquidTransportCoefficient(new SuctionCurve(LiquidTransportCurve)),
         m_SorptionCurve(new TabularFunction(SorptionCurve, Property::humidity))
     {}
 
@@ -76,19 +75,9 @@ namespace MoisThermFEM
         return m_LiquidTransportCoefficient->getCurve();
     }
 
-    std::vector<double> Material::waterContent(const std::vector<double> & humidity) const
+    double Material::saturatedVaporContent(const Node2D & node) const
     {
-        std::vector<double> result(humidity.size());
-        for(auto i = 0u; i < humidity.size(); ++i)
-        {
-            result[i] = waterContent(State(0, humidity[i], 0, 0));
-        }
-        return result;
-    }
-
-    double Material::saturatedVaporContent(const State & t_State) const
-    {
-        const auto temperature = t_State.getValue(StateProperty::temperature);
+        const auto temperature = node.property(Property::temperature);
 
         const auto tempinK = temperature + 273.15;
 
@@ -98,35 +87,36 @@ namespace MoisThermFEM
         return temp;
     }
 
-	double Material::waterContent( const State & t_State, WaterContent wContent ) const {
-    	std::map<WaterContent, double> results;
-    	results[WaterContent::Water] = waterContent(t_State);
-    	results[WaterContent::Vapor] = vaporContent(t_State);
-    	results[WaterContent::Liquid] = liquidWaterContent(t_State);
-    	results[WaterContent::Ice] = iceContent(t_State);
-
-		return results.at(wContent);
-	}
-
-    double Material::waterContent(const State & t_State) const
+    double Material::waterContent(const Node2D & node, WaterContent wContent) const
     {
-        return m_SorptionCurve->value(t_State);
+        std::map<WaterContent, double> results;
+        results[WaterContent::Water] = waterContent(node);
+        results[WaterContent::Vapor] = vaporContent(node);
+        results[WaterContent::Liquid] = liquidWaterContent(node);
+        results[WaterContent::Ice] = iceContent(node);
+
+        return results.at(wContent);
     }
 
-    double Material::vaporContent(const State & t_State) const
+    double Material::waterContent(const Node2D & node) const
     {
-        return saturatedVaporContent(t_State) * airPorosity(t_State)
-               * t_State.getValue(StateProperty::humidity);
+        return m_SorptionCurve->value(node);
     }
 
-    double Material::liquidWaterContent(const State & t_State) const
+    double Material::vaporContent(const Node2D & node) const
     {
-        return t_State.getLiquidPercent() * (waterContent(t_State) - vaporContent(t_State));
+        return saturatedVaporContent(node) * airPorosity(node) * node.property(Property::humidity);
     }
 
-    double Material::iceContent(const State & t_State) const
+    double Material::liquidWaterContent(const Node2D & node) const
     {
-        return (1 - t_State.getLiquidPercent()) * (waterContent(t_State) - vaporContent(t_State));
+        return node.property(Property::liquidPercent) * (waterContent(node) - vaporContent(node));
+    }
+
+    double Material::iceContent(const Node2D & node) const
+    {
+        return (1 - node.property(Property::liquidPercent))
+               * (waterContent(node) - vaporContent(node));
     }
 
     std::vector<std::pair<double, double>> Material::sorptionCurve() const
@@ -139,15 +129,15 @@ namespace MoisThermFEM
         return m_Name;
     }
 
-    double Material::liquidPorosity(const State & t_State) const
+    double Material::liquidPorosity(const Node2D & node) const
     {
-        const auto waterContent = m_SorptionCurve->value(t_State);
+        const auto waterContent = m_SorptionCurve->value(node);
         const auto maxWaterContent = m_SorptionCurve->max();
         return waterContent / maxWaterContent * m_Porosity;
     }
 
-    double Material::airPorosity(const State & t_State) const
+    double Material::airPorosity(const Node2D & node) const
     {
-        return m_Porosity - liquidPorosity(t_State);
+        return m_Porosity - liquidPorosity(node);
     }
 }   // namespace MoisThermFEM

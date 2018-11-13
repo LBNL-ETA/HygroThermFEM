@@ -89,7 +89,7 @@ TEST_F(MultiMaterialNode, TestExample_1)
     node1.assignMaterial(material1.name(), 0.5);
     node1.assignMaterial(material2.name(), 0.5);
 
-    EXPECT_NEAR(node1.waterContent(WaterContent::Ice), 0, 1e-6);
-    EXPECT_NEAR(node1.waterContent(WaterContent::Vapor), 0.001062, 1e-6);
-    EXPECT_NEAR(node1.waterContent(WaterContent::Liquid), 48.498938, 1e-6);
+    EXPECT_NEAR( node1.waterContent( WaterContent::Ice ), 0, 1e-6);
+    EXPECT_NEAR( node1.waterContent( WaterContent::Vapor ), 0.001062, 1e-6);
+    EXPECT_NEAR( node1.waterContent( WaterContent::Liquid ), 48.498938, 1e-6);
 }

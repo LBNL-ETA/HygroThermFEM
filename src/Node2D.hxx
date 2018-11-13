@@ -89,8 +89,7 @@ namespace MoisThermFEM
 		void setStateProperty( const StateProperty t_Property, double t_value );
 
     private:
-		double waterContent(const WaterContent content,
-			const Timestep iteration = Timestep::Current) const;
+		double waterContent( const WaterContent content ) const;
 
 		double getStateProperty( const StateProperty t_Property,
 								 const Timestep t_Iteration = Timestep::Current ) const;
