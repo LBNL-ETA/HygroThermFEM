@@ -23,12 +23,12 @@ TEST_F(TestBoundaryConditions2D_test1, TestIntegrationPoints)
     SCOPED_TRACE("Begin Test: Convection boundary condition integral test.");
 
     // Enter nodes. Arguments are: node number, x-coordinate, y-coordinate
-    auto node1 = NodePool::Instance().createNode(1, 15, 5);
-    auto node2 = NodePool::Instance().createNode(2, 15, 0);
-    auto node3 = NodePool::Instance().createNode(3, 5, 5);
-    auto node4 = NodePool::Instance().createNode(4, 5, 0);
-    auto node5 = NodePool::Instance().createNode(5, 0, 5);
-    auto node6 = NodePool::Instance().createNode(6, 0, 0);
+    NodePool::Instance().createNode(1, 15, 5);
+    NodePool::Instance().createNode(2, 15, 0);
+    NodePool::Instance().createNode(3, 5, 5);
+    NodePool::Instance().createNode(4, 5, 0);
+    NodePool::Instance().createNode(5, 0, 5);
+    NodePool::Instance().createNode(6, 0, 0);
 
     auto const hc1 = 20.0;
     auto const Tair1 = 255.15;
@@ -37,8 +37,8 @@ TEST_F(TestBoundaryConditions2D_test1, TestIntegrationPoints)
     auto const Tair2 = 294.15;
 
     MoisThermFEM::BoundaryConditions2D BCs;
-    BCs.assignBC(fem::make_unique<MoisThermFEM::ConvectionBC>(node1, node2, hc1, Tair1));
-    BCs.assignBC(fem::make_unique<MoisThermFEM::ConvectionBC>(node6, node5, hc2, Tair2));
+    BCs.assignBC(fem::make_unique<MoisThermFEM::ConvectionBC>(1, 2, hc1, Tair1));
+    BCs.assignBC(fem::make_unique<MoisThermFEM::ConvectionBC>(6, 5, hc2, Tair2));
 
     auto H = BCs.HMatrix();
 

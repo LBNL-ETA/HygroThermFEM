@@ -25,12 +25,12 @@ TEST_F(ConvectionBC_2D_1, TestExample_1)
 
     // Enter nodes. Arguments are: node number, x-coordinate, y-coordinate
 
-    auto node1 = NodePool::Instance().createNode(1, 15, 5);
-    auto node2 = NodePool::Instance().createNode(2, 15, 0);
-    auto node3 = NodePool::Instance().createNode(3, 5, 5);
-    auto node4 = NodePool::Instance().createNode(4, 5, 0);
-    auto node5 = NodePool::Instance().createNode(5, 0, 5);
-    auto node6 = NodePool::Instance().createNode(6, 0, 0);
+    NodePool::Instance().createNode(1, 15, 5);
+    NodePool::Instance().createNode(2, 15, 0);
+    NodePool::Instance().createNode(3, 5, 5);
+    NodePool::Instance().createNode(4, 5, 0);
+    NodePool::Instance().createNode(5, 0, 5);
+    NodePool::Instance().createNode(6, 0, 0);
 
     auto & material =
       MaterialPool::Instance().createMaterial("Test Material",
@@ -61,8 +61,8 @@ TEST_F(ConvectionBC_2D_1, TestExample_1)
 
     MoisThermFEM::ThermalDomain domain;
 
-    domain.createElement(node3, node4, node2, node1, material);
-    domain.createElement(node6, node4, node3, node5, material);
+    domain.createElement(3, 4, 2, 1, material.name());
+    domain.createElement(6, 4, 3, 5, material.name());
 
     // Create Boundary Conditions
     const auto hc1 = 20.0;
@@ -71,8 +71,8 @@ TEST_F(ConvectionBC_2D_1, TestExample_1)
     const auto hc2 = 2.4;
     const auto temperatureAir2 = 21.0;
 
-    domain.createConvectionBC(node1, node2, hc1, temperatureAir1);
-    domain.createConvectionBC(node6, node5, hc2, temperatureAir2);
+    domain.createConvectionBC(1, 2, hc1, temperatureAir1);
+    domain.createConvectionBC(6, 5, hc2, temperatureAir2);
 
     auto solution = domain.steadyState();
 

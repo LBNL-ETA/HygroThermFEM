@@ -39,12 +39,12 @@ TEST_F(Topaz2D_ConvectionBC, TestExample_1)
     // same temperature in every node (humidity and pressure irrelevant for this example)
     auto state = MoisThermFEM::State(0, 0, 101325, 0);
 
-    auto node1 = NodePool::Instance().createNode(1, 0.15, 0.05, state);
-    auto node2 = NodePool::Instance().createNode(2, 0.15, 0, state);
-    auto node3 = NodePool::Instance().createNode(3, 0.05, 0.05, state);
-    auto node4 = NodePool::Instance().createNode(4, 0.05, 0, state);
-    auto node5 = NodePool::Instance().createNode(5, 0, 0.05, state);
-    auto node6 = NodePool::Instance().createNode(6, 0, 0, state);
+    NodePool::Instance().createNode(1, 0.15, 0.05, state);
+    NodePool::Instance().createNode(2, 0.15, 0, state);
+    NodePool::Instance().createNode(3, 0.05, 0.05, state);
+    NodePool::Instance().createNode(4, 0.05, 0, state);
+    NodePool::Instance().createNode(5, 0, 0.05, state);
+    NodePool::Instance().createNode(6, 0, 0, state);
 
     auto & material =
       MaterialPool::Instance().createMaterial("Cottaer Sandstone - non porous",
@@ -75,14 +75,14 @@ TEST_F(Topaz2D_ConvectionBC, TestExample_1)
 
     MoisThermFEM::ThermalDomain domain;
 
-    domain.createElement(node3, node4, node2, node1, material);
-    domain.createElement(node6, node4, node3, node5, material);
+    domain.createElement(3, 4, 2, 1, material.name());
+    domain.createElement(6, 4, 3, 5, material.name());
 
     // Create Boundary Conditions
     const auto tSurface = 20.0;
     const auto hc = 20.0;
 
-    domain.createConvectionBC(node5, node6, hc, tSurface);
+    domain.createConvectionBC(5, 6, hc, tSurface);
 
     const auto dTime = 3600;
     const auto nSteps = 4;

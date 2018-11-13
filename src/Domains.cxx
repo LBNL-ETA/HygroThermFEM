@@ -61,6 +61,8 @@ namespace MoisThermFEM
     {
         auto A = transientM_K_H_Matrix(t_DTime);
 
+        auto test = A.toVector();
+
         auto B = transientMT_R_Vector(currentStateValues, t_DTime);
 
         // CLinearSolver aSolver;
@@ -117,6 +119,8 @@ namespace MoisThermFEM
                 }
             }
         }
+
+        m_Elements.updateNodeValues(solution, m_Property);
 
         return solution;
     }

@@ -35,11 +35,11 @@ TEST_F(TwoElementsTwoMaterials_2, NodeInTwoMaterials)
 
     MoisThermFEM::State state(temperature, humidity, pressure, liquidPercent);
 
-    auto node1 = NodePool::Instance().createNode(1, 0, 1, state);
-    auto node2 = NodePool::Instance().createNode(2, 1, 0, state);
-    auto node3 = NodePool::Instance().createNode(3, 1, 1, state);
-    auto node4 = NodePool::Instance().createNode(4, 2, 0, state);
-    auto node5 = NodePool::Instance().createNode(5, 2, 1, state);
+    NodePool::Instance().createNode(1, 0, 1, state);
+    NodePool::Instance().createNode(2, 1, 0, state);
+    NodePool::Instance().createNode(3, 1, 1, state);
+    NodePool::Instance().createNode(4, 2, 0, state);
+    NodePool::Instance().createNode(5, 2, 1, state);
 
     auto & material1 =
       MaterialPool::Instance().createMaterial("Cottaer Sandstone",
@@ -97,8 +97,8 @@ TEST_F(TwoElementsTwoMaterials_2, NodeInTwoMaterials)
 
     MultiDomain domain;
 
-    domain.createElement(node1, node1, node2, node3, material1);
-    domain.createElement(node2, node4, node5, node3, material2);
+    domain.createElement(1, 1, 2, 3, material1.name());
+    domain.createElement(2, 4, 5, 3, material2.name());
 
     auto iceContent = domain.property(MoisThermFEM::Property::ice);
     auto vaporContent = domain.property(MoisThermFEM::Property::vapor);

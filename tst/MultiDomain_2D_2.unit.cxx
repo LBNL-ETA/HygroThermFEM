@@ -74,11 +74,11 @@ TEST_F(MultiDomain_2D_2, TestExample_1)
     /// Create elements
     for(size_t i = 1; i <= (NodePool::Instance().maxIndex() - 2) / 2; ++i)
     {
-        auto & node1 = NodePool::Instance().getNode(2 * i + 1);
-        auto & node2 = NodePool::Instance().getNode(2 * i + 2);
-        auto & node3 = NodePool::Instance().getNode(2 * i);
-        auto & node4 = NodePool::Instance().getNode(2 * i - 1);
-        domain.createElement(node1, node2, node3, node4, material);
+        const auto node1 = 2u * i + 1u;
+        const auto node2 = 2u * i + 2u;
+        const auto node3 = 2u * i;
+        const auto node4 = 2u * i - 1u;
+        domain.createElement(node1, node2, node3, node4, material.name());
     }
 
     /// Create Boundary Conditions
@@ -86,10 +86,7 @@ TEST_F(MultiDomain_2D_2, TestExample_1)
     const auto airTemperature = 20.0;
     const auto humidity = 0.2;
 
-    auto & node1 = MoisThermFEM::NodePool::Instance().getNode(1);
-    auto & node2 = MoisThermFEM::NodePool::Instance().getNode(2);
-
-    domain.createConvectionBC(node1, node2, hc, airTemperature, humidity);
+    domain.createConvectionBC(1, 2, hc, airTemperature, humidity);
 
     const auto dTime = 36000;
     const auto nSteps = 100;

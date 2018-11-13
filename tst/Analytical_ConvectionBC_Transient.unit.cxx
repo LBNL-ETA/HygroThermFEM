@@ -81,10 +81,7 @@ TEST_F(Analytical_ConvectionBC_Transient, TestExample_1)
     // Create Boundary Conditions
     const auto tSurface = 0.0;
 
-    auto nodeBC1 = NodePool::Instance().getNode(21);
-    auto nodeBC2 = NodePool::Instance().getNode(22);
-
-    domain.createTemperatureBC(nodeBC1, nodeBC2, tSurface);
+    domain.createTemperatureBC(21, 22, tSurface);
 
     const auto dTime = 36;
     const auto nSteps = 1000;
