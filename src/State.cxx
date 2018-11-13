@@ -11,29 +11,24 @@ namespace MoisThermFEM
                  const double t_Pressure,
                  const double liquidPercent)
     {
-        m_Property[Iteration::Current][Property::temperature] = t_Temperature;
-        m_Property[Iteration::Current][Property::humidity] = t_Humidity;
-        m_Property[Iteration::Current][Property::pressure] = t_Pressure;
-        m_Property[Iteration::Current][Property::liquidPercent] = liquidPercent;
-
-        m_Property[Iteration::Previous][Property::temperature] = t_Temperature;
-        m_Property[Iteration::Previous][Property::humidity] = t_Humidity;
-        m_Property[Iteration::Previous][Property::pressure] = t_Pressure;
-        m_Property[Iteration::Previous][Property::liquidPercent] = liquidPercent;
+        m_Property[StateProperty::temperature] = t_Temperature;
+        m_Property[StateProperty::humidity] = t_Humidity;
+        m_Property[StateProperty::pressure] = t_Pressure;
+        m_Property[StateProperty::liquidPercent] = liquidPercent;
     }
 
     State operator+(const State & lhs, const State & rhs)
     {
         State state(0, 0, 0, 0);
-        state.setValue(Property::temperature,
-                       lhs.getValue(Property::temperature) + rhs.getValue(Property::temperature));
-        state.setValue(Property::humidity,
-                       lhs.getValue(Property::humidity) + rhs.getValue(Property::humidity));
-        state.setValue(Property::pressure,
-                       lhs.getValue(Property::pressure) + rhs.getValue(Property::pressure));
-        state.setValue(Property::liquidPercent,
-                       lhs.getValue(Property::liquidPercent)
-                         + rhs.getValue(Property::liquidPercent));
+        state.setValue(StateProperty::temperature,
+                       lhs.getValue(StateProperty::temperature) + rhs.getValue(StateProperty::temperature));
+        state.setValue(StateProperty::humidity,
+                       lhs.getValue(StateProperty::humidity) + rhs.getValue(StateProperty::humidity));
+        state.setValue(StateProperty::pressure,
+                       lhs.getValue(StateProperty::pressure) + rhs.getValue(StateProperty::pressure));
+        state.setValue(StateProperty::liquidPercent,
+                       lhs.getValue(StateProperty::liquidPercent)
+                         + rhs.getValue(StateProperty::liquidPercent));
 
         return state;
     }
@@ -41,38 +36,31 @@ namespace MoisThermFEM
     State operator-(const State & lhs, const State & rhs)
     {
         State state(0, 0, 0, 0);
-        state.setValue(Property::temperature,
-                       lhs.getValue(Property::temperature) - rhs.getValue(Property::temperature));
-        state.setValue(Property::humidity,
-                       lhs.getValue(Property::humidity) - rhs.getValue(Property::humidity));
-        state.setValue(Property::pressure,
-                       lhs.getValue(Property::pressure) - rhs.getValue(Property::pressure));
-        state.setValue(Property::liquidPercent,
-                       lhs.getValue(Property::liquidPercent)
-                         - rhs.getValue(Property::liquidPercent));
+        state.setValue(StateProperty::temperature,
+                       lhs.getValue(StateProperty::temperature) - rhs.getValue(StateProperty::temperature));
+        state.setValue(StateProperty::humidity,
+                       lhs.getValue(StateProperty::humidity) - rhs.getValue(StateProperty::humidity));
+        state.setValue(StateProperty::pressure,
+                       lhs.getValue(StateProperty::pressure) - rhs.getValue(StateProperty::pressure));
+        state.setValue(StateProperty::liquidPercent,
+                       lhs.getValue(StateProperty::liquidPercent)
+                         - rhs.getValue(StateProperty::liquidPercent));
         return state;
     }
 
-    double State::getValue(const Property t_Property, const Iteration t_Iteration) const
+    double State::getValue(const StateProperty t_Property) const
     {
-        return m_Property.at(t_Iteration).at(t_Property);
+        return m_Property.at(t_Property);
     }
 
-    void State::setValue(const Property t_Property, const double t_Value)
+    void State::setValue(const StateProperty t_Property, const double t_Value)
     {
-        m_Property[Iteration::Previous][t_Property] = m_Property[Iteration::Current][t_Property];
-        m_Property[Iteration::Current][t_Property] = t_Value;
-    }
-
-    double State::getDeltaValue(const Property t_Property) const
-    {
-        return m_Property.at(Iteration::Current).at(t_Property)
-               - m_Property.at(Iteration::Previous).at(t_Property);
+        m_Property[t_Property] = t_Value;
     }
 
     double State::getLiquidPercent() const
     {
-        return m_Property.at(Iteration::Current).at(Property::liquidPercent);
+        return m_Property.at(StateProperty::liquidPercent);
     }
 
 }   // namespace MoisThermFEM

@@ -3,7 +3,7 @@
 
 #include "MoisThermFEM2D.hxx"
 
-using MoisThermFEM::Property;
+using MoisThermFEM::StateProperty;
 using MoisThermFEM::State;
 
 class MaterialPropertiesUnit : public testing::Test

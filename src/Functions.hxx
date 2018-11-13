@@ -6,7 +6,8 @@
 #include <vector>
 
 #include "Interpolator.hxx"
-#include "State.hxx"
+//#include "State.hxx"
+//#include "Node2D.hxx"
 
 /// Functions interface is used to build function that are used for matrix
 /// building. Functions are stacked together to make full function that later
@@ -17,6 +18,7 @@ namespace MoisThermFEM
     enum class Property;
 
     class State;
+    class Node2D;
     class INodes;
 
     enum class Operation
@@ -30,7 +32,7 @@ namespace MoisThermFEM
     class IValue
     {
     public:
-        virtual double value(const State & state) const = 0;
+        virtual double value(const Node2D & node) const = 0;
         virtual std::vector<double> values(const INodes & nodes) const;
         virtual ~IValue() = default;
     };
@@ -41,13 +43,13 @@ namespace MoisThermFEM
     ///  IFunction
     //////////////////////////////////////////////////////////////////
 
-    /// Interface for functions
+    /// Interface for functions. Function must have defined property
     class IFunction : public IValue
     {
     public:
         IFunction(Property t_Property);
 
-        virtual double value(const State & state) const override;
+        double value(const Node2D & node) const override;
 
     protected:
         virtual double evaluateFunction(const double t_position = 0) const = 0;
@@ -94,9 +96,9 @@ namespace MoisThermFEM
             m_Operator[Operation::SUB] = [&](double a, double b) { return a - b; };
         }
 
-        double value(const State & state) const override
+        double value(const Node2D & node) const override
         {
-            return m_Operator.at(m_Operation)(m_Function1.value(state), m_Function2.value(state));
+            return m_Operator.at(m_Operation)(m_Function1.value(node), m_Function2.value(node));
         };
 
     private:
@@ -230,33 +232,7 @@ namespace MoisThermFEM
     };
 
     //////////////////////////////////////////////////////////////////
-    ///  Derivative
-    //////////////////////////////////////////////////////////////////
-    template<class T>
-    class Derivative : public IValue
-    {
-    public:
-        Derivative(const T & t_Value) : IValue(), m_Function(t_Value)
-        {}
-
-        double value(const State & state) const override
-        {
-            double val1 = m_Function.value(state);
-
-            // small depends on exact number that we are calculating
-            const double small = val1 != 0 ? val1 / 1e5 : 1e-5;
-            const State smallIncrease(state + State(small, small, small, 0));
-
-            double val2 = m_Function.value(smallIncrease);
-            return (val2 - val1) / small;
-        }
-
-    private:
-        const T m_Function;
-    };
-
-    //////////////////////////////////////////////////////////////////
-    ///  TabularFunctions
+    ///  TabularFunction
     //////////////////////////////////////////////////////////////////
 
     /// Interface for classic tabular curve. There are different interpolation

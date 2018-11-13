@@ -3,7 +3,7 @@
 
 #include "MoisThermFEM2D.hxx"
 
-using MoisThermFEM::Property;
+using MoisThermFEM::StateProperty;
 using MoisThermFEM::State;
 using MoisThermFEM::TabularFunction;
 using MoisThermFEM::TabularDerivative;
@@ -25,7 +25,7 @@ protected:
 TEST_F(CurveTest, TestTabularLinear)
 {
     SCOPED_TRACE("Begin Test: Test tabular linear.");
-    const TabularFunction curve({{1, 10}, {2, 20}, {3, 30}}, Property::temperature);
+    const TabularFunction curve({{1, 10}, {2, 20}, {3, 30}}, StateProperty::temperature);
 
     State interpolationPoint(2.5, 0, 101325, 0);
 
@@ -43,7 +43,7 @@ TEST_F(CurveTest, TestTabularLinear)
 TEST_F(CurveTest, TestFirstDerivative)
 {
     SCOPED_TRACE("Begin Test: Test first derivative of tabular linear curve.");
-    TabularFunction table({{1, 10}, {2, 20}, {3, 30}}, Property::temperature);
+    TabularFunction table({{1, 10}, {2, 20}, {3, 30}}, StateProperty::temperature);
     const auto der = Derivative<decltype(table)>(table);
 
     State interpolationPoint(2.5, 0, 101325, 0);
@@ -57,7 +57,7 @@ TEST_F(CurveTest, TestTabularLogarithmic)
 {
     SCOPED_TRACE("Begin Test: Test tabular logarithmic curve.");
     const TabularFunction curve({{1, 10}, {2, 20}, {3, 30}},
-                                Property::temperature,
+                                StateProperty::temperature,
                                 FenestrationCommon::Interpolation::Logarithmic);
 
     State interpolationPoint(2.5, 0, 101325, 0);
@@ -103,7 +103,7 @@ TEST_F(CurveTest, TestConstantCurve)
 TEST_F(CurveTest, TestTabularOutOfRangeBack)
 {
     SCOPED_TRACE("Begin Test: Test tabular out of range.");
-    const TabularFunction curve({{1, 10}, {2, 20}, {3, 30}}, Property::temperature);
+    const TabularFunction curve({{1, 10}, {2, 20}, {3, 30}}, StateProperty::temperature);
 
     State interpolationPoint(3.5, 0, 101325, 0);
     auto result = curve.value(interpolationPoint);
@@ -113,7 +113,7 @@ TEST_F(CurveTest, TestTabularOutOfRangeBack)
 TEST_F(CurveTest, TestTabularOutOfRangeFront)
 {
     SCOPED_TRACE("Begin Test: Test tabular out of range.");
-    const TabularFunction curve({{1, 10}, {2, 20}, {3, 30}}, Property::temperature);
+    const TabularFunction curve({{1, 10}, {2, 20}, {3, 30}}, StateProperty::temperature);
 
     State interpolationPoint(0.5, 0, 101325, 0);
     auto result = curve.value(interpolationPoint);
@@ -123,7 +123,7 @@ TEST_F(CurveTest, TestTabularOutOfRangeFront)
 TEST_F(CurveTest, TestComposition1)
 {
     SCOPED_TRACE("Begin Test: Composition (multiplication) of two functions.");
-    TabularFunction tabular({{1, 10}, {2, 20}, {3, 30}}, Property::temperature);
+    TabularFunction tabular({{1, 10}, {2, 20}, {3, 30}}, StateProperty::temperature);
 
     auto tabular1 = tabular * 5.0;
 
@@ -149,7 +149,7 @@ TEST_F(CurveTest, TestPorosityCalculation)
                                   {0.995, 20.9},
                                   {0.999, 33.0},
                                   {1.000, 40.0}},
-                                 Property::humidity);
+                                 StateProperty::humidity);
 
     auto maxWaterContent = waterContent.value(State(0, 1, 0, 0));
     const auto materialPorosity = 0.05;
@@ -181,7 +181,7 @@ TEST_F(CurveTest, TestSaturationFunction)
                                   {0.995, 83},
                                   {0.999, 120},
                                   {1.000, 180}},
-                                 Property::humidity);
+                                 StateProperty::humidity);
 
     auto maxWaterContent = waterContent.value(State(0, 1, 0, 0));
     const auto materialPorosity = 0.22;
@@ -211,7 +211,7 @@ TEST_F(CurveTest, TestTabularDerivative)
                                     {0.995, 83},
                                     {0.999, 120},
                                     {1.000, 180}},
-                                   Property::humidity);
+                                   StateProperty::humidity);
 
     State state1(273.15, 0, 101325, 0);
     auto result = waterContent.value(state1);

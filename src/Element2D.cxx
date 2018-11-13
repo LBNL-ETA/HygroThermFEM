@@ -317,14 +317,26 @@ namespace MoisThermFEM
                                                    const Material & mat) :
         IElementLinear2D(t_Node1, t_Node2, t_Node3, t_Node4, mat)
     {
-        auto liquidWaterFill = getMaterialLiquidWaterFill( mat );
-        auto airFill = getMaterialAirFill( mat );
+        //////////////////////////////////////////////////////////////////////////////////////
+        /// Capacitance functions
+		//////////////////////////////////////////////////////////////////////////////////////
 
-        auto waterCapacitance = liquidWaterFill * (Constants::Density_Water * Constants::Cp_Water);
-        auto airCapacitance = airFill * (Constants::Density_Air * Constants::Cp_Air);
-        auto dryCapacitance = (1 - mat.porosity()) * (mat.density() * mat.heatCapacity());
+        auto dryContent = (1 - mat.porosity()) * mat.density();
+        auto liquidContent = getMaterialLiquidWaterFill(mat);
+        auto iceContent = getMaterialIceFill(mat);
+        auto airContent = getMaterialAirFill(mat);
 
-        auto capacitance = waterCapacitance + airCapacitance + dryCapacitance;
+        auto equivalentDensity =
+          (dryContent * mat.density() + iceContent * Constants::Density_Ice
+           + liquidContent * Constants::Density_Water + airContent * Constants::Density_Air)
+          / (dryContent + iceContent + liquidContent + airContent);
+
+        auto equivalentCapacitance =
+          (dryContent * mat.heatCapacity() + iceContent * Constants::Cp_Ice
+           + liquidContent * Constants::Cp_Water + airContent * Constants::Cp_Air)
+          / (dryContent + iceContent + liquidContent + airContent);
+
+        auto capacitance = equivalentDensity * equivalentCapacitance;
 
         m_CapacitanceFunctions.emplace_back(new decltype(capacitance)(capacitance));
 
@@ -335,7 +347,7 @@ namespace MoisThermFEM
 
         /// vapor
         auto delta = Constant(2.5E-5 / mat.diffusionResistanceFactor());
-        auto vaporConductivity = Constants::Cp_Vapor * delta * airFill;
+        auto vaporConductivity = Constants::Cp_Vapor * delta * airContent;
 
         /// liquid
         auto humidity = StateValue(Property::humidity);

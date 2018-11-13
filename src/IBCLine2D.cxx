@@ -54,7 +54,7 @@ namespace MoisThermFEM {
 		double sum{ 0 };
 		for ( std::size_t i = 0; i < numOfIntegrationPoints(); ++i ) {
 			for ( std::size_t j = 0; j < numOfBCNodes; ++j ) {
-				sum += m_Nodes[ j ].getProperty( t_Property ) * psi( i, j );
+				sum += m_Nodes[ j ].property( t_Property ) * psi( i, j );
 			}
 		}
 		return sum;
@@ -64,7 +64,7 @@ namespace MoisThermFEM {
 		double sum{ 0 };
 		for ( std::size_t i = 0; i < numOfIntegrationPoints(); ++i ) {
 			for ( std::size_t j = 0; j < numOfBCNodes; ++j ) {
-				sum += m_Nodes[ j ].getDeltaProperty( t_Property ) * psi( i, j );
+				sum += m_Nodes[ j ].deltaProperty( t_Property ) * psi( i, j );
 			}
 		}
 		return sum;

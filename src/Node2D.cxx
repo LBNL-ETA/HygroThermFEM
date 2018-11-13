@@ -41,8 +41,61 @@ namespace MoisThermFEM
         m_NodeNumber(t_NodeNumber),
         m_x(t_x),
         m_y(t_y),
-        m_State(t_State)
-    {}
+        m_State{{Timestep::Current, t_State}, {Timestep::Previous, t_State}}
+    {
+
+    }
+
+	double Node2D::property(const Property property, const Timestep iteration) const {
+    	switch(property)
+		{
+			case Property::temperature:
+				return m_State.at(iteration).getValue(StateProperty::temperature);
+			case Property::humidity:
+				return m_State.at(iteration).getValue(StateProperty::humidity);
+			case Property::pressure:
+				return m_State.at(iteration).getValue(StateProperty::pressure);
+			case Property::liquidPercent:
+				return m_State.at(iteration).getValue(StateProperty::liquidPercent);
+			case Property::water:
+				return waterContent(WaterContent::Water, iteration);
+			case Property::liquid:
+				return waterContent(WaterContent::Liquid, iteration);
+			case Property::vapor:
+				return waterContent(WaterContent::Vapor, iteration);
+			case Property::ice:
+				waterContent(WaterContent::Ice, iteration);
+		}
+		return 0;
+	}
+
+    double Node2D::deltaProperty(const Property property) const 
+    {
+        switch (property)
+        {
+        case Property::temperature:
+            return m_State.at(Timestep::Current).getValue(StateProperty::temperature) -
+                m_State.at(Timestep::Previous).getValue(StateProperty::temperature);
+        case Property::humidity:
+            return m_State.at(Timestep::Current).getValue(StateProperty::humidity) -
+                m_State.at(Timestep::Previous).getValue(StateProperty::humidity);
+        case Property::pressure:
+            return m_State.at(Timestep::Current).getValue(StateProperty::pressure) -
+                m_State.at(Timestep::Previous).getValue(StateProperty::pressure);
+        case Property::liquidPercent:
+            return m_State.at(Timestep::Current).getValue(StateProperty::liquidPercent) - 
+                m_State.at(Timestep::Previous).getValue(StateProperty::liquidPercent);
+        case Property::water:
+            return waterContent(WaterContent::Water, Timestep::Current) - waterContent(WaterContent::Water, Timestep::Previous);
+        case Property::liquid:
+            return waterContent(WaterContent::Liquid, Timestep::Current) - waterContent(WaterContent::Liquid, Timestep::Previous);
+        case Property::vapor:
+            return waterContent(WaterContent::Vapor, Timestep::Current) - waterContent(WaterContent::Vapor, Timestep::Previous);
+        case Property::ice:
+            waterContent(WaterContent::Ice, Timestep::Current) - waterContent(WaterContent::Ice, Timestep::Previous);
+        }
+        return 0;
+    }
 
     bool operator==(const Node2D & first, const Node2D & second)
     {
@@ -73,24 +126,16 @@ namespace MoisThermFEM
         return m_y;
     }
 
-    double Node2D::getProperty(const Property t_Property, const Iteration t_Iteration) const
+    double Node2D::getStateProperty( const StateProperty t_Property, const Timestep t_Iteration ) const
     {
-        return m_State.getValue(t_Property, t_Iteration);
+        return m_State.at(t_Iteration).getValue(t_Property);
     }
 
-    void Node2D::setProperty(const Property t_Property, double t_value)
+    void Node2D::setStateProperty( const StateProperty t_Property, double t_value )
     {
-        m_State.setValue(t_Property, t_value);
-    }
-
-    double Node2D::getDeltaProperty(const Property t_Property) const
-    {
-        return m_State.getDeltaValue(t_Property);
-    }
-
-    const State & Node2D::getState() const
-    {
-        return m_State;
+    	// First store current to previous iteration and then store current.
+    	m_State.at(Timestep::Previous).setValue(t_Property, m_State.at(Timestep::Current).getValue(t_Property));
+        m_State.at(Timestep::Current).setValue(t_Property, t_value);
     }
 
     void Node2D::assignMaterial(const std::string & t_Material, double weightingCoefficient)
@@ -99,13 +144,13 @@ namespace MoisThermFEM
         m_Materials.emplace(weightingCoefficient, material);
     }
 
-    double Node2D::waterContent(WaterContent content) const
+    double Node2D::waterContent(const WaterContent content, const Timestep iteration) const
     {
         double sum = 0.0;
         double weighting = 0;
         for(auto & val : m_Materials)
         {
-            sum += val.second.get().waterContent(m_State, content) * val.first;
+            sum += val.second.get().waterContent(m_State.at(iteration), content) * val.first;
             weighting += val.first;
         }
         return sum / weighting;

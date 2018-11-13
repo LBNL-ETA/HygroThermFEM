@@ -7,6 +7,7 @@
 
 #include "State.hxx"
 #include "Material.hxx"
+#include "Node2D.hxx"
 
 namespace MoisThermFEM
 {
@@ -39,6 +40,24 @@ namespace MoisThermFEM
         double eta{0};
     };
 
+    enum class Property
+	{
+    	temperature,
+    	humidity,
+    	pressure,
+    	liquidPercent,
+    	water,
+    	liquid,
+    	vapor,
+    	ice
+	};
+
+	enum class Timestep
+	{
+		Current,
+		Previous
+	};
+
     ////////////////////////////////////////////////////////////////////////////
     ////   Node2D
     ////////////////////////////////////////////////////////////////////////////
@@ -62,22 +81,26 @@ namespace MoisThermFEM
         double X() const;
         double Y() const;
 
-        double getProperty(const Property t_Property,
-                           const Iteration t_Iteration = Iteration::Current) const;
-        void setProperty(const Property t_Property, double t_value);
-        double getDeltaProperty(const Property t_Property) const;
-        const State & getState() const;
-
         void assignMaterial( const std::string & t_Material, double weightingCoefficient );
 
-        double waterContent(WaterContent content) const;
+        double property(const Property property, const Timestep iteration = Timestep::Current) const;
+        double deltaProperty(const Property property) const;
+
+		void setStateProperty( const StateProperty t_Property, double t_value );
 
     private:
+		double waterContent(const WaterContent content,
+			const Timestep iteration = Timestep::Current) const;
+
+		double getStateProperty( const StateProperty t_Property,
+								 const Timestep t_Iteration = Timestep::Current ) const;
+
+
         std::size_t m_NodeNumber{0};
         double m_x{0};
         double m_y{0};
 
-        State m_State;
+        std::map<Timestep, State> m_State;
 
         /// Node can belong to multiple materials. This will be used to calculate secondary
         /// properties based on primary properties (water content depends on humidity)

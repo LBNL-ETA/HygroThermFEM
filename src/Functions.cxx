@@ -17,7 +17,7 @@ namespace MoisThermFEM
         std::vector<double> result(nodes.size(), 0);
         for(size_t i = 0u; i < nodes.size(); ++i)
         {
-            result[i] = value(nodes[i].getState());
+            result[i] = value(nodes[i]);
         }
         return result;
     }
@@ -29,9 +29,9 @@ namespace MoisThermFEM
     IFunction::IFunction(const Property t_Property) : m_Property(t_Property)
     {}
 
-    double IFunction::value(const State & state) const
+    double IFunction::value(const Node2D & node) const
     {
-        return evaluateFunction(state.getValue(m_Property));
+        return evaluateFunction(node.property(m_Property));
     }
 
     //////////////////////////////////////////////////////////////////
@@ -140,7 +140,7 @@ namespace MoisThermFEM
         auto it = std::find_if(m_Curve.begin(), m_Curve.end(), [&](std::pair<double, double> val) {
             return val.first > t_position;
         });
-        auto points = getInterpolationPoints(it);
+        const auto points = getInterpolationPoints(it);
 
         return (points.second.second - points.first.second)
                / (points.second.first - points.first.first);
@@ -212,7 +212,7 @@ namespace MoisThermFEM
 
     double SaturationFunction::evaluateFunction(const double t_position) const
     {
-    	auto temperature = t_position + 273.15;
+        const auto temperature = t_position + 273.15;
         auto temp = 77.345 + 0.0057 * temperature - 7235.0 / temperature;
         temp = std::exp(temp);
         temp = temp / (461.4 * std::pow(temperature, m_SaturationCoefficient));

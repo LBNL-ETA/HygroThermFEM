@@ -3,6 +3,7 @@
 #include "Material.hxx"
 #include "FEMunique.hxx"
 #include "State.hxx"
+#include "Node2D.hxx"
 
 namespace MoisThermFEM
 {
@@ -87,7 +88,7 @@ namespace MoisThermFEM
 
     double Material::saturatedVaporContent(const State & t_State) const
     {
-        const auto temperature = t_State.getValue(Property::temperature);
+        const auto temperature = t_State.getValue(StateProperty::temperature);
 
         const auto tempinK = temperature + 273.15;
 
@@ -115,7 +116,7 @@ namespace MoisThermFEM
     double Material::vaporContent(const State & t_State) const
     {
         return saturatedVaporContent(t_State) * airPorosity(t_State)
-               * t_State.getValue(Property::humidity);
+               * t_State.getValue(StateProperty::humidity);
     }
 
     double Material::liquidWaterContent(const State & t_State) const

@@ -87,7 +87,7 @@ TEST_F(MoistureBC_2D_2, TestExample_1)
     const auto dTime = 36000;
     const auto nSteps = 4;
 
-    auto humidities = NodePool::Instance().nodeProperties(MoisThermFEM::Property::humidity);
+    auto humidities = NodePool::Instance().nodeProperties(MoisThermFEM::StateProperty::humidity);
     std::vector<std::vector<double>> solution;
 
     for(unsigned i = 0; i < nSteps; ++i)

@@ -4,18 +4,12 @@
 
 namespace MoisThermFEM
 {
-    enum class Property
+    enum class StateProperty
     {
         temperature,
         humidity,
         pressure,
         liquidPercent
-    };
-
-    enum class Iteration
-    {
-        Current,
-        Previous
     };
 
     // Simple class to hold state variables
@@ -30,14 +24,12 @@ namespace MoisThermFEM
         friend State operator+(const State & lhs, const State & rhs);
         friend State operator-(const State & lhs, const State & rhs);
 
-        double getValue(const Property t_Property,
-                        const Iteration t_Iteration = Iteration::Current) const;
-        void setValue(const Property t_Property, const double t_Value);
-        double getDeltaValue(const Property t_Property) const;
+        double getValue(const StateProperty t_Property) const;
+        void setValue(const StateProperty t_Property, const double t_Value);
         double getLiquidPercent() const;
 
     private:
-        std::map<Iteration, std::map<Property, double>> m_Property;
+        std::map<StateProperty, double> m_Property;
     };
 
 }   // namespace MoisThermFEM

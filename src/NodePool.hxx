@@ -18,10 +18,9 @@ namespace MoisThermFEM
         Node2D & getNode(std::size_t const Index);
 
         std::size_t maxIndex() const;
-        std::vector<double> nodeProperties(Property t_Property) const;
-        std::vector<double> waterContent(WaterContent content) const;
+        std::vector<double> properties(Property t_Property);
 
-        void updateNodeValues(const std::vector<double> & t_values, const Property t_property);
+        void updateNodeValues(const std::vector<double> & t_values, const StateProperty t_property);
 
         void clear();
 

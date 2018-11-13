@@ -6,7 +6,6 @@
 
 #include "Functions.hxx"
 
-
 namespace MoisThermFEM
 {
 	/// Used to simplify interface for certain classes. Instead of creating four different function,
@@ -62,8 +61,8 @@ namespace MoisThermFEM
         double m_HeatCapacity;
         double m_ThermalConductivity;
         double m_DiffusionResistanceFactor;
-        std::unique_ptr<TabularFunction> m_LiquidTransportCoefficient;
-        std::unique_ptr<TabularFunction> m_SorptionCurve;
+        std::unique_ptr<MoisThermFEM::TabularFunction> m_LiquidTransportCoefficient;
+        std::unique_ptr<MoisThermFEM::TabularFunction> m_SorptionCurve;
 
 		double saturatedVaporContent(const State & t_State) const;
         double liquidPorosity(const State & t_State) const;

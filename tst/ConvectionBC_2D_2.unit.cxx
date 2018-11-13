@@ -91,7 +91,7 @@ TEST_F(ConvectionBC_2D_2, TestExample_1)
     const auto nSteps = 4;
 
 
-    auto temperatures = NodePool::Instance().nodeProperties(MoisThermFEM::Property::temperature);
+    auto temperatures = NodePool::Instance().nodeProperties(MoisThermFEM::StateProperty::temperature);
     std::vector<std::vector<double>> solution;
 
     for(unsigned i = 0; i < nSteps; ++i)

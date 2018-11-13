@@ -22,7 +22,7 @@ namespace MoisThermFEM
 
         bool isLinear() const;
 
-        void updateNodeValues(const std::vector<double> & values, const Property property);
+        void updateNodeValues(const std::vector<double> & values, const StateProperty property);
 
         IElementLinear2D * findElement(const Node2D & t_Node1, const Node2D & t_Node2);
 

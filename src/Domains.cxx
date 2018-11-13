@@ -126,7 +126,7 @@ namespace MoisThermFEM
         return m_BCs.isLinear() && m_Elements.isLinear();
     }
 
-    void Domain::updateNodeValues(const std::vector<double> & values, const Property property)
+    void Domain::updateNodeValues(const std::vector<double> & values, const StateProperty property)
     {
         m_BCs.updateNodeValues(values, property);
         m_Elements.updateNodeValues(values, property);
@@ -137,7 +137,7 @@ namespace MoisThermFEM
 		return m_Elements.findElement(t_Node1, t_Node2);
 	}
 
-	Domain::Domain( const Property property ) : m_Property(property) {
+	Domain::Domain( const StateProperty property ) : m_Property(property) {
 
 	}
 
@@ -187,7 +187,7 @@ namespace MoisThermFEM
           fem::make_unique<ElementThermalLinear2D>(t_Node1, t_Node2, t_Node3, t_Node4, mat));
     }
 
-	ThermalDomain::ThermalDomain() : Domain(Property::temperature) {
+	ThermalDomain::ThermalDomain() : Domain(StateProperty::temperature) {
 
 	}
 
@@ -213,7 +213,7 @@ namespace MoisThermFEM
 			t_Node1, t_Node2, t_ConvectiveCoefficient, Material, t_AirHumidity, t_AirTemperature));
 	}
 
-	MoistureDomain::MoistureDomain() : Domain(Property::humidity) {
+	MoistureDomain::MoistureDomain() : Domain(StateProperty::humidity) {
 
 	}
 

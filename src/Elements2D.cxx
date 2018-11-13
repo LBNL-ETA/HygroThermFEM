@@ -96,7 +96,7 @@ namespace MoisThermFEM
         return isLinear;
     }
 
-    void ElementsLinear2D::updateNodeValues(const std::vector<double> & values, const Property property)
+    void ElementsLinear2D::updateNodeValues(const std::vector<double> & values, const StateProperty property)
     {
         for(auto & aBc : m_Elements)
         {
@@ -104,7 +104,7 @@ namespace MoisThermFEM
             {
                 auto & node = aBc->getNode(i);
                 auto index = node.getNodeNumber();
-                node.setProperty(property, values[index - 1]);
+				node.setStateProperty( property, values[ index - 1 ] );
             }
         }
     }

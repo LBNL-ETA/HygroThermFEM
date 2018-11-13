@@ -9,7 +9,7 @@
 namespace MoisThermFEM
 {
     /// Function to return total water content in liquid + ice
-    inline auto getMaterialWaterFill( const Material & mat )
+    inline auto getMaterialWaterFill(const Material & mat)
       -> decltype(1.0 * TabularFunction(mat.sorptionCurve(), Property::humidity))
     {
         /// Calculate air and water content
@@ -21,24 +21,24 @@ namespace MoisThermFEM
     }
 
     /// Water content in liquid state
-    inline auto getMaterialLiquidWaterFill( const Material & mat )
-      -> decltype(StateValue(Property::liquidPercent) * getMaterialWaterFill( mat ))
+    inline auto getMaterialLiquidWaterFill(const Material & mat)
+      -> decltype(StateValue(Property::liquidPercent) * getMaterialWaterFill(mat))
     {
-        return StateValue(Property::liquidPercent) * getMaterialWaterFill( mat );
+        return StateValue(Property::liquidPercent) * getMaterialWaterFill(mat);
     }
 
     /// Water content in frozen state
-    inline auto getMaterialIceFill( const Material & mat )
-      -> decltype((1.0 - StateValue(Property::liquidPercent)) * getMaterialWaterFill( mat ))
+    inline auto getMaterialIceFill(const Material & mat)
+      -> decltype((1.0 - StateValue(Property::liquidPercent)) * getMaterialWaterFill(mat))
     {
-        return (1.0 - StateValue(Property::liquidPercent)) * getMaterialWaterFill( mat );
+        return (1.0 - StateValue(Property::liquidPercent)) * getMaterialWaterFill(mat);
     }
 
     /// Air content
-    inline auto getMaterialAirFill( const Material & mat ) -> decltype(mat.porosity() -
-		getMaterialWaterFill( mat ))
+    inline auto getMaterialAirFill(const Material & mat)
+      -> decltype(mat.porosity() - getMaterialWaterFill(mat))
     {
-        const auto waterFill = getMaterialWaterFill( mat );
+        const auto waterFill = getMaterialWaterFill(mat);
         return mat.porosity() - waterFill;
     }
 
