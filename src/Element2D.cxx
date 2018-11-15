@@ -332,11 +332,11 @@ namespace MoisThermFEM
         return result;
     }
 
-	IElementLinear2D::MatrixVector::MatrixVector(iValue && matrixFunction,
-												 const Property propertyVector) :
-		MatrixFunction(std::move(matrixFunction)),
-		PropertyVector(propertyVector)
-	{}
+    IElementLinear2D::MatrixVector::MatrixVector(iValue && matrixFunction,
+                                                 const Property propertyVector) :
+        MatrixFunction(std::move(matrixFunction)),
+        PropertyVector(propertyVector)
+    {}
 
     //////////////////////////////////////////////////////////////////////////////
     ///  ElementThermalLinear2D
@@ -394,10 +394,44 @@ namespace MoisThermFEM
 
 
         //////////////////////////////////////////////////////////////////////
-        ///  Conversion from liquid to gas
+        ///  Conversion from liquid to gas (vapor part)
         //////////////////////////////////////////////////////////////////////
         auto H = HeatOfEvaporation() * delta;
-        m_Matrix_x_Vector.emplace_back(std::unique_ptr<decltype(H)>(new decltype(H)(H)), Property::vapor);
+
+        /// TODO: Make this better if possible. Like vector's emplace_back function.
+        m_Matrix_x_Vector.emplace_back(std::unique_ptr<decltype(H)>(new decltype(H)(H)),
+                                       Property::vapor);
+
+        //////////////////////////////////////////////////////////////////////
+        ///  Conversion from liquid to gas (air part)
+        //////////////////////////////////////////////////////////////////////
+
+        /// TODO: Add this later when air pressure equation is added
+        //auto waterVaporPressure = SaturationFunction() * StateValue(Property::humidity);
+
+		//////////////////////////////////////////////////////////////////////
+		///  Conduction from liquid
+		//////////////////////////////////////////////////////////////////////
+		TabularDerivative sorptionDerivative(m_Material.sorptionCurve(), Property::humidity);
+		SuctionCurve Dl(m_Material.liquidTransportationCurve());
+		auto CD = Dl * sorptionDerivative * Constants::Cp_Water;
+		m_DpDuFunctions.emplace_back(std::unique_ptr<IValue>(new decltype(CD)(CD)),
+			std::unique_ptr<IValue>(new decltype(humidity)(humidity)));
+
+		//////////////////////////////////////////////////////////////////////
+		///  Conduction from vapor
+		//////////////////////////////////////////////////////////////////////
+
+		auto vapCond = delta * Constants::Cp_Vapor;
+		StateValue vaporContent(Property::vapor);
+
+		m_DpDuFunctions.emplace_back(std::unique_ptr<IValue>(new decltype(vaporContent)(vaporContent)),
+									 std::unique_ptr<IValue>(new decltype(humidity)(humidity)));
+
+		//////////////////////////////////////////////////////////////////////
+		///  Conduction from airflow
+		//////////////////////////////////////////////////////////////////////
+
     }
 
     //////////////////////////////////////////////////////////////////////////////
