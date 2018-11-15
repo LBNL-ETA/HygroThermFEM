@@ -89,18 +89,6 @@ namespace MoisThermFEM
         QLECapacitanceIntegrator2D(const QuadrilateralLinearGlobal2D & t_Element);
     };
 
-    /// Equation k*(Dp/Dx)(Du/Dx) + k*(Dp/Dy)(Du/Dy) have fixed function (k) and
-    /// independent function (p) that is part of derivative. Note that u is state
-    /// variable for which matrix equations will be formed.
-    struct DerivativeFunction
-    {
-        DerivativeFunction(std::unique_ptr<IValue> fixedValue,
-                           std::unique_ptr<IValue> derivativeValue);
-
-        std::unique_ptr<IValue> fixedValue;
-        std::unique_ptr<IValue> derivativeValue;
-    };
-
     //////////////////////////////////////////////////////////////////////////////
     ///  IElementLinear2D
     //////////////////////////////////////////////////////////////////////////////
@@ -140,6 +128,18 @@ namespace MoisThermFEM
     protected:
         std::vector<iValue> m_DDuFunctions;
         std::vector<iValue> m_CapacitanceFunctions;
+
+		/// Equation k*(Dp/Dx)(Du/Dx) + k*(Dp/Dy)(Du/Dy) have fixed function (k) and
+		/// independent function (p) that is part of derivative. Note that u is state
+		/// variable for which matrix equations will be formed.
+		struct DerivativeFunction
+		{
+			DerivativeFunction(std::unique_ptr<IValue> fixedValue,
+							   std::unique_ptr<IValue> derivativeValue);
+
+			std::unique_ptr<IValue> fixedValue;
+			std::unique_ptr<IValue> derivativeValue;
+		};
         std::vector<DerivativeFunction> m_DpDuFunctions;
 
         struct MatrixVector {

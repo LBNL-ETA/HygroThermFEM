@@ -165,7 +165,7 @@ namespace MoisThermFEM
     ///  DerivativeFunction
     //////////////////////////////////////////////////////////////////////////////
 
-    DerivativeFunction::DerivativeFunction(iValue fixedValue, iValue derivativeValue) :
+	IElementLinear2D::DerivativeFunction::DerivativeFunction(iValue fixedValue, iValue derivativeValue) :
         fixedValue(std::move(fixedValue)),
         derivativeValue(std::move(derivativeValue))
     {}
