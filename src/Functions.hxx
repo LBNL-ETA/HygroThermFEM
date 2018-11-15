@@ -329,4 +329,16 @@ namespace MoisThermFEM
         const double m_SaturationCoefficient;
     };
 
+	//////////////////////////////////////////////////////////////////
+	///  Heat of evaporation
+	//////////////////////////////////////////////////////////////////
+
+	class HeatOfEvaporation : public IFunction
+	{
+	public:
+		HeatOfEvaporation();
+	protected:
+		double evaluateFunction( const double t_position ) const override;
+	};
+
 }   // namespace MoisThermFEM

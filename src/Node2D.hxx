@@ -135,6 +135,8 @@ namespace MoisThermFEM
 
         Node2D & getNode(const std::size_t Index);
 
+		std::vector<double> properties(const Property property) const;
+
         Node2D & operator[](const std::size_t index) const;
         Node2D & operator[](const std::size_t index);
 

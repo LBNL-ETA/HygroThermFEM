@@ -125,6 +125,8 @@ namespace MoisThermFEM
 
         FenestrationCommon::SquareMatrix capacitanceMatrices() const;
 
+        std::vector<double> rightSideVector() const;
+
         Node2D & getNode(std::size_t index);
 
         bool haveBothNodes( const size_t index1, const size_t index2 ) const;
@@ -139,6 +141,17 @@ namespace MoisThermFEM
         std::vector<iValue> m_DDuFunctions;
         std::vector<iValue> m_CapacitanceFunctions;
         std::vector<DerivativeFunction> m_DpDuFunctions;
+
+        struct MatrixVector {
+			MatrixVector( iValue && MatrixFunction, const Property PropertyVector );
+			iValue MatrixFunction;
+        	Property PropertyVector;
+        };
+
+        /// Vector of values that will simply be evaluated on right hand side.
+        /// This is in form [M]*{V} (Matrix * vector). First property is simply set of functions
+        /// that form matrix and second is simply property of vectors.
+        std::vector<MatrixVector> m_Matrix_x_Vector;
 
         const Material & m_Material;
 
@@ -271,7 +284,7 @@ namespace MoisThermFEM
         QuadrilateralLinearGlobal2D m_Global2D;
         QLECapacitanceIntegrator2D m_QLECapacitance2D;
         QLEDDuIntegrator2D m_DDuIntegrator;
-        /// This one depends on functions and must be stored for every submatrix
+        /// This one depends on independed variables and should be stored in vector
         std::vector<QLEDpDuIntegrator2D> m_QLEDpDuIntegrator2D;
 
         const bool m_Linear;

@@ -127,5 +127,20 @@ namespace MoisThermFEM
         m_Elements.push_back(std::move(el));
     }
 
+	std::vector< double > ElementsLinear2D::RVector() const
+	{
+		std::vector<double> result(NodePool::Instance().maxIndex(), 0);
+		for ( const auto & element : m_Elements )
+		{
+			const auto indexes = element->nodeIndexes();
+			const auto vecR = element->rightSideVector();
+			for(size_t i = 0; i < numOfQuadrilateralNodes; ++i)
+			{
+				result[indexes[i] - 1] += vecR[i];
+			}
+		}
+		return result;
+	}
+
 
 }   // namespace MoisThermFEM

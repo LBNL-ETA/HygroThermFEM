@@ -202,6 +202,16 @@ namespace MoisThermFEM
 		return m_Nodes[index];
 	}
 
+	std::vector< double > INodes::properties( const Property property ) const
+	{
+    	std::vector<double> result;
+    	for(const auto & node : m_Nodes)
+		{
+    		result.push_back(node.get().property(property));
+		}
+		return result;
+	}
+
 	////////////////////////////////////////////////////////////////////////////
     ///   LineNodes2D
     ////////////////////////////////////////////////////////////////////////////

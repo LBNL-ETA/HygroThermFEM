@@ -219,4 +219,15 @@ namespace MoisThermFEM
         return temp;
     }
 
+	//////////////////////////////////////////////////////////////////
+	///  Heat of evaporation
+	//////////////////////////////////////////////////////////////////
+
+    double HeatOfEvaporation::evaluateFunction(const double t_position) const
+    {
+        return -(2500.8 - 2.36 * t_position + 0.016 * std::pow(t_position, 2)
+                 - 0.00006 * std::pow(t_position, 3));
+    }
+
+	HeatOfEvaporation::HeatOfEvaporation() : IFunction( Property::temperature) {}
 }   // namespace MoisThermFEM

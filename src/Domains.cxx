@@ -43,7 +43,7 @@ namespace MoisThermFEM
                                                      const double t_DTime)
     {
         std::vector<double> M{m_Elements.getLumpedMass(t_DTime)};
-        auto R = m_BCs.RVector();
+        auto R = m_BCs.RVector() + m_Elements.RVector();
 
         auto B = t_PreviousSolution * M + R;
 

@@ -20,6 +20,8 @@ namespace MoisThermFEM
         std::vector<double> getLumpedMass(const double DTime);
         FenestrationCommon::SquareMatrix getMassMatrix(const double DTime);
 
+        std::vector<double> RVector() const;
+
         bool isLinear() const;
 
         void updateNodeValues(const std::vector<double> & values, const StateProperty property);

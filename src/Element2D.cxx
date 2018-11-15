@@ -8,6 +8,7 @@
 #include "MaterialPool.hxx"
 #include "QuadrilateralLocal2D.hxx"
 #include "FEMunique.hxx"
+#include "VectorOperators.hxx"
 
 using FenestrationCommon::SquareMatrix;
 
@@ -282,7 +283,7 @@ namespace MoisThermFEM
         return m_Material;
     }
 
-    bool IElementLinear2D::haveBothNodes( const size_t index1, const size_t index2 ) const
+    bool IElementLinear2D::haveBothNodes(const size_t index1, const size_t index2) const
     {
         bool node1Found = false;
         bool node2Found = false;
@@ -312,15 +313,40 @@ namespace MoisThermFEM
         return m_Linear;
     }
 
+    std::vector<double> IElementLinear2D::rightSideVector() const
+    {
+        std::vector<double> result(numOfQuadrilateralNodes, 0);
+
+        /// FenestrationCommon::SquareMatrix M{numOfQuadrilateralNodes};
+        for(const auto & item : m_Matrix_x_Vector)
+        {
+            /// Calculate functions base on node properties
+            const auto values = item.MatrixFunction->values(m_Nodes);
+            /// And then integrate them
+            auto M = m_DDuIntegrator.integrate(values);
+            auto B = m_Nodes.properties(item.PropertyVector);
+
+            result = result + M * B;
+        }
+
+        return result;
+    }
+
+	IElementLinear2D::MatrixVector::MatrixVector(iValue && matrixFunction,
+												 const Property propertyVector) :
+		MatrixFunction(std::move(matrixFunction)),
+		PropertyVector(propertyVector)
+	{}
+
     //////////////////////////////////////////////////////////////////////////////
     ///  ElementThermalLinear2D
     //////////////////////////////////////////////////////////////////////////////
 
-    ElementThermalLinear2D::ElementThermalLinear2D( const size_t index1,
-													const size_t index2,
-													const size_t index3,
-													const size_t index4,
-													const std::string & materialName ) :
+    ElementThermalLinear2D::ElementThermalLinear2D(const size_t index1,
+                                                   const size_t index2,
+                                                   const size_t index3,
+                                                   const size_t index4,
+                                                   const std::string & materialName) :
         IElementLinear2D(index1, index2, index3, index4, materialName)
     {
         //////////////////////////////////////////////////////////////////////////////////////
@@ -365,17 +391,24 @@ namespace MoisThermFEM
         auto conductance = materialConductivity + vaporConductivity + liquidConductivity;
 
         m_DDuFunctions.emplace_back(new decltype(conductance)(conductance));
+
+
+        //////////////////////////////////////////////////////////////////////
+        ///  Conversion from liquid to gas
+        //////////////////////////////////////////////////////////////////////
+        auto H = HeatOfEvaporation() * delta;
+        m_Matrix_x_Vector.emplace_back(std::unique_ptr<decltype(H)>(new decltype(H)(H)), Property::vapor);
     }
 
     //////////////////////////////////////////////////////////////////////////////
     ///  ElementMoistureLinear2D
     //////////////////////////////////////////////////////////////////////////////
 
-    ElementMoistureLinear2D::ElementMoistureLinear2D( const size_t index1,
-													  const size_t index2,
-													  const size_t index3,
-													  const size_t index4,
-													  const std::string & materialName ) :
+    ElementMoistureLinear2D::ElementMoistureLinear2D(const size_t index1,
+                                                     const size_t index2,
+                                                     const size_t index3,
+                                                     const size_t index4,
+                                                     const std::string & materialName) :
         IElementLinear2D(index1, index2, index3, index4, materialName, false)
     {
         //////////////////////////////////////////////////////////////////////////////
@@ -401,4 +434,5 @@ namespace MoisThermFEM
 
         m_CapacitanceFunctions.emplace_back(new decltype(sorptionDerivative)(sorptionDerivative));
     }
+
 }   // namespace MoisThermFEM
