@@ -37,12 +37,12 @@ TEST_F(BlackBodyBC_2D_1, TestExample_1)
     // same temperature in every node (humidity and pressure irrelevant for this example)
     auto state = MoisThermFEM::State(0, 0, 101325, 0);
 
-    const auto node1 = NodePool::Instance().createNode(1, 0.15, 0.05, state);
-    const auto node2 = NodePool::Instance().createNode(2, 0.15, 0, state);
-    const auto node3 = NodePool::Instance().createNode(3, 0.05, 0.05, state);
-    const auto node4 = NodePool::Instance().createNode(4, 0.05, 0, state);
-    auto node5 = NodePool::Instance().createNode(5, 0, 0.05, state);
-    auto node6 = NodePool::Instance().createNode(6, 0, 0, state);
+    NodePool::Instance().createNode(1, 0.15, 0.05, state);
+    NodePool::Instance().createNode(2, 0.15, 0, state);
+    NodePool::Instance().createNode(3, 0.05, 0.05, state);
+    NodePool::Instance().createNode(4, 0.05, 0, state);
+    NodePool::Instance().createNode(5, 0, 0.05, state);
+    NodePool::Instance().createNode(6, 0, 0, state);
 
     auto & material =
       MaterialPool::Instance().createMaterial("Cottaer Sandstone - non porous",
@@ -73,19 +73,19 @@ TEST_F(BlackBodyBC_2D_1, TestExample_1)
 
     MoisThermFEM::ThermalDomain domain;
 
-    domain.createElement(node3, node4, node2, node1, material);
-    domain.createElement(node6, node4, node3, node5, material);
+    domain.createElement(3, 4, 2, 1, material.name());
+    domain.createElement(6, 4, 3, 5, material.name());
 
     // Create Boundary Conditions
     const auto tRadiation = 200.0;
     const auto surfaceEmissivity = 0.84;
 
-    domain.createBlackBodyRadiationBC(node5, node6, surfaceEmissivity, tRadiation);
+    domain.createBlackBodyRadiationBC(5, 6, surfaceEmissivity, tRadiation);
 
     const auto dTime = 3600;
     const auto nSteps = 4;
 
-    auto temperatures = NodePool::Instance().nodeProperties(MoisThermFEM::Property::temperature);
+    auto temperatures = NodePool::Instance().properties(MoisThermFEM::Property::temperature);
     std::vector<std::vector<double>> solution;
 
     for(unsigned i = 0; i < nSteps; ++i)

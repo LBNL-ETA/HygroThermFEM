@@ -31,29 +31,29 @@ namespace MoisThermFEM
                            std::vector<double> & humidity,
                            const double t_DTime);
 
-        std::vector<double> waterContent(WaterContent content) const;
+        std::vector<double> property(Property property) const;
 
-        void createElement(const Node2D & t_Node1,
-                           const Node2D & t_Node2,
-                           const Node2D & t_Node3,
-                           const Node2D & t_Node4,
-                           const Material & mat);
+        void createElement(const size_t index1,
+                           const size_t index2,
+                           const size_t index3,
+                           const size_t index4,
+                           const std::string & materialName);
 
-        void createConvectionBC(const Node2D & t_Node1,
-                                const Node2D & t_Node2,
+        void createConvectionBC(const size_t index1,
+                                const size_t index2,
                                 const double t_ConvectionCoefficient,
                                 const double t_AirTemperature,
                                 const double t_Humidity);
 
-        void createTemperatureBC(Node2D & t_Node1,
-                                 Node2D & t_Node2,
+        void createTemperatureBC(const size_t index1,
+                                 const size_t index2,
                                  const double t_Temp1,
                                  const double t_Temp2);
 
-        void createTemperatureBC(Node2D & t_Node1, Node2D & t_Node2, const double t_Temp);
+        void createTemperatureBC(const size_t index1, const size_t index2, const double t_Temp);
 
-        void createBlackBodyRadiationBC(const Node2D & t_Node1,
-                                        const Node2D & t_Node2,
+        void createBlackBodyRadiationBC(const size_t index1,
+                                        const size_t index2,
                                         const double t_Emissivity,
                                         const double t_RadiationTemperature);
 

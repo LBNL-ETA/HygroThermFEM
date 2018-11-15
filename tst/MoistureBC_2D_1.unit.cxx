@@ -86,11 +86,11 @@ TEST_F(MoistureBC_2D_1, TestExample_1)
     /// Create elements
     for(size_t i = 1; i <= (MoisThermFEM::NodePool::Instance().maxIndex() - 2) / 2; ++i)
     {
-        auto & node1 = MoisThermFEM::NodePool::Instance().getNode(2 * i + 1);
-        auto & node2 = MoisThermFEM::NodePool::Instance().getNode(2 * i + 2);
-        auto & node3 = MoisThermFEM::NodePool::Instance().getNode(2 * i);
-        auto & node4 = MoisThermFEM::NodePool::Instance().getNode(2 * i - 1);
-        domain.createElement(node1, node2, node3, node4, material);
+        const auto node1 = 2u * i + 1u;
+        const auto node2 = 2u * i + 2u;
+        const auto node3 = 2u * i;
+        const auto node4 = 2u * i - 1u;
+        domain.createElement(node1, node2, node3, node4, material.name());
     }
 
     // Create Boundary Conditions
@@ -98,85 +98,83 @@ TEST_F(MoistureBC_2D_1, TestExample_1)
     const auto airTemperature = 20;
     const auto airHumidity = 0.5;
 
-    auto & node1 = MoisThermFEM::NodePool::Instance().getNode(1);
-    auto & node2 = MoisThermFEM::NodePool::Instance().getNode(2);
-
-    domain.createMoistureBC(node1, node2, hc, airHumidity, airTemperature);
+    domain.createMoistureBC(1, 2, hc, airHumidity, airTemperature);
 
     const auto dTime = 36000;
     const auto nSteps = 4;
     /// const auto dTime = 60;
     /// const auto nSteps = 3000;
 
-    auto humidities = NodePool::Instance().nodeProperties(MoisThermFEM::Property::humidity);
+    auto humidities = NodePool::Instance().properties(MoisThermFEM::Property::humidity);
     std::vector<std::vector<double>> solution;
 
     for(unsigned i = 0; i < nSteps; ++i)
     {
         humidities = domain.transient(humidities, dTime);
-        solution.push_back(material.waterContent(humidities));
+        auto waterContent = NodePool::Instance().properties(MoisThermFEM::Property::water);
+        solution.push_back(waterContent);
     }
 
-    std::vector<std::vector<double>> correctSolution{{2.6498955,
-                                                      0.97524335,
-                                                      0.48359673,
-                                                      0.23980252,
-                                                      0.11891159,
-                                                      0.058965089,
-                                                      0.029239302,
-                                                      0.014499207,
-                                                      0.0071902274,
-                                                      0.0035663744,
-                                                      0.0017703551,
-                                                      0.00088167597,
-                                                      0.00044487237,
-                                                      0.00023607421,
-                                                      0.00014973783},
-                                                     {2.6499595,
-                                                      1.4101503,
-                                                      0.86223326,
-                                                      0.50837455,
-                                                      0.29216405,
-                                                      0.16474869,
-                                                      0.091549415,
-                                                      0.050285239,
-                                                      0.027362077,
-                                                      0.014777367,
-                                                      0.0079385003,
-                                                      0.0042609241,
-                                                      0.0023152761,
-                                                      0.001328245,
-                                                      0.00089724477},
-                                                     {2.6499672,
-                                                      1.6442965,
-                                                      1.1238547,
-                                                      0.73749888,
-                                                      0.46857355,
-                                                      0.29006141,
-                                                      0.17577438,
-                                                      0.10465423,
-                                                      0.061399201,
-                                                      0.03558884,
-                                                      0.020444751,
-                                                      0.011710349,
-                                                      0.0067939179,
-                                                      0.0041728745,
-                                                      0.0029749206},
-                                                     {2.6499719,
-                                                      1.7890282,
-                                                      1.3077879,
-                                                      0.92081676,
-                                                      0.6277995,
-                                                      0.41638853,
-                                                      0.26972258,
-                                                      0.17120685,
-                                                      0.10680059,
-                                                      0.065663392,
-                                                      0.039939966,
-                                                      0.024208203,
-                                                      0.014881826,
-                                                      0.0097006528,
-                                                      0.0072409374}};
+    std::vector<std::vector<double>> correctSolution{{2.649896,
+                                                      0.975243,
+                                                      0.483597,
+                                                      0.239803,
+                                                      0.118912,
+                                                      0.058965,
+                                                      0.029239,
+                                                      0.014499,
+                                                      0.007190,
+                                                      0.003566,
+                                                      0.001770,
+                                                      0.000882,
+                                                      0.000445,
+                                                      0.000236,
+                                                      0.000150},
+                                                     {2.649960,
+                                                      1.410150,
+                                                      0.862233,
+                                                      0.508375,
+                                                      0.292164,
+                                                      0.164749,
+                                                      0.091549,
+                                                      0.050285,
+                                                      0.027362,
+                                                      0.014777,
+                                                      0.007939,
+                                                      0.004261,
+                                                      0.002315,
+                                                      0.001328,
+                                                      0.000897},
+                                                     {2.649967,
+                                                      1.644297,
+                                                      1.123855,
+                                                      0.737499,
+                                                      0.468574,
+                                                      0.290061,
+                                                      0.175774,
+                                                      0.104654,
+                                                      0.061399,
+                                                      0.035589,
+                                                      0.020445,
+                                                      0.011710,
+                                                      0.006794,
+                                                      0.004173,
+                                                      0.002975},
+                                                     {2.649972,
+                                                      1.789028,
+                                                      1.307788,
+                                                      0.920817,
+                                                      0.627800,
+                                                      0.416389,
+                                                      0.269723,
+                                                      0.171207,
+                                                      0.106801,
+                                                      0.065663,
+                                                      0.039940,
+                                                      0.024208,
+                                                      0.014882,
+                                                      0.009701,
+                                                      0.007241}};
 
     EXPECT_EQ(solution.size(), correctSolution.size());
 
@@ -185,6 +183,8 @@ TEST_F(MoistureBC_2D_1, TestExample_1)
         for(auto j = 0u; j < correctSolution[i].size(); ++j)
         {
             EXPECT_NEAR(correctSolution[i][j], solution[i][2 * j], 1e-6);
+            // std::cout << solution[i][2 * j] << ",";
         }
+        // std::cout << std::endl;
     }
 }

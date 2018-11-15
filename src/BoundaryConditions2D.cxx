@@ -67,7 +67,7 @@ namespace MoisThermFEM
     /// 	return HDMatrix;
     /// }
 
-    void BoundaryConditions2D::updateNodeValues(const std::vector<double> & values, const Property property)
+    void BoundaryConditions2D::updateNodeValues(const std::vector<double> & values, const StateProperty property)
     {
         for(auto & aBc : m_BCs)
         {
@@ -75,7 +75,7 @@ namespace MoisThermFEM
             {
                 auto & node = aBc->getNode(i);
                 auto index = node.getNodeNumber();
-                node.setProperty(property, values[index - 1]);
+				node.setStateProperty( property, values[ index - 1 ] );
             }
         }
     }

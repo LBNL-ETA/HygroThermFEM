@@ -3,103 +3,117 @@
 #include "IBCLine2D.hxx"
 #include "Material.hxx"
 
-namespace MoisThermFEM {
+namespace MoisThermFEM
+{
+    ////////////////////////////////////////////////////////
+    /// ConvectionBC
+    ////////////////////////////////////////////////////////
 
-	////////////////////////////////////////////////////////
-	/// ConvectionBC
-	////////////////////////////////////////////////////////
+    class ConvectionBC : public IBCLinear2D
+    {
+    public:
+        ConvectionBC(const size_t index1,
+                     const size_t index2,
+                     const double t_ConvectionCoefficient,
+                     const double t_AirTemperature);
 
-	class ConvectionBC : public IBCLinear2D {
-	public:
-		ConvectionBC( const Node2D & t_Node1, const Node2D & t_Node2,
-									const double t_ConvectionCoefficient, const double t_AirTemperature );
+        virtual std::vector<double> R_Vector() const override;
 
-		virtual std::vector< double > R_Vector() const override;
+        virtual FenestrationCommon::SquareMatrix H_Matrix() const override;
 
-		virtual FenestrationCommon::SquareMatrix H_Matrix() const override;
+    protected:
+        const double m_ConvectionCoefficient;
+        const double m_AirTemperature;
+    };
 
-	protected:
-		const double m_ConvectionCoefficient;
-		const double m_AirTemperature;
+    ////////////////////////////////////////////////////////
+    /// TemperatureBC
+    ////////////////////////////////////////////////////////
 
-	};
+    // TemperatureBC will be just special case of convection BC with huge value
+    // for film coefficients
+    class TemperatureBC : public ConvectionBC
+    {
+    public:
+        TemperatureBC(const size_t index1, const size_t index2, const double t_NodeTemperatures);
 
-	////////////////////////////////////////////////////////
-	/// TemperatureBC
-	////////////////////////////////////////////////////////
+        TemperatureBC(const size_t index1,
+                      const size_t index2,
+                      const double t_Temp1,
+                      const double t_Temp2);
+    };
 
-	// TemperatureBC will be just special case of convection BC with huge value
-	// for film coefficients
-	class TemperatureBC : public ConvectionBC {
-	public:
-		TemperatureBC( Node2D & t_Node1, Node2D & t_Node2, const double t_NodeTemperatures );
+    ////////////////////////////////////////////////////////
+    /// Flux BC
+    ////////////////////////////////////////////////////////
 
-		TemperatureBC( Node2D & t_Node1, Node2D & t_Node2, const double t_Temp1, const double t_Temp2 );
-	};
+    class FluxBC : public IBCLinear2D
+    {
+    public:
+        FluxBC(const size_t index1, const size_t index2, const double t_Flux);
 
-	////////////////////////////////////////////////////////
-	/// Flux BC
-	////////////////////////////////////////////////////////
+        std::vector<double> R_Vector() const override;
 
-	class FluxBC : public IBCLinear2D {
-	public:
-		FluxBC( Node2D & t_Node1, Node2D & t_Node2, const double t_Flux );
+        FenestrationCommon::SquareMatrix H_Matrix() const override;
 
-		std::vector< double > R_Vector() const override;
+    private:
+        double m_Flux;
+    };
 
-		FenestrationCommon::SquareMatrix H_Matrix() const override;
+    ///////////////////////////////////////////////////////
+    /// BlackBodyRadiationBC
+    ///////////////////////////////////////////////////////
 
-	private:
-		double m_Flux;
-	};
+    class BlackBodyRadiationBC : public IBCLinear2D
+    {
+    public:
+        BlackBodyRadiationBC(const size_t index1,
+                             const size_t index2,
+                             const double t_Emissivity,
+                             const double t_RadiationTemperature);
 
-	///////////////////////////////////////////////////////
-	/// BlackBodyRadiationBC
-	///////////////////////////////////////////////////////
+        virtual std::vector<double> R_Vector() const override;
 
-	class BlackBodyRadiationBC : public IBCLinear2D {
-	public:
-		BlackBodyRadiationBC( const Node2D & t_Node1, const Node2D & t_Node2,
-													const double t_Emissivity, const double t_RadiationTemperature );
+        virtual FenestrationCommon::SquareMatrix H_Matrix() const override;
 
-		virtual std::vector< double > R_Vector() const override;
+        /// DHMatrix seems unnecessary for now. Solution did converge without it.
+        /// FenestrationCommon::SquareMatrix< double > D_HMatrix() const override;
 
-		virtual FenestrationCommon::SquareMatrix H_Matrix() const override;
+    private:
+        /// Radiative convective coefficient that needs to be calculated based on current
+        /// temperatures
+        std::vector<double> HRadiative() const;
 
-		/// DHMatrix seems unnecessary for now. Solution did converge without it.
-		/// FenestrationCommon::SquareMatrix< double > D_HMatrix() const override;
+        /// First derivative of radiative convection coefficient
+        /// std::vector< double > DHRadiative() const;
 
-	private:
-		/// Radiative convective coefficient that needs to be calculated based on current temperatures
-		std::vector< double > HRadiative() const;
-
-		/// First derivative of radiative convection coefficient
-		/// std::vector< double > DHRadiative() const;
-
-		double m_RadiationTemperature;
-		double m_Emissivity;
-	};
+        double m_RadiationTemperature;
+        double m_Emissivity;
+    };
 
 
-	/////////////////////////////////////////////////////
-	/// MoistureBC
-	/////////////////////////////////////////////////////
-	class MoistureBC : public IBCLinear2D {
-	public:
-		MoistureBC( const Node2D & t_Node1, const Node2D & t_Node2,
-								const double t_ConvectiveCoefficient,
-								const Material & t_Material, const double t_AirHumidity,
-								const double t_AirTemperature );
+    /////////////////////////////////////////////////////
+    /// MoistureBC
+    /////////////////////////////////////////////////////
+    class MoistureBC : public IBCLinear2D
+    {
+    public:
+        MoistureBC(const size_t index1,
+                   const size_t index2,
+                   const std::string & materialName,
+                   const double t_ConvectiveCoefficient,
+                   const double t_AirHumidity,
+                   const double t_AirTemperature);
 
-		virtual std::vector< double > R_Vector() const override;
+        virtual std::vector<double> R_Vector() const override;
 
-		virtual FenestrationCommon::SquareMatrix H_Matrix() const override;
+        virtual FenestrationCommon::SquareMatrix H_Matrix() const override;
 
-	protected:
-		double m_ConvectiveCoefficient;
-		double m_AirHumidity;
-		double m_AirTemperature;
-		const Material & m_Material;
-	};
+    protected:
+        double m_ConvectiveCoefficient;
+        double m_AirHumidity;
+        double m_AirTemperature;
+        const Material & m_Material;
+    };
 
-}
+}   // namespace MoisThermFEM

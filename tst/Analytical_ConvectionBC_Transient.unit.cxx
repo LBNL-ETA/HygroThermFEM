@@ -51,8 +51,9 @@ TEST_F(Analytical_ConvectionBC_Transient, TestExample_1)
         NodePool::Instance().createNode(nodeIndex, val, 0.05, state);
     }
 
-    auto & material = MaterialPool::Instance().createMaterial(
-      "Test Material",
+    std::string materialName = "Test Material";
+    MaterialPool::Instance().createMaterial(
+      materialName,
       2050,   /// Density
       0.00,   /// Porosity
       850,    /// Specific Heat Capacity (dry)
@@ -67,28 +68,25 @@ TEST_F(Analytical_ConvectionBC_Transient, TestExample_1)
     MoisThermFEM::ThermalDomain domain;
 
     /// Create elements
-    for(size_t i = 1; i <= (NodePool::Instance().maxIndex() - 2) / 2; ++i)
+    for(size_t i = 1u; i <= (NodePool::Instance().maxIndex() - 2) / 2; ++i)
     {
-        const auto node1 = NodePool::Instance().getNode(2 * i - 1);
-        const auto node2 = NodePool::Instance().getNode(2 * i);
-        const auto node3 = NodePool::Instance().getNode(2 * i + 2);
-        const auto node4 = NodePool::Instance().getNode(2 * i + 1);
+        const auto index1 = 2u * i - 1u;
+        const auto index2 = 2u * i;
+        const auto index3 = 2u * i + 2u;
+        const auto index4 = 2u * i + 1u;
 
-        domain.createElement(node1, node2, node3, node4, material);
+        domain.createElement(index1, index2, index3, index4, materialName);
     }
 
     // Create Boundary Conditions
     const auto tSurface = 0.0;
 
-    auto nodeBC1 = NodePool::Instance().getNode(21);
-    auto nodeBC2 = NodePool::Instance().getNode(22);
-
-    domain.createTemperatureBC(nodeBC1, nodeBC2, tSurface);
+    domain.createTemperatureBC(21, 22, tSurface);
 
     const auto dTime = 36;
     const auto nSteps = 1000;
 
-    auto temperatures = NodePool::Instance().nodeProperties(MoisThermFEM::Property::temperature);
+    auto temperatures = NodePool::Instance().properties(MoisThermFEM::Property::temperature);
     std::vector<std::vector<double>> solution;
 
     for(unsigned i = 0; i < nSteps; ++i)

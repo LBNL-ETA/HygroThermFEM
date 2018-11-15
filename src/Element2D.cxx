@@ -4,10 +4,11 @@
 #include "Common.hxx"
 #include "Element2D.hxx"
 #include "IntegrationPoints.hxx"
-#include "MaterialProperties.hxx"
 #include "NodePool.hxx"
+#include "MaterialPool.hxx"
 #include "QuadrilateralLocal2D.hxx"
 #include "FEMunique.hxx"
+#include "VectorOperators.hxx"
 
 using FenestrationCommon::SquareMatrix;
 
@@ -173,15 +174,21 @@ namespace MoisThermFEM
     ///  IElementLinear2D
     //////////////////////////////////////////////////////////////////////////////
 
-    IElementLinear2D::IElementLinear2D(const Node2D & t_Node1,
-                                       const Node2D & t_Node2,
-                                       const Node2D & t_Node3,
-                                       const Node2D & t_Node4,
-                                       const Material & t_Material,
+    IElementLinear2D::IElementLinear2D(const size_t index1,
+                                       const size_t index2,
+                                       const size_t index3,
+                                       const size_t index4,
+                                       const std::string & materialName,
                                        const bool isLinear) :
-        m_Material{t_Material},
-        m_Nodes{{t_Node1, t_Node2, t_Node3, t_Node4}},
-        m_Global2D{t_Node1, t_Node2, t_Node3, t_Node4},
+        m_Material{MaterialPool::Instance().material(materialName)},
+        m_Nodes{NodePool::Instance().getNode(index1),
+                NodePool::Instance().getNode(index2),
+                NodePool::Instance().getNode(index3),
+                NodePool::Instance().getNode(index4)},
+        m_Global2D{NodePool::Instance().getNode(index1),
+                   NodePool::Instance().getNode(index2),
+                   NodePool::Instance().getNode(index3),
+                   NodePool::Instance().getNode(index4)},
         m_QLECapacitance2D{m_Global2D},
         m_DDuIntegrator{m_Global2D},
         m_Linear{isLinear}
@@ -276,14 +283,14 @@ namespace MoisThermFEM
         return m_Material;
     }
 
-    bool IElementLinear2D::haveBothNodes(const Node2D & t_Node1, const Node2D & t_Node2) const
+    bool IElementLinear2D::haveBothNodes(const size_t index1, const size_t index2) const
     {
         bool node1Found = false;
         bool node2Found = false;
         for(auto & node : m_Nodes)
         {
-            node1Found = node1Found || node == t_Node1;
-            node2Found = node2Found || node == t_Node2;
+            node1Found = node1Found || node.get().getNodeNumber() == index1;
+            node2Found = node2Found || node.get().getNodeNumber() == index2;
         }
         return node1Found && node2Found;
     }
@@ -306,63 +313,142 @@ namespace MoisThermFEM
         return m_Linear;
     }
 
+    std::vector<double> IElementLinear2D::rightSideVector() const
+    {
+        std::vector<double> result(numOfQuadrilateralNodes, 0);
+
+        /// FenestrationCommon::SquareMatrix M{numOfQuadrilateralNodes};
+        for(const auto & item : m_Matrix_x_Vector)
+        {
+            /// Calculate functions base on node properties
+            const auto values = item.MatrixFunction->values(m_Nodes);
+            /// And then integrate them
+            auto M = m_DDuIntegrator.integrate(values);
+            auto B = m_Nodes.properties(item.PropertyVector);
+
+            result = result + M * B;
+        }
+
+        return result;
+    }
+
+    IElementLinear2D::MatrixVector::MatrixVector(iValue && matrixFunction,
+                                                 const Property propertyVector) :
+        MatrixFunction(std::move(matrixFunction)),
+        PropertyVector(propertyVector)
+    {}
+
     //////////////////////////////////////////////////////////////////////////////
     ///  ElementThermalLinear2D
     //////////////////////////////////////////////////////////////////////////////
 
-    ElementThermalLinear2D::ElementThermalLinear2D(const Node2D & t_Node1,
-                                                   const Node2D & t_Node2,
-                                                   const Node2D & t_Node3,
-                                                   const Node2D & t_Node4,
-                                                   const Material & mat) :
-        IElementLinear2D(t_Node1, t_Node2, t_Node3, t_Node4, mat)
+    ElementThermalLinear2D::ElementThermalLinear2D(const size_t index1,
+                                                   const size_t index2,
+                                                   const size_t index3,
+                                                   const size_t index4,
+                                                   const std::string & materialName) :
+        IElementLinear2D(index1, index2, index3, index4, materialName)
     {
-        auto liquidWaterFill = getMaterialLiquidWaterFill( mat );
-        auto airFill = getMaterialAirFill( mat );
+        //////////////////////////////////////////////////////////////////////////////////////
+        /// Capacitance functions
+        //////////////////////////////////////////////////////////////////////////////////////
 
-        auto waterCapacitance = liquidWaterFill * (Constants::Density_Water * Constants::Cp_Water);
-        auto airCapacitance = airFill * (Constants::Density_Air * Constants::Cp_Air);
-        auto dryCapacitance = (1 - mat.porosity()) * (mat.density() * mat.heatCapacity());
+        auto dryContent = (1 - m_Material.porosity()) * m_Material.density();
+        StateValue liquidContent(Property::liquid);
+        StateValue iceContent(Property::ice);
+        // auto airContent = getMaterialAirFill(mat);
+        StateValue airContent(Property::vapor);
 
-        auto capacitance = waterCapacitance + airCapacitance + dryCapacitance;
+        auto equivalentDensity =
+          (dryContent * m_Material.density() + iceContent * Constants::Density_Ice
+           + liquidContent * Constants::Density_Water + airContent * Constants::Density_Air)
+          / (dryContent + iceContent + liquidContent + airContent);
+
+        auto equivalentCapacitance =
+          (dryContent * m_Material.heatCapacity() + iceContent * Constants::Cp_Ice
+           + liquidContent * Constants::Cp_Water + airContent * Constants::Cp_Air)
+          / (dryContent + iceContent + liquidContent + airContent);
+
+        auto capacitance = equivalentDensity * equivalentCapacitance;
 
         m_CapacitanceFunctions.emplace_back(new decltype(capacitance)(capacitance));
 
         /// Conductance
 
         /// material
-        auto materialConductivity = Constant(mat.thermalConductivity());
+        auto materialConductivity = Constant(m_Material.thermalConductivity());
 
         /// vapor
-        auto delta = Constant(2.5E-5 / mat.diffusionResistanceFactor());
-        auto vaporConductivity = Constants::Cp_Vapor * delta * airFill;
+        auto delta = Constant(2.5E-5 / m_Material.diffusionResistanceFactor());
+        auto vaporConductivity = Constants::Cp_Vapor * delta * airContent;
 
         /// liquid
         auto humidity = StateValue(Property::humidity);
         auto liquidConductivity =
-          SuctionCurve(mat.liquidTransportationCurve()) * Constants::Cp_Water * humidity;
+          SuctionCurve(m_Material.liquidTransportationCurve()) * Constants::Cp_Water * humidity;
 
         // iValue conductance = materialConductivity + vaporConductivity + liquidConductivity;
         auto conductance = materialConductivity + vaporConductivity + liquidConductivity;
 
         m_DDuFunctions.emplace_back(new decltype(conductance)(conductance));
+
+
+        //////////////////////////////////////////////////////////////////////
+        ///  Conversion from liquid to gas (vapor part)
+        //////////////////////////////////////////////////////////////////////
+        auto H = HeatOfEvaporation() * delta;
+
+        /// TODO: Make this better if possible. Like vector's emplace_back function.
+        m_Matrix_x_Vector.emplace_back(std::unique_ptr<decltype(H)>(new decltype(H)(H)),
+                                       Property::vapor);
+
+        //////////////////////////////////////////////////////////////////////
+        ///  Conversion from liquid to gas (air part)
+        //////////////////////////////////////////////////////////////////////
+
+        /// TODO: Add this later when air pressure equation is added
+        //auto waterVaporPressure = SaturationFunction() * StateValue(Property::humidity);
+
+		//////////////////////////////////////////////////////////////////////
+		///  Conduction from liquid
+		//////////////////////////////////////////////////////////////////////
+		TabularDerivative sorptionDerivative(m_Material.sorptionCurve(), Property::humidity);
+		SuctionCurve Dl(m_Material.liquidTransportationCurve());
+		auto CD = Dl * sorptionDerivative * Constants::Cp_Water;
+		m_DpDuFunctions.emplace_back(std::unique_ptr<IValue>(new decltype(CD)(CD)),
+			std::unique_ptr<IValue>(new decltype(humidity)(humidity)));
+
+		//////////////////////////////////////////////////////////////////////
+		///  Conduction from vapor
+		//////////////////////////////////////////////////////////////////////
+
+		auto vapCond = delta * Constants::Cp_Vapor;
+		StateValue vaporContent(Property::vapor);
+
+		m_DpDuFunctions.emplace_back(std::unique_ptr<IValue>(new decltype(vaporContent)(vaporContent)),
+									 std::unique_ptr<IValue>(new decltype(humidity)(humidity)));
+
+		//////////////////////////////////////////////////////////////////////
+		///  Conduction from airflow
+		//////////////////////////////////////////////////////////////////////
+
     }
 
     //////////////////////////////////////////////////////////////////////////////
     ///  ElementMoistureLinear2D
     //////////////////////////////////////////////////////////////////////////////
 
-    ElementMoistureLinear2D::ElementMoistureLinear2D(const Node2D & t_Node1,
-                                                     const Node2D & t_Node2,
-                                                     const Node2D & t_Node3,
-                                                     const Node2D & t_Node4,
-                                                     const Material & mat) :
-        IElementLinear2D(t_Node1, t_Node2, t_Node3, t_Node4, mat, false)
+    ElementMoistureLinear2D::ElementMoistureLinear2D(const size_t index1,
+                                                     const size_t index2,
+                                                     const size_t index3,
+                                                     const size_t index4,
+                                                     const std::string & materialName) :
+        IElementLinear2D(index1, index2, index3, index4, materialName, false)
     {
         //////////////////////////////////////////////////////////////////////////////
         /// Water vapor diffusion
         //////////////////////////////////////////////////////////////////////////////
-        Constant delta(2.5E-5 / mat.diffusionResistanceFactor());
+        Constant delta(2.5E-5 / m_Material.diffusionResistanceFactor());
         auto conductance = delta * SaturationFunction();
 
         m_DDuFunctions.emplace_back(new decltype(conductance)(conductance));
@@ -373,13 +459,14 @@ namespace MoisThermFEM
         //////////////////////////////////////////////////////////////////////////////
         /// Water liquid transportation
         //////////////////////////////////////////////////////////////////////////////
-        m_DDuFunctions.emplace_back(new SuctionCurve(mat.liquidTransportationCurve()));
+        m_DDuFunctions.emplace_back(new SuctionCurve(m_Material.liquidTransportationCurve()));
 
         //////////////////////////////////////////////////////////////////////////////
         /// Creating capacitance function
         //////////////////////////////////////////////////////////////////////////////
-        auto sorptionDerivative = TabularDerivative(mat.sorptionCurve(), Property::humidity);
+        auto sorptionDerivative = TabularDerivative(m_Material.sorptionCurve(), Property::humidity);
 
         m_CapacitanceFunctions.emplace_back(new decltype(sorptionDerivative)(sorptionDerivative));
     }
+
 }   // namespace MoisThermFEM

@@ -28,12 +28,12 @@ TEST_F(Topaz2D_FluxBC, TestExample_1)
     // same temperature in every node (humidity and pressure irrelevant for this example)
     auto state = MoisThermFEM::State(0, 0, 101325, 0);
 
-    const auto node1 = NodePool::Instance().createNode(1, 0.15, 0.05, state);
-    const auto node2 = NodePool::Instance().createNode(2, 0.15, 0, state);
-    const auto node3 = NodePool::Instance().createNode(3, 0.05, 0.05, state);
-    const auto node4 = NodePool::Instance().createNode(4, 0.05, 0, state);
-    auto node5 = NodePool::Instance().createNode(5, 0, 0.05, state);
-    auto node6 = NodePool::Instance().createNode(6, 0, 0, state);
+    NodePool::Instance().createNode(1, 0.15, 0.05, state);
+    NodePool::Instance().createNode(2, 0.15, 0, state);
+    NodePool::Instance().createNode(3, 0.05, 0.05, state);
+    NodePool::Instance().createNode(4, 0.05, 0, state);
+    NodePool::Instance().createNode(5, 0, 0.05, state);
+    NodePool::Instance().createNode(6, 0, 0, state);
 
     auto & material =
       MaterialPool::Instance().createMaterial("Cottaer Sandstone - non porous",
@@ -64,19 +64,19 @@ TEST_F(Topaz2D_FluxBC, TestExample_1)
 
     MoisThermFEM::ThermalDomain domain;
 
-    domain.createElement(node1, node2, node4, node3, material);
-    domain.createElement(node5, node3, node4, node6, material);
+    domain.createElement(1, 2, 4, 3, material.name());
+    domain.createElement(5, 3, 4, 6, material.name());
 
     // Create Boundary Conditions
     // Positive flux means outside flow.
     const auto surfaceFlux = -12.0;
 
-    domain.createFluxBC(node5, node6, surfaceFlux);
+    domain.createFluxBC(5, 6, surfaceFlux);
 
     const auto dTime = 3600;
     const auto nSteps = 4;
 
-    auto temperatures = NodePool::Instance().nodeProperties(MoisThermFEM::Property::temperature);
+    auto temperatures = NodePool::Instance().properties(MoisThermFEM::Property::temperature);
     std::vector<std::vector<double>> solution;
 
     for(unsigned i = 0; i < nSteps; ++i)

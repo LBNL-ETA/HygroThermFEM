@@ -65,27 +65,24 @@ TEST_F(Analytical_TemperatureBC_Transient, TestExample_1)
     /// Create elements
     for(size_t i = 1; i <= (NodePool::Instance().maxIndex() - 2) / 2; ++i)
     {
-        auto node1 = NodePool::Instance().getNode(2 * i - 1);
-        auto node2 = NodePool::Instance().getNode(2 * i + 1);
-        auto node3 = NodePool::Instance().getNode(2 * i + 2);
-        auto node4 = NodePool::Instance().getNode(2 * i);
+        const auto node1 = 2u * i - 1u;
+        const auto node2 = 2u * i + 1u;
+        const auto node3 = 2u * i + 2u;
+        const auto node4 = 2u * i;
 
-        domain.createElement(node1, node2, node3, node4, material);
+        domain.createElement(node1, node2, node3, node4, material.name());
     }
 
     // Create Boundary Conditions
     const auto tAir = 0.0;
     const auto hc = 1.0;
 
-    auto nodeBC1 = NodePool::Instance().getNode(21);
-    auto nodeBC2 = NodePool::Instance().getNode(22);
-
-    domain.createConvectionBC(nodeBC1, nodeBC2, hc, tAir);
+    domain.createConvectionBC(21, 22, hc, tAir);
 
     const auto dTime = 0.001;
     const auto nSteps = 1000;
 
-    auto temperatures = NodePool::Instance().nodeProperties(MoisThermFEM::Property::temperature);
+    auto temperatures = NodePool::Instance().properties(MoisThermFEM::Property::temperature);
     std::vector<std::vector<double>> solution;
 
     for(unsigned i = 0; i < nSteps; ++i)

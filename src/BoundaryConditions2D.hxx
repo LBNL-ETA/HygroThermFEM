@@ -26,7 +26,7 @@ namespace MoisThermFEM {
 
 		bool isLinear() const;
 
-		void updateNodeValues(const std::vector< double > & values, const Property property);
+		void updateNodeValues(const std::vector< double > & values, const StateProperty property);
 
 		void assignBC(std::unique_ptr<IBCLinear2D> && bc);
 

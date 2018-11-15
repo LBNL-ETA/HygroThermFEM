@@ -112,12 +112,12 @@ namespace MoisThermFEM
     class IElementLinear2D
     {
     public:
-        IElementLinear2D(const Node2D & t_Node1,
-                         const Node2D & t_Node2,
-                         const Node2D & t_Node3,
-                         const Node2D & t_Node4,
-                         const Material & t_Material,
-                         const bool isLinear = true);
+        IElementLinear2D( const size_t index1,
+						  const size_t index2,
+						  const size_t index3,
+						  const size_t index4,
+						  const std::string & materialName,
+						  const bool isLinear = true );
 
         FenestrationCommon::SquareMatrix DDuMatrices() const;
 
@@ -125,9 +125,11 @@ namespace MoisThermFEM
 
         FenestrationCommon::SquareMatrix capacitanceMatrices() const;
 
+        std::vector<double> rightSideVector() const;
+
         Node2D & getNode(std::size_t index);
 
-        bool haveBothNodes(const Node2D & t_Node1, const Node2D & t_Node2) const;
+        bool haveBothNodes( const size_t index1, const size_t index2 ) const;
 
         std::vector<std::size_t> nodeIndexes() const;
 
@@ -139,6 +141,17 @@ namespace MoisThermFEM
         std::vector<iValue> m_DDuFunctions;
         std::vector<iValue> m_CapacitanceFunctions;
         std::vector<DerivativeFunction> m_DpDuFunctions;
+
+        struct MatrixVector {
+			MatrixVector( iValue && MatrixFunction, const Property PropertyVector );
+			iValue MatrixFunction;
+        	Property PropertyVector;
+        };
+
+        /// Vector of values that will simply be evaluated on right hand side.
+        /// This is in form [M]*{V} (Matrix * vector). First property is simply set of functions
+        /// that form matrix and second is simply property of vectors.
+        std::vector<MatrixVector> m_Matrix_x_Vector;
 
         const Material & m_Material;
 
@@ -153,24 +166,40 @@ namespace MoisThermFEM
         class CircularNodesVector : public INodes
         {
         public:
-            explicit CircularNodesVector(const std::initializer_list<Node2D> & __l) :
+            explicit CircularNodesVector(
+              const std::initializer_list<std::reference_wrapper<Node2D>> & __l) :
                 INodes(__l),
                 currentIndex(0),
                 passedLast(false)
             {}
 
-            typename std::vector<Node2D>::const_iterator begin() const
+            explicit CircularNodesVector(Node2D & node1, Node2D & node2) :
+                INodes(node1, node2),
+                currentIndex(0),
+                passedLast(false)
+            {}
+
+            explicit CircularNodesVector(Node2D & node1,
+                                         Node2D & node2,
+                                         Node2D & node3,
+                                         Node2D & node4) :
+                INodes(node1, node2, node3, node4),
+                currentIndex(0),
+                passedLast(false)
+            {}
+
+            typename std::vector<std::reference_wrapper<Node2D>>::const_iterator begin() const
             {
                 return m_Nodes.begin();
             }
 
-            typename std::vector<Node2D>::const_iterator end() const
+            typename std::vector<std::reference_wrapper<Node2D>>::const_iterator end() const
             {
                 return m_Nodes.end();
             }
 
             /// Keeps iterating over unique elements of the vector
-            Node2D & current()
+            const Node2D & current()
             {
                 return m_Nodes[currentIndex];
             }
@@ -180,7 +209,7 @@ namespace MoisThermFEM
                 return passedLast;
             }
 
-            Node2D & previous()
+            const Node2D & previous()
             {
                 auto validIndex = checkPrevIndex(currentIndex);
 
@@ -192,7 +221,7 @@ namespace MoisThermFEM
                 return m_Nodes[validIndex];
             }
 
-            Node2D & next()
+            const Node2D & next()
             {
                 auto validIndex = checkNextIndex(currentIndex);
                 while(m_Nodes[validIndex] == m_Nodes[currentIndex])
@@ -255,7 +284,7 @@ namespace MoisThermFEM
         QuadrilateralLinearGlobal2D m_Global2D;
         QLECapacitanceIntegrator2D m_QLECapacitance2D;
         QLEDDuIntegrator2D m_DDuIntegrator;
-        /// This one depends on functions and must be stored for every submatrix
+        /// This one depends on independed variables and should be stored in vector
         std::vector<QLEDpDuIntegrator2D> m_QLEDpDuIntegrator2D;
 
         const bool m_Linear;
@@ -268,11 +297,11 @@ namespace MoisThermFEM
     class ElementThermalLinear2D : public IElementLinear2D
     {
     public:
-        ElementThermalLinear2D(const Node2D & t_Node1,
-                               const Node2D & t_Node2,
-                               const Node2D & t_Node3,
-                               const Node2D & t_Node4,
-                               const Material & mat);
+        ElementThermalLinear2D( const size_t index1,
+								const size_t index2,
+								const size_t index3,
+								const size_t index4,
+								const std::string & materialName );
     };
 
     //////////////////////////////////////////////////////////////////////////////
@@ -282,11 +311,11 @@ namespace MoisThermFEM
     class ElementMoistureLinear2D : public IElementLinear2D
     {
     public:
-        ElementMoistureLinear2D(const Node2D & t_Node1,
-                                const Node2D & t_Node2,
-                                const Node2D & t_Node3,
-                                const Node2D & t_Node4,
-                                const Material & mat);
+        ElementMoistureLinear2D( const size_t index1,
+								 const size_t index2,
+								 const size_t index3,
+								 const size_t index4,
+								 const std::string & materialName );
     };
 
 }   // namespace MoisThermFEM

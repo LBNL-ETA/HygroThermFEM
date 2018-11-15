@@ -23,13 +23,13 @@ TEST_F(TestConvectionBC2D, TestIntegrationPoints)
 
     // Enter nodes. Arguments are: node number, x-coordinate, y-coordinate
 
-    const auto node1 = NodePool::Instance().createNode(1, 15, 5);
-    const auto node2 = NodePool::Instance().createNode(2, 15, 0);
+    NodePool::Instance().createNode(1, 15, 5);
+    NodePool::Instance().createNode(2, 15, 0);
 
     const auto hc = 20.0;
     const auto tAir = 255.15;
 
-    auto aBc = MoisThermFEM::ConvectionBC(node1, node2, hc, tAir);
+    auto aBc = MoisThermFEM::ConvectionBC(1, 2, hc, tAir);
 
     auto h = aBc.H_Matrix();
 

@@ -12,26 +12,27 @@ namespace MoisThermFEM
     class Domain
     {
     public:
-        explicit Domain(const Property property);
+        explicit Domain(const StateProperty property);
 
         /// Calculates steady state solution
         std::vector<double> steadyState();
 
         /// Calculates next timestep value from current values
-        std::vector<double> transient(const std::vector<double> & currentStateValues, double t_DTime);
+        std::vector<double> transient(const std::vector<double> & currentStateValues,
+                                      double t_DTime);
 
-        virtual void createElement(const Node2D & t_Node1,
-                                   const Node2D & t_Node2,
-                                   const Node2D & t_Node3,
-                                   const Node2D & t_Node4,
-                                   const Material & mat) = 0;
+        virtual void createElement(const size_t index1,
+                                   const size_t index2,
+                                   const size_t index3,
+                                   const size_t index4,
+                                   const std::string & materialName) = 0;
 
-        IElementLinear2D * findElement(const Node2D & t_Node1, const Node2D & t_Node2);
+        IElementLinear2D * findElement( const size_t index1, const size_t index2 );
 
     protected:
         friend class MultiDomain;
 
-        void updateNodeValues(const std::vector<double> & values, const Property property);
+        void updateNodeValues(const std::vector<double> & values, const StateProperty property);
 
         FenestrationCommon::SquareMatrix steadyStateLeftHandSide();
         std::vector<double> steadyStateRightHandSide() const;
@@ -48,7 +49,7 @@ namespace MoisThermFEM
 
         bool isLinear() const;
 
-        Property m_Property;
+        StateProperty m_Property;
         ElementsLinear2D m_Elements;
         BoundaryConditions2D m_BCs;
     };
@@ -58,47 +59,48 @@ namespace MoisThermFEM
     public:
         ThermalDomain();
 
-		void createConvectionBC(const Node2D & t_Node1,
-								const Node2D & t_Node2,
-								double t_ConvectionCoefficient,
-								double t_AirTemperature);
+        void createConvectionBC(const size_t index1,
+                                const size_t index2,
+                                double t_ConvectionCoefficient,
+                                double t_AirTemperature);
 
-		void
-		createTemperatureBC(Node2D & t_Node1, Node2D & t_Node2, double t_Temp1, double t_Temp2);
+        void createTemperatureBC(const size_t index1,
+                                 const size_t index2,
+                                 double t_Temp1,
+                                 double t_Temp2);
 
-		void createTemperatureBC(Node2D & t_Node1, Node2D & t_Node2, const double t_Temp);
+        void createTemperatureBC(const size_t index1, const size_t index2, const double t_Temp);
 
-		void createFluxBC(Node2D & t_Node1, Node2D & t_Node2, const double t_Flux);
+        void createFluxBC(const size_t index1, const size_t index2, const double t_Flux);
 
-		void createBlackBodyRadiationBC(const Node2D & t_Node1,
-										const Node2D & t_Node2,
-										const double t_Emissivity,
-										const double t_RadiationTemperature);
+        void createBlackBodyRadiationBC(const size_t index1,
+                                        const size_t index2,
+                                        const double t_Emissivity,
+                                        const double t_RadiationTemperature);
 
-        virtual void createElement(const Node2D & t_Node1,
-                           const Node2D & t_Node2,
-                           const Node2D & t_Node3,
-                           const Node2D & t_Node4,
-                           const Material & mat) override;
-
+        virtual void createElement(const size_t index1,
+                                   const size_t index2,
+                                   const size_t index3,
+                                   const size_t index4,
+                                   const std::string & materialName) override;
     };
 
     class MoistureDomain : public Domain
     {
     public:
-    	MoistureDomain();
+        MoistureDomain();
 
-		void createMoistureBC(const Node2D & t_Node1,
-							  const Node2D & t_Node2,
-							  const double t_ConvectiveCoefficient,
-							  const double t_AirHumidity,
-							  const double t_AirTemperature);
+        void createMoistureBC(const size_t index1,
+                              const size_t index2,
+                              const double t_ConvectiveCoefficient,
+                              const double t_AirHumidity,
+                              const double t_AirTemperature);
 
-		virtual void createElement(const Node2D & t_Node1,
-								   const Node2D & t_Node2,
-								   const Node2D & t_Node3,
-								   const Node2D & t_Node4,
-								   const Material & mat) override;
+        virtual void createElement(const size_t index1,
+                                   const size_t index2,
+                                   const size_t index3,
+                                   const size_t index4,
+                                   const std::string & materialName) override;
     };
 
 }   // namespace MoisThermFEM
