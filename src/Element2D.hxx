@@ -100,12 +100,12 @@ namespace MoisThermFEM
     class IElementLinear2D
     {
     public:
-        IElementLinear2D( const size_t index1,
-						  const size_t index2,
-						  const size_t index3,
-						  const size_t index4,
-						  const std::string & materialName,
-						  const bool isLinear = true );
+        IElementLinear2D(const size_t index1,
+                         const size_t index2,
+                         const size_t index3,
+                         const size_t index4,
+                         const std::string & materialName,
+                         const bool isLinear = true);
 
         FenestrationCommon::SquareMatrix DDuMatrices() const;
 
@@ -117,7 +117,7 @@ namespace MoisThermFEM
 
         Node2D & getNode(std::size_t index);
 
-        bool haveBothNodes( const size_t index1, const size_t index2 ) const;
+        bool haveBothNodes(const size_t index1, const size_t index2) const;
 
         std::vector<std::size_t> nodeIndexes() const;
 
@@ -126,36 +126,92 @@ namespace MoisThermFEM
         virtual bool isLinear() const final;
 
     protected:
-        std::vector<iValue> m_DDuFunctions;
-        std::vector<iValue> m_CapacitanceFunctions;
 
-		/// Equation k*(Dp/Dx)(Du/Dx) + k*(Dp/Dy)(Du/Dy) have fixed function (k) and
-		/// independent function (p) that is part of derivative. Note that u is state
-		/// variable for which matrix equations will be formed.
-		struct DerivativeFunction
+        template<typename T>
+        void DDu(T & t, const typename std::enable_if<std::is_base_of<IValue, T>::value, T>::type * = 0)
+        {
+            m_DDuFunctions.emplace_back(std::unique_ptr<T>(new T(t)));
+        }
+
+		template<typename T>
+		void DDu(T && t, const typename std::enable_if<std::is_base_of<IValue, T>::value, T>::type * = 0)
 		{
-			DerivativeFunction(std::unique_ptr<IValue> fixedValue,
-							   std::unique_ptr<IValue> derivativeValue);
+			m_DDuFunctions.emplace_back(std::unique_ptr<T>(new T(t)));
+		}
 
-			std::unique_ptr<IValue> fixedValue;
-			std::unique_ptr<IValue> derivativeValue;
-		};
-        std::vector<DerivativeFunction> m_DpDuFunctions;
+		template<typename T>
+		void Cap(T & t, typename std::enable_if<std::is_base_of<IValue, T>::value, T>::type * = 0)
+		{
+			m_CapacitanceFunctions.emplace_back(std::unique_ptr<T>(new T(t)));
+		}
 
-        struct MatrixVector {
-			MatrixVector( iValue && MatrixFunction, const Property PropertyVector );
-			iValue MatrixFunction;
-        	Property PropertyVector;
+        /// Equation k*(Dp/Dx)(Du/Dx) + k*(Dp/Dy)(Du/Dy) have fixed function (k) and
+        /// independent function (p) that is part of derivative. Note that u is state
+        /// variable for which matrix equations will be formed.
+        struct DerivativeFunction
+        {
+            DerivativeFunction(std::unique_ptr<IValue> fixedValue,
+                               std::unique_ptr<IValue> derivativeValue);
+
+            std::unique_ptr<IValue> fixedValue;
+            std::unique_ptr<IValue> derivativeValue;
         };
 
-        /// Vector of values that will simply be evaluated on right hand side.
-        /// This is in form [M]*{V} (Matrix * vector). First property is simply set of functions
-        /// that form matrix and second is simply property of vectors.
-        std::vector<MatrixVector> m_Matrix_x_Vector;
+		//template<typename T, typename U>
+		//void DpDu(
+		//	T & t,
+		//	U & u,
+		//	const typename std::enable_if<std::is_base_of<IValue, T>::value, T>::type * = 0)
+		//{
+		//	m_DpDuFunctions.emplace_back(std::unique_ptr<T>(new T(t)), std::unique_ptr<U>(new U(u)));
+		//}
+
+		template<typename T, typename U>
+		void DpDu(
+			T & t,
+			U & u,
+			typename std::enable_if<std::is_base_of<IValue, T>::value, T>::type * = 0)
+		{
+			m_DpDuFunctions.emplace_back(std::unique_ptr<T>(new T(t)), std::unique_ptr<U>(new U(u)));
+		}
+
+        struct MatrixVector
+        {
+            MatrixVector(iValue && MatrixFunction, const Property PropertyVector);
+            iValue MatrixFunction;
+            Property PropertyVector;
+        };
+
+        template<typename T>
+        void multiplies(
+          T & t,
+          Property property,
+          const typename std::enable_if<std::is_base_of<IValue, T>::value, T>::type * = 0)
+        {
+            m_Matrix_x_Vector.emplace_back(std::unique_ptr<T>(new T(t)), property);
+        }
+
+		template<typename T>
+		void multiplies(
+			T && t,
+			Property property,
+			const typename std::enable_if<std::is_base_of<IValue, T>::value, T>::type * = 0)
+		{
+			m_Matrix_x_Vector.emplace_back(std::unique_ptr<T>(new T(t)), property);
+		}
 
         const Material & m_Material;
 
     private:
+		std::vector<iValue> m_DDuFunctions;
+		std::vector<iValue> m_CapacitanceFunctions;
+		std::vector<DerivativeFunction> m_DpDuFunctions;
+
+		/// Vector of values that will simply be evaluated on right hand side.
+		/// This is in form [M]*{V} (Matrix * vector). First property is simply set of functions
+		/// that form matrix and second is simply property of vectors.
+		std::vector<MatrixVector> m_Matrix_x_Vector;
+
         /// calculates angle between two vectors made of (node1-node2) and (node1-node3)
         double angleBetweenNodes(const Node2D & node1, const Node2D & node2, const Node2D & node3);
 
@@ -297,11 +353,11 @@ namespace MoisThermFEM
     class ElementThermalLinear2D : public IElementLinear2D
     {
     public:
-        ElementThermalLinear2D( const size_t index1,
-								const size_t index2,
-								const size_t index3,
-								const size_t index4,
-								const std::string & materialName );
+        ElementThermalLinear2D(const size_t index1,
+                               const size_t index2,
+                               const size_t index3,
+                               const size_t index4,
+                               const std::string & materialName);
     };
 
     //////////////////////////////////////////////////////////////////////////////
@@ -311,11 +367,11 @@ namespace MoisThermFEM
     class ElementMoistureLinear2D : public IElementLinear2D
     {
     public:
-        ElementMoistureLinear2D( const size_t index1,
-								 const size_t index2,
-								 const size_t index3,
-								 const size_t index4,
-								 const std::string & materialName );
+        ElementMoistureLinear2D(const size_t index1,
+                                const size_t index2,
+                                const size_t index3,
+                                const size_t index4,
+                                const std::string & materialName);
     };
 
 }   // namespace MoisThermFEM

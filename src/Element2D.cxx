@@ -165,7 +165,8 @@ namespace MoisThermFEM
     ///  DerivativeFunction
     //////////////////////////////////////////////////////////////////////////////
 
-	IElementLinear2D::DerivativeFunction::DerivativeFunction(iValue fixedValue, iValue derivativeValue) :
+    IElementLinear2D::DerivativeFunction::DerivativeFunction(iValue fixedValue,
+                                                             iValue derivativeValue) :
         fixedValue(std::move(fixedValue)),
         derivativeValue(std::move(derivativeValue))
     {}
@@ -371,7 +372,8 @@ namespace MoisThermFEM
 
         auto capacitance = equivalentDensity * equivalentCapacitance;
 
-        m_CapacitanceFunctions.emplace_back(new decltype(capacitance)(capacitance));
+        Cap(capacitance);
+        //m_CapacitanceFunctions.emplace_back(new decltype(capacitance)(capacitance));
 
         /// Conductance
 
@@ -390,7 +392,8 @@ namespace MoisThermFEM
         // iValue conductance = materialConductivity + vaporConductivity + liquidConductivity;
         auto conductance = materialConductivity + vaporConductivity + liquidConductivity;
 
-        m_DDuFunctions.emplace_back(new decltype(conductance)(conductance));
+        DDu(conductance);
+        //m_DDuFunctions.emplace_back(new decltype(conductance)(conductance));
 
 
         //////////////////////////////////////////////////////////////////////
@@ -398,40 +401,40 @@ namespace MoisThermFEM
         //////////////////////////////////////////////////////////////////////
         auto H = HeatOfEvaporation() * delta;
 
-        /// TODO: Make this better if possible. Like vector's emplace_back function.
-        m_Matrix_x_Vector.emplace_back(std::unique_ptr<decltype(H)>(new decltype(H)(H)),
-                                       Property::vapor);
+        multiplies(H, Property::vapor);
 
         //////////////////////////////////////////////////////////////////////
         ///  Conversion from liquid to gas (air part)
         //////////////////////////////////////////////////////////////////////
 
         /// TODO: Add this later when air pressure equation is added
-        //auto waterVaporPressure = SaturationFunction() * StateValue(Property::humidity);
+        // auto waterVaporPressure = SaturationFunction() * StateValue(Property::humidity);
 
-		//////////////////////////////////////////////////////////////////////
-		///  Conduction from liquid
-		//////////////////////////////////////////////////////////////////////
-		TabularDerivative sorptionDerivative(m_Material.sorptionCurve(), Property::humidity);
-		SuctionCurve Dl(m_Material.liquidTransportationCurve());
-		auto CD = Dl * sorptionDerivative * Constants::Cp_Water;
-		m_DpDuFunctions.emplace_back(std::unique_ptr<IValue>(new decltype(CD)(CD)),
-			std::unique_ptr<IValue>(new decltype(humidity)(humidity)));
+        //////////////////////////////////////////////////////////////////////
+        ///  Conduction from liquid
+        //////////////////////////////////////////////////////////////////////
+        TabularDerivative sorptionDerivative(m_Material.sorptionCurve(), Property::humidity);
+        SuctionCurve Dl(m_Material.liquidTransportationCurve());
+        auto CD = Dl * sorptionDerivative * Constants::Cp_Water;
+        DpDu(CD, humidity);
+        //m_DpDuFunctions.emplace_back(std::unique_ptr<IValue>(new decltype(CD)(CD)),
+        //                             std::unique_ptr<IValue>(new decltype(humidity)(humidity)));
 
-		//////////////////////////////////////////////////////////////////////
-		///  Conduction from vapor
-		//////////////////////////////////////////////////////////////////////
+        //////////////////////////////////////////////////////////////////////
+        ///  Conduction from vapor
+        //////////////////////////////////////////////////////////////////////
 
-		auto vapCond = delta * Constants::Cp_Vapor;
-		StateValue vaporContent(Property::vapor);
+        auto vapCond = delta * Constants::Cp_Vapor;
+        StateValue vaporContent(Property::vapor);
 
-		m_DpDuFunctions.emplace_back(std::unique_ptr<IValue>(new decltype(vaporContent)(vaporContent)),
-									 std::unique_ptr<IValue>(new decltype(humidity)(humidity)));
+        DpDu(vaporContent, humidity);
+        //m_DpDuFunctions.emplace_back(
+        //  std::unique_ptr<IValue>(new decltype(vaporContent)(vaporContent)),
+        //  std::unique_ptr<IValue>(new decltype(humidity)(humidity)));
 
-		//////////////////////////////////////////////////////////////////////
-		///  Conduction from airflow
-		//////////////////////////////////////////////////////////////////////
-
+        //////////////////////////////////////////////////////////////////////
+        ///  Conduction from airflow
+        //////////////////////////////////////////////////////////////////////
     }
 
     //////////////////////////////////////////////////////////////////////////////
@@ -451,22 +454,26 @@ namespace MoisThermFEM
         Constant delta(2.5E-5 / m_Material.diffusionResistanceFactor());
         auto conductance = delta * SaturationFunction();
 
-        m_DDuFunctions.emplace_back(new decltype(conductance)(conductance));
+        DDu(conductance);
+        //m_DDuFunctions.emplace_back(new decltype(conductance)(conductance));
+		SaturationFunction sat;
 
-        m_DpDuFunctions.emplace_back(std::unique_ptr<IValue>(new decltype(delta)(delta)),
-                                     std::unique_ptr<IValue>(new SaturationFunction()));
+		DpDu(delta, sat);
+        //m_DpDuFunctions.emplace_back(std::unique_ptr<IValue>(new decltype(delta)(delta)),
+        //                             std::unique_ptr<IValue>(new SaturationFunction()));
 
         //////////////////////////////////////////////////////////////////////////////
         /// Water liquid transportation
         //////////////////////////////////////////////////////////////////////////////
-        m_DDuFunctions.emplace_back(new SuctionCurve(m_Material.liquidTransportationCurve()));
+        DDu(SuctionCurve(m_Material.liquidTransportationCurve()));
 
         //////////////////////////////////////////////////////////////////////////////
         /// Creating capacitance function
         //////////////////////////////////////////////////////////////////////////////
         auto sorptionDerivative = TabularDerivative(m_Material.sorptionCurve(), Property::humidity);
 
-        m_CapacitanceFunctions.emplace_back(new decltype(sorptionDerivative)(sorptionDerivative));
+        Cap(sorptionDerivative);
+        //m_CapacitanceFunctions.emplace_back(new decltype(sorptionDerivative)(sorptionDerivative));
     }
 
 }   // namespace MoisThermFEM
