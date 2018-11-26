@@ -90,6 +90,8 @@ namespace MoisThermFEM
 
     private:
 		double waterContent( const WaterContent content ) const;
+		double calcWaterContent(const WaterContent content);
+		void updateWaterContent();
 
 		double getStateProperty( const StateProperty t_Property,
 								 const Timestep t_Iteration = Timestep::Current ) const;
@@ -104,6 +106,12 @@ namespace MoisThermFEM
         /// Node can belong to multiple materials. This will be used to calculate secondary
         /// properties based on primary properties (water content depends on humidity)
         std::set<std::pair<double, std::reference_wrapper<const Material>>> m_Materials;
+
+        // Need to store water content because calculating it every time will slow down
+        // program speed
+        double m_Liquid;
+        double m_Vapor;
+        double m_Ice;
     };
 
     ////////////////////////////////////////////////////////////////////////////

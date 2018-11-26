@@ -41,61 +41,60 @@ namespace MoisThermFEM
         m_NodeNumber(t_NodeNumber),
         m_x(t_x),
         m_y(t_y),
-        m_State{{Timestep::Current, t_State}, {Timestep::Previous, t_State}}
-    {
+        m_State{{Timestep::Current, t_State}, {Timestep::Previous, t_State}},
+        m_Liquid(calcWaterContent(WaterContent::Liquid)),
+        m_Vapor(calcWaterContent(WaterContent::Vapor)),
+        m_Ice(calcWaterContent(WaterContent::Ice))
+    {}
 
+    double Node2D::property(const Property property, const Timestep iteration) const
+    {
+        switch(property)
+        {
+            case Property::temperature:
+                return m_State.at(iteration).getValue(StateProperty::temperature);
+            case Property::humidity:
+                return m_State.at(iteration).getValue(StateProperty::humidity);
+            case Property::pressure:
+                return m_State.at(iteration).getValue(StateProperty::pressure);
+            case Property::liquidPercent:
+                return m_State.at(iteration).getValue(StateProperty::liquidPercent);
+            case Property::water:
+                return waterContent(WaterContent::Water);
+            case Property::liquid:
+                return waterContent(WaterContent::Liquid);
+            case Property::vapor:
+                return waterContent(WaterContent::Vapor);
+            case Property::ice:
+                waterContent(WaterContent::Ice);
+        }
+        return 0;
     }
 
-	double Node2D::property(const Property property, const Timestep iteration) const {
-    	switch(property)
-		{
-			case Property::temperature:
-				return m_State.at(iteration).getValue(StateProperty::temperature);
-			case Property::humidity:
-				return m_State.at(iteration).getValue(StateProperty::humidity);
-			case Property::pressure:
-				return m_State.at(iteration).getValue(StateProperty::pressure);
-			case Property::liquidPercent:
-				return m_State.at(iteration).getValue(StateProperty::liquidPercent);
-			case Property::water:
-				return waterContent( WaterContent::Water );
-			case Property::liquid:
-				return waterContent( WaterContent::Liquid );
-			case Property::vapor:
-				return waterContent( WaterContent::Vapor );
-			case Property::ice:
-				waterContent( WaterContent::Ice );
-		}
-		return 0;
-	}
-
-    double Node2D::deltaProperty(const Property property) const 
+    double Node2D::deltaProperty(const Property property) const
     {
-        switch (property)
+        switch(property)
         {
-        case Property::temperature:
-            return m_State.at(Timestep::Current).getValue(StateProperty::temperature) -
-                m_State.at(Timestep::Previous).getValue(StateProperty::temperature);
-        case Property::humidity:
-            return m_State.at(Timestep::Current).getValue(StateProperty::humidity) -
-                m_State.at(Timestep::Previous).getValue(StateProperty::humidity);
-        case Property::pressure:
-            return m_State.at(Timestep::Current).getValue(StateProperty::pressure) -
-                m_State.at(Timestep::Previous).getValue(StateProperty::pressure);
-        case Property::liquidPercent:
-            return m_State.at(Timestep::Current).getValue(StateProperty::liquidPercent) - 
-                m_State.at(Timestep::Previous).getValue(StateProperty::liquidPercent);
-        case Property::water:
-            return waterContent( WaterContent::Water ) -
-				   waterContent( WaterContent::Water );
-        case Property::liquid:
-            return waterContent( WaterContent::Liquid ) -
-				   waterContent( WaterContent::Liquid );
-        case Property::vapor:
-            return waterContent( WaterContent::Vapor ) -
-				   waterContent( WaterContent::Vapor );
-        case Property::ice:
-			return waterContent( WaterContent::Ice ) - waterContent( WaterContent::Ice );
+            case Property::temperature:
+                return m_State.at(Timestep::Current).getValue(StateProperty::temperature)
+                       - m_State.at(Timestep::Previous).getValue(StateProperty::temperature);
+            case Property::humidity:
+                return m_State.at(Timestep::Current).getValue(StateProperty::humidity)
+                       - m_State.at(Timestep::Previous).getValue(StateProperty::humidity);
+            case Property::pressure:
+                return m_State.at(Timestep::Current).getValue(StateProperty::pressure)
+                       - m_State.at(Timestep::Previous).getValue(StateProperty::pressure);
+            case Property::liquidPercent:
+                return m_State.at(Timestep::Current).getValue(StateProperty::liquidPercent)
+                       - m_State.at(Timestep::Previous).getValue(StateProperty::liquidPercent);
+            case Property::water:
+                return waterContent(WaterContent::Water) - waterContent(WaterContent::Water);
+            case Property::liquid:
+                return waterContent(WaterContent::Liquid) - waterContent(WaterContent::Liquid);
+            case Property::vapor:
+                return waterContent(WaterContent::Vapor) - waterContent(WaterContent::Vapor);
+            case Property::ice:
+                return waterContent(WaterContent::Ice) - waterContent(WaterContent::Ice);
         }
         return 0;
     }
@@ -129,25 +128,46 @@ namespace MoisThermFEM
         return m_y;
     }
 
-    double Node2D::getStateProperty( const StateProperty t_Property, const Timestep t_Iteration ) const
+    double Node2D::getStateProperty(const StateProperty t_Property,
+                                    const Timestep t_Iteration) const
     {
         return m_State.at(t_Iteration).getValue(t_Property);
     }
 
-    void Node2D::setStateProperty( const StateProperty t_Property, double t_value )
+    void Node2D::setStateProperty(const StateProperty t_Property, double t_value)
     {
-    	// First store current to previous iteration and then store current.
-    	m_State.at(Timestep::Previous).setValue(t_Property, m_State.at(Timestep::Current).getValue(t_Property));
+        // First store current to previous iteration and then store current.
+        m_State.at(Timestep::Previous)
+          .setValue(t_Property, m_State.at(Timestep::Current).getValue(t_Property));
         m_State.at(Timestep::Current).setValue(t_Property, t_value);
+        updateWaterContent();
     }
 
     void Node2D::assignMaterial(const std::string & t_Material, double weightingCoefficient)
     {
         auto & material = MaterialPool::Instance().material(t_Material);
         m_Materials.emplace(weightingCoefficient, material);
+        updateWaterContent();
     }
 
-    double Node2D::waterContent( const WaterContent content ) const
+    double Node2D::waterContent(const WaterContent content) const
+    {
+    	switch (content)
+		{
+			case WaterContent::Liquid:
+				return m_Liquid;
+			case WaterContent::Vapor:
+				return m_Vapor;
+			case WaterContent::Ice:
+				return m_Ice;
+			case WaterContent::Water:
+				return m_Liquid + m_Vapor + m_Ice;
+		}
+
+		return 0;
+    }
+
+    double Node2D::calcWaterContent(const WaterContent content)
     {
         double sum = 0.0;
         double weighting = 0;
@@ -159,12 +179,18 @@ namespace MoisThermFEM
         return sum / weighting;
     }
 
-    ////////////////////////////////////////////////////////////////////////////
+	void Node2D::updateWaterContent()
+	{
+		m_Liquid = calcWaterContent(WaterContent::Liquid);
+		m_Vapor = calcWaterContent(WaterContent::Vapor);
+		m_Ice = calcWaterContent(WaterContent::Ice);
+	}
+
+	////////////////////////////////////////////////////////////////////////////
     ///   INodesStorage
     ////////////////////////////////////////////////////////////////////////////
 
-    INodes::INodes(std::initializer_list<std::reference_wrapper<Node2D>> t_Nodes) :
-    m_Nodes(t_Nodes)
+    INodes::INodes(std::initializer_list<std::reference_wrapper<Node2D>> t_Nodes) : m_Nodes(t_Nodes)
     {}
 
     Node2D & INodes::getNode(const std::size_t Index)
@@ -197,27 +223,26 @@ namespace MoisThermFEM
         return m_Nodes.size();
     }
 
-	Node2D & INodes::operator[](const size_t index)
-	{
-		return m_Nodes[index];
-	}
+    Node2D & INodes::operator[](const size_t index)
+    {
+        return m_Nodes[index];
+    }
 
-	std::vector< double > INodes::properties( const Property property ) const
-	{
-    	std::vector<double> result;
-    	for(const auto & node : m_Nodes)
-		{
-    		result.push_back(node.get().property(property));
-		}
-		return result;
-	}
+    std::vector<double> INodes::properties(const Property property) const
+    {
+        std::vector<double> result;
+        for(const auto & node : m_Nodes)
+        {
+            result.push_back(node.get().property(property));
+        }
+        return result;
+    }
 
-	////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////
     ///   LineNodes2D
     ////////////////////////////////////////////////////////////////////////////
 
-    LineNodes2D::LineNodes2D(Node2D & t_Node1, Node2D & t_Node2) :
-        INodes{t_Node1, t_Node2}
+    LineNodes2D::LineNodes2D(Node2D & t_Node1, Node2D & t_Node2) : INodes{t_Node1, t_Node2}
     {}
 
     ////////////////////////////////////////////////////////////////////////////
