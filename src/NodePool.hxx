@@ -5,29 +5,51 @@
 
 namespace MoisThermFEM
 {
+    //! \brief Singleton class holds poll of nodes used in one domain.
+    //!
+    //! Pool of all nodes will be used by different domains that present thermal, mass or pressure
+    //! models. NodePool must be cleared up before new model is used.
     class NodePool
     {
     public:
+        //! Access to NodePool singleton
         static NodePool & Instance();
 
-        Node2D & createNode(const std::size_t t_NodeNumber,
-                            const double t_x,
-                            const double t_y,
-                            const State & t_Prop = State(0, 0, 0, 0));
+        //! Creates node with node index and x, y coordinate and sets starting state conditions
+        Node2D &
+          createNode(const std::size_t NodeIndex,   //!< Node index in finite element domain.
+                     const double x,                //!< x-coordinate.
+                     const double y,                //!< y-coordinate
+                     const State & state = State(0, 0, 0, 0)   //!< State of variables in the node.
+          );
 
-        Node2D & getNode(std::size_t const Index);
+        //! Returns node at given index.
+        Node2D & getNode(std::size_t const Index   //!< Node index.
+        );
 
+        //! Returns maximum node index from pool of nodes.
         std::size_t maxIndex() const;
-        std::vector<double> properties(Property t_Property);
 
-        void updateNodeValues(const std::vector<double> & t_values, const StateProperty t_property);
+        //! Returns state values (temperature, water content or pressure) at all nodes.
+        std::vector<double>
+          properties(const Property t_Property   //!< Property for which values are obtained.
+          );
 
+        //! Update all node values for given state property.
+        void updateNodeValues(
+          const std::vector<double> & t_values,   //!< Vector of new values for given StateProperty.
+          const StateProperty
+            t_property   //!< StateProperty for which new values will be applied to.
+        );
+
+        //! Delete all nodes from NodePool.
         void clear();
 
     private:
         NodePool() = default;
         ~NodePool() = default;
 
+        //! Storage for nodes in NodePool.
         std::vector<Node2D> m_Nodes;
     };
 

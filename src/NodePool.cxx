@@ -35,7 +35,7 @@ namespace MoisThermFEM
         return aNode.getNodeNumber();
     }
 
-    std::vector<double> NodePool::properties(Property t_Property)
+    std::vector<double> NodePool::properties(const Property t_Property)
     {
         std::vector<double> aVector;
         for(Node2D & aNode : m_Nodes)

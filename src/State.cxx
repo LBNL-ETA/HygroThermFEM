@@ -58,9 +58,4 @@ namespace MoisThermFEM
         m_Property[t_Property] = t_Value;
     }
 
-    double State::getLiquidPercent() const
-    {
-        return m_Property.at(StateProperty::liquidPercent);
-    }
-
 }   // namespace MoisThermFEM
