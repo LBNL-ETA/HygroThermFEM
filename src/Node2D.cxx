@@ -128,12 +128,6 @@ namespace MoisThermFEM
         return m_y;
     }
 
-    double Node2D::getStateProperty(const StateProperty t_Property,
-                                    const Timestep t_Iteration) const
-    {
-        return m_State.at(t_Iteration).getValue(t_Property);
-    }
-
     void Node2D::setStateProperty(const StateProperty t_Property, double t_value)
     {
         // First store current to previous iteration and then store current.
@@ -152,19 +146,19 @@ namespace MoisThermFEM
 
     double Node2D::waterContent(const WaterContent content) const
     {
-    	switch (content)
-		{
-			case WaterContent::Liquid:
-				return m_Liquid;
-			case WaterContent::Vapor:
-				return m_Vapor;
-			case WaterContent::Ice:
-				return m_Ice;
-			case WaterContent::Water:
-				return m_Liquid + m_Vapor + m_Ice;
-		}
+        switch(content)
+        {
+            case WaterContent::Liquid:
+                return m_Liquid;
+            case WaterContent::Vapor:
+                return m_Vapor;
+            case WaterContent::Ice:
+                return m_Ice;
+            case WaterContent::Water:
+                return m_Liquid + m_Vapor + m_Ice;
+        }
 
-		return 0;
+        return 0;
     }
 
     double Node2D::calcWaterContent(const WaterContent content)
@@ -179,25 +173,39 @@ namespace MoisThermFEM
         return sum / weighting;
     }
 
-	void Node2D::updateWaterContent()
-	{
-		m_Liquid = calcWaterContent(WaterContent::Liquid);
-		m_Vapor = calcWaterContent(WaterContent::Vapor);
-		m_Ice = calcWaterContent(WaterContent::Ice);
-	}
+    void Node2D::updateWaterContent()
+    {
+        m_Liquid = calcWaterContent(WaterContent::Liquid);
+        m_Vapor = calcWaterContent(WaterContent::Vapor);
+        m_Ice = calcWaterContent(WaterContent::Ice);
+    }
 
-	////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////
     ///   INodesStorage
     ////////////////////////////////////////////////////////////////////////////
 
     INodes::INodes(std::initializer_list<std::reference_wrapper<Node2D>> t_Nodes) : m_Nodes(t_Nodes)
     {}
 
-    Node2D & INodes::getNode(const std::size_t Index)
+    INodes::INodes(Node2D & node1, Node2D & node2)
     {
-        assert(Index < m_Nodes.size());
-        return m_Nodes[Index];
+        m_Nodes.push_back(node1);
+        m_Nodes.push_back(node2);
     }
+
+    INodes::INodes(Node2D & node1, Node2D & node2, Node2D & node3, Node2D & node4)
+    {
+        m_Nodes.push_back(node1);
+        m_Nodes.push_back(node2);
+        m_Nodes.push_back(node3);
+        m_Nodes.push_back(node4);
+    }
+
+    //Node2D & INodes::getNode(const std::size_t Index)
+    //{
+    //    assert(Index < m_Nodes.size());
+    //    return m_Nodes[Index];
+    //}
 
     std::vector<std::size_t> INodes::getNodeIndexes() const
     {
@@ -221,11 +229,6 @@ namespace MoisThermFEM
     std::size_t INodes::size() const
     {
         return m_Nodes.size();
-    }
-
-    Node2D & INodes::operator[](const size_t index)
-    {
-        return m_Nodes[index];
     }
 
     std::vector<double> INodes::properties(const Property property) const

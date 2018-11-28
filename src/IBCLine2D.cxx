@@ -89,7 +89,7 @@ namespace MoisThermFEM
         {
             throw std::runtime_error("Index out of range.");
         }
-        return m_Nodes.getNode(index);
+        return m_Nodes[index];
     }
 
 }   // namespace MoisThermFEM

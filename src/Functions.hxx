@@ -21,19 +21,22 @@ namespace MoisThermFEM
     class Node2D;
     class INodes;
 
-    enum class Operation
-    {
-        MULT,
-        DIV,
-        ADD,
-        SUB
-    };
-
+    //! \brief Definition of interface used to perform various calculation(s) over state given in
+    //! \brief node(s).
+    //!
+    //! When differential equation defines certain physical phenomenon contain functions that are
+    //! dependent on some of state variables or they are simply constants, this class must be used
+    //! as a parent.
     class IValue
     {
     public:
-        virtual double value(const Node2D & node) const = 0;
-        virtual std::vector<double> values(const INodes & nodes) const;
+        //! Value at given node (redefined at every child class).
+        virtual double value(const Node2D & node   //!< Node for which value is calculated for.
+                             ) const = 0;
+
+        //! Values at all nodes given with parameter INodes.
+        virtual std::vector<double> values(const INodes & nodes   //!< Array of nodes
+                                           ) const;
         virtual ~IValue() = default;
     };
 
@@ -43,16 +46,30 @@ namespace MoisThermFEM
     ///  IFunction
     //////////////////////////////////////////////////////////////////
 
-    /// Interface for functions. Function must have defined property
+    //! \brief Interface for all functions that will be dependent on one of state variables.
+    //!
+    //! Any function that is dependent on any of state variables must be inherited from this class.
+    //! Passed Property will be used to automatically read value of state variable and perform
+    //! calculations.
     class IFunction : public IValue
     {
     public:
-        IFunction(Property t_Property);
+    	//! Basic constructor
+        IFunction(
+        	Property t_Property //!< Property for which function will be calculated.
+        	);
 
-        double value(const Node2D & node) const override;
+    	//! Returns function evaluation for given node.
+        double value(
+        	const Node2D & node //!< Node at which function will be evaluated.
+        	) const override;
 
     protected:
-        virtual double evaluateFunction(const double t_position = 0) const = 0;
+    	//! Interface for function definition. This is place where in inherited classes function
+    	//! definitions will be stored.
+        virtual double evaluateFunction(
+        	const double t_position = 0 //!< Value at which function will be evaluated.
+        		) const = 0;
 
         /// Property that is used to calculate function value. It is extracted from current
         /// domain (material) point.
@@ -74,6 +91,14 @@ namespace MoisThermFEM
 
         double m_Value;
     };
+
+	enum class Operation
+	{
+		MULT,
+		DIV,
+		ADD,
+		SUB
+	};
 
     //////////////////////////////////////////////////////////////////
     ///  IOperation
@@ -329,16 +354,17 @@ namespace MoisThermFEM
         const double m_SaturationCoefficient;
     };
 
-	//////////////////////////////////////////////////////////////////
-	///  Heat of evaporation
-	//////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////
+    ///  Heat of evaporation
+    //////////////////////////////////////////////////////////////////
 
-	class HeatOfEvaporation : public IFunction
-	{
-	public:
-		HeatOfEvaporation();
-	protected:
-		double evaluateFunction( const double t_position ) const override;
-	};
+    class HeatOfEvaporation : public IFunction
+    {
+    public:
+        HeatOfEvaporation();
+
+    protected:
+        double evaluateFunction(const double t_position) const override;
+    };
 
 }   // namespace MoisThermFEM

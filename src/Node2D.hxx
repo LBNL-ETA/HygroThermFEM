@@ -41,61 +41,97 @@ namespace MoisThermFEM
     };
 
     enum class Property
-	{
-    	temperature,
-    	humidity,
-    	pressure,
-    	liquidPercent,
-    	water,
-    	liquid,
-    	vapor,
-    	ice
-	};
+    {
+        temperature,
+        humidity,
+        pressure,
+        liquidPercent,
+        water,
+        liquid,
+        vapor,
+        ice
+    };
 
-	enum class Timestep
-	{
-		Current,
-		Previous
-	};
+    enum class Timestep
+    {
+        Current,
+        Previous
+    };
 
     ////////////////////////////////////////////////////////////////////////////
     ////   Node2D
     ////////////////////////////////////////////////////////////////////////////
 
-    // Defines nodal point in two dimensional cartesian space.
+    //! \brief Defines node in two dimensional coordinate space.
+    //!
+    //! Node is base construct of finite element model. Beside geometry description, node also
+    //! contains information about state at its position and materials. Note that one node can have
+    //! multiple materials assigned to it since one node can belong to multiple elements at same
+    //! time.
     class Node2D
     {
     public:
-        Node2D(const std::size_t t_NodeNumber,
-               const double t_x,
-               const double t_y,
-               const State & t_State);
+        //! Base constructor of the node.
+        Node2D(const std::size_t
+                 t_NodeNumber,     //!< Node index. Must be unique in entire finite element model
+               const double t_x,   //!< Node's x coordinate
+               const double t_y,   //!< Node's y coordinate
+               const State & t_State   //!< State of variables in the node
+        );
 
         Node2D(const Node2D & t_Node) = default;
         Node2D & operator=(const Node2D & other) = default;
         friend bool operator==(const Node2D & first, const Node2D & second);
         friend bool operator!=(const Node2D & first, const Node2D & second);
 
+        //! Node index
         size_t getNodeNumber() const;
 
+        //! Node's x coordinate
         double X() const;
+
+        //! Node's y coordinate
         double Y() const;
 
-        void assignMaterial( const std::string & t_Material, double weightingCoefficient );
+        //! Assigning material to current node.
+        void assignMaterial(
+          const std::string &
+            t_Material,   //!< Material name. It must be assigned to MaterialPool first.
+          double weightingCoefficient   //!< Weighting coefficient that represents influence of the
+                                        //!< material to current node.
+        );
 
-        double property(const Property property, const Timestep iteration = Timestep::Current) const;
-        double deltaProperty(const Property property) const;
+        //! Returns back property of state variable. Variable can be from basic state (temperature,
+        //! humidity or pressure) or water content
+        double property(const Property property,   //!< Property for which value will be returned
+                        const Timestep iteration =
+                          Timestep::Current   //!< Timestep for which value will be returned
+                        ) const;
 
-		void setStateProperty( const StateProperty t_Property, double t_value );
+        //! Returns back change in Property between two timesteps.
+        double
+          deltaProperty(const Property property   //!< Property for which calculation is performed
+                        ) const;
+
+        //! Sets the value of basic state property (temperature, humidity, pressure or liquid water
+        //! percentage)
+        void setStateProperty(
+          const StateProperty t_Property,   //!< Base state property for which value will be set
+          double t_value                    //!< New value that property will be set to.
+        );
 
     private:
-		double waterContent( const WaterContent content ) const;
-		double calcWaterContent(const WaterContent content);
-		void updateWaterContent();
+        //! Returns value of water content
+        double waterContent(const WaterContent content   //!< Water content property
+                            ) const;
 
-		double getStateProperty( const StateProperty t_Property,
-								 const Timestep t_Iteration = Timestep::Current ) const;
+        //! Performs water content calculations and store it locally (This speeds up engine
+        //! calculation)
+        double calcWaterContent(const WaterContent content   //!< Water content property
+        );
 
+        //! Update water content for every state (liquid, vapor and ice)
+        void updateWaterContent();
 
         std::size_t m_NodeNumber{0};
         double m_x{0};
@@ -118,41 +154,41 @@ namespace MoisThermFEM
     ////   INodes
     ////////////////////////////////////////////////////////////////////////////
 
-    // Interface that holds all node data in single storage
+    //! \brief Interface container that hold nodes in single place.
+    //!
+    //! In finite elements, single element supports four nodes and single boundary condition support two nodes.
+    //! This class is used to keep nodes in one place and also to provide some
+    //! basic functionality to access necessary node data
     class INodes
     {
     public:
         INodes() = default;
 
+        //! Construction of nodes storage from initializer list.
         INodes(std::initializer_list<std::reference_wrapper<Node2D>> t_Nodes);
 
-        INodes(Node2D & node1, Node2D & node2)
-        {
-            m_Nodes.push_back(node1);
-            m_Nodes.push_back(node2);
-        }
+        //! Returns properties for all nodes in the storage.
+        std::vector<double> properties(
+          const Property property   //!< Property for which node values will be calculated.
+          ) const;
 
-        INodes(Node2D & node1, Node2D & node2,
-                    Node2D & node3, Node2D & node4)
-        {
-            m_Nodes.push_back(node1);
-            m_Nodes.push_back(node2);
-            m_Nodes.push_back(node3);
-            m_Nodes.push_back(node4);
-        }
+        //! Simple operator[] overload for access to nodes storage by index.
+        Node2D & operator[](const std::size_t index   //!< Node index
+                            ) const;
 
-        Node2D & getNode(const std::size_t Index);
-
-		std::vector<double> properties(const Property property) const;
-
-        Node2D & operator[](const std::size_t index) const;
-        Node2D & operator[](const std::size_t index);
-
+        //! Returns node indexes.
         std::vector<std::size_t> getNodeIndexes() const;
 
+        //! Returns number of nodes.
         std::size_t size() const;
 
     protected:
+		//! Construction of node storage for boundary conditions.
+		INodes(Node2D & node1, Node2D & node2);
+
+		//! Construction of node storage for element.
+		INodes(Node2D & node1, Node2D & node2, Node2D & node3, Node2D & node4);
+
         std::vector<std::reference_wrapper<Node2D>> m_Nodes;
     };
 
@@ -160,7 +196,7 @@ namespace MoisThermFEM
     ////   LineNodes2D
     ////////////////////////////////////////////////////////////////////////////
 
-    // Class that store nodes which are part of some boundary conditions in 2D
+    //! Container for boundary condition.
     class LineNodes2D : public INodes
     {
     public:
@@ -171,7 +207,7 @@ namespace MoisThermFEM
     ////   QuadrilateralNodes2D
     ////////////////////////////////////////////////////////////////////////////
 
-    // Class that store nodal data which are part of elementsCreator
+    //! Container for quadrilateral element.
     class QuadrilateralNodes2D : public INodes
     {
     public:

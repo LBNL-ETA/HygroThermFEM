@@ -99,8 +99,14 @@ namespace MoisThermFEM
         std::unique_ptr<MoisThermFEM::TabularFunction> m_LiquidTransportCoefficient;
         std::unique_ptr<MoisThermFEM::TabularFunction> m_SorptionCurve;
 
+        //! Saturated vapor content calculations at given node. It is necessary
+        //! for water content calculations.
         double saturatedVaporContent(const Node2D & node) const;
+
+        //! Calculates amount of pores filled with liquid. Necessary for water content calculations.
         double liquidPorosity(const Node2D & node) const;
+
+        //! Calculates amount of pores filled with air. Necessary for water content calculations.
         double airPorosity(const Node2D & node) const;
     };
 
