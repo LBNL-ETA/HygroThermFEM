@@ -29,10 +29,10 @@ namespace MoisThermFEM
     ///   LocalPoint2D
     ////////////////////////////////////////////////////////////////////////////
 
-    //! \brief Hold local point coordinates in 2D
+    //! \brief Holds local point coordinates in 2D
     struct LocalPoint2D
     {
-        LocalPoint2D(const double t_ksi, const double t_eta);
+        LocalPoint2D(double t_ksi, double t_eta);
 
         LocalPoint2D(const LocalPoint2D & t_LocalPoint);
 
@@ -74,10 +74,9 @@ namespace MoisThermFEM
     {
     public:
         //! Base constructor of the node.
-        Node2D(const std::size_t
-                 t_NodeNumber,     //!< Node index. Must be unique in entire finite element model
-               const double t_x,   //!< Node's x coordinate
-               const double t_y,   //!< Node's y coordinate
+        Node2D(std::size_t t_NodeNumber,     //!< Node index. Must be unique in entire finite element model
+               double t_x,   //!< Node's x coordinate
+               double t_y,   //!< Node's y coordinate
                const State & t_State   //!< State of variables in the node
         );
 
@@ -105,31 +104,31 @@ namespace MoisThermFEM
 
         //! Returns back property of state variable. Variable can be from basic state (temperature,
         //! humidity or pressure) or water content
-        double property(const Property property,   //!< Property for which value will be returned
-                        const Timestep iteration =
+        double property(Property property,   //!< Property for which value will be returned
+                        Timestep iteration =
                           Timestep::Current   //!< Timestep for which value will be returned
                         ) const;
 
         //! Returns back change in Property between two timesteps.
         double
-          deltaProperty(const Property property   //!< Property for which calculation is performed
+          deltaProperty(Property property   //!< Property for which calculation is performed
                         ) const;
 
         //! Sets the value of basic state property (temperature, humidity, pressure or liquid water
         //! percentage)
         void setStateProperty(
-          const StateProperty t_Property,   //!< Base state property for which value will be set
+          StateProperty t_Property,   //!< Base state property for which value will be set
           double t_value                    //!< New value that property will be set to.
         );
 
     private:
         //! Returns value of water content
-        double waterContent(const WaterContent content   //!< Water content property
+        double waterContent(WaterContent content   //!< Water content property
                             ) const;
 
         //! Performs water content calculations and store it locally (This speeds up engine
         //! calculation)
-        double calcWaterContent(const WaterContent content   //!< Water content property
+        double calcWaterContent(WaterContent content   //!< Water content property
         );
 
         //! Update water content for every state (liquid, vapor and ice)

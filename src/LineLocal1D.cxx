@@ -35,7 +35,7 @@ namespace MoisThermFEM {
 		}
 	}
 
-	double LineLinearLocal1D::Psi( size_t const IntegrationPointIndex, size_t const Index ) {
+	double LineLinearLocal1D::Psi( const size_t IntegrationPointIndex, const size_t Index ) {
 		if( IntegrationPointIndex >= m_Ksi.size() ) {
 			throw std::runtime_error(
 					"Integration point index out of range. Routine LineElement1DLinearLocal::Psi." );

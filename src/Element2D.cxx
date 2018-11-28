@@ -104,8 +104,8 @@ namespace MoisThermFEM
             ++integrationPoint)
         {
             const auto & psi = aElement.VPsi(integrationPoint);
-            auto DPsiDx = m_Global2D.DPsiDx(integrationPoint);
-            auto DPsiDy = m_Global2D.DPsiDy(integrationPoint);
+            const auto DPsiDx = m_Global2D.DPsiDx(integrationPoint);
+            const auto DPsiDy = m_Global2D.DPsiDy(integrationPoint);
             const auto det = m_Global2D.det(integrationPoint);
 
             auto gammaX = 0.0;

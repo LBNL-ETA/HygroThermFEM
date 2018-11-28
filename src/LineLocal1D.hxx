@@ -11,7 +11,7 @@ namespace MoisThermFEM {
   public:
     static LineLinearLocal1D& Instance();
 
-    double Psi( size_t const IntegrationPointIndex, size_t const Index );
+    double Psi( size_t IntegrationPointIndex, size_t Index );
 
   private:
     LineLinearLocal1D();
