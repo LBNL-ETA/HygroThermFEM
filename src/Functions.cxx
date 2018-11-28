@@ -172,14 +172,12 @@ namespace MoisThermFEM
     ///  SuctionFunction
     //////////////////////////////////////////////////////////////////
 
-    SuctionCurve::SuctionCurve(const std::vector<std::pair<double, double>> & values,
-                               const FenestrationCommon::Interpolator & interpolator) :
-        TabularFunction(values, Property::humidity, interpolator)
+    SuctionCurve::SuctionCurve(const std::vector<std::pair<double, double>> & values) :
+        TabularFunction(values, Property::humidity, FenestrationCommon::Interpolation::Logarithmic)
     {}
 
-    SuctionCurve::SuctionCurve(const std::initializer_list<std::pair<double, double>> & list,
-                               const FenestrationCommon::Interpolator & interpolator) :
-        TabularFunction(list, Property::humidity, interpolator)
+    SuctionCurve::SuctionCurve(const std::initializer_list<std::pair<double, double>> & list) :
+        TabularFunction(list, Property::humidity, FenestrationCommon::Interpolation::Logarithmic)
     {}
 
     std::pair<std::pair<double, double>, std::pair<double, double>>

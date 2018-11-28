@@ -54,22 +54,20 @@ namespace MoisThermFEM
     class IFunction : public IValue
     {
     public:
-    	//! Basic constructor
-        IFunction(
-        	Property t_Property //!< Property for which function will be calculated.
-        	);
+        //! Basic constructor
+        IFunction(Property t_Property   //!< Property for which function will be calculated.
+        );
 
-    	//! Returns function evaluation for given node.
-        double value(
-        	const Node2D & node //!< Node at which function will be evaluated.
-        	) const override;
+        //! Returns function evaluation for given node.
+        double value(const Node2D & node   //!< Node at which function will be evaluated.
+                     ) const override;
 
     protected:
-    	//! Interface for function definition. This is place where in inherited classes function
-    	//! definitions will be stored.
+        //! Interface for function definition. This is place where in inherited classes function
+        //! definitions will be stored.
         virtual double evaluateFunction(
-        	const double t_position = 0 //!< Value at which function will be evaluated.
-        		) const = 0;
+          double t_position = 0   //!< Value at which function will be evaluated.
+          ) const = 0;
 
         /// Property that is used to calculate function value. It is extracted from current
         /// domain (material) point.
@@ -87,29 +85,33 @@ namespace MoisThermFEM
         Constant(const double value);
 
     private:
-        double evaluateFunction(const double t_position) const override;
+        double evaluateFunction(double t_position) const override;
 
         double m_Value;
     };
 
-	enum class Operation
-	{
-		MULT,
-		DIV,
-		ADD,
-		SUB
-	};
+    enum class Operation
+    {
+        MULT,
+        DIV,
+        ADD,
+        SUB
+    };
 
     //////////////////////////////////////////////////////////////////
     ///  IOperation
     //////////////////////////////////////////////////////////////////
 
-    /// Entire class is used to mimic operator functions so that FEM functions can be
-    /// written as ordinary equations.
+    //! \brief It is used to support operation with functions.
+    //!
+    //! Functions that are child of IValue are used directly in differential equations.
+    //! Those functions can be stacked with ordinary operations. This class is used to support
+    //! those operations.
     template<class T, class U>
     class IOperation : public IValue
     {
     public:
+        //! Constructor that accept two operands and operation.
         IOperation(const T t, const U s, const Operation & op) :
             m_Function1(std::move(t)),
             m_Function2(std::move(s)),
@@ -121,6 +123,7 @@ namespace MoisThermFEM
             m_Operator[Operation::SUB] = [&](double a, double b) { return a - b; };
         }
 
+        //! Returns value of operation.
         double value(const Node2D & node) const override
         {
             return m_Operator.at(m_Operation)(m_Function1.value(node), m_Function2.value(node));
@@ -145,6 +148,7 @@ namespace MoisThermFEM
 
     ////	operator+
 
+    //! template operator + for any class derived from IValue. It accepts two operands.
     template<typename T, typename U>
     typename std::enable_if<std::is_base_of<IValue, T>::value, IOperation<T, U>>::type
       operator+(const T & t, const U & u)
@@ -152,6 +156,8 @@ namespace MoisThermFEM
         return IOperation<T, U>(t, u, Operation::ADD);
     }
 
+    //! template operator + for any class derived from IValue. It accepts two operands one of which
+    //! is type of double.
     template<typename T>
     typename std::enable_if<std::is_base_of<IValue, T>::value, IOperation<T, Constant>>::type
       operator+(const T & t, const double & u)
@@ -160,6 +166,8 @@ namespace MoisThermFEM
         return IOperation<T, Constant>(t, con, Operation::ADD);
     }
 
+    //! template operator + for any class derived from IValue. It accepts two operands one of which
+    //! is type of double.
     template<typename U>
     typename std::enable_if<std::is_base_of<IValue, U>::value, IOperation<Constant, U>>::type
       operator+(const double & t, const U & u)
@@ -170,6 +178,7 @@ namespace MoisThermFEM
 
     ////	operator-
 
+    //! template operator - for any class derived from IValue. It accepts two operands.
     template<typename T, typename U>
     typename std::enable_if<std::is_base_of<IValue, T>::value, IOperation<T, U>>::type
       operator-(const T & t, const U & u)
@@ -177,6 +186,8 @@ namespace MoisThermFEM
         return IOperation<T, U>(t, u, Operation::SUB);
     }
 
+    //! template operator - for any class derived from IValue. It accepts two operands one of which
+    //! is type of double.
     template<typename T>
     typename std::enable_if<std::is_base_of<IValue, T>::value, IOperation<T, Constant>>::type
       operator-(const T & t, const double & u)
@@ -185,6 +196,8 @@ namespace MoisThermFEM
         return IOperation<T, Constant>(t, con, Operation::SUB);
     }
 
+    //! template operator - for any class derived from IValue. It accepts two operands one of which
+    //! is type of double.
     template<typename U>
     typename std::enable_if<std::is_base_of<IValue, U>::value, IOperation<Constant, U>>::type
       operator-(const double & t, const U & u)
@@ -195,6 +208,7 @@ namespace MoisThermFEM
 
     ////	operator*
 
+    //! template operator * for any class derived from IValue. It accepts two operands.
     template<typename T, typename U>
     typename std::enable_if<std::is_base_of<IValue, T>::value, IOperation<T, U>>::type
       operator*(const T & t, const U & u)
@@ -202,6 +216,8 @@ namespace MoisThermFEM
         return IOperation<T, U>(t, u, Operation::MULT);
     }
 
+    //! template operator * for any class derived from IValue. It accepts two operands one of which
+    //! is type of double.
     template<typename T>
     typename std::enable_if<std::is_base_of<IValue, T>::value, IOperation<T, Constant>>::type
       operator*(const T & t, const double & u)
@@ -210,6 +226,8 @@ namespace MoisThermFEM
         return IOperation<T, Constant>(t, con, Operation::MULT);
     }
 
+    //! template operator * for any class derived from IValue. It accepts two operands one of which
+    //! is type of double.
     template<typename U>
     typename std::enable_if<std::is_base_of<IValue, U>::value, IOperation<Constant, U>>::type
       operator*(const double & t, const U & u)
@@ -220,6 +238,7 @@ namespace MoisThermFEM
 
     ////	operator/
 
+    //! template operator / for any class derived from IValue. It accepts two operands.
     template<typename T, typename U>
     typename std::enable_if<std::is_base_of<IValue, T>::value, IOperation<T, U>>::type
       operator/(const T & t, const U & u)
@@ -227,6 +246,8 @@ namespace MoisThermFEM
         return IOperation<T, U>(t, u, Operation::DIV);
     }
 
+    //! template operator / for any class derived from IValue. It accepts two operands one of which
+    //! is type of double.
     template<typename T>
     typename std::enable_if<std::is_base_of<IValue, T>::value, IOperation<T, Constant>>::type
       operator/(const T & t, const double & u)
@@ -235,6 +256,8 @@ namespace MoisThermFEM
         return IOperation<T, Constant>(t, con, Operation::DIV);
     }
 
+    //! template operator / for any class derived from IValue. It accepts two operands one of which
+    //! is type of double.
     template<typename U>
     typename std::enable_if<std::is_base_of<IValue, U>::value, IOperation<Constant, U>>::type
       operator/(const double & t, const U & u)
@@ -247,46 +270,71 @@ namespace MoisThermFEM
     ///  State value
     //////////////////////////////////////////////////////////////////
 
+    //! \brief Class that simply returns value of state variable.
+    //!
+    //! In some of differential equations, value of current state variable can depend on value of
+    //! state variable previously calculated. For example, temperature distribution will be
+    //! dependent on water content.
     class StateValue : public IFunction
     {
     public:
-        StateValue(Property property);
+        //! Constructor
+        StateValue(Property property   //!< Property that StateValue represents.
+        );
 
     private:
-        double evaluateFunction(const double t_position) const override;
+        //! Inherited function evaluation for current property
+        double evaluateFunction(double t_position) const override;
     };
 
     //////////////////////////////////////////////////////////////////
     ///  TabularFunction
     //////////////////////////////////////////////////////////////////
 
-    /// Interface for classic tabular curve. There are different interpolation
-    /// strategies and this is base class for all of them.
+    //! \brief Interface for classic tabular curve.
+    //!
+    //! Tabular function is made to simply return adequate value from table. Search function is
+    //! performed over first column and return value is calculated from second column.
     class TabularFunction : public IFunction
     {
     public:
-        TabularFunction(const std::vector<std::pair<double, double>> & values,
-                        const Property property,
-                        const FenestrationCommon::Interpolator & interpolator =
-                          FenestrationCommon::Interpolation::Linear);
+        //! Table construction from standard vector.
+        TabularFunction(
+          const std::vector<std::pair<double, double>> &
+            values,            //!< Vector of x,y pairs that will go into table.
+          Property property,   //!< Property that represent value type in first column.
+          const FenestrationCommon::Interpolator & interpolator =
+            FenestrationCommon::Interpolation::Linear   //!< Interpolation strategy used for in
+                                                        //!< between values.
+        );
 
-        TabularFunction(const std::initializer_list<std::pair<double, double>> & list,
-                        const Property property,
-                        const FenestrationCommon::Interpolator & interpolator =
-                          FenestrationCommon::Interpolation::Linear);
+        //! Table construction from initializer list.
+        TabularFunction(
+          const std::initializer_list<std::pair<double, double>> &
+            list,              //!< Initializer list of x,y pairs that will go into table.
+          Property property,   //!< Property that represent value type in first column. 
+          const FenestrationCommon::Interpolator & interpolator =
+            FenestrationCommon::Interpolation::Linear   //!< Interpolation strategy used for in
+                                                        //!< between values.
+        );
 
+        //! Returns maximum value from second column.
         double max() const;
 
+        //! Returns minimum value from second column.
         double min() const;
 
+        //! Returns tabular values as standard vector of pairs.
         std::vector<std::pair<double, double>> getCurve() const;
 
     protected:
         std::vector<std::pair<double, double>> m_Curve;
         FenestrationCommon::Interpolator m_Interpolator;
 
-        double evaluateFunction(const double t_position) const override;
+        //! Overriden evaluation function.
+        double evaluateFunction(double t_position) const override;
 
+        //! Helper function that returns two closest points for interpolation.
         virtual std::pair<std::pair<double, double>, std::pair<double, double>>
           getInterpolationPoints(std::vector<std::pair<double, double>>::const_iterator & it) const;
     };
@@ -295,23 +343,33 @@ namespace MoisThermFEM
     ///  TabularDerivative
     //////////////////////////////////////////////////////////////////
 
-    /// This class is different from ordinary derivative because it extends over the
-    /// limits. This is important in iterations when first derivative really needs
-    /// to be evaluated outside of limits or convergence will produce incorrect
-    /// results (sorption curve is good example).
+    //! \brief Estimates tabular derivative.
+    //!
+    //! This class is different from ordinary derivative because it extends over the
+    //! limits. This is important in iterations when first derivative really needs
+    //! to be evaluated outside of limits or convergence will produce incorrect
+    //! results (sorption curve is good example).
     class TabularDerivative : public IFunction
     {
     public:
-        TabularDerivative(const std::vector<std::pair<double, double>> & values, Property property);
+        //! Construction of tabular derivative from standard vector values.
+        TabularDerivative(
+            const std::vector<std::pair<double, double>> & values, //!< Pair of vector values used to construct tabular derivative.
+            Property property //!< Property that represent value type in first column.
+        );
 
-        TabularDerivative(const std::initializer_list<std::pair<double, double>> & list,
-                          Property property);
+        //! Construction of tabular derivative from standard vector values.
+        TabularDerivative(const std::initializer_list<std::pair<double, double>> & list, //!< Initializer list used to construct tabular derivative.
+                          Property property //!< Property that represent value type in first column.
+        );
 
     protected:
         std::vector<std::pair<double, double>> m_Curve;
 
-        double evaluateFunction(const double t_position) const override;
+        //! Overriden evaluation function.
+        double evaluateFunction(double t_position) const override;
 
+        //! Helper function that returns two closest points for interpolation.
         virtual std::pair<std::pair<double, double>, std::pair<double, double>>
           getInterpolationPoints(std::vector<std::pair<double, double>>::const_iterator & it) const;
     };
@@ -320,21 +378,25 @@ namespace MoisThermFEM
     ///  SuctionFunction
     //////////////////////////////////////////////////////////////////
 
-    /// Class that behaves like suction curve. It is standard (linear or
-    /// logarithmic) interpolation except for the results in first range where curve
-    /// will return constant value equal to the first point
+    //! \brief Sorption curve is specialized type for tabular function.
+    //!
+    //! Sorption curve is table that represents material water content as function of
+    //! relative humidity. For in between values, logarithmic interpolation is used.
     class SuctionCurve : public TabularFunction
     {
     public:
-        SuctionCurve(const std::vector<std::pair<double, double>> & values,
-                     const FenestrationCommon::Interpolator & interpolator =
-                       FenestrationCommon::Interpolation::Logarithmic);
+        //! Construction of suction curve from standard vector values.
+        SuctionCurve(
+            const std::vector<std::pair<double, double>> & values //!< Sorption curve values in standard vector form.
+                     );
 
-        SuctionCurve(const std::initializer_list<std::pair<double, double>> & list,
-                     const FenestrationCommon::Interpolator & interpolator =
-                       FenestrationCommon::Interpolation::Logarithmic);
+        //! Construction of suction curve from initializer list.
+        SuctionCurve(
+            const std::initializer_list<std::pair<double, double>> & list //!< Soprtion curve values in initializer list form.
+        );
 
     protected:
+        //! Helper function that returns two closest points for interpolation.
         std::pair<std::pair<double, double>, std::pair<double, double>> getInterpolationPoints(
           std::vector<std::pair<double, double>>::const_iterator & it) const override;
     };
@@ -343,14 +405,16 @@ namespace MoisThermFEM
     ///  SaturationFunction
     //////////////////////////////////////////////////////////////////
 
-    /// Simple constant curve.
+    //! \brief Simple saturation function.
     class SaturationFunction : public IFunction
     {
     public:
-        SaturationFunction(const double saturationCoefficient = 9.2);
+        //! Construction of saturation function with possibility of change to saturation coefficient.
+        SaturationFunction(double saturationCoefficient = 9.2);
 
     private:
-        double evaluateFunction(const double t_position) const override;
+        //! Overriden evaluation function.
+        double evaluateFunction(double t_position) const override;
         const double m_SaturationCoefficient;
     };
 
@@ -358,13 +422,16 @@ namespace MoisThermFEM
     ///  Heat of evaporation
     //////////////////////////////////////////////////////////////////
 
+    //! \brief Heat of evaporation class represents heat evaporation dependency on temperature.
     class HeatOfEvaporation : public IFunction
     {
     public:
+        //! Heat evaporation construction.
         HeatOfEvaporation();
 
     protected:
-        double evaluateFunction(const double t_position) const override;
+        //! Overriden evaluation function.
+        double evaluateFunction(double t_position) const override;
     };
 
 }   // namespace MoisThermFEM

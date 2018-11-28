@@ -16,8 +16,9 @@ namespace MoisThermFEM
         m_PsiPsiMatrix(numOfBCNodes),
         m_PsiVector(numOfBCNodes, 0)
     {
-        m_Determinant =
-          0.5 * sqrt(pow(m_Nodes[0].X() - m_Nodes[1].X(), 2) + pow(m_Nodes[0].Y() - m_Nodes[1].Y(), 2));
+        double det =
+          0.5
+          * sqrt(pow(m_Nodes[0].X() - m_Nodes[1].X(), 2) + pow(m_Nodes[0].Y() - m_Nodes[1].Y(), 2));
 
         // Create psi matrix and vector
         for(std::size_t i = 0; i < numOfIntegrationPoints(); ++i)
@@ -26,9 +27,9 @@ namespace MoisThermFEM
             {
                 for(std::size_t k = 0; k < numOfBCNodes; ++k)
                 {
-                    m_PsiPsiMatrix(j, k) += m_Determinant * psi(i, j) * psi(i, k);
+                    m_PsiPsiMatrix(j, k) += det * psi(i, j) * psi(i, k);
                 }
-                m_PsiVector[j] += m_Determinant * psi(i, j);
+                m_PsiVector[j] += det * psi(i, j);
             }
         }
     }
@@ -53,37 +54,7 @@ namespace MoisThermFEM
         return m_Linear;
     }
 
-    /// FenestrationCommon::SquareMatrix< double > IBCLinear2D::D_HMatrix() const {
-    /// 	return SquareMatrix< double >( 2 );
-    /// }
-
-    double IBCLinear2D::getIntegratedProperty(const Property t_Property) const
-    {
-        double sum{0};
-        for(std::size_t i = 0; i < numOfIntegrationPoints(); ++i)
-        {
-            for(std::size_t j = 0; j < numOfBCNodes; ++j)
-            {
-                sum += m_Nodes[j].property(t_Property) * psi(i, j);
-            }
-        }
-        return sum;
-    }
-
-    double IBCLinear2D::getIntegratedDeltaProperty(const Property t_Property) const
-    {
-        double sum{0};
-        for(std::size_t i = 0; i < numOfIntegrationPoints(); ++i)
-        {
-            for(std::size_t j = 0; j < numOfBCNodes; ++j)
-            {
-                sum += m_Nodes[j].deltaProperty(t_Property) * psi(i, j);
-            }
-        }
-        return sum;
-    }
-
-    Node2D & IBCLinear2D::getNode(const std::size_t index)
+    Node2D & IBCLinear2D::getNode(const std::size_t index) const
     {
         if(index > numOfBCNodes)
         {

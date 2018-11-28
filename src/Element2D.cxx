@@ -354,18 +354,18 @@ namespace MoisThermFEM
         /// Capacitance functions
         //////////////////////////////////////////////////////////////////////////////////////
 
-        auto dryContent = (1 - m_Material.porosity()) * m_Material.density();
-        StateValue liquidContent(Property::liquid);
-        StateValue iceContent(Property::ice);
+        const auto dryContent = (1 - m_Material.porosity()) * m_Material.density();
+        const StateValue liquidContent(Property::liquid);
+        const StateValue iceContent(Property::ice);
         // auto airContent = getMaterialAirFill(mat);
-        StateValue airContent(Property::vapor);
+        const StateValue airContent(Property::vapor);
 
-        auto equivalentDensity =
+        const auto equivalentDensity =
           (dryContent * m_Material.density() + iceContent * Constants::Density_Ice
            + liquidContent * Constants::Density_Water + airContent * Constants::Density_Air)
           / (dryContent + iceContent + liquidContent + airContent);
 
-        auto equivalentCapacitance =
+        const auto equivalentCapacitance =
           (dryContent * m_Material.heatCapacity() + iceContent * Constants::Cp_Ice
            + liquidContent * Constants::Cp_Water + airContent * Constants::Cp_Air)
           / (dryContent + iceContent + liquidContent + airContent);
@@ -373,35 +373,32 @@ namespace MoisThermFEM
         auto capacitance = equivalentDensity * equivalentCapacitance;
 
         Cap(capacitance);
-        //m_CapacitanceFunctions.emplace_back(new decltype(capacitance)(capacitance));
 
         /// Conductance
 
         /// material
-        auto materialConductivity = Constant(m_Material.thermalConductivity());
+        const auto materialConductivity = Constant(m_Material.thermalConductivity());
 
         /// vapor
-        auto delta = Constant(2.5E-5 / m_Material.diffusionResistanceFactor());
-        auto vaporConductivity = Constants::Cp_Vapor * delta * airContent;
+        const auto delta = Constant(2.5E-5 / m_Material.diffusionResistanceFactor());
+        const auto vaporConductivity = Constants::Cp_Vapor * delta * airContent;
 
         /// liquid
         auto humidity = StateValue(Property::humidity);
-        auto liquidConductivity =
+        const auto liquidConductivity =
           SuctionCurve(m_Material.liquidTransportationCurve()) * Constants::Cp_Water * humidity;
 
         // iValue conductance = materialConductivity + vaporConductivity + liquidConductivity;
         auto conductance = materialConductivity + vaporConductivity + liquidConductivity;
 
         DDu(conductance);
-        //m_DDuFunctions.emplace_back(new decltype(conductance)(conductance));
-
 
         //////////////////////////////////////////////////////////////////////
         ///  Conversion from liquid to gas (vapor part)
         //////////////////////////////////////////////////////////////////////
-        auto H = HeatOfEvaporation() * delta;
+        auto h = HeatOfEvaporation() * delta;
 
-        multiplies(H, Property::vapor);
+        multiplies(h, Property::vapor);
 
         //////////////////////////////////////////////////////////////////////
         ///  Conversion from liquid to gas (air part)
@@ -413,12 +410,10 @@ namespace MoisThermFEM
         //////////////////////////////////////////////////////////////////////
         ///  Conduction from liquid
         //////////////////////////////////////////////////////////////////////
-        TabularDerivative sorptionDerivative(m_Material.sorptionCurve(), Property::humidity);
-        SuctionCurve Dl(m_Material.liquidTransportationCurve());
-        auto CD = Dl * sorptionDerivative * Constants::Cp_Water;
-        DpDu(CD, humidity);
-        //m_DpDuFunctions.emplace_back(std::unique_ptr<IValue>(new decltype(CD)(CD)),
-        //                             std::unique_ptr<IValue>(new decltype(humidity)(humidity)));
+        const TabularDerivative sorptionDerivative(m_Material.sorptionCurve(), Property::humidity);
+        const SuctionCurve Dl(m_Material.liquidTransportationCurve());
+        auto cd = Dl * sorptionDerivative * Constants::Cp_Water;
+        DpDu(cd, humidity);
 
         //////////////////////////////////////////////////////////////////////
         ///  Conduction from vapor
@@ -428,9 +423,6 @@ namespace MoisThermFEM
         StateValue vaporContent(Property::vapor);
 
         DpDu(vaporContent, humidity);
-        //m_DpDuFunctions.emplace_back(
-        //  std::unique_ptr<IValue>(new decltype(vaporContent)(vaporContent)),
-        //  std::unique_ptr<IValue>(new decltype(humidity)(humidity)));
 
         //////////////////////////////////////////////////////////////////////
         ///  Conduction from airflow
