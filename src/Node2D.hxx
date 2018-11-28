@@ -43,21 +43,21 @@ namespace MoisThermFEM
     //! \brief Main enumeration for accessing calculated or master properties.
     enum class Property
     {
-        temperature, //!< Temperature
-        humidity, //!< Humidity
-        pressure, //!< Pressure
-        liquidPercent, //!< Percentage of water in liquid state.
-        water, //!< Water content
-        liquid, //!< Water content in liquid state.
-        vapor, //!< Water content in vapor state.
-        ice //!< Water content in frozen state.
+        temperature,     //!< Temperature
+        humidity,        //!< Humidity
+        pressure,        //!< Pressure
+        liquidPercent,   //!< Percentage of water in liquid state.
+        water,           //!< Water content
+        liquid,          //!< Water content in liquid state.
+        vapor,           //!< Water content in vapor state.
+        ice              //!< Water content in frozen state.
     };
 
     //! \brief Enumerator for timestep count
     enum class Timestep
     {
-        Current, //!< Current timestep
-        Previous //!< Previous timestep
+        Current,   //!< Current timestep
+        Previous   //!< Previous timestep
     };
 
     ////////////////////////////////////////////////////////////////////////////
@@ -158,7 +158,8 @@ namespace MoisThermFEM
 
     //! \brief Interface container that hold nodes in single place.
     //!
-    //! In finite elements, single element supports four nodes and single boundary condition support two nodes.
+    //! In finite element model implemented in this engine, single element supports four nodes and
+    //! single boundary condition support two nodes.
     //! This class is used to keep nodes in one place and also to provide some
     //! basic functionality to access necessary node data
     class INodes
@@ -185,11 +186,11 @@ namespace MoisThermFEM
         std::size_t size() const;
 
     protected:
-		//! Construction of node storage for boundary conditions.
-		INodes(Node2D & node1, Node2D & node2);
+        //! Construction of node storage for boundary conditions.
+        INodes(Node2D & node1, Node2D & node2);
 
-		//! Construction of node storage for element.
-		INodes(Node2D & node1, Node2D & node2, Node2D & node3, Node2D & node4);
+        //! Construction of node storage for element.
+        INodes(Node2D & node1, Node2D & node2, Node2D & node3, Node2D & node4);
 
         std::vector<std::reference_wrapper<Node2D>> m_Nodes;
     };
@@ -202,6 +203,7 @@ namespace MoisThermFEM
     class LineNodes2D : public INodes
     {
     public:
+        //! Container constructor
         LineNodes2D(Node2D & t_Node1, Node2D & t_Node2);
     };
 
@@ -213,6 +215,7 @@ namespace MoisThermFEM
     class QuadrilateralNodes2D : public INodes
     {
     public:
+        //! Container constructor
         QuadrilateralNodes2D(Node2D & t_Node1,
                              Node2D & t_Node2,
                              Node2D & t_Node3,
