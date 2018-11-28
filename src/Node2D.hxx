@@ -15,7 +15,7 @@ namespace MoisThermFEM
     ///   LocalPoint1D
     ////////////////////////////////////////////////////////////////////////////
 
-    // Structure that holds data for one dimensional point in local coordinate system
+    //! Holds local point coordinate in 1D
     struct LocalPoint1D
     {
         explicit LocalPoint1D(const double t_ksi);
@@ -29,7 +29,7 @@ namespace MoisThermFEM
     ///   LocalPoint2D
     ////////////////////////////////////////////////////////////////////////////
 
-    // Structure that holds data for two dimensional point in local coordinate system
+    //! \brief Hold local point coordinates in 2D
     struct LocalPoint2D
     {
         LocalPoint2D(const double t_ksi, const double t_eta);
@@ -40,22 +40,24 @@ namespace MoisThermFEM
         double eta{0};
     };
 
+    //! \brief Main enumeration for accessing calculated or master properties.
     enum class Property
     {
-        temperature,
-        humidity,
-        pressure,
-        liquidPercent,
-        water,
-        liquid,
-        vapor,
-        ice
+        temperature, //!< Temperature
+        humidity, //!< Humidity
+        pressure, //!< Pressure
+        liquidPercent, //!< Percentage of water in liquid state.
+        water, //!< Water content
+        liquid, //!< Water content in liquid state.
+        vapor, //!< Water content in vapor state.
+        ice //!< Water content in frozen state.
     };
 
+    //! \brief Enumerator for timestep count
     enum class Timestep
     {
-        Current,
-        Previous
+        Current, //!< Current timestep
+        Previous //!< Previous timestep
     };
 
     ////////////////////////////////////////////////////////////////////////////
@@ -196,7 +198,7 @@ namespace MoisThermFEM
     ////   LineNodes2D
     ////////////////////////////////////////////////////////////////////////////
 
-    //! Container for boundary condition.
+    //! \brief Container for boundary condition.
     class LineNodes2D : public INodes
     {
     public:
@@ -207,7 +209,7 @@ namespace MoisThermFEM
     ////   QuadrilateralNodes2D
     ////////////////////////////////////////////////////////////////////////////
 
-    //! Container for quadrilateral element.
+    //! \brief Container for quadrilateral element.
     class QuadrilateralNodes2D : public INodes
     {
     public:
