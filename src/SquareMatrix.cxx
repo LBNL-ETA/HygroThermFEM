@@ -7,7 +7,7 @@
 
 namespace FenestrationCommon
 {
-    SquareMatrix::SquareMatrix(const std::size_t m_size) : m_size(m_size), m_Matrix(m_size, m_size)
+    SquareMatrix::SquareMatrix(const std::size_t size) : m_size(size), m_Matrix(size, size)
     {}
 
     SquareMatrix::SquareMatrix(const std::size_t tSize,

@@ -122,3 +122,22 @@ TEST_F(SquareMatrixTest, TestMultiplicationWithVectors) {
     EXPECT_NEAR(correctInverse[i], result[i], 1e-6);
   }
 }
+
+TEST_F(SquareMatrixTest, TestMmultRow) {
+	SCOPED_TRACE("Begin Test: Matrix addition.");
+	SquareMatrix a{{1, 2}, {3, 4}};
+
+	std::vector<double> b{3, 5};
+
+	auto result = a.mmultRows(b);
+
+	SquareMatrix correctResult{{3, 10}, {9, 20}};
+
+	EXPECT_EQ(correctResult.size(), result.size());
+
+	for (auto i = 0u; i < correctResult.size(); ++i) {
+		for (auto j = 0u; j < correctResult.size(); ++j) {
+			EXPECT_NEAR(correctResult(i, j), result(i, j), 1e-6);
+		}
+	}
+}
