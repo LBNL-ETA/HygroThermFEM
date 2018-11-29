@@ -86,7 +86,7 @@ TEST_F(Analytical_ConvectionBC_Transient, TestExample_1)
     const auto dTime = 36;
     const auto nSteps = 1000;
 
-    auto temperatures = NodePool::Instance().properties(MoisThermFEM::Property::temperature);
+    auto temperatures = NodePool::Instance().properties(MoisThermFEM::Variable::temperature);
     std::vector<std::vector<double>> solution;
 
     for(unsigned i = 0; i < nSteps; ++i)

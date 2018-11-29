@@ -105,13 +105,13 @@ TEST_F(MoistureBC_2D_1, TestExample_1)
     /// const auto dTime = 60;
     /// const auto nSteps = 3000;
 
-    auto humidities = NodePool::Instance().properties(MoisThermFEM::Property::humidity);
+    auto humidities = NodePool::Instance().properties(MoisThermFEM::Variable::humidity);
     std::vector<std::vector<double>> solution;
 
     for(unsigned i = 0; i < nSteps; ++i)
     {
         humidities = domain.transient(humidities, dTime);
-        auto waterContent = NodePool::Instance().properties(MoisThermFEM::Property::water);
+        auto waterContent = NodePool::Instance().properties(MoisThermFEM::Variable::water);
         solution.push_back(waterContent);
     }
 

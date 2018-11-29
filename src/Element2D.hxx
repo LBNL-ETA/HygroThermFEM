@@ -177,15 +177,15 @@ namespace MoisThermFEM
 
         struct MatrixVector
         {
-            MatrixVector(iValue && MatrixFunction, const Property PropertyVector);
+            MatrixVector(iValue && MatrixFunction, const Variable PropertyVector);
             iValue MatrixFunction;
-            Property PropertyVector;
+            Variable PropertyVector;
         };
 
         template<typename T>
         void multiplies(
           T & t,
-          Property property,
+          Variable property,
           const typename std::enable_if<std::is_base_of<IValue, T>::value, T>::type * = 0)
         {
             m_Matrix_x_Vector.emplace_back(std::unique_ptr<T>(new T(t)), property);
@@ -194,7 +194,7 @@ namespace MoisThermFEM
 		template<typename T>
 		void multiplies(
 			T && t,
-			Property property,
+			Variable property,
 			const typename std::enable_if<std::is_base_of<IValue, T>::value, T>::type * = 0)
 		{
 			m_Matrix_x_Vector.emplace_back(std::unique_ptr<T>(new T(t)), property);

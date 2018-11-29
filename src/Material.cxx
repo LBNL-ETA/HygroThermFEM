@@ -22,7 +22,7 @@ namespace MoisThermFEM
         m_ThermalConductivity(ThermalConductivity),
         m_DiffusionResistanceFactor(DiffusionResistanceFactor),
         m_LiquidTransportCoefficient(new SuctionCurve(LiquidTransportCurve)),
-        m_SorptionCurve(new TabularFunction(SorptionCurve, Property::humidity))
+        m_SorptionCurve(new TabularFunction(SorptionCurve, Variable::humidity))
     {}
 
     bool operator<(const Material & lhs, const Material & rhs)
@@ -77,7 +77,7 @@ namespace MoisThermFEM
 
     double Material::saturatedVaporContent(const Node2D & node) const
     {
-        const auto temperature = node.property(Property::temperature);
+        const auto temperature = node.property(Variable::temperature);
 
         const auto tempinK = temperature + 273.15;
 
@@ -105,17 +105,17 @@ namespace MoisThermFEM
 
     double Material::vaporContent(const Node2D & node) const
     {
-        return saturatedVaporContent(node) * airPorosity(node) * node.property(Property::humidity);
+        return saturatedVaporContent(node) * airPorosity(node) * node.property(Variable::humidity);
     }
 
     double Material::liquidWaterContent(const Node2D & node) const
     {
-        return node.property(Property::liquidPercent) * (waterContent(node) - vaporContent(node));
+        return node.property(Variable::liquidPercent) * (waterContent(node) - vaporContent(node));
     }
 
     double Material::iceContent(const Node2D & node) const
     {
-        return (1 - node.property(Property::liquidPercent))
+        return (1 - node.property(Variable::liquidPercent))
                * (waterContent(node) - vaporContent(node));
     }
 

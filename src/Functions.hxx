@@ -15,7 +15,7 @@
 
 namespace MoisThermFEM
 {
-    enum class Property;
+    enum class Variable;
 
     class State;
     class Node2D;
@@ -49,13 +49,13 @@ namespace MoisThermFEM
     //! \brief Interface for all functions that will be dependent on one of state variables.
     //!
     //! Any function that is dependent on any of state variables must be inherited from this class.
-    //! Passed Property will be used to automatically read value of state variable and perform
+    //! Passed Variable will be used to automatically read value of state variable and perform
     //! calculations.
     class IFunction : public IValue
     {
     public:
         //! Basic constructor
-        IFunction(Property t_Property   //!< Property for which function will be calculated.
+        IFunction(Variable t_Property   //!< Variable for which function will be calculated.
         );
 
         //! Returns function evaluation for given node.
@@ -69,9 +69,9 @@ namespace MoisThermFEM
           double t_position = 0   //!< Value at which function will be evaluated.
           ) const = 0;
 
-        /// Property that is used to calculate function value. It is extracted from current
+        /// Variable that is used to calculate function value. It is extracted from current
         /// domain (material) point.
-        const Property m_Property;
+        const Variable m_Property;
     };
 
     //////////////////////////////////////////////////////////////////
@@ -279,7 +279,7 @@ namespace MoisThermFEM
     {
     public:
         //! Constructor
-        StateValue(Property property   //!< Property that StateValue represents.
+        StateValue(Variable property   //!< Variable that StateValue represents.
         );
 
     private:
@@ -302,7 +302,7 @@ namespace MoisThermFEM
         TabularFunction(
           const std::vector<std::pair<double, double>> &
             values,            //!< Vector of x,y pairs that will go into table.
-          Property property,   //!< Property that represent value type in first column.
+          Variable property,   //!< Variable that represent value type in first column.
           const FenestrationCommon::Interpolator & interpolator =
             FenestrationCommon::Interpolation::Linear   //!< Interpolation strategy used for in
                                                         //!< between values.
@@ -312,7 +312,7 @@ namespace MoisThermFEM
         TabularFunction(
           const std::initializer_list<std::pair<double, double>> &
             list,              //!< Initializer list of x,y pairs that will go into table.
-          Property property,   //!< Property that represent value type in first column. 
+          Variable property,   //!< Variable that represent value type in first column. 
           const FenestrationCommon::Interpolator & interpolator =
             FenestrationCommon::Interpolation::Linear   //!< Interpolation strategy used for in
                                                         //!< between values.
@@ -355,12 +355,12 @@ namespace MoisThermFEM
         //! Construction of tabular derivative from standard vector values.
         TabularDerivative(
             const std::vector<std::pair<double, double>> & values, //!< Pair of vector values used to construct tabular derivative.
-            Property property //!< Property that represent value type in first column.
+            Variable property //!< Variable that represent value type in first column.
         );
 
         //! Construction of tabular derivative from standard vector values.
         TabularDerivative(const std::initializer_list<std::pair<double, double>> & list, //!< Initializer list used to construct tabular derivative.
-                          Property property //!< Property that represent value type in first column.
+                          Variable property //!< Variable that represent value type in first column.
         );
 
     protected:

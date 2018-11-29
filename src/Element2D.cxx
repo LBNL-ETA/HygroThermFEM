@@ -334,7 +334,7 @@ namespace MoisThermFEM
     }
 
     IElementLinear2D::MatrixVector::MatrixVector(iValue && matrixFunction,
-                                                 const Property propertyVector) :
+                                                 const Variable propertyVector) :
         MatrixFunction(std::move(matrixFunction)),
         PropertyVector(propertyVector)
     {}
@@ -355,10 +355,10 @@ namespace MoisThermFEM
         //////////////////////////////////////////////////////////////////////////////////////
 
         const auto dryContent = (1 - m_Material.porosity()) * m_Material.density();
-        const StateValue liquidContent(Property::liquid);
-        const StateValue iceContent(Property::ice);
+        const StateValue liquidContent(Variable::liquid);
+        const StateValue iceContent(Variable::ice);
         // auto airContent = getMaterialAirFill(mat);
-        const StateValue airContent(Property::vapor);
+        const StateValue airContent(Variable::vapor);
 
         const auto equivalentDensity =
           (dryContent * m_Material.density() + iceContent * Constants::Density_Ice
@@ -384,7 +384,7 @@ namespace MoisThermFEM
         const auto vaporConductivity = Constants::Cp_Vapor * delta * airContent;
 
         /// liquid
-        auto humidity = StateValue(Property::humidity);
+        auto humidity = StateValue(Variable::humidity);
         const auto liquidConductivity =
           SuctionCurve(m_Material.liquidTransportationCurve()) * Constants::Cp_Water * humidity;
 
@@ -398,19 +398,19 @@ namespace MoisThermFEM
         //////////////////////////////////////////////////////////////////////
         auto h = HeatOfEvaporation() * delta;
 
-        multiplies(h, Property::vapor);
+        multiplies(h, Variable::vapor);
 
         //////////////////////////////////////////////////////////////////////
         ///  Conversion from liquid to gas (air part)
         //////////////////////////////////////////////////////////////////////
 
         /// TODO: Add this later when air pressure equation is added
-        // auto waterVaporPressure = SaturationFunction() * StateValue(Property::humidity);
+        // auto waterVaporPressure = SaturationFunction() * StateValue(Variable::humidity);
 
         //////////////////////////////////////////////////////////////////////
         ///  Conduction from liquid
         //////////////////////////////////////////////////////////////////////
-        const TabularDerivative sorptionDerivative(m_Material.sorptionCurve(), Property::humidity);
+        const TabularDerivative sorptionDerivative(m_Material.sorptionCurve(), Variable::humidity);
         const SuctionCurve Dl(m_Material.liquidTransportationCurve());
         auto cd = Dl * sorptionDerivative * Constants::Cp_Water;
         DpDu(cd, humidity);
@@ -420,7 +420,7 @@ namespace MoisThermFEM
         //////////////////////////////////////////////////////////////////////
 
         auto vapCond = delta * Constants::Cp_Vapor;
-        StateValue vaporContent(Property::vapor);
+        StateValue vaporContent(Variable::vapor);
 
         DpDu(vaporContent, humidity);
 
@@ -462,7 +462,7 @@ namespace MoisThermFEM
         //////////////////////////////////////////////////////////////////////////////
         /// Creating capacitance function
         //////////////////////////////////////////////////////////////////////////////
-        auto sorptionDerivative = TabularDerivative(m_Material.sorptionCurve(), Property::humidity);
+        auto sorptionDerivative = TabularDerivative(m_Material.sorptionCurve(), Variable::humidity);
 
         Cap(sorptionDerivative);
         //m_CapacitanceFunctions.emplace_back(new decltype(sorptionDerivative)(sorptionDerivative));

@@ -44,8 +44,8 @@ namespace MoisThermFEM
     {
         auto & node1 = NodePool::Instance().getNode(index1);
         auto & node2 = NodePool::Instance().getNode(index2);
-        node1.setStateProperty(StateProperty::temperature, t_NodeTemperatures);
-        node2.setStateProperty(StateProperty::temperature, t_NodeTemperatures);
+        node1.setStateProperty(BaseVariable::temperature, t_NodeTemperatures);
+        node2.setStateProperty(BaseVariable::temperature, t_NodeTemperatures);
     }
 
     TemperatureBC::TemperatureBC(const size_t index1,
@@ -56,8 +56,8 @@ namespace MoisThermFEM
     {
         auto & node1 = NodePool::Instance().getNode(index1);
         auto & node2 = NodePool::Instance().getNode(index2);
-        node1.setStateProperty(StateProperty::temperature, t_Temp1);
-        node2.setStateProperty(StateProperty::temperature, t_Temp2);
+        node1.setStateProperty(BaseVariable::temperature, t_Temp1);
+        node2.setStateProperty(BaseVariable::temperature, t_Temp2);
     }
 
     ////////////////////////////////////////////////////////
@@ -103,7 +103,7 @@ namespace MoisThermFEM
         std::vector<double> result(numOfBCNodes, 0);
         for(std::size_t j = 0; j < numOfBCNodes; ++j)
         {
-            double T = m_Nodes[j].property(Property::temperature);
+            double T = m_Nodes[j].property(Variable::temperature);
             result[j] = (T + m_RadiationTemperature)
                         * (std::pow(T, 2) + std::pow(m_RadiationTemperature, 2))
                         * Constants::STEFANBOLTZMANN * m_Emissivity;

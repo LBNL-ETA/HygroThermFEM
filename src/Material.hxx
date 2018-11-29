@@ -81,14 +81,19 @@ namespace MoisThermFEM
         /// Create material by using MaterialPool.
 
         //! \brief Material construction is done through singleton class
-        Material(const std::string & Name,
-                 double Density,
-                 double Porosity,
-                 double HeatCapacity,
-                 double ThermalConductivity,
-                 double DiffusionResistanceFactor,
-                 const std::vector<std::pair<double, double>> & LiquidTransportCurve,
-                 const std::vector<std::pair<double, double>> & SorptionCurve);
+        Material(
+          const std::string & Name,           //!< Material name
+          double Density,                     //!< Density of dry material
+          double Porosity,                    //!< Material porosity
+          double HeatCapacity,                //!< Specific heat capacity of dry material
+          double ThermalConductivity,         //!< Material conductivity of dry material
+          double DiffusionResistanceFactor,   //!< Diffuse resistance factor
+          const std::vector<std::pair<double, double>> &
+            LiquidTransportCurve,   //!< Liquid transportation curve. Relationship between relative
+                                    //!< humidity and ability of material to transport water.
+          const std::vector<std::pair<double, double>> &
+            SorptionCurve);   //!< Moisture storage function. Relationship between relative humidity
+                              //!< and water content.
 
         std::string m_Name;
         double m_Density;

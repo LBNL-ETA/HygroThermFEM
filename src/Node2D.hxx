@@ -41,7 +41,7 @@ namespace MoisThermFEM
     };
 
     //! \brief Main enumeration for accessing calculated or master properties.
-    enum class Property
+    enum class Variable
     {
         temperature,     //!< Temperature
         humidity,        //!< Humidity
@@ -104,20 +104,20 @@ namespace MoisThermFEM
 
         //! Returns back property of state variable. Variable can be from basic state (temperature,
         //! humidity or pressure) or water content
-        double property(Property property,   //!< Property for which value will be returned
+        double property(Variable property,   //!< Variable for which value will be returned
                         Timestep iteration =
                           Timestep::Current   //!< Timestep for which value will be returned
                         ) const;
 
-        //! Returns back change in Property between two timesteps.
+        //! Returns back change in Variable between two timesteps.
         double
-          deltaProperty(Property property   //!< Property for which calculation is performed
+          deltaProperty(Variable property   //!< Variable for which calculation is performed
                         ) const;
 
         //! Sets the value of basic state property (temperature, humidity, pressure or liquid water
         //! percentage)
         void setStateProperty(
-          StateProperty t_Property,   //!< Base state property for which value will be set
+          BaseVariable t_Property,   //!< Base state property for which value will be set
           double t_value                    //!< New value that property will be set to.
         );
 
@@ -171,7 +171,7 @@ namespace MoisThermFEM
 
         //! Returns properties for all nodes in the storage.
         std::vector<double> properties(
-          const Property property   //!< Property for which node values will be calculated.
+          const Variable property   //!< Variable for which node values will be calculated.
           ) const;
 
         //! Simple operator[] overload for access to nodes storage by index.

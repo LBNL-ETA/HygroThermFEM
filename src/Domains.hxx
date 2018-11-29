@@ -12,7 +12,7 @@ namespace MoisThermFEM
     class Domain
     {
     public:
-        explicit Domain(const StateProperty property);
+        explicit Domain(const BaseVariable property);
 
         /// Calculates steady state solution
         std::vector<double> steadyState();
@@ -32,7 +32,7 @@ namespace MoisThermFEM
     protected:
         friend class MultiDomain;
 
-        void updateNodeValues(const std::vector<double> & values, const StateProperty property);
+        void updateNodeValues(const std::vector<double> & values, const BaseVariable property);
 
         FenestrationCommon::SquareMatrix steadyStateLeftHandSide();
         std::vector<double> steadyStateRightHandSide() const;
@@ -49,7 +49,7 @@ namespace MoisThermFEM
 
         bool isLinear() const;
 
-        StateProperty m_Property;
+        BaseVariable m_Property;
         ElementsLinear2D m_Elements;
         BoundaryConditions2D m_BCs;
     };

@@ -31,7 +31,7 @@ namespace MoisThermFEM
                            std::vector<double> & humidity,
                            const double t_DTime);
 
-        std::vector<double> property(Property property) const;
+        std::vector<double> property(Variable property) const;
 
         void createElement(const size_t index1,
                            const size_t index2,

@@ -26,7 +26,7 @@ namespace MoisThermFEM
     ///  IFunction
     //////////////////////////////////////////////////////////////////
 
-    IFunction::IFunction(const Property t_Property) : m_Property(t_Property)
+    IFunction::IFunction(const Variable t_Property) : m_Property(t_Property)
     {}
 
     double IFunction::value(const Node2D & node) const
@@ -38,7 +38,7 @@ namespace MoisThermFEM
     ///  Constant
     //////////////////////////////////////////////////////////////////
 
-    Constant::Constant(const double value) : IFunction(Property::temperature), m_Value(value)
+    Constant::Constant(const double value) : IFunction(Variable::temperature), m_Value(value)
     {}
 
     double Constant::evaluateFunction(const double) const
@@ -50,7 +50,7 @@ namespace MoisThermFEM
     ///  State value
     //////////////////////////////////////////////////////////////////
 
-    StateValue::StateValue(Property property) : IFunction(property)
+    StateValue::StateValue(Variable property) : IFunction(property)
     {}
 
     double StateValue::evaluateFunction(const double t_position) const
@@ -63,7 +63,7 @@ namespace MoisThermFEM
     //////////////////////////////////////////////////////////////////
 
     TabularFunction::TabularFunction(const std::vector<std::pair<double, double>> & values,
-                                     const Property property,
+                                     const Variable property,
                                      const FenestrationCommon::Interpolator & interpolator) :
         IFunction(property),
         m_Curve(values),
@@ -71,7 +71,7 @@ namespace MoisThermFEM
     {}
 
     TabularFunction::TabularFunction(const std::initializer_list<std::pair<double, double>> & list,
-                                     const Property property,
+                                     const Variable property,
                                      const FenestrationCommon::Interpolator & interpolator) :
         IFunction(property),
         m_Curve(list),
@@ -124,13 +124,13 @@ namespace MoisThermFEM
     //////////////////////////////////////////////////////////////////
 
     TabularDerivative::TabularDerivative(const std::vector<std::pair<double, double>> & values,
-                                         const Property property) :
+                                         const Variable property) :
         IFunction(property),
         m_Curve(values)
     {}
 
     TabularDerivative::TabularDerivative(
-      const std::initializer_list<std::pair<double, double>> & list, const Property property) :
+      const std::initializer_list<std::pair<double, double>> & list, const Variable property) :
         IFunction(property),
         m_Curve(list)
     {}
@@ -173,11 +173,11 @@ namespace MoisThermFEM
     //////////////////////////////////////////////////////////////////
 
     SuctionCurve::SuctionCurve(const std::vector<std::pair<double, double>> & values) :
-        TabularFunction(values, Property::humidity, FenestrationCommon::Interpolation::Logarithmic)
+        TabularFunction(values, Variable::humidity, FenestrationCommon::Interpolation::Logarithmic)
     {}
 
     SuctionCurve::SuctionCurve(const std::initializer_list<std::pair<double, double>> & list) :
-        TabularFunction(list, Property::humidity, FenestrationCommon::Interpolation::Logarithmic)
+        TabularFunction(list, Variable::humidity, FenestrationCommon::Interpolation::Logarithmic)
     {}
 
     std::pair<std::pair<double, double>, std::pair<double, double>>
@@ -204,7 +204,7 @@ namespace MoisThermFEM
     //////////////////////////////////////////////////////////////////
 
     SaturationFunction::SaturationFunction(const double saturationCoefficient) :
-        IFunction(Property::temperature),
+        IFunction(Variable::temperature),
         m_SaturationCoefficient(saturationCoefficient)
     {}
 
@@ -227,5 +227,5 @@ namespace MoisThermFEM
                  - 0.00006 * std::pow(t_position, 3));
     }
 
-	HeatOfEvaporation::HeatOfEvaporation() : IFunction( Property::temperature) {}
+	HeatOfEvaporation::HeatOfEvaporation() : IFunction( Variable::temperature) {}
 }   // namespace MoisThermFEM

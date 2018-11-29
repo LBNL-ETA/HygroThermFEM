@@ -3,7 +3,7 @@
 
 #include "MoisThermFEM2D.hxx"
 
-using MoisThermFEM::Property;
+using MoisThermFEM::Variable;
 using MoisThermFEM::State;
 using MoisThermFEM::Node2D;
 using MoisThermFEM::TabularFunction;
@@ -25,7 +25,7 @@ protected:
 TEST_F(CurveTest, TestTabularLinear)
 {
     SCOPED_TRACE("Begin Test: Test tabular linear.");
-    const TabularFunction curve({{1, 10}, {2, 20}, {3, 30}}, Property::temperature);
+    const TabularFunction curve({{1, 10}, {2, 20}, {3, 30}}, Variable::temperature);
 
     State interpolationPoint(2.5, 0, 101325, 0);
     Node2D node(0, 0, 0, interpolationPoint);
@@ -45,7 +45,7 @@ TEST_F(CurveTest, TestTabularLogarithmic)
 {
     SCOPED_TRACE("Begin Test: Test tabular logarithmic curve.");
     const TabularFunction curve({{1, 10}, {2, 20}, {3, 30}},
-                                Property::temperature,
+                                Variable::temperature,
                                 FenestrationCommon::Interpolation::Logarithmic);
 
     State interpolationPoint(2.5, 0, 101325, 0);
@@ -99,7 +99,7 @@ TEST_F(CurveTest, TestConstantCurve)
 TEST_F(CurveTest, TestTabularOutOfRangeBack)
 {
     SCOPED_TRACE("Begin Test: Test tabular out of range.");
-    const TabularFunction curve({{1, 10}, {2, 20}, {3, 30}}, Property::temperature);
+    const TabularFunction curve({{1, 10}, {2, 20}, {3, 30}}, Variable::temperature);
 
     State interpolationPoint(3.5, 0, 101325, 0);
 	Node2D node(0, 0, 0, interpolationPoint);
@@ -111,7 +111,7 @@ TEST_F(CurveTest, TestTabularOutOfRangeBack)
 TEST_F(CurveTest, TestTabularOutOfRangeFront)
 {
     SCOPED_TRACE("Begin Test: Test tabular out of range.");
-    const TabularFunction curve({{1, 10}, {2, 20}, {3, 30}}, Property::temperature);
+    const TabularFunction curve({{1, 10}, {2, 20}, {3, 30}}, Variable::temperature);
 
     State interpolationPoint(0.5, 0, 101325, 0);
 	Node2D node(0, 0, 0, interpolationPoint);
@@ -123,7 +123,7 @@ TEST_F(CurveTest, TestTabularOutOfRangeFront)
 TEST_F(CurveTest, TestComposition1)
 {
     SCOPED_TRACE("Begin Test: Composition (multiplication) of two functions.");
-    TabularFunction tabular({{1, 10}, {2, 20}, {3, 30}}, Property::temperature);
+    TabularFunction tabular({{1, 10}, {2, 20}, {3, 30}}, Variable::temperature);
 
     auto tabular1 = tabular * 5.0;
 
@@ -150,7 +150,7 @@ TEST_F(CurveTest, TestPorosityCalculation)
                                   {0.995, 20.9},
                                   {0.999, 33.0},
                                   {1.000, 40.0}},
-                                 Property::humidity);
+                                 Variable::humidity);
 
 	Node2D node(0, 0, 0, State(0, 1, 0, 0));
 
@@ -184,7 +184,7 @@ TEST_F(CurveTest, TestSaturationFunction)
                                   {0.995, 83},
                                   {0.999, 120},
                                   {1.000, 180}},
-                                 Property::humidity);
+                                 Variable::humidity);
 
     auto maxWaterContent = waterContent.value(Node2D(0,0,0,State(0, 1, 0, 0)));
     const auto materialPorosity = 0.22;
@@ -216,7 +216,7 @@ TEST_F(CurveTest, TestTabularDerivative)
                                     {0.995, 83},
                                     {0.999, 120},
                                     {1.000, 180}},
-                                   Property::humidity);
+                                   Variable::humidity);
 
     Node2D node1(0, 0, 0, State(273.15, 0, 101325, 0));
     auto result = waterContent.value(node1);

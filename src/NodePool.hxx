@@ -32,14 +32,13 @@ namespace MoisThermFEM
 
         //! Returns state values (temperature, water content or pressure) at all nodes.
         std::vector<double>
-          properties(const Property t_Property   //!< Property for which values are obtained.
+          properties(const Variable t_Property   //!< Variable for which values are obtained.
           );
 
         //! Update all node values for given state property.
         void updateNodeValues(
-          const std::vector<double> & t_values,   //!< Vector of new values for given StateProperty.
-          const StateProperty
-            t_property   //!< StateProperty for which new values will be applied to.
+          const std::vector<double> & t_values,   //!< Vector of new values for given BaseVariable.
+          BaseVariable t_property   //!< BaseVariable for which new values will be applied to.
         );
 
         //! Delete all nodes from NodePool.

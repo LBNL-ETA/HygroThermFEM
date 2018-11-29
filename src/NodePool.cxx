@@ -35,7 +35,7 @@ namespace MoisThermFEM
         return aNode.getNodeNumber();
     }
 
-    std::vector<double> NodePool::properties(const Property t_Property)
+    std::vector<double> NodePool::properties(const Variable t_Property)
     {
         std::vector<double> aVector;
         for(Node2D & aNode : m_Nodes)
@@ -45,7 +45,7 @@ namespace MoisThermFEM
         return aVector;
     }
 
-    void NodePool::updateNodeValues(const std::vector<double> & t_values, const StateProperty t_property)
+    void NodePool::updateNodeValues(const std::vector<double> & t_values, const BaseVariable t_property)
     {
         assert(m_Nodes.size() == t_values.size());
         for(std::size_t i = 0; i < t_values.size(); ++i)

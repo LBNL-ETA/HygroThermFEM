@@ -21,11 +21,11 @@ namespace MoisThermFEM
 
         while(temperatureError > ConvergenceError || humidityError > ConvergenceError)
         {
-            m_ThermalDomain.updateNodeValues(currentHumidity, StateProperty::humidity);
+            m_ThermalDomain.updateNodeValues(currentHumidity, BaseVariable::humidity);
             const auto temperatureSolution = m_ThermalDomain.transient(temperature, t_DTime);
             temperatureError = normError(temperatureSolution, currentTemperature);
 
-            m_MoistureDomain.updateNodeValues(currentTemperature, StateProperty::temperature);
+            m_MoistureDomain.updateNodeValues(currentTemperature, BaseVariable::temperature);
             const auto humiditySolution = m_MoistureDomain.transient(humidity, t_DTime);
             humidityError = normError(humiditySolution, currentHumidity);
 
@@ -33,13 +33,13 @@ namespace MoisThermFEM
             currentTemperature = temperatureSolution;
         }
 
-        NodePool::Instance().updateNodeValues(currentHumidity, StateProperty::humidity);
-        NodePool::Instance().updateNodeValues(currentTemperature, StateProperty::temperature);
+        NodePool::Instance().updateNodeValues(currentHumidity, BaseVariable::humidity);
+        NodePool::Instance().updateNodeValues(currentTemperature, BaseVariable::temperature);
 
-        const auto waterContent = NodePool::Instance().properties(Property::water);
-        const auto liquidContent = NodePool::Instance().properties(Property::liquid);
-        const auto vaporContent = NodePool::Instance().properties(Property::vapor);
-        const auto iceContent = NodePool::Instance().properties(Property::ice);
+        const auto waterContent = NodePool::Instance().properties(Variable::water);
+        const auto liquidContent = NodePool::Instance().properties(Variable::liquid);
+        const auto vaporContent = NodePool::Instance().properties(Variable::vapor);
+        const auto iceContent = NodePool::Instance().properties(Variable::ice);
 
         return Solution{currentTemperature,
                         currentHumidity,
@@ -105,7 +105,7 @@ namespace MoisThermFEM
         return std::abs(norm1 - norm2) / norm1;
     }
 
-    std::vector<double> MultiDomain::property(Property property) const
+    std::vector<double> MultiDomain::property(Variable property) const
     {
         return NodePool::Instance().properties(property);
     }
