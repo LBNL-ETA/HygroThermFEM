@@ -29,9 +29,9 @@ namespace MoisThermFEM
         IBCLinear2D() = delete;
 
         //! Basic construction of boundary condition.
-        IBCLinear2D(const size_t index1,         //!< Index of first node.
-                    const size_t index2,         //!< Index of second node.
-                    const bool t_Linear = true   //!< Linearity of the boundary condition.
+        IBCLinear2D(size_t index1,         //!< Index of first node.
+                    size_t index2,         //!< Index of second node.
+                    bool t_Linear = true   //!< Linearity of the boundary condition.
                     //!< This variable should be set to false if boundary condition introduce
                     //!< non-linearity into domain.
         );
@@ -40,7 +40,7 @@ namespace MoisThermFEM
         std::vector<std::size_t> getNodeIndexes() const;
 
         //! Returns node with given index.
-        Node2D & getNode(const std::size_t index) const;
+        Node2D & getNode(std::size_t index) const;
 
         //! Virtual function that will calculate vector from the boundary condition.
         //! Any inherited boundary condition must define its own vector calculations.
@@ -58,20 +58,20 @@ namespace MoisThermFEM
         static std::size_t numOfIntegrationPoints();
 
         //! Calculates psi value for given integration point and shape function
-        static double psi(const std::size_t IntegrationPointIndex,   //!< Integration point index.
-                          const std::size_t Index                    //!< Shape function index
+        static double psi(std::size_t IntegrationPointIndex,   //!< Integration point index.
+                          std::size_t Index                    //!< Shape function index
         );
 
         LineNodes2D m_Nodes;
         bool m_Linear;
 
-        /// Matrix that is base for all boundary conditions. It needs to be modified for
-        /// coefficients and that will depend on type of boundary conditions
+        //! Matrix that is base for all boundary conditions. It needs to be modified for
+        //! coefficients and that will depend on type of boundary conditions
         FenestrationCommon::SquareMatrix m_PsiPsiMatrix;
 
-        /// Vector that is base for all boundary conditions (it depends on psi functions).
-        /// It needs to be modified for coefficients and that will depend on type of boundary
-        /// conditions
+        //! Vector that is base for all boundary conditions (it depends on psi functions).
+        //! It needs to be modified for coefficients and that will depend on type of boundary
+        //! conditions
         std::vector<double> m_PsiVector;
     };
 
