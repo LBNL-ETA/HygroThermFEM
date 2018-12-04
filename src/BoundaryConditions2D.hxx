@@ -18,11 +18,11 @@ namespace MoisThermFEM
     class BoundaryConditions2D
     {
     public:
-    	//! Simple constructor
+        //! Simple constructor
         explicit BoundaryConditions2D();
 
-    	//! Making copy of boundary conditions container is not allowed. Since all changes
-    	//! and updates should be kept at one place.
+        //! Making copy of boundary conditions container is not allowed. Since all changes
+        //! and updates should be kept at one place.
         BoundaryConditions2D(const BoundaryConditions2D & other) = delete;
 
         //! Assembled H matrix from all boundary conditions.
@@ -35,9 +35,11 @@ namespace MoisThermFEM
         //! equations should be applied.
         bool isLinear() const;
 
-        //! Used to update new values to nodes once solver finds new solution for any state variable.
+        //! Used to update new values to nodes once solver finds new solution for any state
+        //! variable.
         void updateNodeValues(const std::vector<double> & values, const BaseVariable property);
 
+        //! Assign new boundary condition to the pool
         void assignBC(std::unique_ptr<IBCLinear2D> && bc);
 
     protected:

@@ -13,7 +13,7 @@ using FenestrationCommon::CLinearSolver;
 
 namespace MoisThermFEM
 {
-    FenestrationCommon::SquareMatrix Domain::steadyStateLeftHandSide()
+    FenestrationCommon::SquareMatrix IDomain::steadyStateLeftHandSide()
     {
         auto condMat = m_Elements.conductanceMatrix();
         const auto h = m_BCs.HMatrix();
@@ -22,12 +22,12 @@ namespace MoisThermFEM
         return condMat;
     }
 
-    std::vector<double> Domain::steadyStateRightHandSide() const
+    std::vector<double> IDomain::steadyStateRightHandSide() const
     {
         return m_BCs.RVector();
     }
 
-    FenestrationCommon::SquareMatrix Domain::transientM_K_H_Matrix(const double t_DTime)
+    FenestrationCommon::SquareMatrix IDomain::transientM_K_H_Matrix(const double t_DTime)
     {
         auto M = m_Elements.getLumpedMass(t_DTime);
         // auto M = m_Elements.getMassMatrix( t_DTime );
@@ -39,7 +39,7 @@ namespace MoisThermFEM
         return M_K_H;
     }
 
-    std::vector<double> Domain::transientMT_R_Vector(const std::vector<double> & t_PreviousSolution,
+    std::vector<double> IDomain::transientMT_R_Vector(const std::vector<double> & t_PreviousSolution,
                                                      const double t_DTime)
     {
         std::vector<double> M{m_Elements.getLumpedMass(t_DTime)};
@@ -50,13 +50,13 @@ namespace MoisThermFEM
         return B;
     }
 
-    std::vector<double> Domain::steadyState()
+    std::vector<double> IDomain::steadyState()
     {
         auto B = steadyStateRightHandSide();
         return CLinearSolver::solveEigen(steadyStateLeftHandSide(), B);
     }
 
-    std::vector<double> Domain::transient(const std::vector<double> & currentStateValues,
+    std::vector<double> IDomain::transient(const std::vector<double> & currentStateValues,
                                           const double t_DTime)
     {
         auto A = transientM_K_H_Matrix(t_DTime);
@@ -125,23 +125,18 @@ namespace MoisThermFEM
         return solution;
     }
 
-    bool Domain::isLinear() const
+    bool IDomain::isLinear() const
     {
         return m_BCs.isLinear() && m_Elements.isLinear();
     }
 
-    void Domain::updateNodeValues(const std::vector<double> & values, const BaseVariable property)
+    void IDomain::updateNodeValues(const std::vector<double> & values, const BaseVariable property)
     {
         m_BCs.updateNodeValues(values, property);
         m_Elements.updateNodeValues(values, property);
     }
 
-    IElementLinear2D * Domain::findElement(const size_t index1, const size_t index2)
-    {
-        return m_Elements.findElement(index1, index2);
-    }
-
-    Domain::Domain(const BaseVariable property) : m_Property(property)
+    IDomain::IDomain(const BaseVariable property) : m_Property(property)
     {}
 
     void ThermalDomain::createConvectionBC(const size_t index1,
@@ -192,7 +187,7 @@ namespace MoisThermFEM
           fem::make_unique<ElementThermalLinear2D>(index1, index2, index3, index4, materialName));
     }
 
-    ThermalDomain::ThermalDomain() : Domain(BaseVariable::temperature)
+    ThermalDomain::ThermalDomain() : IDomain(BaseVariable::temperature)
     {}
 
     void MoistureDomain::createElement(const size_t index1,
@@ -221,7 +216,7 @@ namespace MoisThermFEM
                                                                   t_AirTemperature));
     }
 
-    MoistureDomain::MoistureDomain() : Domain(BaseVariable::humidity)
+    MoistureDomain::MoistureDomain() : IDomain(BaseVariable::humidity)
     {}
 
 }   // namespace MoisThermFEM

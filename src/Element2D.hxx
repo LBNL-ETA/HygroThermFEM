@@ -10,32 +10,36 @@
 
 namespace MoisThermFEM
 {
-    // Constant that holds number of nodes in certain elementsCreator
+    //! Constant that holds number of nodes in certain elementsCreator
     const std::size_t numOfQuadrilateralNodes = 4;
-    // const std::size_t numOfIntegrationPoints = 4;
 
     //////////////////////////////////////////////////////////////////////////////
     ///  IQLEMatrix2D
     //////////////////////////////////////////////////////////////////////////////
 
-    // Abstract class that forces users to perform matrix calculation in inherited
-    // version Depending on equations, matrices will have different calculation
-    // methods (for example capacitance and conductance matrices have different
-    // form)
+    //! \brief General class for quadratic linear element integrator.
+    //!
+    //! Hold basic calculations for matrix integration in global coordinate system.
     class IQLEIntegrator2D
     {
     public:
         IQLEIntegrator2D(const QuadrilateralLinearGlobal2D & t_Element);
 
-        // Integrate matrix over all points of integration
+        //! Integrate matrix over all points of integration
         virtual FenestrationCommon::SquareMatrix
-          integrate(const std::vector<double> & t_Values) const final;
+          integrate(const std::vector<double> &
+                      t_Values   //!< Nodal values for which integration will be performed
+                    ) const final;
 
     protected:
-        virtual void
-          calculateMatrixInIntegrationPoint(FenestrationCommon::SquareMatrix & matrix,
-                                            const std::vector<double> & t_Values,
-                                            const std::size_t t_IntegrationPointIndex) const final;
+        //! Helper function that integrates matrix in given integration point.
+        virtual void calculateMatrixInIntegrationPoint(
+          FenestrationCommon::SquareMatrix &
+            matrix,   //!< Matrix that integration results will be added to
+          const std::vector<double> &
+            t_Values,   //!< Nodal values for which integration will be performed
+          const std::size_t t_IntegrationPointIndex   //!< Integration point
+          ) const final;
 
         const QuadrilateralLinearGlobal2D & m_Global2D;
 
@@ -46,8 +50,8 @@ namespace MoisThermFEM
     ///  QLEDDuIntegrator2D
     //////////////////////////////////////////////////////////////////////////////
 
-    // Class to handle conductance matrix in global coordinate system
-    // Conductance equation is D/Dx(Du/Dx)+D/Dy(Du/Dy) where u is state variable
+    //! Class to handle conductance matrix in global coordinate system
+    //! Conductance equation is D/Dx(Du/Dx)+D/Dy(Du/Dy) where u is state variable
     class QLEDDuIntegrator2D : public IQLEIntegrator2D
     {
     public:
@@ -126,24 +130,25 @@ namespace MoisThermFEM
         virtual bool isLinear() const final;
 
     protected:
-
         template<typename T>
-        void DDu(T & t, const typename std::enable_if<std::is_base_of<IValue, T>::value, T>::type * = 0)
+        void DDu(T & t,
+                 const typename std::enable_if<std::is_base_of<IValue, T>::value, T>::type * = 0)
         {
             m_DDuFunctions.emplace_back(std::unique_ptr<T>(new T(t)));
         }
 
-		template<typename T>
-		void DDu(T && t, const typename std::enable_if<std::is_base_of<IValue, T>::value, T>::type * = 0)
-		{
-			m_DDuFunctions.emplace_back(std::unique_ptr<T>(new T(t)));
-		}
+        template<typename T>
+        void DDu(T && t,
+                 const typename std::enable_if<std::is_base_of<IValue, T>::value, T>::type * = 0)
+        {
+            m_DDuFunctions.emplace_back(std::unique_ptr<T>(new T(t)));
+        }
 
-		template<typename T>
-		void Cap(T & t, typename std::enable_if<std::is_base_of<IValue, T>::value, T>::type * = 0)
-		{
-			m_CapacitanceFunctions.emplace_back(std::unique_ptr<T>(new T(t)));
-		}
+        template<typename T>
+        void Cap(T & t, typename std::enable_if<std::is_base_of<IValue, T>::value, T>::type * = 0)
+        {
+            m_CapacitanceFunctions.emplace_back(std::unique_ptr<T>(new T(t)));
+        }
 
         /// Equation k*(Dp/Dx)(Du/Dx) + k*(Dp/Dy)(Du/Dy) have fixed function (k) and
         /// independent function (p) that is part of derivative. Note that u is state
@@ -157,23 +162,24 @@ namespace MoisThermFEM
             std::unique_ptr<IValue> derivativeValue;
         };
 
-		//template<typename T, typename U>
-		//void DpDu(
-		//	T & t,
-		//	U & u,
-		//	const typename std::enable_if<std::is_base_of<IValue, T>::value, T>::type * = 0)
-		//{
-		//	m_DpDuFunctions.emplace_back(std::unique_ptr<T>(new T(t)), std::unique_ptr<U>(new U(u)));
-		//}
+        // template<typename T, typename U>
+        // void DpDu(
+        //	T & t,
+        //	U & u,
+        //	const typename std::enable_if<std::is_base_of<IValue, T>::value, T>::type * = 0)
+        //{
+        //	m_DpDuFunctions.emplace_back(std::unique_ptr<T>(new T(t)), std::unique_ptr<U>(new
+        // U(u)));
+        //}
 
-		template<typename T, typename U>
-		void DpDu(
-			T & t,
-			U & u,
-			typename std::enable_if<std::is_base_of<IValue, T>::value, T>::type * = 0)
-		{
-			m_DpDuFunctions.emplace_back(std::unique_ptr<T>(new T(t)), std::unique_ptr<U>(new U(u)));
-		}
+        template<typename T, typename U>
+        void DpDu(T & t,
+                  U & u,
+                  typename std::enable_if<std::is_base_of<IValue, T>::value, T>::type * = 0)
+        {
+            m_DpDuFunctions.emplace_back(std::unique_ptr<T>(new T(t)),
+                                         std::unique_ptr<U>(new U(u)));
+        }
 
         struct MatrixVector
         {
@@ -191,26 +197,26 @@ namespace MoisThermFEM
             m_Matrix_x_Vector.emplace_back(std::unique_ptr<T>(new T(t)), property);
         }
 
-		template<typename T>
-		void multiplies(
-			T && t,
-			Variable property,
-			const typename std::enable_if<std::is_base_of<IValue, T>::value, T>::type * = 0)
-		{
-			m_Matrix_x_Vector.emplace_back(std::unique_ptr<T>(new T(t)), property);
-		}
+        template<typename T>
+        void multiplies(
+          T && t,
+          Variable property,
+          const typename std::enable_if<std::is_base_of<IValue, T>::value, T>::type * = 0)
+        {
+            m_Matrix_x_Vector.emplace_back(std::unique_ptr<T>(new T(t)), property);
+        }
 
         const Material & m_Material;
 
     private:
-		std::vector<iValue> m_DDuFunctions;
-		std::vector<iValue> m_CapacitanceFunctions;
-		std::vector<DerivativeFunction> m_DpDuFunctions;
+        std::vector<iValue> m_DDuFunctions;
+        std::vector<iValue> m_CapacitanceFunctions;
+        std::vector<DerivativeFunction> m_DpDuFunctions;
 
-		/// Vector of values that will simply be evaluated on right hand side.
-		/// This is in form [M]*{V} (Matrix * vector). First property is simply set of functions
-		/// that form matrix and second is simply property of vectors.
-		std::vector<MatrixVector> m_Matrix_x_Vector;
+        /// Vector of values that will simply be evaluated on right hand side.
+        /// This is in form [M]*{V} (Matrix * vector). First property is simply set of functions
+        /// that form matrix and second is simply property of vectors.
+        std::vector<MatrixVector> m_Matrix_x_Vector;
 
         /// calculates angle between two vectors made of (node1-node2) and (node1-node3)
         double angleBetweenNodes(const Node2D & node1, const Node2D & node2, const Node2D & node3);
