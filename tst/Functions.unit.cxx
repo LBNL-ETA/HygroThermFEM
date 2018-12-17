@@ -34,10 +34,10 @@ TEST_F(CurveTest, TestTabularLinear)
 
     EXPECT_NEAR(25, result, 1e-6);
 
-    auto max = curve.max();
+    auto max = curve.maxY();
     EXPECT_NEAR(30, max, 1e-6);
 
-    auto min = curve.min();
+    auto min = curve.minY();
     EXPECT_NEAR(10, min, 1e-6);
 }
 

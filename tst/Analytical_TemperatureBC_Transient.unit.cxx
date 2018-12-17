@@ -53,9 +53,9 @@ TEST_F(Analytical_TemperatureBC_Transient, TestExample_1)
       0.00,                      /// Porosity
       1.0,                       /// Specific Heat Capacity (dry)
       15E-6,                     /// Diffusion Resistance Factor
-      {{0.0, 1.}, {5.3, 1.0}},   /// Thermal Conductivity (dry)
+      {{0.0, 1.}, {180, 1.0}},   /// Thermal Conductivity (dry)
       {{0, 0}, {180, 7E-7}},     /// Liquid Transportation Coefficient
-      {{0, 0}, {1, 5.3}}         /// Moisture Storage Function
+      {{0, 0}, {1, 180}}         /// Moisture Storage Function
 
     );
 

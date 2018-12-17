@@ -46,23 +46,24 @@ namespace MoisThermFEM
         //! Material's diffusion resistance factor.
         double diffusionResistanceFactor() const;
 
-        //! Material's thermal conductivity.
-		const std::vector< std::pair< double, double>> & thermalConductivity() const;
+        //! Thermal conductivity table is (x-water content [kg/m3], y-thermal conductivity[W/(mK)])
+        const std::vector<std::pair<double, double>> & thermalConductivity() const;
 
         //! Liquid transportation curve of the material. Liquid transportation coefficient shows how
         //! much of water can be distributed through the material with certain water content
         //! (x-water content [kg/m3], y-water flow [m2/s]
-		const std::vector< std::pair< double, double>> & liquidTransportationCurve() const;
+        const std::vector<std::pair<double, double>> & liquidTransportationCurve() const;
 
         //! Water content for given node
         double waterContent(const Node2D & node,   //!< Node for which water content is required.
-                            WaterContent waterContent   //!< Water content property (total water, liquid, vapor or ice).
+                            WaterContent waterContent   //!< Water content property (total water,
+                                                        //!< liquid, vapor or ice).
                             ) const;
 
         //! Material's sorption curve. Sorption curve or moisture storage function show how much of
         //! water content is contained in the material at certain relative humidity (x-relative
         //! humidity [-], y-water content [kg/m3])
-		const std::vector< std::pair< double, double>> & sorptionCurve() const;
+        const std::vector<std::pair<double, double>> & sorptionCurve() const;
 
         /// Materials will be stored in set which require operator >.
 
@@ -109,9 +110,16 @@ namespace MoisThermFEM
         double m_HeatCapacity;
         double m_DiffusionResistanceFactor;
 
-        // Thermal conductivity table is (water content, thermal conductivity)
+        // Thermal conductivity table is (x-water content [kg/m3], y-thermal conductivity[W/(mK)])
         std::unique_ptr<MoisThermFEM::TabularFunction> m_ThermalConductivity;
+
+        // Liquid transportation coefficient is function of water content. It shows how much of
+        // water will be transferred through material in relation to water content (x-water content
+        // [kg/m3], y-liquid transportation coefficient [m2/s]
         std::unique_ptr<MoisThermFEM::TabularFunction> m_LiquidTransportCoefficient;
+
+        // Sorption curve shows how much of water content will be in relation to relative humidity
+        // (x-relative humidity [between zero to one], y-water content [kg/m3]
         std::unique_ptr<MoisThermFEM::TabularFunction> m_SorptionCurve;
 
         //! Saturated vapor content calculations at given node. It is necessary
