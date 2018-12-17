@@ -11,16 +11,16 @@ namespace MoisThermFEM
                        const double Density,
                        const double Porosity,
                        const double HeatCapacity,
-                       const double ThermalConductivity,
                        const double DiffusionResistanceFactor,
+					   const std::vector<std::pair<double, double>> & ThermalConductivity,
                        const std::vector<std::pair<double, double>> & LiquidTransportCurve,
                        const std::vector<std::pair<double, double>> & SorptionCurve) :
         m_Name(Name),
         m_Density(Density),
         m_Porosity(Porosity),
         m_HeatCapacity(HeatCapacity),
-        m_ThermalConductivity(ThermalConductivity),
         m_DiffusionResistanceFactor(DiffusionResistanceFactor),
+		m_ThermalConductivity(new TabularFunction(ThermalConductivity, Variable::water)),
         m_LiquidTransportCoefficient(new SuctionCurve(LiquidTransportCurve)),
         m_SorptionCurve(new TabularFunction(SorptionCurve, Variable::humidity))
     {}
@@ -60,17 +60,17 @@ namespace MoisThermFEM
         return m_Porosity;
     }
 
-    double Material::thermalConductivity() const
-    {
-        return m_ThermalConductivity;
-    }
-
     double Material::diffusionResistanceFactor() const
     {
         return m_DiffusionResistanceFactor;
     }
 
-    std::vector<std::pair<double, double>> Material::liquidTransportationCurve() const
+	const std::vector< std::pair< double, double>> & Material::thermalConductivity() const
+	{
+		return m_ThermalConductivity->getCurve();
+	}
+
+    const std::vector< std::pair< double, double>> & Material::liquidTransportationCurve() const
     {
         return m_LiquidTransportCoefficient->getCurve();
     }
@@ -119,7 +119,7 @@ namespace MoisThermFEM
                * (waterContent(node) - vaporContent(node));
     }
 
-    std::vector<std::pair<double, double>> Material::sorptionCurve() const
+    const std::vector< std::pair< double, double>> & Material::sorptionCurve() const
     {
         return m_SorptionCurve->getCurve();
     }

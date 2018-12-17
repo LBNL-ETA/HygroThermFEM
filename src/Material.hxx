@@ -43,20 +43,26 @@ namespace MoisThermFEM
         //! Material's porosity.
         double porosity() const;
 
-        //! Material's thermal conductivity.
-        double thermalConductivity() const;
-
         //! Material's diffusion resistance factor.
         double diffusionResistanceFactor() const;
-        std::vector<std::pair<double, double>> liquidTransportationCurve() const;
+
+        //! Material's thermal conductivity.
+		const std::vector< std::pair< double, double>> & thermalConductivity() const;
+
+        //! Liquid transportation curve of the material. Liquid transportation coefficient shows how
+        //! much of water can be distributed through the material with certain water content
+        //! (x-water content [kg/m3], y-water flow [m2/s]
+		const std::vector< std::pair< double, double>> & liquidTransportationCurve() const;
 
         //! Water content for given node
         double waterContent(const Node2D & node,   //!< Node for which water content is required.
-                            WaterContent waterContent   //!< Water content property.
+                            WaterContent waterContent   //!< Water content property (total water, liquid, vapor or ice).
                             ) const;
 
-        //! Material's sorption curve
-        std::vector<std::pair<double, double>> sorptionCurve() const;
+        //! Material's sorption curve. Sorption curve or moisture storage function show how much of
+        //! water content is contained in the material at certain relative humidity (x-relative
+        //! humidity [-], y-water content [kg/m3])
+		const std::vector< std::pair< double, double>> & sorptionCurve() const;
 
         /// Materials will be stored in set which require operator >.
 
@@ -86,8 +92,10 @@ namespace MoisThermFEM
           double Density,                     //!< Density of dry material
           double Porosity,                    //!< Material porosity
           double HeatCapacity,                //!< Specific heat capacity of dry material
-          double ThermalConductivity,         //!< Material conductivity of dry material
           double DiffusionResistanceFactor,   //!< Diffuse resistance factor
+          const std::vector<std::pair<double, double>> &
+            ThermalConductivity,   //!< Material conductivity of dry material where conductivity
+                                   //!< depends on water content
           const std::vector<std::pair<double, double>> &
             LiquidTransportCurve,   //!< Liquid transportation curve. Relationship between relative
                                     //!< humidity and ability of material to transport water.
@@ -99,8 +107,10 @@ namespace MoisThermFEM
         double m_Density;
         double m_Porosity;
         double m_HeatCapacity;
-        double m_ThermalConductivity;
         double m_DiffusionResistanceFactor;
+
+        // Thermal conductivity table is (water content, thermal conductivity)
+        std::unique_ptr<MoisThermFEM::TabularFunction> m_ThermalConductivity;
         std::unique_ptr<MoisThermFEM::TabularFunction> m_LiquidTransportCoefficient;
         std::unique_ptr<MoisThermFEM::TabularFunction> m_SorptionCurve;
 

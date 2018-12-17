@@ -20,8 +20,8 @@ namespace MoisThermFEM
       const double Density,
       const double Porosity,
       const double HeatCapacity,
-      const double ThermalConductivity,
       const double DiffusionResistanceFactor,
+	  const std::vector<std::pair<double, double>> & ThermalConductivity,
       const std::vector<std::pair<double, double>> & LiquidTransportCurve,
       const std::vector<std::pair<double, double>> & SorptionCurve)
     {
@@ -30,8 +30,8 @@ namespace MoisThermFEM
                                                     Density,
                                                     Porosity,
                                                     HeatCapacity,
-                                                    ThermalConductivity,
                                                     DiffusionResistanceFactor,
+                                                    ThermalConductivity,
                                                     LiquidTransportCurve,
                                                     SorptionCurve)));
         return m_Materials.at(Name);

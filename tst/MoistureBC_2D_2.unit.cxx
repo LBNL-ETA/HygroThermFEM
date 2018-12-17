@@ -37,12 +37,12 @@ TEST_F(MoistureBC_2D_2, TestExample_1)
 
     auto & material = MaterialPool::Instance().createMaterial(
       "Cottaer Sandstone",
-      2050,      /// density
-      0.22,      /// porosity
-      850,       /// specific heat capacity (dry)
-      1.8,       /// thermal conductivity (dry)
-      15,        /// diffusion resistance factor (this is mi value)
-      {{0, 0},   /// liquid transportation coefficient
+      2050,                         /// density
+      0.22,                         /// porosity
+      850,                          /// specific heat capacity (dry)
+      15,                           /// diffusion resistance factor (this is mi value)
+      {{0.0, 1.8}, {180.0, 1.8}},   /// thermal conductivity (dry)
+      {{0, 0},                      /// liquid transportation coefficient
        {27, 1E-8},
        {45, 1.1E-8},
        {90, 2E-8},
@@ -90,7 +90,7 @@ TEST_F(MoistureBC_2D_2, TestExample_1)
     for(unsigned i = 0; i < nSteps; ++i)
     {
         humidities = domain.transient(humidities, dTime);
-		auto waterContent = NodePool::Instance().properties(MoisThermFEM::Variable::water);
+        auto waterContent = NodePool::Instance().properties(MoisThermFEM::Variable::water);
         solution.push_back(waterContent);
     }
 

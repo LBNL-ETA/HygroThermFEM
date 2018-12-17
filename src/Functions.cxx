@@ -114,7 +114,7 @@ namespace MoisThermFEM
         return m_Curve.front().second;
     }
 
-    std::vector<std::pair<double, double>> TabularFunction::getCurve() const
+    const std::vector< std::pair< double, double>> & TabularFunction::getCurve() const
     {
         return m_Curve;
     }

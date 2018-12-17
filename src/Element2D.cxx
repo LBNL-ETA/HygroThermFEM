@@ -374,10 +374,12 @@ namespace MoisThermFEM
 
         Cap(capacitance);
 
+        //////////////////////////////////////////////////////////////////////////
         /// Conductance
+		//////////////////////////////////////////////////////////////////////////
 
         /// material
-        const auto materialConductivity = Constant(m_Material.thermalConductivity());
+        const auto materialConductivity = TabularFunction(m_Material.thermalConductivity(), Variable::water);
 
         /// vapor
         const auto delta = Constant(2.5E-5 / m_Material.diffusionResistanceFactor());

@@ -325,7 +325,7 @@ namespace MoisThermFEM
         double min() const;
 
         //! Returns tabular values as standard vector of pairs.
-        std::vector<std::pair<double, double>> getCurve() const;
+		const std::vector< std::pair< double, double>> & getCurve() const;
 
     protected:
         std::vector<std::pair<double, double>> m_Curve;
