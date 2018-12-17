@@ -76,9 +76,9 @@ TEST_F(TwoElementsTwoMaterials_2, NodeInTwoMaterials)
       0.18,                       /// Porosity
       850,                        /// Specific Heat Capacity (dry)
       92E-6,                      /// Diffusion Resistance Factor
-      {{0.0, 1.6}, {180, 1.6}},   /// thermal conductivity as function of water content
+      {{0.0, 1.6}, {150, 1.6}},   /// thermal conductivity as function of water content
       /// Liquid Transportation Coefficient
-      {{0, 0}, {72, 7.4E-11}, {85, 2.5E-10}, {100, 1E-9}, {118, 1.2E-9}},
+      {{0, 0}, {72, 7.4E-11}, {85, 2.5E-10}, {100, 1E-9}, {118, 1.2E-9}, {150, 1.2E-9}},
       /// Moisture Storage Function
       {{0, 0},
        {0.05, 27},

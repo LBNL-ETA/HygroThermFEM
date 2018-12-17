@@ -60,7 +60,7 @@ TEST_F(MoistureBC_2D_1, TestExample_1)
       0.22,                       /// porosity
       850,                        /// specific heat capacity (dry)
       15,                         /// diffusion resistance factor (this is mi value)
-      {{0.0, 1.8}, {180, 1.8}},   /// thermal conductivity as function of water content
+      {{0.0, 1.8}, {5.3, 1.8}},   /// thermal conductivity as function of water content
       {{0, 0},                    /// liquid transportation coefficient
                                   //{ 27,  1E-8 },
                                   //{ 45,  1.1E-8 },
@@ -69,7 +69,7 @@ TEST_F(MoistureBC_2D_1, TestExample_1)
                                   //{ 144, 5E-8 },
                                   //{ 162, 1E-7 },
                                   //{ 171, 2E-7 },
-       {180, 7E-7}},
+       {5.3, 7E-7}},
       {{0, 0},   /// sorption curve
                  // { 0.5,   5.3 },
                  // { 0.65,  8.4 },
