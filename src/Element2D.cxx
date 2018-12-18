@@ -162,16 +162,6 @@ namespace MoisThermFEM
     }
 
     //////////////////////////////////////////////////////////////////////////////
-    ///  DerivativeFunction
-    //////////////////////////////////////////////////////////////////////////////
-
-    IElementLinear2D::DerivativeFunction::DerivativeFunction(iValue fixedValue,
-                                                             iValue derivativeValue) :
-        fixedValue(std::move(fixedValue)),
-        derivativeValue(std::move(derivativeValue))
-    {}
-
-    //////////////////////////////////////////////////////////////////////////////
     ///  IElementLinear2D
     //////////////////////////////////////////////////////////////////////////////
 
@@ -338,6 +328,16 @@ namespace MoisThermFEM
         MatrixFunction(std::move(matrixFunction)),
         PropertyVector(propertyVector)
     {}
+
+	//////////////////////////////////////////////////////////////////////////////
+	///  IElementLinear2D::DerivativeFunction
+	//////////////////////////////////////////////////////////////////////////////
+
+	IElementLinear2D::DerivativeFunction::DerivativeFunction(iValue fixedValue,
+															 iValue derivativeValue) :
+		fixedValue(std::move(fixedValue)),
+		derivativeValue(std::move(derivativeValue))
+	{}
 
     //////////////////////////////////////////////////////////////////////////////
     ///  ElementThermalLinear2D

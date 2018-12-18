@@ -64,9 +64,9 @@ namespace MoisThermFEM
     ///  QLEDpDuIntegrator2D
     //////////////////////////////////////////////////////////////////////////////
 
-    // Class to handle double derivative matrix in global coordinate system
-    // Equation is (Dp/Dx)(Du/Dx)+(Dp/Dy)(Du/Dy) where u is state variable and
-    // p is independent variable that can have different values in different nodes.
+    //! Class to handle double derivative matrix in global coordinate system
+    //! Equation is (Dp/Dx)(Du/Dx)+(Dp/Dy)(Du/Dy) where u is state variable and
+    //! p is independent variable that can have different values in different nodes.
     class QLEDpDuIntegrator2D : public IQLEIntegrator2D
     {
     public:
@@ -74,7 +74,10 @@ namespace MoisThermFEM
 
         QLEDpDuIntegrator2D(const QuadrilateralLinearGlobal2D & t_Element);
 
-        // Update independent variables (corresponds to variable p in above equation)
+        // TODO: Maybe independent variables can be read directly for element. Instead of passing
+        // them, maybe just state what variable is used as independent.
+
+        //! Update independent variables (corresponds to variable p in above equation)
         void setIndependentVariables(const std::vector<double> & t_Values);
 
         void clearIntegrationMatrix();
@@ -150,18 +153,6 @@ namespace MoisThermFEM
             m_CapacitanceFunctions.emplace_back(std::unique_ptr<T>(new T(t)));
         }
 
-        /// Equation k*(Dp/Dx)(Du/Dx) + k*(Dp/Dy)(Du/Dy) have fixed function (k) and
-        /// independent function (p) that is part of derivative. Note that u is state
-        /// variable for which matrix equations will be formed.
-        struct DerivativeFunction
-        {
-            DerivativeFunction(std::unique_ptr<IValue> fixedValue,
-                               std::unique_ptr<IValue> derivativeValue);
-
-            std::unique_ptr<IValue> fixedValue;
-            std::unique_ptr<IValue> derivativeValue;
-        };
-
         template<typename T, typename U>
         void DpDu(T & t,
                   U & u,
@@ -199,6 +190,24 @@ namespace MoisThermFEM
         const Material & m_Material;
 
     private:
+
+		//! \brief Used to evaluate complex differential equation with two variable functions. One
+		//! standing as multiplicator and other one as part of derivative. Equation k*(Dp/Dx)(Du/Dx)
+		//! + k*(Dp/Dy)(Du/Dy) have fixed function (k) and independent function (p) that is part of
+		//! derivative. Note that u is state variable for which matrix equations will be formed.
+		struct DerivativeFunction
+		{
+			DerivativeFunction(
+				std::unique_ptr<IValue>
+				fixedValue,   //!< Stands as free function (equal to k from above comment)
+				std::unique_ptr<IValue>
+				derivativeValue   //!< Stands as derivative function (equal to p from above comment)
+			);
+
+			std::unique_ptr<IValue> fixedValue;
+			std::unique_ptr<IValue> derivativeValue;
+		};
+
         std::vector<iValue> m_DDuFunctions;
         std::vector<iValue> m_CapacitanceFunctions;
         std::vector<DerivativeFunction> m_DpDuFunctions;
