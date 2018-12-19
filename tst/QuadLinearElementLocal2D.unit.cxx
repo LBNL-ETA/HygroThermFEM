@@ -25,7 +25,7 @@ TEST_F( TestQuadLinearElementLocal2D, TestIntegrationPoint1 ) {
 
     // Psi
     std::vector< double > correctPsi = { 0.622008468, 0.166666667, 0.044658199, 0.166666667 };
-    auto psi = aElement.VPsi( IntegrationPoint );
+    auto psi = aElement.Psi( IntegrationPoint );
 
     EXPECT_EQ( correctPsi.size(), psi.size() );
 
@@ -35,7 +35,7 @@ TEST_F( TestQuadLinearElementLocal2D, TestIntegrationPoint1 ) {
 
     // PsiDKsi
     std::vector< double > correctPsiDKsi = { -0.394337567, 0.394337567, 0.105662433, -0.105662433 };
-    auto psiDKsi = aElement.VPsiDKsi( IntegrationPoint );
+    auto psiDKsi = aElement.PsiDKsi( IntegrationPoint );
 
     EXPECT_EQ( correctPsiDKsi.size(), psiDKsi.size() );
 
@@ -45,7 +45,7 @@ TEST_F( TestQuadLinearElementLocal2D, TestIntegrationPoint1 ) {
 
     // PsiDEta
     std::vector< double > correctPsiDEta = { -0.394337567, -0.105662433, 0.105662433, 0.394337567 };
-    auto psiDEta = aElement.VPsiDEta( IntegrationPoint );
+    auto psiDEta = aElement.PsiDEta( IntegrationPoint );
 
     EXPECT_EQ( correctPsiDEta.size(), psiDEta.size() );
 
@@ -64,7 +64,7 @@ TEST_F( TestQuadLinearElementLocal2D, TestIntegrationPoint2 ) {
 
     // Psi
     std::vector< double > correctPsi = { 0.166666667, 0.622008468, 0.166666667, 0.044658199 };
-    auto psi = aElement.VPsi( IntegrationPoint );
+    auto psi = aElement.Psi( IntegrationPoint );
 
     EXPECT_EQ( correctPsi.size(), psi.size() );
 
@@ -74,7 +74,7 @@ TEST_F( TestQuadLinearElementLocal2D, TestIntegrationPoint2 ) {
 
     // PsiDKsi
     std::vector< double > correctPsiDKsi = { -0.394337567, 0.394337567, 0.105662433, -0.105662433 };
-    auto psiDKsi = aElement.VPsiDKsi( IntegrationPoint );
+    auto psiDKsi = aElement.PsiDKsi( IntegrationPoint );
 
     EXPECT_EQ( correctPsiDKsi.size(), psiDKsi.size() );
 
@@ -84,7 +84,7 @@ TEST_F( TestQuadLinearElementLocal2D, TestIntegrationPoint2 ) {
 
     // PsiDEta
     std::vector< double > correctPsiDEta = { -0.105662433, -0.394337567, 0.394337567, 0.105662433 };
-    auto PsiDEta = aElement.VPsiDEta( IntegrationPoint );
+    auto PsiDEta = aElement.PsiDEta( IntegrationPoint );
 
     EXPECT_EQ( correctPsiDEta.size(), PsiDEta.size() );
 
@@ -103,7 +103,7 @@ TEST_F( TestQuadLinearElementLocal2D, TestIntegrationPoint3 ) {
 
     // Psi
     std::vector< double > correctPsi = { 0.044658199, 0.166666667, 0.622008468, 0.166666667 };
-    auto psi = aElement.VPsi( IntegrationPoint );
+    auto psi = aElement.Psi( IntegrationPoint );
 
     EXPECT_EQ( correctPsi.size(), psi.size() );
 
@@ -113,7 +113,7 @@ TEST_F( TestQuadLinearElementLocal2D, TestIntegrationPoint3 ) {
 
     // PsiDKsi
     std::vector< double > correctPsiDKsi = { -0.105662433, 0.105662433, 0.394337567, -0.394337567 };
-    auto psiDKsi = aElement.VPsiDKsi( IntegrationPoint );
+    auto psiDKsi = aElement.PsiDKsi( IntegrationPoint );
 
     EXPECT_EQ( correctPsiDKsi.size(), psiDKsi.size() );
 
@@ -123,7 +123,7 @@ TEST_F( TestQuadLinearElementLocal2D, TestIntegrationPoint3 ) {
 
     // PsiDEta
     std::vector< double > correctPsiDEta = { -0.105662433, -0.394337567, 0.394337567, 0.105662433 };
-    auto psiDEta = aElement.VPsiDEta( IntegrationPoint );
+    auto psiDEta = aElement.PsiDEta( IntegrationPoint );
 
     EXPECT_EQ( correctPsiDEta.size(), psiDEta.size() );
 
@@ -142,7 +142,7 @@ TEST_F( TestQuadLinearElementLocal2D, TestIntegrationPoint4 ) {
 
     // Psi
     std::vector< double > correctPsi = { 0.166666667, 0.044658199, 0.166666667, 0.622008468 };
-    auto psi = aElement.VPsi( integrationPoint );
+    auto psi = aElement.Psi( integrationPoint );
 
     EXPECT_EQ( correctPsi.size(), psi.size() );
 
@@ -152,7 +152,7 @@ TEST_F( TestQuadLinearElementLocal2D, TestIntegrationPoint4 ) {
 
     // PsiDKsi
     std::vector< double > correctPsiDKsi = { -0.105662433, 0.105662433, 0.394337567, -0.394337567 };
-    auto psiDKsi = aElement.VPsiDKsi( integrationPoint );
+    auto psiDKsi = aElement.PsiDKsi( integrationPoint );
 
     EXPECT_EQ( correctPsiDKsi.size(), psiDKsi.size() );
 
@@ -162,7 +162,7 @@ TEST_F( TestQuadLinearElementLocal2D, TestIntegrationPoint4 ) {
 
     // PsiDEta
     std::vector< double > correctPsiDEta = { -0.394337567, -0.105662433, 0.105662433, 0.394337567 };
-    auto psiDEta = aElement.VPsiDEta( integrationPoint );
+    auto psiDEta = aElement.PsiDEta( integrationPoint );
 
     EXPECT_EQ( correctPsiDEta.size(), psiDEta.size() );
 

@@ -74,40 +74,76 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 
+<p>Container for all boundary conditions.  
+ <a href="class_mois_therm_f_e_m_1_1_boundary_conditions2_d.html#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="_boundary_conditions2_d_8hxx_source.html">BoundaryConditions2D.hxx</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:aafeda777fc54d4f781319c9fde88b1dd"><td class="memItemLeft" align="right" valign="top"><a id="aafeda777fc54d4f781319c9fde88b1dd"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>BoundaryConditions2D</b> (const <a class="el" href="class_mois_therm_f_e_m_1_1_boundary_conditions2_d.html">BoundaryConditions2D</a> &amp;other)=delete</td></tr>
+<tr class="memitem:a47aace2b62e3668e75352f2e6659e7af"><td class="memItemLeft" align="right" valign="top"><a id="a47aace2b62e3668e75352f2e6659e7af"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_mois_therm_f_e_m_1_1_boundary_conditions2_d.html#a47aace2b62e3668e75352f2e6659e7af">BoundaryConditions2D</a> ()</td></tr>
+<tr class="memdesc:a47aace2b62e3668e75352f2e6659e7af"><td class="mdescLeft">&#160;</td><td class="mdescRight">Simple constructor. <br /></td></tr>
+<tr class="separator:a47aace2b62e3668e75352f2e6659e7af"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aafeda777fc54d4f781319c9fde88b1dd"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_mois_therm_f_e_m_1_1_boundary_conditions2_d.html#aafeda777fc54d4f781319c9fde88b1dd">BoundaryConditions2D</a> (const <a class="el" href="class_mois_therm_f_e_m_1_1_boundary_conditions2_d.html">BoundaryConditions2D</a> &amp;other)=delete</td></tr>
 <tr class="separator:aafeda777fc54d4f781319c9fde88b1dd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5ce4027629e0e105be056ff0075f67fe"><td class="memItemLeft" align="right" valign="top"><a class="el" href="class_fenestration_common_1_1_square_matrix.html">FenestrationCommon::SquareMatrix</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_mois_therm_f_e_m_1_1_boundary_conditions2_d.html#a5ce4027629e0e105be056ff0075f67fe">HMatrix</a> () const</td></tr>
+<tr class="memdesc:a5ce4027629e0e105be056ff0075f67fe"><td class="mdescLeft">&#160;</td><td class="mdescRight">Assembled H matrix from all boundary conditions.  <a href="#a5ce4027629e0e105be056ff0075f67fe">More...</a><br /></td></tr>
 <tr class="separator:a5ce4027629e0e105be056ff0075f67fe"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab9b1005de2bf6c5fe0c8b5dbaf803190"><td class="memItemLeft" align="right" valign="top"><a id="ab9b1005de2bf6c5fe0c8b5dbaf803190"></a>
 std::vector&lt; double &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_mois_therm_f_e_m_1_1_boundary_conditions2_d.html#ab9b1005de2bf6c5fe0c8b5dbaf803190">RVector</a> () const</td></tr>
-<tr class="memdesc:ab9b1005de2bf6c5fe0c8b5dbaf803190"><td class="mdescLeft">&#160;</td><td class="mdescRight">FenestrationCommon::SquareMatrix&lt; double &gt;DHMatrix() const;. <br /></td></tr>
+<tr class="memdesc:ab9b1005de2bf6c5fe0c8b5dbaf803190"><td class="mdescLeft">&#160;</td><td class="mdescRight">Assembled R vector from all boundary conditions. <br /></td></tr>
 <tr class="separator:ab9b1005de2bf6c5fe0c8b5dbaf803190"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3c6637295e5d0824ccd8c36be9206764"><td class="memItemLeft" align="right" valign="top"><a id="a3c6637295e5d0824ccd8c36be9206764"></a>
-bool&#160;</td><td class="memItemRight" valign="bottom"><b>isLinear</b> () const</td></tr>
+<tr class="memitem:a3c6637295e5d0824ccd8c36be9206764"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_mois_therm_f_e_m_1_1_boundary_conditions2_d.html#a3c6637295e5d0824ccd8c36be9206764">isLinear</a> () const</td></tr>
 <tr class="separator:a3c6637295e5d0824ccd8c36be9206764"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1dd3db422b4a78e146cecf1a6b244f08"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_mois_therm_f_e_m_1_1_boundary_conditions2_d.html#a1dd3db422b4a78e146cecf1a6b244f08">updateNodeValues</a> (const std::vector&lt; double &gt; &amp;values, const <a class="el" href="namespace_mois_therm_f_e_m.html#a61fb55a51dba2080b2a83258fd68c285">BasicVariable</a> property)</td></tr>
-<tr class="separator:a1dd3db422b4a78e146cecf1a6b244f08"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acd85b89f8a5abdf4c766d8b4e38c1be8"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_mois_therm_f_e_m_1_1_boundary_conditions2_d.html#acd85b89f8a5abdf4c766d8b4e38c1be8">updateNodeValues</a> (const std::vector&lt; double &gt; &amp;values, const <a class="el" href="namespace_mois_therm_f_e_m.html#a380693b58bc2d48aeba5ed853d8a0daa">BaseVariable</a> property)</td></tr>
+<tr class="separator:acd85b89f8a5abdf4c766d8b4e38c1be8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a035c242506be2012948873f2ae59082d"><td class="memItemLeft" align="right" valign="top"><a id="a035c242506be2012948873f2ae59082d"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>assignBC</b> (std::unique_ptr&lt; <a class="el" href="class_mois_therm_f_e_m_1_1_i_b_c_linear2_d.html">IBCLinear2D</a> &gt; &amp;&amp;bc)</td></tr>
+void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_mois_therm_f_e_m_1_1_boundary_conditions2_d.html#a035c242506be2012948873f2ae59082d">assignBC</a> (std::unique_ptr&lt; <a class="el" href="class_mois_therm_f_e_m_1_1_i_b_c_linear2_d.html">IBCLinear2D</a> &gt; &amp;&amp;bc)</td></tr>
+<tr class="memdesc:a035c242506be2012948873f2ae59082d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Assign new boundary condition to the pool. <br /></td></tr>
 <tr class="separator:a035c242506be2012948873f2ae59082d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pro-attribs"></a>
 Protected Attributes</h2></td></tr>
-<tr class="memitem:ac429e51b358268b7c30e8204ffc0cd05"><td class="memItemLeft" align="right" valign="top"><a id="ac429e51b358268b7c30e8204ffc0cd05"></a>
+<tr class="memitem:a820b38f061527d0768c5f9f0838ed402"><td class="memItemLeft" align="right" valign="top"><a id="a820b38f061527d0768c5f9f0838ed402"></a>
 std::vector&lt; std::unique_ptr&lt; <a class="el" href="class_mois_therm_f_e_m_1_1_i_b_c_linear2_d.html">IBCLinear2D</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>m_BCs</b></td></tr>
-<tr class="separator:ac429e51b358268b7c30e8204ffc0cd05"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="separator:a820b38f061527d0768c5f9f0838ed402"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7eceb2745688b307356bb4bd0c0fc169"><td class="memItemLeft" align="right" valign="top"><a id="a7eceb2745688b307356bb4bd0c0fc169"></a>
 bool&#160;</td><td class="memItemRight" valign="bottom"><b>m_Linear</b></td></tr>
 <tr class="separator:a7eceb2745688b307356bb4bd0c0fc169"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Container for all boundary conditions. Its responsibility is to create matrix and vector of all boundary conditions. </p>
-</div><h2 class="groupheader">Member Function Documentation</h2>
+<div class="textblock"><p>Container for all boundary conditions. </p>
+<p>Beside simple container that will hold all kinds of boundary conditions, responsibility of this class is to create assembled vector and matrix for all boundary conditions. </p>
+</div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a id="aafeda777fc54d4f781319c9fde88b1dd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aafeda777fc54d4f781319c9fde88b1dd">&#9670;&nbsp;</a></span>BoundaryConditions2D()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">MoisThermFEM::BoundaryConditions2D::BoundaryConditions2D </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="class_mois_therm_f_e_m_1_1_boundary_conditions2_d.html">BoundaryConditions2D</a> &amp;&#160;</td>
+          <td class="paramname"><em>other</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">delete</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Making copy of boundary conditions container is not allowed. Since all changes and updates should be kept at one place. </p>
+
+</div>
+</div>
+<h2 class="groupheader">Member Function Documentation</h2>
 <a id="a5ce4027629e0e105be056ff0075f67fe"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a5ce4027629e0e105be056ff0075f67fe">&#9670;&nbsp;</a></span>HMatrix()</h2>
 
@@ -122,12 +158,32 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><b>m_Linear</b></td></tr
         </tr>
       </table>
 </div><div class="memdoc">
-<p>BoundaryConditions2D::BoundaryConditions2D( std::vector&lt; std::reference_wrapper&lt; IBCLinear2D &gt; &gt; &amp; t_BCs ) : m_BCs( t_BCs ), m_Linear( true ) { for ( const auto &amp; aBc : m_BCs ) { m_Linear = m_Linear &amp;&amp; aBc.get().isLinear(); } } </p>
+
+<p>Assembled H matrix from all boundary conditions. </p>
+<p><a class="el" href="class_mois_therm_f_e_m_1_1_boundary_conditions2_d.html#a47aace2b62e3668e75352f2e6659e7af" title="Simple constructor. ">BoundaryConditions2D::BoundaryConditions2D</a>( std::vector&lt; std::reference_wrapper&lt; IBCLinear2D &gt; &gt; &amp; t_BCs ) : m_BCs( t_BCs ), m_Linear( true ) { for ( const auto &amp; aBc : m_BCs ) { m_Linear = m_Linear &amp;&amp; aBc.get().<a class="el" href="class_mois_therm_f_e_m_1_1_boundary_conditions2_d.html#a3c6637295e5d0824ccd8c36be9206764">isLinear()</a>; } } </p>
 
 </div>
 </div>
-<a id="a1dd3db422b4a78e146cecf1a6b244f08"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a1dd3db422b4a78e146cecf1a6b244f08">&#9670;&nbsp;</a></span>updateNodeValues()</h2>
+<a id="a3c6637295e5d0824ccd8c36be9206764"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3c6637295e5d0824ccd8c36be9206764">&#9670;&nbsp;</a></span>isLinear()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool MoisThermFEM::BoundaryConditions2D::isLinear </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Returns linearity of the problem. It is important for domain to know what set of equations should be applied. </p>
+
+</div>
+</div>
+<a id="acd85b89f8a5abdf4c766d8b4e38c1be8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acd85b89f8a5abdf4c766d8b4e38c1be8">&#9670;&nbsp;</a></span>updateNodeValues()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -141,7 +197,7 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><b>m_Linear</b></td></tr
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const <a class="el" href="namespace_mois_therm_f_e_m.html#a61fb55a51dba2080b2a83258fd68c285">BasicVariable</a>&#160;</td>
+          <td class="paramtype">const <a class="el" href="namespace_mois_therm_f_e_m.html#a380693b58bc2d48aeba5ed853d8a0daa">BaseVariable</a>&#160;</td>
           <td class="paramname"><em>property</em>&#160;</td>
         </tr>
         <tr>
@@ -151,6 +207,7 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><b>m_Linear</b></td></tr
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Used to update new values to nodes once solver finds new solution for any state variable.</p>
 <p>FenestrationCommon::SquareMatrix&lt; double &gt; BoundaryConditions2D::DHMatrix() const { FenestrationCommon::SquareMatrix&lt; double &gt; HDMatrix{ <a class="el" href="class_mois_therm_f_e_m_1_1_node_pool.html#a4289a9d97f1bc686dcd4c751b5a43b8d" title="Access to NodePool singleton. ">NodePool::Instance()</a>.maxIndex() }; for ( const auto &amp; aBc : m_BCs ) { const auto &amp; bc = aBc.get(); auto indexes = bc.getNodeIndexes(); auto matDH = bc.D_HMatrix(); for ( size_t i = 0; i &lt; numOfBCNodes; ++i ) { for ( size_t j = 0; j &lt; numOfBCNodes; ++j ) { HDMatrix[ indexes[ i ] - 1 ][ indexes[ j ] - 1 ] += matDH[ i ][ j ]; } } } return HDMatrix; } </p>
 
 </div>

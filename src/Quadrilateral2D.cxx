@@ -50,13 +50,15 @@ namespace MoisThermFEM
         return m_GaussPoints[IntPointIndex].yg();
     }
 
-    std::vector<double> QuadrilateralLinearGlobal2D::DPsiDx(const size_t IntPointIndex) const
+    const std::vector<double> &
+      QuadrilateralLinearGlobal2D::DPsiDx(const size_t IntPointIndex) const
     {
         assert(IntPointIndex < m_GaussPoints.size());
         return m_GaussPoints[IntPointIndex].getDPsiDx();
     }
 
-    std::vector<double> QuadrilateralLinearGlobal2D::DPsiDy(const size_t IntPointIndex) const
+    const std::vector<double> &
+      QuadrilateralLinearGlobal2D::DPsiDy(const size_t IntPointIndex) const
     {
         assert(IntPointIndex < m_GaussPoints.size());
         return m_GaussPoints[IntPointIndex].getDPsiDy();
@@ -147,12 +149,12 @@ namespace MoisThermFEM
         return m_Yg;
     }
 
-    std::vector<double> QuadrilateralLinearGlobal2D::GaussPoint2DGlobal::getDPsiDx() const
+    const std::vector<double> & QuadrilateralLinearGlobal2D::GaussPoint2DGlobal::getDPsiDx() const
     {
         return m_DPsiDx;
     }
 
-    std::vector<double> QuadrilateralLinearGlobal2D::GaussPoint2DGlobal::getDPsiDy() const
+    const std::vector<double> & QuadrilateralLinearGlobal2D::GaussPoint2DGlobal::getDPsiDy() const
     {
         return m_DPsiDy;
     }

@@ -19,7 +19,7 @@ namespace MoisThermFEM
     //////////////////////////////////////////////////////////////////////////////
     IQLEIntegrator2D::IQLEIntegrator2D(const QuadrilateralLinearGlobal2D & t_Element) :
         m_Global2D{t_Element},
-        m_DPsiDxDyMatrix{numOfQuadrilateralNodes, SquareMatrix{numOfQuadrilateralNodes}}
+        m_IntegrationMatrix{numOfQuadrilateralNodes, SquareMatrix{numOfQuadrilateralNodes}}
     {}
 
     SquareMatrix IQLEIntegrator2D::integrate(const std::vector<double> & t_Values) const
@@ -47,7 +47,7 @@ namespace MoisThermFEM
         assert(t_Values.size() == 4);
         assert(matrix.size() == 4);
 
-        auto & intPointMatrix = m_DPsiDxDyMatrix[t_IntegrationPointIndex];
+        auto & intPointMatrix = m_IntegrationMatrix[t_IntegrationPointIndex];
 
         for(size_t i = 0; i < t_Values.size(); ++i)
         {
@@ -70,11 +70,11 @@ namespace MoisThermFEM
         for(std::size_t integrationPoint = 0; integrationPoint < numOfIntegrationPoints;
             ++integrationPoint)
         {
-            auto DPsiDx = m_Global2D.DPsiDx(integrationPoint);
-            auto DPsiDy = m_Global2D.DPsiDy(integrationPoint);
+            const auto & DPsiDx = m_Global2D.DPsiDx(integrationPoint);
+            const auto & DPsiDy = m_Global2D.DPsiDy(integrationPoint);
             const auto det = m_Global2D.det(integrationPoint);
 
-            auto & DPsiDxDyMatrix = m_DPsiDxDyMatrix[integrationPoint];
+            auto & DPsiDxDyMatrix = m_IntegrationMatrix[integrationPoint];
             for(auto i = 0u; i < DPsiDxDyMatrix.size(); ++i)
             {
                 for(auto j = 0u; j < DPsiDxDyMatrix.size(); ++j)
@@ -103,9 +103,9 @@ namespace MoisThermFEM
         for(std::size_t integrationPoint = 0; integrationPoint < numOfIntegrationPoints;
             ++integrationPoint)
         {
-            const auto & psi = aElement.VPsi(integrationPoint);
-            const auto DPsiDx = m_Global2D.DPsiDx(integrationPoint);
-            const auto DPsiDy = m_Global2D.DPsiDy(integrationPoint);
+            const auto & psi = aElement.Psi(integrationPoint);
+            const auto & DPsiDx = m_Global2D.DPsiDx(integrationPoint);
+            const auto & DPsiDy = m_Global2D.DPsiDy(integrationPoint);
             const auto det = m_Global2D.det(integrationPoint);
 
             auto gammaX = 0.0;
@@ -116,24 +116,18 @@ namespace MoisThermFEM
                 gammaY += DPsiDy[k] * t_Values[k];
             }
 
-            auto & psiPsiMatrix = m_DPsiDxDyMatrix[integrationPoint];
             for(auto i = 0u; i < numOfIntegrationPoints; ++i)
             {
                 for(auto j = 0u; j < numOfIntegrationPoints; ++j)
                 {
-                    psiPsiMatrix(i, j) =
+					m_IntegrationMatrix[integrationPoint](i, j) =
                       det * (DPsiDx[i] * psi[j] * gammaX + DPsiDy[i] * psi[j] * gammaY);
                 }
             }
         }
     }
 
-    void QLEDpDuIntegrator2D::clearIntegrationMatrix()
-    {
-        m_DPsiDxDyMatrix.clear();
-    }
-
-    //////////////////////////////////////////////////////////////////////////////
+	//////////////////////////////////////////////////////////////////////////////
     ///  QLECapacitance2D
     //////////////////////////////////////////////////////////////////////////////
 
@@ -147,15 +141,14 @@ namespace MoisThermFEM
         for(std::size_t integrationPoint = 0; integrationPoint < numOfIntegrationPoints;
             ++integrationPoint)
         {
-            const auto & psi = aElement.VPsi(integrationPoint);
+            const auto & psi = aElement.Psi(integrationPoint);
             const auto det = m_Global2D.det(integrationPoint);
 
-            auto & psiPsiMatrix = m_DPsiDxDyMatrix[integrationPoint];
             for(auto i = 0u; i < numOfIntegrationPoints; ++i)
             {
                 for(auto j = 0u; j < numOfIntegrationPoints; ++j)
                 {
-                    psiPsiMatrix(i, j) = det * psi[i] * psi[j];
+                    m_IntegrationMatrix[integrationPoint](i, j) = det * psi[i] * psi[j];
                 }
             }
         }
@@ -329,15 +322,15 @@ namespace MoisThermFEM
         PropertyVector(propertyVector)
     {}
 
-	//////////////////////////////////////////////////////////////////////////////
-	///  IElementLinear2D::DerivativeFunction
-	//////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////
+    ///  IElementLinear2D::DerivativeFunction
+    //////////////////////////////////////////////////////////////////////////////
 
-	IElementLinear2D::DerivativeFunction::DerivativeFunction(iValue fixedValue,
-															 iValue derivativeValue) :
-		fixedValue(std::move(fixedValue)),
-		derivativeValue(std::move(derivativeValue))
-	{}
+    IElementLinear2D::DerivativeFunction::DerivativeFunction(iValue fixedValue,
+                                                             iValue derivativeValue) :
+        fixedValue(std::move(fixedValue)),
+        derivativeValue(std::move(derivativeValue))
+    {}
 
     //////////////////////////////////////////////////////////////////////////////
     ///  ElementThermalLinear2D
@@ -376,10 +369,11 @@ namespace MoisThermFEM
 
         //////////////////////////////////////////////////////////////////////////
         /// Conductance
-		//////////////////////////////////////////////////////////////////////////
+        //////////////////////////////////////////////////////////////////////////
 
         /// material
-        const auto materialConductivity = TabularFunction(m_Material.thermalConductivity(), Variable::water);
+        const auto materialConductivity =
+          TabularFunction(m_Material.thermalConductivity(), Variable::water);
 
         /// vapor
         const auto delta = Constant(2.5E-5 / m_Material.diffusionResistanceFactor());
@@ -449,11 +443,11 @@ namespace MoisThermFEM
         auto conductance = delta * SaturationFunction();
 
         DDu(conductance);
-        //m_DDuFunctions.emplace_back(new decltype(conductance)(conductance));
-		SaturationFunction sat;
+        // m_DDuFunctions.emplace_back(new decltype(conductance)(conductance));
+        SaturationFunction sat;
 
-		DpDu(delta, sat);
-        //m_DpDuFunctions.emplace_back(std::unique_ptr<IValue>(new decltype(delta)(delta)),
+        DpDu(delta, sat);
+        // m_DpDuFunctions.emplace_back(std::unique_ptr<IValue>(new decltype(delta)(delta)),
         //                             std::unique_ptr<IValue>(new SaturationFunction()));
 
         //////////////////////////////////////////////////////////////////////////////
@@ -467,7 +461,8 @@ namespace MoisThermFEM
         auto sorptionDerivative = TabularDerivative(m_Material.sorptionCurve(), Variable::humidity);
 
         Cap(sorptionDerivative);
-        //m_CapacitanceFunctions.emplace_back(new decltype(sorptionDerivative)(sorptionDerivative));
+        // m_CapacitanceFunctions.emplace_back(new
+        // decltype(sorptionDerivative)(sorptionDerivative));
     }
 
 }   // namespace MoisThermFEM

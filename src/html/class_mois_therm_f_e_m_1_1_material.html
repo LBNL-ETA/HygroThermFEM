@@ -97,24 +97,21 @@ double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="cl
 double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_mois_therm_f_e_m_1_1_material.html#a1bd0bd8583cc5f7bef23b11e4482a4af">porosity</a> () const</td></tr>
 <tr class="memdesc:a1bd0bd8583cc5f7bef23b11e4482a4af"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="class_mois_therm_f_e_m_1_1_material.html" title="Keeps necessary material data. ">Material</a>'s porosity. <br /></td></tr>
 <tr class="separator:a1bd0bd8583cc5f7bef23b11e4482a4af"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3689af007229b13ec6487e719d55a8f9"><td class="memItemLeft" align="right" valign="top"><a id="a3689af007229b13ec6487e719d55a8f9"></a>
-double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_mois_therm_f_e_m_1_1_material.html#a3689af007229b13ec6487e719d55a8f9">thermalConductivity</a> () const</td></tr>
-<tr class="memdesc:a3689af007229b13ec6487e719d55a8f9"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="class_mois_therm_f_e_m_1_1_material.html" title="Keeps necessary material data. ">Material</a>'s thermal conductivity. <br /></td></tr>
-<tr class="separator:a3689af007229b13ec6487e719d55a8f9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a69fcba35d7ab03153fa8a6a0d56bef51"><td class="memItemLeft" align="right" valign="top"><a id="a69fcba35d7ab03153fa8a6a0d56bef51"></a>
 double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_mois_therm_f_e_m_1_1_material.html#a69fcba35d7ab03153fa8a6a0d56bef51">diffusionResistanceFactor</a> () const</td></tr>
 <tr class="memdesc:a69fcba35d7ab03153fa8a6a0d56bef51"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="class_mois_therm_f_e_m_1_1_material.html" title="Keeps necessary material data. ">Material</a>'s diffusion resistance factor. <br /></td></tr>
 <tr class="separator:a69fcba35d7ab03153fa8a6a0d56bef51"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3f6d922c7ac4fa2e139c6b76b12e2f19"><td class="memItemLeft" align="right" valign="top"><a id="a3f6d922c7ac4fa2e139c6b76b12e2f19"></a>
-std::vector&lt; std::pair&lt; double, double &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>liquidTransportationCurve</b> () const</td></tr>
-<tr class="separator:a3f6d922c7ac4fa2e139c6b76b12e2f19"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3a220ad417b5051226974acbce4cb278"><td class="memItemLeft" align="right" valign="top"><a id="a3a220ad417b5051226974acbce4cb278"></a>
+const std::vector&lt; std::pair&lt; double, double &gt; &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_mois_therm_f_e_m_1_1_material.html#a3a220ad417b5051226974acbce4cb278">thermalConductivity</a> () const</td></tr>
+<tr class="memdesc:a3a220ad417b5051226974acbce4cb278"><td class="mdescLeft">&#160;</td><td class="mdescRight">Thermal conductivity table is (x-water content [kg/m3], y-thermal conductivity[W/(mK)]) <br /></td></tr>
+<tr class="separator:a3a220ad417b5051226974acbce4cb278"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a757baa99223d992a96bd623ab9c9b5e5"><td class="memItemLeft" align="right" valign="top">const std::vector&lt; std::pair&lt; double, double &gt; &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_mois_therm_f_e_m_1_1_material.html#a757baa99223d992a96bd623ab9c9b5e5">liquidTransportationCurve</a> () const</td></tr>
+<tr class="separator:a757baa99223d992a96bd623ab9c9b5e5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3cfddf310a7fdaa4343b275a4f140724"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_mois_therm_f_e_m_1_1_material.html#a3cfddf310a7fdaa4343b275a4f140724">waterContent</a> (const <a class="el" href="class_mois_therm_f_e_m_1_1_node2_d.html">Node2D</a> &amp;node, <a class="el" href="namespace_mois_therm_f_e_m.html#a505779c8d6a9ea2940c9bd1e3b4e7c1c">WaterContent</a> waterContent) const</td></tr>
 <tr class="memdesc:a3cfddf310a7fdaa4343b275a4f140724"><td class="mdescLeft">&#160;</td><td class="mdescRight">Water content for given node.  <a href="#a3cfddf310a7fdaa4343b275a4f140724">More...</a><br /></td></tr>
 <tr class="separator:a3cfddf310a7fdaa4343b275a4f140724"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af1bb36112ae74efb481e7476b145384c"><td class="memItemLeft" align="right" valign="top"><a id="af1bb36112ae74efb481e7476b145384c"></a>
-std::vector&lt; std::pair&lt; double, double &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_mois_therm_f_e_m_1_1_material.html#af1bb36112ae74efb481e7476b145384c">sorptionCurve</a> () const</td></tr>
-<tr class="memdesc:af1bb36112ae74efb481e7476b145384c"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="class_mois_therm_f_e_m_1_1_material.html" title="Keeps necessary material data. ">Material</a>'s sorption curve. <br /></td></tr>
-<tr class="separator:af1bb36112ae74efb481e7476b145384c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af207bf741513b3897c515f9345c1dde1"><td class="memItemLeft" align="right" valign="top">const std::vector&lt; std::pair&lt; double, double &gt; &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_mois_therm_f_e_m_1_1_material.html#af207bf741513b3897c515f9345c1dde1">sorptionCurve</a> () const</td></tr>
+<tr class="separator:af207bf741513b3897c515f9345c1dde1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="friends"></a>
 Friends</h2></td></tr>
@@ -139,6 +136,42 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><b>operator&gt;=</b> (co
 <div class="textblock"><p>Keeps necessary material data. </p>
 <p><a class="el" href="class_mois_therm_f_e_m_1_1_material.html" title="Keeps necessary material data. ">Material</a> data necessary for mass and thermal transfer are held in this class. Mainly used as storage. No heavy calculations are performed by this class. </p>
 </div><h2 class="groupheader">Member Function Documentation</h2>
+<a id="a757baa99223d992a96bd623ab9c9b5e5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a757baa99223d992a96bd623ab9c9b5e5">&#9670;&nbsp;</a></span>liquidTransportationCurve()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">const std::vector&lt; std::pair&lt; double, double &gt; &gt; &amp; MoisThermFEM::Material::liquidTransportationCurve </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Liquid transportation curve of the material. Liquid transportation coefficient shows how much of water can be distributed through the material with certain water content (x-water content [kg/m3], y-water flow [m2/s] </p>
+
+</div>
+</div>
+<a id="af207bf741513b3897c515f9345c1dde1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af207bf741513b3897c515f9345c1dde1">&#9670;&nbsp;</a></span>sorptionCurve()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">const std::vector&lt; std::pair&lt; double, double &gt; &gt; &amp; MoisThermFEM::Material::sorptionCurve </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p><a class="el" href="class_mois_therm_f_e_m_1_1_material.html" title="Keeps necessary material data. ">Material</a>'s sorption curve. Sorption curve or moisture storage function show how much of water content is contained in the material at certain relative humidity (x-relative humidity [-], y-water content [kg/m3]) </p>
+
+</div>
+</div>
 <a id="a3cfddf310a7fdaa4343b275a4f140724"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a3cfddf310a7fdaa4343b275a4f140724">&#9670;&nbsp;</a></span>waterContent()</h2>
 
@@ -169,7 +202,7 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><b>operator&gt;=</b> (co
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">node</td><td>Node for which water content is required. </td></tr>
-    <tr><td class="paramname">waterContent</td><td>Water content property. </td></tr>
+    <tr><td class="paramname">waterContent</td><td>Water content property (total water, liquid, vapor or ice). </td></tr>
   </table>
   </dd>
 </dl>
