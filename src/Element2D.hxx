@@ -150,6 +150,8 @@ namespace MoisThermFEM
         //! Integrates right hand-side vector.
         std::vector<double> rightSideVector() const;
 
+        std::vector<double> flux() const;
+
         Node2D & getNode(std::size_t index);
 
         //! Returns true of element have both nodes. This is used to test if certain boundary
@@ -200,6 +202,14 @@ namespace MoisThermFEM
         {
             m_DpDuFunctions.emplace_back(std::unique_ptr<T>(new T(t)),
                                          std::unique_ptr<U>(new U(u)));
+        }
+
+        //! Template function that will create functions used in equivalent material conductivity
+        //! and therefore used in flux calculations.
+        template<typename T>
+        void Cond(T & t, typename std::enable_if<std::is_base_of<IValue, T>::value, T>::type * = 0)
+        {
+            m_ConductanceFunctions.emplace_back(std::unique_ptr<T>(new T(t)));
         }
 
         //! \brief Supports multiplication of between matrix and vector in differential equations.
@@ -262,6 +272,8 @@ namespace MoisThermFEM
         };
 
         std::vector<iValue> m_DDuFunctions;
+        std::vector<iValue> m_ConductanceFunctions;
+        Variable m_FluxVariable;   // State variable used to calculate flux
         std::vector<iValue> m_CapacitanceFunctions;
         std::vector<DerivativeFunction> m_DpDuFunctions;
 

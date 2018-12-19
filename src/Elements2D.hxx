@@ -22,6 +22,8 @@ namespace MoisThermFEM
 
         std::vector<double> RVector() const;
 
+        std::vector<double> flux() const;
+
         bool isLinear() const;
 
         void updateNodeValues(const std::vector<double> & values, const BaseVariable property);

@@ -6,7 +6,7 @@
 using MoisThermFEM::NodePool;
 using MoisThermFEM::MaterialPool;
 
-class ConvectionBC_2D_1 : public testing::Test
+class ConvectionBC_2D_SteadyState : public testing::Test
 {
 protected:
     void SetUp() override
@@ -19,7 +19,7 @@ protected:
     }
 };
 
-TEST_F(ConvectionBC_2D_1, TestExample_1)
+TEST_F(ConvectionBC_2D_SteadyState, TestExample_1)
 {
     SCOPED_TRACE("Begin Test: Two elementsCreator example with simple conduction.");
 

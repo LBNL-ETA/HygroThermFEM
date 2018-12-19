@@ -120,14 +120,14 @@ namespace MoisThermFEM
             {
                 for(auto j = 0u; j < numOfIntegrationPoints; ++j)
                 {
-					m_IntegrationMatrix[integrationPoint](i, j) =
+                    m_IntegrationMatrix[integrationPoint](i, j) =
                       det * (DPsiDx[i] * psi[j] * gammaX + DPsiDy[i] * psi[j] * gammaY);
                 }
             }
         }
     }
 
-	//////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////
     ///  QLECapacitance2D
     //////////////////////////////////////////////////////////////////////////////
 
@@ -249,6 +249,27 @@ namespace MoisThermFEM
             result += m_QLECapacitance2D.integrate(values);
         }
         return result;
+    }
+
+    std::vector<double> IElementLinear2D::flux() const
+    {
+		const auto numOfIntegrationPoints = IntegrationPoints2D::Instance().count2D();
+		std::vector<double> results;
+		for (const auto & cond : m_ConductanceFunctions)
+		{
+			const auto values = cond->values(m_Nodes);
+			assert(values.size() == numOfQuadrilateralNodes);
+			for ( size_t i = 0; i < numOfIntegrationPoints; ++i ) {
+				const auto DPsiDx =  m_Global2D.DPsiDx(i);
+				assert(DPsiDx.size() == numOfIntegrationPoints);
+				double temp{0};
+				for ( size_t j = 0; j < values.size(); ++j ) {
+					temp += DPsiDx[j] * values[j];
+				}
+				results.push_back(temp);
+			}
+		}
+        return results;
     }
 
     Node2D & IElementLinear2D::getNode(const std::size_t index)
@@ -423,6 +444,12 @@ namespace MoisThermFEM
         //////////////////////////////////////////////////////////////////////
         ///  Conduction from airflow
         //////////////////////////////////////////////////////////////////////
+
+        //////////////////////////////////////////////////////////////////////
+        /// Material conductance for flux calculations
+        //////////////////////////////////////////////////////////////////////
+        TabularFunction matCond(m_Material.thermalConductivity(), Variable::water);
+        Cond(matCond);
     }
 
     //////////////////////////////////////////////////////////////////////////////
