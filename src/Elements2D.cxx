@@ -145,12 +145,12 @@ namespace MoisThermFEM
         return result;
     }
 
-    std::vector<double> ElementsLinear2D::flux() const
+    std::vector<NodeFlux> ElementsLinear2D::flux() const
     {
-        std::vector<double> result(NodePool::Instance().maxIndex(), 0);
+        std::vector<NodeFlux> result(NodePool::Instance().maxIndex(), {0, 0});
 
-        std::vector<std::vector<double>> fluxes(NodePool::Instance().maxIndex(),
-                                                std::vector<double>());
+        std::vector<std::vector<NodeFlux>> fluxes(NodePool::Instance().maxIndex(),
+                                                  std::vector<NodeFlux>());
 
         // First pickup all fluxes from elements
         for(const auto & element : m_Elements)
@@ -166,7 +166,13 @@ namespace MoisThermFEM
         // Now need to average them
         for(size_t j = 0; j < fluxes.size(); ++j)
         {
-            result[j] = std::accumulate(fluxes[j].begin(), fluxes[j].end(), 0.0) / fluxes[j].size();
+            const double x = std::accumulate(
+                         fluxes[j].begin(), fluxes[j].end(), 0.0, [&](double lhs, NodeFlux & a) { return lhs + a.x; })
+                       / fluxes[j].size();
+            const double y = std::accumulate(
+                         fluxes[j].begin(), fluxes[j].end(), 0.0, [&](double lhs, NodeFlux & a) { return lhs + a.y; })
+                       / fluxes[j].size();
+            result[j] = { x, y };
         }
 
         return result;

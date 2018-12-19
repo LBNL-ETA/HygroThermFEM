@@ -30,7 +30,8 @@ namespace MoisThermFEM
           double t_DTime          //!< Timestep in transient solution
         );
 
-        std::vector<double> flux() const;
+        //! Returns flux in x and y direction
+        std::vector< NodeFlux > flux() const;
 
         //! Adds element into domain
         virtual void createElement(

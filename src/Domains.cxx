@@ -61,7 +61,7 @@ namespace MoisThermFEM
         auto A = transientM_K_H_Matrix(t_DTime);
 
         // This is just for debugging purposes since Eigen vector is invisible.
-        //auto test = A.toVector();
+        // auto test = A.toVector();
 
         auto B = transientMT_R_Vector(currentStateValues, t_DTime);
 
@@ -139,7 +139,7 @@ namespace MoisThermFEM
     IDomain::IDomain(const BaseVariable property) : m_Property(property)
     {}
 
-    std::vector<double> IDomain::flux() const
+    std::vector<NodeFlux> IDomain::flux() const
     {
         return m_Elements.flux();
     }

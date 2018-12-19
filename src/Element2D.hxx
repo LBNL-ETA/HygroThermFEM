@@ -108,6 +108,15 @@ namespace MoisThermFEM
         QLECapacitanceIntegrator2D(const QuadrilateralLinearGlobal2D & t_Element);
     };
 
+    //! Simple structure to hold (x, y) direction of heat flux in the node.
+    struct NodeFlux
+    {
+        NodeFlux(double t_x, double t_y) : x(t_x), y(t_y)
+        {}
+        double x;
+        double y;
+    };
+
     //////////////////////////////////////////////////////////////////////////////
     ///  IElementLinear2D
     //////////////////////////////////////////////////////////////////////////////
@@ -134,6 +143,8 @@ namespace MoisThermFEM
           const size_t index3,                //!< Node 3 index
           const size_t index4,                //!< Node 4 index
           const std::string & materialName,   //!< Material assigned to the element
+          const Variable
+            variable,   //! Variable is used to determine for which property flux will be calculated
           const bool isLinear = true   //!< States if element equations can be solved by linear
                                        //!< approach or non-linear iterations needs to be used.
         );
@@ -150,7 +161,7 @@ namespace MoisThermFEM
         //! Integrates right hand-side vector.
         std::vector<double> rightSideVector() const;
 
-        std::vector<double> flux() const;
+        std::vector<NodeFlux> flux() const;
 
         Node2D & getNode(std::size_t index);
 
@@ -252,6 +263,7 @@ namespace MoisThermFEM
         }
 
         const Material & m_Material;
+        Variable m_FluxVariable;   // State variable used to calculate flux
 
     private:
         //! \brief Used to evaluate complex differential equation with two variable functions. One
@@ -273,7 +285,6 @@ namespace MoisThermFEM
 
         std::vector<iValue> m_DDuFunctions;
         std::vector<iValue> m_ConductanceFunctions;
-        Variable m_FluxVariable;   // State variable used to calculate flux
         std::vector<iValue> m_CapacitanceFunctions;
         std::vector<DerivativeFunction> m_DpDuFunctions;
 

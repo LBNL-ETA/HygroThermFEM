@@ -163,8 +163,10 @@ namespace MoisThermFEM
                                        const size_t index3,
                                        const size_t index4,
                                        const std::string & materialName,
+                                       const Variable variable,
                                        const bool isLinear) :
         m_Material{MaterialPool::Instance().material(materialName)},
+        m_FluxVariable(variable),
         m_Nodes{NodePool::Instance().getNode(index1),
                 NodePool::Instance().getNode(index2),
                 NodePool::Instance().getNode(index3),
@@ -251,24 +253,55 @@ namespace MoisThermFEM
         return result;
     }
 
-    std::vector<double> IElementLinear2D::flux() const
+    std::vector<NodeFlux> IElementLinear2D::flux() const
     {
-		const auto numOfIntegrationPoints = IntegrationPoints2D::Instance().count2D();
-		std::vector<double> results;
-		for (const auto & cond : m_ConductanceFunctions)
-		{
-			const auto values = cond->values(m_Nodes);
-			assert(values.size() == numOfQuadrilateralNodes);
-			for ( size_t i = 0; i < numOfIntegrationPoints; ++i ) {
-				const auto DPsiDx =  m_Global2D.DPsiDx(i);
-				assert(DPsiDx.size() == numOfIntegrationPoints);
-				double temp{0};
-				for ( size_t j = 0; j < values.size(); ++j ) {
-					temp += DPsiDx[j] * values[j];
-				}
-				results.push_back(temp);
-			}
-		}
+        const auto numOfIntegrationPoints = IntegrationPoints2D::Instance().count2D();
+        std::vector<NodeFlux> results;
+        for(const auto & cond : m_ConductanceFunctions)
+        {
+            const auto values = m_Nodes.properties(m_FluxVariable);
+            const auto k = cond->values(m_Nodes);
+            assert(k.size() == numOfQuadrilateralNodes);
+            assert(values.size() == numOfQuadrilateralNodes);
+
+            // First calculate Dt/Dx and Dt/Dy in Gauss points
+            std::vector<double> VDtDx(numOfIntegrationPoints, 0);
+            std::vector<double> VDtDy(numOfIntegrationPoints, 0);
+            for(size_t i = 0; i < numOfIntegrationPoints; ++i)
+            {
+                const auto DPsiDx = m_Global2D.DPsiDx(i);
+                const auto DPsiDy = m_Global2D.DPsiDy(i);
+                assert(DPsiDx.size() == numOfIntegrationPoints);
+                double DtDx{0};
+                double DtDy{0};
+                for(size_t j = 0; j < values.size(); ++j)
+                {
+                    DtDx += DPsiDx[j] * values[j];
+                    DtDy += DPsiDy[j] * values[j];
+                }
+                VDtDx[i] = DtDx;
+                VDtDy[i] = DtDy;
+            }
+
+            // Extrapolate flux from Gauss points to nodes.
+            const auto a = 1.866025404;
+            const auto b = -0.5;
+            const auto c = 0.133974596;
+            const std::vector<std::vector<double>> extrapolationCoefficients{
+              {a, b, c, b}, {b, a, b, c}, {c, b, a, b}, {b, c, b, a}};
+
+            for(size_t i = 0u; i < numOfQuadrilateralNodes; ++i)
+            {
+                auto valX{0.0};
+                auto valY{0.0};
+                for(const auto val : extrapolationCoefficients[i])
+                {
+                    valX -= k[i] * VDtDx[i] * val;
+                    valY -= k[i] * VDtDy[i] * val;
+                }
+                results.emplace_back(valX, valY);
+            }
+        }
         return results;
     }
 
@@ -362,7 +395,7 @@ namespace MoisThermFEM
                                                    const size_t index3,
                                                    const size_t index4,
                                                    const std::string & materialName) :
-        IElementLinear2D(index1, index2, index3, index4, materialName)
+        IElementLinear2D(index1, index2, index3, index4, materialName, Variable::temperature)
     {
         //////////////////////////////////////////////////////////////////////////////////////
         /// Capacitance functions
@@ -461,7 +494,7 @@ namespace MoisThermFEM
                                                      const size_t index3,
                                                      const size_t index4,
                                                      const std::string & materialName) :
-        IElementLinear2D(index1, index2, index3, index4, materialName, false)
+        IElementLinear2D(index1, index2, index3, index4, materialName, Variable::water, false)
     {
         //////////////////////////////////////////////////////////////////////////////
         /// Water vapor diffusion

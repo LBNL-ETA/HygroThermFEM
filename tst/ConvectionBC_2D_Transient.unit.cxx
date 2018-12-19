@@ -76,12 +76,14 @@ TEST_F(ConvectionBC_2D_Transient, TestExample_1)
     const auto nSteps = 4;
 
     auto temperatures = NodePool::Instance().properties(MoisThermFEM::Variable::temperature);
-    std::vector<std::vector<double>> solution;
+    std::vector<std::vector<double>> temperaturesSolution;
+    std::vector<std::vector<MoisThermFEM::NodeFlux>> fluxSolution;
 
     for(unsigned i = 0; i < nSteps; ++i)
     {
         temperatures = domain.transient(temperatures, dTime);
-        solution.push_back(temperatures);
+        temperaturesSolution.push_back(temperatures);
+        fluxSolution.push_back(domain.flux());
     }
 
     std::vector<std::vector<double>> correctTemperatureSolution{
@@ -90,13 +92,40 @@ TEST_F(ConvectionBC_2D_Transient, TestExample_1)
       {1.788809043, 1.788809043, -2.264759626, -2.264759626, -10.15443472, -10.15443472},
       {1.680631717, 1.680631717, -2.977820826, -2.977820826, -11.08768765, -11.08768765}};
 
-    EXPECT_EQ(solution.size(), correctTemperatureSolution.size());
+    std::vector<std::vector<MoisThermFEM::NodeFlux>> correctFluxSolution{{{-17.88375616, 0},
+                                                                          {-17.88375616, 0},
+                                                                          {-33.76579929, 0},
+                                                                          {-33.76579929, 0},
+                                                                          {-49.64784241, 0},
+                                                                          {-49.64784241, 0}},
+                                                                         {{-31.29997554, 0},
+                                                                          {-31.29997554, 0},
+                                                                          {-51.04772874, 0},
+                                                                          {-51.04772874, 0},
+                                                                          {-70.79548195, 0},
+                                                                          {-70.79548195, 0}},
+                                                                         {{-40.53568669, 0},
+                                                                          {-40.53568669, 0},
+                                                                          {-59.71621882, 0},
+                                                                          {-59.71621882, 0},
+                                                                          {-78.89675094, 0},
+                                                                          {-78.89675094, 0}},
+                                                                         {{-46.58452543, 0},
+                                                                          {-46.58452543, 0},
+                                                                          {-63.84159682, 0},
+                                                                          {-63.84159682, 0},
+                                                                          {-81.09866822, 0},
+                                                                          {-81.09866822, 0}}};
+
+    EXPECT_EQ(temperaturesSolution.size(), correctTemperatureSolution.size());
 
     for(auto i = 0u; i < correctTemperatureSolution.size(); ++i)
     {
         for(auto j = 0u; j < correctTemperatureSolution[i].size(); ++j)
         {
-            EXPECT_NEAR(correctTemperatureSolution[i][j], solution[i][j], 1e-6);
+            EXPECT_NEAR(correctTemperatureSolution[i][j], temperaturesSolution[i][j], 1e-6);
+            EXPECT_NEAR(correctFluxSolution[i][j].x, fluxSolution[i][j].x, 1e-6);
+            EXPECT_NEAR(correctFluxSolution[i][j].y, fluxSolution[i][j].y, 1e-6);
         }
     }
 }
