@@ -22,13 +22,15 @@ namespace MoisThermFEM
 
         std::vector<double> RVector() const;
 
+        std::vector<NodeFlux> flux() const;
+
         bool isLinear() const;
 
         void updateNodeValues(const std::vector<double> & values, const BaseVariable property);
 
-        IElementLinear2D * findElement( const size_t index1, const size_t index2 );
+        IElementLinear2D * findElement(const size_t index1, const size_t index2);
 
-        void assignElement( std::unique_ptr< IElementLinear2D > && el );
+        void assignElement(std::unique_ptr<IElementLinear2D> && el);
 
     protected:
         /// FenestrationCommon::SquareMatrix< double > m_Conductance;

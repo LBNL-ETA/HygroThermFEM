@@ -87,7 +87,7 @@ namespace MoisThermFEM
         return m_Ksi[IntegrationPointIndex]->PsiDEta(Index);
     }
 
-    std::vector<double> QuadrilateralLinearLocal2D::VPsi(size_t const IntegrationPointIndex) const
+    const std::vector<double> & QuadrilateralLinearLocal2D::Psi(size_t IntegrationPointIndex) const
     {
         if(IntegrationPointIndex >= m_Ksi.size())
         {
@@ -98,25 +98,25 @@ namespace MoisThermFEM
         return m_Ksi[IntegrationPointIndex]->VPsi();
     }
 
-    std::vector<double>
-      QuadrilateralLinearLocal2D::VPsiDKsi(size_t const IntegrationPointIndex) const
+    const std::vector<double> &
+      QuadrilateralLinearLocal2D::PsiDKsi(size_t IntegrationPointIndex) const
     {
         if(IntegrationPointIndex >= m_Ksi.size())
         {
             throw std::runtime_error(
-              "Integration point index out of range. Function QuadElement2DLinearLocal::VPsiDKsi.");
+              "Integration point index out of range. Function QuadElement2DLinearLocal::PsiDKsi.");
         }
 
         return m_Ksi[IntegrationPointIndex]->VPsiDKsi();
     }
 
-    std::vector<double>
-      QuadrilateralLinearLocal2D::VPsiDEta(size_t const IntegrationPointIndex) const
+    const std::vector<double> &
+      QuadrilateralLinearLocal2D::PsiDEta(size_t IntegrationPointIndex) const
     {
         if(IntegrationPointIndex >= m_Ksi.size())
         {
             throw std::runtime_error(
-              "Integration point index out of range. Function QuadElement2DLinearLocal::VPsiDEta.");
+              "Integration point index out of range. Function QuadElement2DLinearLocal::PsiDEta.");
         }
 
         return m_Ksi[IntegrationPointIndex]->VPsiDEta();

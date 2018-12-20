@@ -45,17 +45,17 @@ namespace MoisThermFEM
         return m_PsiDEta[Index];
     }
 
-    std::vector<double> ILocalShapeFunctions2DQuadrilateral::VPsi() const
+    const std::vector<double> & ILocalShapeFunctions2DQuadrilateral::VPsi() const
     {
         return m_Psi;
     }
 
-    std::vector<double> ILocalShapeFunctions2DQuadrilateral::VPsiDKsi() const
+    const std::vector<double> & ILocalShapeFunctions2DQuadrilateral::VPsiDKsi() const
     {
         return m_PsiDKsi;
     }
 
-    std::vector<double> ILocalShapeFunctions2DQuadrilateral::VPsiDEta() const
+    const std::vector<double> & ILocalShapeFunctions2DQuadrilateral::VPsiDEta() const
     {
         return m_PsiDEta;
     }

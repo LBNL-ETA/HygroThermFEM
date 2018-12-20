@@ -6,7 +6,7 @@
 using MoisThermFEM::NodePool;
 using MoisThermFEM::MaterialPool;
 
-class ConvectionBC_2D_2 : public testing::Test
+class ConvectionBC_2D_TransientNoChanges : public testing::Test
 {
 protected:
     void SetUp() override
@@ -19,7 +19,7 @@ protected:
     }
 };
 
-TEST_F(ConvectionBC_2D_2, TestExample_1)
+TEST_F(ConvectionBC_2D_TransientNoChanges, TestExample_1)
 {
     SCOPED_TRACE("Begin Test: Three elements with simple convection BC.");
 
@@ -39,32 +39,32 @@ TEST_F(ConvectionBC_2D_2, TestExample_1)
         NodePool::Instance().createNode(nodeIndex, val, 0.05, state);
     }
 
-    auto & material =
-      MaterialPool::Instance().createMaterial("Cottaer Sandstone",
-                                              2050,      /// density
-                                              0.22,      /// porosity
-                                              850,       /// specific heat capacity (dry)
-                                              1.8,       /// thermal conductivity (dry)
-                                              15,        /// diffusion resistance factor
-                                              {{0, 0},   /// liquid transportation coefficient
-                                               {27, 1E-8},
-                                               {45, 1.1E-8},
-                                               {90, 2E-8},
-                                               {126, 3.5E-8},
-                                               {144, 5E-8},
-                                               {162, 1E-7},
-                                               {171, 2E-7},
-                                               {180, 7E-7}},
-                                              {{0, 0},   /// sorption curve
-                                               {0.5, 5.3},
-                                               {0.65, 8.4},
-                                               {0.8, 12},
-                                               {0.93, 17},
-                                               {0.95, 25},
-                                               {0.99, 63},
-                                               {0.995, 83},
-                                               {0.999, 120},
-                                               {1, 180}});
+    auto & material = MaterialPool::Instance().createMaterial(
+      "Cottaer Sandstone",
+      2050,                       /// density
+      0.22,                       /// porosity
+      850,                        /// specific heat capacity (dry)
+      15,                         /// diffusion resistance factor
+      {{0.0, 1.8}, {180, 1.8}},   /// thermal conductivity as function of water content
+      {{0, 0},   /// liquid transportation coefficient (Water flow as function of water content)
+       {27, 1E-8},
+       {45, 1.1E-8},
+       {90, 2E-8},
+       {126, 3.5E-8},
+       {144, 5E-8},
+       {162, 1E-7},
+       {171, 2E-7},
+       {180, 7E-7}},
+      {{0, 0},   /// sorption curve (water content as function of relative humidity)
+       {0.5, 5.3},
+       {0.65, 8.4},
+       {0.8, 12},
+       {0.93, 17},
+       {0.95, 25},
+       {0.99, 63},
+       {0.995, 83},
+       {0.999, 120},
+       {1, 180}});
 
     MoisThermFEM::ThermalDomain domain;
 

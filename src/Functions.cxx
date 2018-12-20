@@ -104,17 +104,27 @@ namespace MoisThermFEM
         return std::make_pair(pt1, pt2);
     }
 
-    double TabularFunction::max() const
+    double TabularFunction::maxX() const
+    {
+        return m_Curve.back().first;
+    }
+
+    double TabularFunction::maxY() const
     {
         return m_Curve.back().second;
     }
 
-    double TabularFunction::min() const
+    double TabularFunction::minX() const
+    {
+        return m_Curve.front().first;
+    }
+
+    double TabularFunction::minY() const
     {
         return m_Curve.front().second;
     }
 
-    std::vector<std::pair<double, double>> TabularFunction::getCurve() const
+    const std::vector<std::pair<double, double>> & TabularFunction::getCurve() const
     {
         return m_Curve;
     }
@@ -217,9 +227,9 @@ namespace MoisThermFEM
         return temp;
     }
 
-	//////////////////////////////////////////////////////////////////
-	///  Heat of evaporation
-	//////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////
+    ///  Heat of evaporation
+    //////////////////////////////////////////////////////////////////
 
     double HeatOfEvaporation::evaluateFunction(const double t_position) const
     {
@@ -227,5 +237,6 @@ namespace MoisThermFEM
                  - 0.00006 * std::pow(t_position, 3));
     }
 
-	HeatOfEvaporation::HeatOfEvaporation() : IFunction( Variable::temperature) {}
+    HeatOfEvaporation::HeatOfEvaporation() : IFunction(Variable::temperature)
+    {}
 }   // namespace MoisThermFEM

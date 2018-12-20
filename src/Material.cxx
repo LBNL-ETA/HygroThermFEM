@@ -1,4 +1,5 @@
 #include <cmath>
+#include <iostream>
 
 #include "Material.hxx"
 #include "FEMunique.hxx"
@@ -11,19 +12,39 @@ namespace MoisThermFEM
                        const double Density,
                        const double Porosity,
                        const double HeatCapacity,
-                       const double ThermalConductivity,
                        const double DiffusionResistanceFactor,
+                       const std::vector<std::pair<double, double>> & ThermalConductivity,
                        const std::vector<std::pair<double, double>> & LiquidTransportCurve,
                        const std::vector<std::pair<double, double>> & SorptionCurve) :
         m_Name(Name),
         m_Density(Density),
         m_Porosity(Porosity),
         m_HeatCapacity(HeatCapacity),
-        m_ThermalConductivity(ThermalConductivity),
         m_DiffusionResistanceFactor(DiffusionResistanceFactor),
+        m_ThermalConductivity(new TabularFunction(ThermalConductivity, Variable::water)),
         m_LiquidTransportCoefficient(new SuctionCurve(LiquidTransportCurve)),
         m_SorptionCurve(new TabularFunction(SorptionCurve, Variable::humidity))
-    {}
+    {
+        try
+        {
+            if(m_ThermalConductivity->maxX() != m_SorptionCurve->maxY())
+            {
+                throw std::runtime_error(
+                  "Thermal conductivity curve does not correspond to sorption curve. Maximum water "
+                  "content is not identical in both tables.");
+            }
+            if(m_LiquidTransportCoefficient->maxX() != m_SorptionCurve->maxY())
+            {
+                throw std::runtime_error(
+                  "Liquid transportation coefficient table does not correspond to sorption curve. "
+                  "Maximum water content is not identical in both tables.");
+            }
+        }
+        catch(const std::runtime_error & e)
+        {
+            std::cout << e.what();
+        }
+    }
 
     bool operator<(const Material & lhs, const Material & rhs)
     {
@@ -60,17 +81,17 @@ namespace MoisThermFEM
         return m_Porosity;
     }
 
-    double Material::thermalConductivity() const
-    {
-        return m_ThermalConductivity;
-    }
-
     double Material::diffusionResistanceFactor() const
     {
         return m_DiffusionResistanceFactor;
     }
 
-    std::vector<std::pair<double, double>> Material::liquidTransportationCurve() const
+    const std::vector<std::pair<double, double>> & Material::thermalConductivity() const
+    {
+        return m_ThermalConductivity->getCurve();
+    }
+
+    const std::vector<std::pair<double, double>> & Material::liquidTransportationCurve() const
     {
         return m_LiquidTransportCoefficient->getCurve();
     }
@@ -119,7 +140,7 @@ namespace MoisThermFEM
                * (waterContent(node) - vaporContent(node));
     }
 
-    std::vector<std::pair<double, double>> Material::sorptionCurve() const
+    const std::vector<std::pair<double, double>> & Material::sorptionCurve() const
     {
         return m_SorptionCurve->getCurve();
     }
@@ -132,7 +153,7 @@ namespace MoisThermFEM
     double Material::liquidPorosity(const Node2D & node) const
     {
         const auto waterContent = m_SorptionCurve->value(node);
-        const auto maxWaterContent = m_SorptionCurve->max();
+        const auto maxWaterContent = m_SorptionCurve->maxY();
         return waterContent / maxWaterContent * m_Porosity;
     }
 

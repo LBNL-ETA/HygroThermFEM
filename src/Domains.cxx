@@ -30,17 +30,16 @@ namespace MoisThermFEM
     FenestrationCommon::SquareMatrix IDomain::transientM_K_H_Matrix(const double t_DTime)
     {
         auto M = m_Elements.getLumpedMass(t_DTime);
-        // auto M = m_Elements.getMassMatrix( t_DTime );
         auto M_K_H = m_Elements.conductanceMatrix();
         M_K_H = M_K_H.addDiagonal(M);
-        // M_K_H += M;
         M_K_H += m_BCs.HMatrix();
 
         return M_K_H;
     }
 
-    std::vector<double> IDomain::transientMT_R_Vector(const std::vector<double> & t_PreviousSolution,
-                                                     const double t_DTime)
+    std::vector<double>
+      IDomain::transientMT_R_Vector(const std::vector<double> & t_PreviousSolution,
+                                    const double t_DTime)
     {
         std::vector<double> M{m_Elements.getLumpedMass(t_DTime)};
         auto R = m_BCs.RVector() + m_Elements.RVector();
@@ -57,11 +56,12 @@ namespace MoisThermFEM
     }
 
     std::vector<double> IDomain::transient(const std::vector<double> & currentStateValues,
-                                          const double t_DTime)
+                                           const double t_DTime)
     {
         auto A = transientM_K_H_Matrix(t_DTime);
 
-        auto test = A.toVector();
+        // This is just for debugging purposes since Eigen vector is invisible.
+        // auto test = A.toVector();
 
         auto B = transientMT_R_Vector(currentStateValues, t_DTime);
 
@@ -138,6 +138,11 @@ namespace MoisThermFEM
 
     IDomain::IDomain(const BaseVariable property) : m_Property(property)
     {}
+
+    std::vector<NodeFlux> IDomain::flux() const
+    {
+        return m_Elements.flux();
+    }
 
     void ThermalDomain::createConvectionBC(const size_t index1,
                                            const size_t index2,

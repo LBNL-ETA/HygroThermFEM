@@ -27,9 +27,9 @@ namespace MoisThermFEM
         virtual double PsiDKsi(size_t Index) const final;
         virtual double PsiDEta(size_t Index) const final;
 
-        virtual std::vector<double> VPsi() const final;
-        virtual std::vector<double> VPsiDKsi() const final;
-        virtual std::vector<double> VPsiDEta() const final;
+        virtual const std::vector< double > & VPsi() const final;
+        virtual const std::vector< double > & VPsiDKsi() const final;
+        virtual const std::vector< double > & VPsiDEta() const final;
 
     protected:
         double m_Ksi;

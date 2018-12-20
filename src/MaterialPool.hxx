@@ -16,8 +16,8 @@ namespace MoisThermFEM
                          double Density,
                          double Porosity,
                          double HeatCapacity,
-                         double ThermalConductivity,
                          double DiffusionResistanceFactor,
+						 const std::vector<std::pair<double, double>> & ThermalConductivity,
                          const std::vector<std::pair<double, double>> & LiquidTransportCurve,
                          const std::vector<std::pair<double, double>> & SorptionCurve);
 

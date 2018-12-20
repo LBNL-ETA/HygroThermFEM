@@ -97,14 +97,13 @@ Public Member Functions</h2></td></tr>
 &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_mois_therm_f_e_m_1_1_i_q_l_e_integrator2_d.html#a1609a854551d24b4e41600ae131fe395">IQLEIntegrator2D</a> (const <a class="el" href="class_mois_therm_f_e_m_1_1_quadrilateral_linear_global2_d.html">QuadrilateralLinearGlobal2D</a> &amp;t_Element)</td></tr>
 <tr class="memdesc:a1609a854551d24b4e41600ae131fe395"><td class="mdescLeft">&#160;</td><td class="mdescRight">IQLEMatrix2D. <br /></td></tr>
 <tr class="separator:a1609a854551d24b4e41600ae131fe395"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8784ced06ee92be2eb5cdadae8ded844"><td class="memItemLeft" align="right" valign="top"><a id="a8784ced06ee92be2eb5cdadae8ded844"></a>
-virtual <a class="el" href="class_fenestration_common_1_1_square_matrix.html">FenestrationCommon::SquareMatrix</a>&#160;</td><td class="memItemRight" valign="bottom"><b>integrate</b> (const std::vector&lt; double &gt; &amp;t_Values) const final</td></tr>
+<tr class="memitem:a8784ced06ee92be2eb5cdadae8ded844"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="class_fenestration_common_1_1_square_matrix.html">FenestrationCommon::SquareMatrix</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_mois_therm_f_e_m_1_1_i_q_l_e_integrator2_d.html#a8784ced06ee92be2eb5cdadae8ded844">integrate</a> (const std::vector&lt; double &gt; &amp;t_Values) const final</td></tr>
+<tr class="memdesc:a8784ced06ee92be2eb5cdadae8ded844"><td class="mdescLeft">&#160;</td><td class="mdescRight">Integrate matrix over all points of integration.  <a href="#a8784ced06ee92be2eb5cdadae8ded844">More...</a><br /></td></tr>
 <tr class="separator:a8784ced06ee92be2eb5cdadae8ded844"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pro-methods"></a>
 Protected Member Functions</h2></td></tr>
-<tr class="memitem:aa2844cf99fef6bceeb7b9fc1e5bfee27"><td class="memItemLeft" align="right" valign="top"><a id="aa2844cf99fef6bceeb7b9fc1e5bfee27"></a>
-virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>calculateMatrixInIntegrationPoint</b> (<a class="el" href="class_fenestration_common_1_1_square_matrix.html">FenestrationCommon::SquareMatrix</a> &amp;matrix, const std::vector&lt; double &gt; &amp;t_Values, const std::size_t t_IntegrationPointIndex) const final</td></tr>
+<tr class="memitem:aa2844cf99fef6bceeb7b9fc1e5bfee27"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_mois_therm_f_e_m_1_1_i_q_l_e_integrator2_d.html#aa2844cf99fef6bceeb7b9fc1e5bfee27">calculateMatrixInIntegrationPoint</a> (<a class="el" href="class_fenestration_common_1_1_square_matrix.html">FenestrationCommon::SquareMatrix</a> &amp;matrix, const std::vector&lt; double &gt; &amp;t_Values, const std::size_t t_IntegrationPointIndex) const final</td></tr>
 <tr class="separator:aa2844cf99fef6bceeb7b9fc1e5bfee27"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pro-attribs"></a>
@@ -112,13 +111,124 @@ Protected Attributes</h2></td></tr>
 <tr class="memitem:ad8f5b72236bb25b7b1a15ad967eece17"><td class="memItemLeft" align="right" valign="top"><a id="ad8f5b72236bb25b7b1a15ad967eece17"></a>
 const <a class="el" href="class_mois_therm_f_e_m_1_1_quadrilateral_linear_global2_d.html">QuadrilateralLinearGlobal2D</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>m_Global2D</b></td></tr>
 <tr class="separator:ad8f5b72236bb25b7b1a15ad967eece17"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aea2ce37194ef7e40e575f6fa8a7e62f2"><td class="memItemLeft" align="right" valign="top"><a id="aea2ce37194ef7e40e575f6fa8a7e62f2"></a>
-std::vector&lt; <a class="el" href="class_fenestration_common_1_1_square_matrix.html">FenestrationCommon::SquareMatrix</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>m_DPsiDxDyMatrix</b></td></tr>
-<tr class="separator:aea2ce37194ef7e40e575f6fa8a7e62f2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9a23cb7b07b45213724c67b1393d7a52"><td class="memItemLeft" align="right" valign="top">std::vector&lt; <a class="el" href="class_fenestration_common_1_1_square_matrix.html">FenestrationCommon::SquareMatrix</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_mois_therm_f_e_m_1_1_i_q_l_e_integrator2_d.html#a9a23cb7b07b45213724c67b1393d7a52">m_IntegrationMatrix</a></td></tr>
+<tr class="separator:a9a23cb7b07b45213724c67b1393d7a52"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>IQLEMatrix2D. </p>
-</div><hr/>The documentation for this class was generated from the following files:<ul>
+<p>General class for quadratic linear element integrator.</p>
+<p>Hold basic calculations for matrix integration in global coordinate system. Integration is performed over different equations and therefore, different integration matrices will be used. To create new integrator type, user need to inherit from this class. </p>
+</div><h2 class="groupheader">Member Function Documentation</h2>
+<a id="aa2844cf99fef6bceeb7b9fc1e5bfee27"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa2844cf99fef6bceeb7b9fc1e5bfee27">&#9670;&nbsp;</a></span>calculateMatrixInIntegrationPoint()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void MoisThermFEM::IQLEIntegrator2D::calculateMatrixInIntegrationPoint </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="class_fenestration_common_1_1_square_matrix.html">FenestrationCommon::SquareMatrix</a> &amp;&#160;</td>
+          <td class="paramname"><em>matrix</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::vector&lt; double &gt; &amp;&#160;</td>
+          <td class="paramname"><em>t_Values</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::size_t&#160;</td>
+          <td class="paramname"><em>t_IntegrationPointIndex</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">final</span><span class="mlabel">protected</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Helper function that integrates matrix in given integration point. Integration is identical with no matter what integration matrix looks like. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">matrix</td><td>Matrix that integration results will be added to </td></tr>
+    <tr><td class="paramname">t_Values</td><td>Nodal values for which integration will be performed </td></tr>
+    <tr><td class="paramname">t_IntegrationPointIndex</td><td>Integration point </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a8784ced06ee92be2eb5cdadae8ded844"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8784ced06ee92be2eb5cdadae8ded844">&#9670;&nbsp;</a></span>integrate()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="class_fenestration_common_1_1_square_matrix.html">SquareMatrix</a> MoisThermFEM::IQLEIntegrator2D::integrate </td>
+          <td>(</td>
+          <td class="paramtype">const std::vector&lt; double &gt; &amp;&#160;</td>
+          <td class="paramname"><em>t_Values</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">final</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Integrate matrix over all points of integration. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">t_Values</td><td>Nodal values for which integration will be performed </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<h2 class="groupheader">Member Data Documentation</h2>
+<a id="a9a23cb7b07b45213724c67b1393d7a52"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9a23cb7b07b45213724c67b1393d7a52">&#9670;&nbsp;</a></span>m_IntegrationMatrix</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::vector&lt;<a class="el" href="class_fenestration_common_1_1_square_matrix.html">FenestrationCommon::SquareMatrix</a>&gt; MoisThermFEM::IQLEIntegrator2D::m_IntegrationMatrix</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>This matrix will hold different forms of shape functions operations. This will mainly depend on what integrator will be used to integrate matrices. </p>
+
+</div>
+</div>
+<hr/>The documentation for this class was generated from the following files:<ul>
 <li><a class="el" href="_element2_d_8hxx_source.html">Element2D.hxx</a></li>
 <li>Element2D.cxx</li>
 </ul>

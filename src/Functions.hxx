@@ -318,14 +318,20 @@ namespace MoisThermFEM
                                                         //!< between values.
         );
 
+        //! Returns maximum value for first column.
+        double maxX() const;
+
         //! Returns maximum value from second column.
-        double max() const;
+        double maxY() const;
+
+        //! Returns minimum value for first column.
+        double minX() const;
 
         //! Returns minimum value from second column.
-        double min() const;
+        double minY() const;
 
         //! Returns tabular values as standard vector of pairs.
-        std::vector<std::pair<double, double>> getCurve() const;
+		const std::vector< std::pair< double, double>> & getCurve() const;
 
     protected:
         std::vector<std::pair<double, double>> m_Curve;

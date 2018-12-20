@@ -1,3 +1,5 @@
+#include <numeric>
+
 #include "Elements2D.hxx"
 #include "NodePool.hxx"
 
@@ -84,19 +86,20 @@ namespace MoisThermFEM
 
     bool ElementsLinear2D::isLinear() const
     {
-    	bool isLinear = true;
-    	for(auto & elem : m_Elements)
-		{
-    		isLinear = isLinear && elem->isLinear();
-    		if(!isLinear) // no need to waste time in loop
-			{
-    			break;
-			}
-		}
+        bool isLinear = true;
+        for(auto & elem : m_Elements)
+        {
+            isLinear = isLinear && elem->isLinear();
+            if(!isLinear)   // no need to waste time in loop
+            {
+                break;
+            }
+        }
         return isLinear;
     }
 
-    void ElementsLinear2D::updateNodeValues(const std::vector<double> & values, const BaseVariable property)
+    void ElementsLinear2D::updateNodeValues(const std::vector<double> & values,
+                                            const BaseVariable property)
     {
         for(auto & aBc : m_Elements)
         {
@@ -104,12 +107,12 @@ namespace MoisThermFEM
             {
                 auto & node = aBc->getNode(i);
                 auto index = node.getNodeNumber();
-				node.setStateProperty( property, values[ index - 1 ] );
+                node.setStateProperty(property, values[index - 1]);
             }
         }
     }
 
-    IElementLinear2D * ElementsLinear2D::findElement( const size_t index1, const size_t index2 )
+    IElementLinear2D * ElementsLinear2D::findElement(const size_t index1, const size_t index2)
     {
         IElementLinear2D * el = nullptr;
         for(auto & element : m_Elements)
@@ -122,25 +125,58 @@ namespace MoisThermFEM
         return el;
     }
 
-    void ElementsLinear2D::assignElement( std::unique_ptr< IElementLinear2D > && el )
+    void ElementsLinear2D::assignElement(std::unique_ptr<IElementLinear2D> && el)
     {
         m_Elements.push_back(std::move(el));
     }
 
-	std::vector< double > ElementsLinear2D::RVector() const
-	{
-		std::vector<double> result(NodePool::Instance().maxIndex(), 0);
-		for ( const auto & element : m_Elements )
-		{
-			const auto indexes = element->nodeIndexes();
-			const auto vecR = element->rightSideVector();
-			for(size_t i = 0; i < numOfQuadrilateralNodes; ++i)
-			{
-				result[indexes[i] - 1] += vecR[i];
-			}
-		}
-		return result;
-	}
+    std::vector<double> ElementsLinear2D::RVector() const
+    {
+        std::vector<double> result(NodePool::Instance().maxIndex(), 0);
+        for(const auto & element : m_Elements)
+        {
+            const auto indexes = element->nodeIndexes();
+            const auto vecR = element->rightSideVector();
+            for(size_t i = 0; i < numOfQuadrilateralNodes; ++i)
+            {
+                result[indexes[i] - 1] += vecR[i];
+            }
+        }
+        return result;
+    }
+
+    std::vector<NodeFlux> ElementsLinear2D::flux() const
+    {
+        std::vector<NodeFlux> result(NodePool::Instance().maxIndex(), {0, 0});
+
+        std::vector<std::vector<NodeFlux>> fluxes(NodePool::Instance().maxIndex(),
+                                                  std::vector<NodeFlux>());
+
+        // First pickup all fluxes from elements
+        for(const auto & element : m_Elements)
+        {
+            const auto indexes = element->nodeIndexes();
+            const auto flux = element->flux();
+            for(size_t i = 0; i < numOfQuadrilateralNodes; ++i)
+            {
+                fluxes[indexes[i] - 1].push_back(flux[i]);
+            }
+        }
+
+        // Now need to average them
+        for(size_t j = 0; j < fluxes.size(); ++j)
+        {
+            const double x = std::accumulate(
+                         fluxes[j].begin(), fluxes[j].end(), 0.0, [&](double lhs, NodeFlux & a) { return lhs + a.x; })
+                       / fluxes[j].size();
+            const double y = std::accumulate(
+                         fluxes[j].begin(), fluxes[j].end(), 0.0, [&](double lhs, NodeFlux & a) { return lhs + a.y; })
+                       / fluxes[j].size();
+            result[j] = { x, y };
+        }
+
+        return result;
+    }
 
 
 }   // namespace MoisThermFEM
