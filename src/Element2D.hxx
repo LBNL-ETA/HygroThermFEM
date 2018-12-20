@@ -223,6 +223,12 @@ namespace MoisThermFEM
             m_ConductanceFunctions.emplace_back(std::unique_ptr<T>(new T(t)));
         }
 
+        template<typename T>
+        void Cond(T && t, typename std::enable_if<std::is_base_of<IValue, T>::value, T>::type * = 0)
+        {
+            m_ConductanceFunctions.emplace_back(std::unique_ptr<T>(new T(t)));
+        }
+
         //! \brief Supports multiplication of between matrix and vector in differential equations.
         //!
         //! Differential equations sometimes have mutliplication between matrix of that is function

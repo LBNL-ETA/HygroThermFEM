@@ -106,85 +106,46 @@ TEST_F(MoistureBC_2D_1, TestExample_1)
     /// const auto nSteps = 3000;
 
     auto humidities = NodePool::Instance().properties(MoisThermFEM::Variable::humidity);
-    std::vector<std::vector<double>> solution;
+    std::vector<std::vector<double>> temperatureSolution;
+    std::vector<std::vector<MoisThermFEM::NodeFlux>> fluxSolution;
 
     for(unsigned i = 0; i < nSteps; ++i)
     {
         humidities = domain.transient(humidities, dTime);
         auto waterContent = NodePool::Instance().properties(MoisThermFEM::Variable::water);
-        solution.push_back(waterContent);
+        temperatureSolution.push_back(waterContent);
+        fluxSolution.push_back(domain.flux());
     }
 
-    std::vector<std::vector<double>> correctSolution{{2.649896,
-                                                      0.975243,
-                                                      0.483597,
-                                                      0.239803,
-                                                      0.118912,
-                                                      0.058965,
-                                                      0.029239,
-                                                      0.014499,
-                                                      0.007190,
-                                                      0.003566,
-                                                      0.001770,
-                                                      0.000882,
-                                                      0.000445,
-                                                      0.000236,
-                                                      0.000150},
-                                                     {2.649960,
-                                                      1.410150,
-                                                      0.862233,
-                                                      0.508375,
-                                                      0.292164,
-                                                      0.164749,
-                                                      0.091549,
-                                                      0.050285,
-                                                      0.027362,
-                                                      0.014777,
-                                                      0.007939,
-                                                      0.004261,
-                                                      0.002315,
-                                                      0.001328,
-                                                      0.000897},
-                                                     {2.649967,
-                                                      1.644297,
-                                                      1.123855,
-                                                      0.737499,
-                                                      0.468574,
-                                                      0.290061,
-                                                      0.175774,
-                                                      0.104654,
-                                                      0.061399,
-                                                      0.035589,
-                                                      0.020445,
-                                                      0.011710,
-                                                      0.006794,
-                                                      0.004173,
-                                                      0.002975},
-                                                     {2.649972,
-                                                      1.789028,
-                                                      1.307788,
-                                                      0.920817,
-                                                      0.627800,
-                                                      0.416389,
-                                                      0.269723,
-                                                      0.171207,
-                                                      0.106801,
-                                                      0.065663,
-                                                      0.039940,
-                                                      0.024208,
-                                                      0.014882,
-                                                      0.009701,
-                                                      0.007241}};
+    // clang-format off
+    std::vector<std::vector<double>> correctTemperatureSolution {
+    	{2.649896, 0.975243, 0.483597, 0.239803, 0.118912, 0.058965, 0.029239, 0.014499, 0.007190,
+			0.003566, 0.001770, 0.000882, 0.000445, 0.000236, 0.000150},
+        {2.649960, 1.410150, 0.862233, 0.508375, 0.292164, 0.164749, 0.091549, 0.050285, 0.027362,
+            0.014777, 0.007939, 0.004261, 0.002315, 0.001328, 0.000897},
+        {2.649967, 1.644297, 1.123855, 0.737499, 0.468574, 0.290061, 0.175774, 0.104654, 0.061399,
+        	0.035589, 0.020445, 0.011710, 0.006794, 0.004173, 0.002975},
+        {2.649972, 1.789028, 1.307788, 0.920817, 0.627800, 0.416389, 0.269723, 0.171207, 0.106801,
+            0.065663, 0.039940, 0.024208, 0.014882, 0.009701, 0.007241}};
 
-    EXPECT_EQ(solution.size(), correctSolution.size());
+    std::vector<std::vector<MoisThermFEM::NodeFlux>> correctFluxSolution {
+		{{6.05092e-007,0}, {4.35778e-007,0}, {1.99299e-007,0}, {9.8827e-008,0}, {4.90056e-008,0}, {2.43005e-008,0}, {1.20499e-008,0}, {5.97514e-009,0}, {2.96272e-009,0}, {1.46875e-009,0}, {7.27534e-010,0}, {3.59196e-010,0}, {1.74953e-010,0}, {7.21805e-011,0}, {3.11954e-011,0}},
+		{{4.47972e-007,0}, {3.72468e-007,0}, {2.44375e-007,0}, {1.54485e-007,0}, {9.31201e-008,0}, {5.43651e-008,0}, {3.10188e-008,0}, {1.73943e-008,0}, {9.62238e-009,0}, {5.26365e-009,0}, {2.84988e-009,0}, {1.52385e-009,0}, {7.94735e-010,0}, {3.45344e-010,0}, {1.55731e-010,0}},
+		{{3.63373e-007,0}, {3.22722e-007,0}, {2.45736e-007,0}, {1.77576e-007,0}, {1.21252e-007,0}, {7.93465e-008,0}, {5.0244e-008,0}, {3.09948e-008,0}, {1.87162e-008,0}, {1.10984e-008,0}, {6.4709e-009,0}, {3.69928e-009,0}, {2.0426e-009,0}, {9.26708e-010,0}, {4.32849e-010,0}},
+		{{3.11079e-007,0}, {2.85952e-007,0}, {2.35279e-007,0}, {1.84272e-007,0}, {1.36696e-007,0}, {9.70363e-008,0}, {6.64425e-008,0}, {4.41507e-008,0}, {2.86015e-008,0}, {1.81187e-008,0}, {1.12341e-008,0}, {6.79058e-009,0}, {3.93144e-009,0}, {1.84844e-009,0}, {8.88753e-010,0}}
+    };
+    // clang-format on
 
-    for(auto i = 0u; i < correctSolution.size(); ++i)
+    EXPECT_EQ(temperatureSolution.size(), correctTemperatureSolution.size());
+
+    std::setprecision(9);
+    for(auto i = 0u; i < correctTemperatureSolution.size(); ++i)
     {
-        for(auto j = 0u; j < correctSolution[i].size(); ++j)
+        for(auto j = 0u; j < correctTemperatureSolution[i].size(); ++j)
         {
-            EXPECT_NEAR(correctSolution[i][j], solution[i][2 * j], 1e-6);
-            // std::cout << solution[i][2 * j] << ",";
+            EXPECT_NEAR(correctTemperatureSolution[i][j], temperatureSolution[i][2 * j], 1e-6);
+            EXPECT_NEAR(correctFluxSolution[i][j].x, fluxSolution[i][2 * j].x, 1e-12);
+            EXPECT_NEAR(correctFluxSolution[i][j].y, fluxSolution[i][2 * j].y, 1e-12);
         }
-        // std::cout << std::endl;
     }
 }

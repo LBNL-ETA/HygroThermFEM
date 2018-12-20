@@ -494,7 +494,7 @@ namespace MoisThermFEM
                                                      const size_t index3,
                                                      const size_t index4,
                                                      const std::string & materialName) :
-        IElementLinear2D(index1, index2, index3, index4, materialName, Variable::water, false)
+        IElementLinear2D(index1, index2, index3, index4, materialName, Variable::humidity, false)
     {
         //////////////////////////////////////////////////////////////////////////////
         /// Water vapor diffusion
@@ -503,12 +503,10 @@ namespace MoisThermFEM
         auto conductance = delta * SaturationFunction();
 
         DDu(conductance);
-        // m_DDuFunctions.emplace_back(new decltype(conductance)(conductance));
+
         SaturationFunction sat;
 
         DpDu(delta, sat);
-        // m_DpDuFunctions.emplace_back(std::unique_ptr<IValue>(new decltype(delta)(delta)),
-        //                             std::unique_ptr<IValue>(new SaturationFunction()));
 
         //////////////////////////////////////////////////////////////////////////////
         /// Water liquid transportation
@@ -521,8 +519,13 @@ namespace MoisThermFEM
         auto sorptionDerivative = TabularDerivative(m_Material.sorptionCurve(), Variable::humidity);
 
         Cap(sorptionDerivative);
-        // m_CapacitanceFunctions.emplace_back(new
-        // decltype(sorptionDerivative)(sorptionDerivative));
+
+		//////////////////////////////////////////////////////////////////////
+		/// Functions for flux calculations
+		//////////////////////////////////////////////////////////////////////
+		Cond(conductance);
+		//Cond(delta);
+		Cond(SuctionCurve(m_Material.liquidTransportationCurve()));
     }
 
 }   // namespace MoisThermFEM
