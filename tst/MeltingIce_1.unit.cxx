@@ -112,11 +112,10 @@ TEST_F(MeltingIce_1, TestExample_1)
     std::cout << "******************************************************" << std::endl;
 
     std::cout.precision(8);
-    for (auto & val : waterContentSolution)
+    for (size_t i = 0u; i<waterContentSolution.size(); ++i)
     {
-        for (auto & item : val)
-        {
-            std::cout << item << ", ";
+        for (size_t j = 0u; j < waterContentSolution[i].size() / 2; ++j) {
+            std::cout << waterContentSolution[i][2*j] << ", ";
         }
         std::cout << std::endl;
     }
@@ -148,11 +147,10 @@ TEST_F(MeltingIce_1, TestExample_1)
     std::cout << "******************************************************" << std::endl;
 
     std::cout.precision(8);
-    for (auto & val : temperatureSolution)
+    for (size_t i = 0u; i<temperatureSolution.size(); ++i)
     {
-        for (auto & item : val)
-        {
-            std::cout << item << ", ";
+        for (size_t j = 0u; j < temperatureSolution[i].size() / 2; ++j) {
+            std::cout << temperatureSolution[i][2*j] << ", ";
         }
         std::cout << std::endl;
     }

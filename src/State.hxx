@@ -25,10 +25,10 @@ namespace MoisThermFEM
     public:
         //! Construction of State.
         explicit State(
-          const double t_Temperature = 0,     //!< Temperature (in Celsius).
-          const double t_Humidity = 0,        //!< Humidity (range from zero to one).
-          const double t_Pressure = 101325,   //!< Pressure.
-          const double liquidPercent = 1.0    //!< Percent of water content in liquid state.
+          double t_Temperature = 0,     //!< Temperature (in Celsius).
+          double t_Humidity = 0,        //!< Humidity (range from zero to one).
+          double t_Pressure = 101325,   //!< Pressure.
+          double liquidPercent = 1.0    //!< Percent of water content in liquid state.
         );
 
         //! Operator overloading for addition operation
@@ -38,12 +38,12 @@ namespace MoisThermFEM
         friend State operator-(const State & lhs, const State & rhs);
 
         //! Returns state value for given BaseVariable
-        double getValue(const BaseVariable t_Property) const;
+        double getValue(BaseVariable t_Property) const;
 
         //! Sets state value for given BaseVariable
         void setValue(
-          const BaseVariable t_Property,   //!< BaseVariable for which value will be set to.
-          const double t_Value              //!< New value of given BaseVariable
+          BaseVariable t_Property,   //!< BaseVariable for which value will be set to.
+          double t_Value              //!< New value of given BaseVariable
         );
 
     private:
