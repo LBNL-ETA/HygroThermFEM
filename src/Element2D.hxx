@@ -204,6 +204,12 @@ namespace MoisThermFEM
             m_CapacitanceFunctions.emplace_back(std::unique_ptr<T>(new T(t)));
         }
 
+        template<typename T>
+        void Cap(T && t, typename std::enable_if<std::is_base_of<IValue, T>::value, T>::type * = 0)
+        {
+            m_CapacitanceFunctions.emplace_back(std::unique_ptr<T>(new T(t)));
+        }
+
         //! Template function that will add K*((Dp/Dx)(Du/Dx) + (Dp/Dy)(Du/Dy)) matrix into the
         //! system.
         template<typename T, typename U>

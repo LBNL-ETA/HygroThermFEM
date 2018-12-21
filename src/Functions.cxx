@@ -5,6 +5,7 @@
 #include "Functions.hxx"
 #include "State.hxx"
 #include "Node2D.hxx"
+#include "Common.hxx"
 
 namespace MoisThermFEM
 {
@@ -239,4 +240,27 @@ namespace MoisThermFEM
 
     HeatOfEvaporation::HeatOfEvaporation() : IFunction(Variable::temperature)
     {}
+
+    //////////////////////////////////////////////////////////////////
+    ///  Phase change
+    //////////////////////////////////////////////////////////////////
+    PhaseChange::PhaseChange() : IFunction(Variable::temperature)
+    {}
+
+    double PhaseChange::evaluateFunction(double t_position) const
+    {
+        auto result = 0.0;
+        if(t_position <= Constants::IcePoint)
+        {
+            result = Constants::EnthalpyOfFusion;
+        }
+        if((t_position < Constants::FreezingPoint) && (t_position >= Constants::IcePoint))
+        {
+            result = Constants::EnthalpyOfFusion * (t_position - Constants::IcePoint)
+                /(Constants::FreezingPoint - Constants::IcePoint);
+        }
+
+        return result;
+    }
+
 }   // namespace MoisThermFEM
