@@ -16,7 +16,7 @@ namespace Constants {
         // Need to handle phase change through steep function. Melting is practically happening
         // between IcePoint and FreezingPoint
         static const double FreezingPoint = 0.0;
-        static const double IcePoint = -0.1;
+        static const double IcePoint = -0.001;
 
         static const double EnthalpyOfFusion = 333550; // J/kg
 
