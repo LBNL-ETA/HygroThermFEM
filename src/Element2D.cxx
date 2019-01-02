@@ -421,6 +421,10 @@ namespace MoisThermFEM
 
         Cap(capacitance);
 
+        // Phase change part
+        auto waterWithoutVapor = liquidContent + iceContent;
+        Cap(PhaseChange() * waterWithoutVapor);
+
         //////////////////////////////////////////////////////////////////////////
         /// Conductance
         //////////////////////////////////////////////////////////////////////////

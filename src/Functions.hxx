@@ -440,4 +440,18 @@ namespace MoisThermFEM
         double evaluateFunction(double t_position) const override;
     };
 
+
+    //////////////////////////////////////////////////////////////////
+    ///  Phase change
+    //////////////////////////////////////////////////////////////////
+
+    //! \brief Handles phase change around freezing point
+    class PhaseChange : public IFunction {
+    public:
+        PhaseChange();
+
+    protected:
+        double evaluateFunction(double t_position) const override;
+    };
+
 }   // namespace MoisThermFEM

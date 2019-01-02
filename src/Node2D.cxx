@@ -66,7 +66,7 @@ namespace MoisThermFEM
             case Variable::vapor:
                 return waterContent(WaterContent::Vapor);
             case Variable::ice:
-                waterContent(WaterContent::Ice);
+                return waterContent(WaterContent::Ice);
         }
         return 0;
     }
