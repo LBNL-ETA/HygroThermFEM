@@ -4,7 +4,7 @@
 #include <vector>
 
 #pragma warning(push, 0)
-#include <Eigen/Core>
+//#include <Eigen/Core>
 #include <Eigen/SparseCore>
 #pragma warning(pop)
 
