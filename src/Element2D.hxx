@@ -221,6 +221,33 @@ namespace MoisThermFEM
                                          std::unique_ptr<U>(new U(u)));
         }
 
+		template<typename T, typename U>
+		void DpDu(T && t,
+				  U & u,
+				  typename std::enable_if<std::is_base_of<IValue, T>::value, T>::type * = 0)
+		{
+			m_DpDuFunctions.emplace_back(std::unique_ptr<T>(new T(t)),
+										 std::unique_ptr<U>(new U(u)));
+		}
+
+		template<typename T, typename U>
+		void DpDu(T & t,
+				  U && u,
+				  typename std::enable_if<std::is_base_of<IValue, T>::value, T>::type * = 0)
+		{
+			m_DpDuFunctions.emplace_back(std::unique_ptr<T>(new T(t)),
+										 std::unique_ptr<U>(new U(u)));
+		}
+
+		template<typename T, typename U>
+		void DpDu(T && t,
+				  U && u,
+				  typename std::enable_if<std::is_base_of<IValue, T>::value, T>::type * = 0)
+		{
+			m_DpDuFunctions.emplace_back(std::unique_ptr<T>(new T(t)),
+										 std::unique_ptr<U>(new U(u)));
+		}
+
         //! Template function that will create functions used in equivalent material conductivity
         //! and therefore used in flux calculations.
         template<typename T>

@@ -25,7 +25,7 @@ TEST_F(MoistureBC_2D_2, TestExample_1)
 
     std::vector<double> gridXCoordinates{0.15, 0.05, 0.00};
 
-    MoisThermFEM::State state(20, 0, 101325, 0);
+    MoisThermFEM::State state(0, 0, 101325, 0);
     size_t nodeIndex = 0;
     for(auto val : gridXCoordinates)
     {
@@ -75,19 +75,18 @@ TEST_F(MoistureBC_2D_2, TestExample_1)
     }
 
     // Create Boundary Conditions
-    const auto hc = 20;
     const auto airTemperature = 20;
-    const auto humidity = 0.5;
+    const auto humidity = 0.2;
 
-    domain.createMoistureBC(5, 6, hc, humidity, airTemperature);
+    domain.createMoistureBC(5, 6, humidity, airTemperature);
 
-    const auto dTime = 36000;
+    const auto dTime = 3600;
     const auto nSteps = 4;
 
     auto humidities = NodePool::Instance().properties(MoisThermFEM::Variable::humidity);
     std::vector<std::vector<double>> solution;
 
-    for(unsigned i = 0; i < nSteps; ++i)
+    for(size_t i = 0u; i < nSteps; ++i)
     {
         humidities = domain.transient(humidities, dTime);
         auto waterContent = NodePool::Instance().properties(MoisThermFEM::Variable::water);
@@ -95,10 +94,10 @@ TEST_F(MoistureBC_2D_2, TestExample_1)
     }
 
     std::vector<std::vector<double>> correctSolution{
-      {0.0025399387, 0.0025399387, 0.13271657, 0.13271657, 5.2992847, 5.2992847},
-      {0.0074773153, 0.0074773153, 0.26052713, 0.26052713, 5.2999506, 5.2999506},
-      {0.014676106, 0.014676106, 0.38362762, 0.38362762, 5.2999519, 5.2999519},
-      {0.024006785, 0.024006785, 0.50222163, 0.50222163, 5.299953, 5.299953}};
+      {5.51708803e-007, 5.51708803e-007, 0.00100840714, 0.00100840714, 1.38312243, 1.38312243},
+      {2.11083667e-006, 2.11083667e-006, 0.00285030807, 0.00285030807, 2.52784731, 2.52784731},
+      {5.05364382e-006, 5.05364382e-006, 0.00538094058, 0.00538094058, 3.47526711, 3.47526711},
+      {9.69063639e-006, 9.69063639e-006, 0.00848049644, 0.00848049644, 4.2593912, 4.2593912}};
 
     EXPECT_EQ(solution.size(), correctSolution.size());
 

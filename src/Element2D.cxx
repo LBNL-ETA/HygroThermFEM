@@ -508,9 +508,7 @@ namespace MoisThermFEM
 
         DDu(conductance);
 
-        SaturationFunction sat;
-
-        DpDu(delta, sat);
+        DpDu(delta, SaturationFunction());
 
         //////////////////////////////////////////////////////////////////////////////
         /// Water liquid transportation

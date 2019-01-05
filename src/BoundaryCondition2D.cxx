@@ -1,12 +1,10 @@
 #include <algorithm>
-#include <cmath>
-#include <functional>
 
 #include "BoundaryCondition2D.hxx"
-#include "Common.hxx"
-#include "VectorOperators.hxx"
 #include "NodePool.hxx"
 #include "MaterialPool.hxx"
+#include "VectorOperators.hxx"
+#include "Common.hxx"
 
 namespace MoisThermFEM
 {
@@ -125,14 +123,12 @@ namespace MoisThermFEM
     /// MoistureBC
     /////////////////////////////////////////////////////
 
-    MoistureBC::MoistureBC(const size_t index1,
-                           const size_t index2,
+    MoistureBC::MoistureBC(size_t index1,
+                           size_t index2,
                            const std::string & materialName,
-                           const double t_ConvectiveCoefficient,
-                           const double t_AirHumidity,
-                           const double t_AirTemperature) :
+                           double t_AirHumidity,
+                           double t_AirTemperature) :
         IBCLinear2D(index1, index2),
-        m_ConvectiveCoefficient(t_ConvectiveCoefficient),
         m_AirHumidity(t_AirHumidity),
         m_AirTemperature(t_AirTemperature),
         m_Material(MaterialPool::Instance().material(materialName))
@@ -140,22 +136,35 @@ namespace MoisThermFEM
 
     std::vector<double> MoistureBC::R_Vector() const
     {
-        // pValue airFill = MaterialProperties::getMaterialAirFill( m_Material );
-        auto humidityCalculator = SaturationFunction() * m_Material.porosity() * m_AirHumidity;
-        Node2D outdoor(0, 0, 0, State(m_AirTemperature, m_AirHumidity, 101325, 0));
-        const auto humidityByVolume = humidityCalculator.value(outdoor);
-        const auto coeff =
-          m_ConvectiveCoefficient * humidityByVolume / (Constants::Density_Air * Constants::Cp_Air);
-        return m_PsiVector * coeff;
+        const auto satOutside = boundarySaturationAtTemperature(m_AirTemperature);
+        const auto gconv = betaConv() * satOutside * m_AirHumidity;
+        return m_PsiVector * gconv;
     }
 
     FenestrationCommon::SquareMatrix MoistureBC::H_Matrix() const
     {
-        auto humidityCoeff = m_Material.porosity() * SaturationFunction();
-
-        const auto coeffs = humidityCoeff.values(m_Nodes) * m_ConvectiveCoefficient
-                            / (Constants::Density_Air * Constants::Cp_Air);
+        std::vector<double> saturation(numOfBCNodes, 0);
+        for(std::size_t j = 0; j < numOfBCNodes; ++j)
+        {
+            double T = m_Nodes[j].property(Variable::temperature);
+            saturation[j] = boundarySaturationAtTemperature(T);
+        }
+        const auto coeffs = saturation * betaConv();
 
         return m_PsiPsiMatrix.mmultRows(coeffs);
+    }
+
+    std::vector<double> MoistureBC::betaConv() const
+    {
+        std::vector<double> betaCon(numOfBCNodes, 0);
+
+        for(std::size_t j = 0; j < numOfBCNodes; ++j)
+        {
+            double T = m_Nodes[j].property(Variable::temperature);
+            const auto convectiveCoefficient =
+              std::max(3.0, 1.31 * std::pow(std::abs(T - m_AirTemperature), 1.0 / 3.0));
+            betaCon[j] = 7e-9 * convectiveCoefficient;
+        }
+        return betaCon;
     }
 }   // namespace MoisThermFEM
