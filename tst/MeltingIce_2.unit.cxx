@@ -6,7 +6,7 @@
 using MoisThermFEM::NodePool;
 using MoisThermFEM::MaterialPool;
 
-class MultiDomain_2D_2 : public testing::Test
+class MeltingIce_2 : public testing::Test
 {
 protected:
     void SetUp() override
@@ -19,16 +19,17 @@ protected:
     }
 };
 
-TEST_F(MultiDomain_2D_2, TestExample_1)
+TEST_F(MeltingIce_2, TestExample_1)
 {
-    SCOPED_TRACE("Begin Test: Simple two elements example with moisture and heat transfer.");
+    SCOPED_TRACE("Begin Test: Three elements with melting ice. Case introduced because it failed "
+                 "to converge.");
 
     // Enter nodes. Arguments are: node number, x-coordinate, y-coordinate
 
-    std::vector<double> gridXCoordinates{0, 0.05, 0.1};
+    std::vector<double> gridXCoordinates{0, 0.05, 0.10, 0.15};
 
-    const double initialTemperature = 0.0;
-    const double initialMoistureContent = 0.0;
+    const double initialTemperature = -2.0;
+    const double initialMoistureContent = 0.8;
     const double initialPressure = 101325;
 
     auto state =
@@ -42,13 +43,15 @@ TEST_F(MultiDomain_2D_2, TestExample_1)
         NodePool::Instance().createNode(nodeIndex, val, 0.05, state);
     }
 
+    // Test material intentionally have lower density and specific heat so we can observe melting
+    // ice
     auto & material = MaterialPool::Instance().createMaterial(
-      "Cottaer Sandstone",
+      "Test material",
       2050,                       /// density
       0.22,                       /// porosity
       850,                        /// specific heat capacity (dry)
       15,                         /// diffusion resistance factor
-      {{0.0, 1.8}, {180, 1.8}},   /// thermal conductivity as function of water content
+      {{0.0, 1.0}, {180, 1.0}},   /// thermal conductivity as function of water content
       {{0, 0},                    /// liquid transportation coefficient
        {27, 1E-8},
        {45, 1.1E-8},
@@ -82,14 +85,14 @@ TEST_F(MultiDomain_2D_2, TestExample_1)
     }
 
     /// Create Boundary Conditions
-    const auto hc = 1.0;
-    const auto airTemperature = 20.0;
-    const auto humidity = 0.2;
+    const auto hc = 20.0;
+    const auto airTemperature = 30.0;
+    const auto humidity = 0.1;
 
     domain.createConvectionBC(1, 2, hc, airTemperature, humidity);
 
-    const auto dTime = 3600;
-    const auto nSteps = 100;
+    const auto dTime = 360;
+    const auto nSteps = 10;
 
     auto temperatures = NodePool::Instance().properties(MoisThermFEM::Variable::temperature);
     auto humidities = NodePool::Instance().properties(MoisThermFEM::Variable::humidity);
@@ -110,11 +113,11 @@ TEST_F(MultiDomain_2D_2, TestExample_1)
     std::cout << "******************************************************" << std::endl;
 
     std::cout.precision(8);
-    for(auto & val : waterContentSolution)
+    for(size_t i = 0u; i < waterContentSolution.size(); ++i)
     {
-        for(auto & item : val)
+        for(size_t j = 0u; j < waterContentSolution[i].size() / 2; ++j)
         {
-            std::cout << item << ", ";
+            std::cout << waterContentSolution[i][2 * j] << ", ";
         }
         std::cout << std::endl;
     }
@@ -146,11 +149,11 @@ TEST_F(MultiDomain_2D_2, TestExample_1)
     std::cout << "******************************************************" << std::endl;
 
     std::cout.precision(8);
-    for(auto & val : temperatureSolution)
+    for(size_t i = 0u; i < temperatureSolution.size(); ++i)
     {
-        for(auto & item : val)
+        for(size_t j = 0u; j < temperatureSolution[i].size() / 2; ++j)
         {
-            std::cout << item << ", ";
+            std::cout << temperatureSolution[i][2 * j] << ", ";
         }
         std::cout << std::endl;
     }

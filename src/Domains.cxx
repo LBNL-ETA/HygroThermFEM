@@ -1,5 +1,6 @@
 #include <cmath>
 #include <algorithm>
+#include <iostream>
 
 #include "Domains.hxx"
 #include "FEMunique.hxx"
@@ -77,12 +78,14 @@ namespace MoisThermFEM
         {
             solution = currentStateValues;
 
-            auto error = std::numeric_limits<double>::max();
+            auto previousNorm = std::numeric_limits<double>::max();
+            auto currentNorm = norm(solution);
 
             size_t numOfIterations = 0;
 
-            while(error > ConvergenceError)
+            while(std::abs(previousNorm - currentNorm) > ConvergenceError)
             {
+                previousNorm = currentNorm;
                 auto temp = A * solution;
                 temp = B - temp;
 
@@ -95,16 +98,13 @@ namespace MoisThermFEM
 
                 auto dU = CLinearSolver::solveEigen(A, temp);
 
-                error = norm(dU);
-
-                // for( auto i = 0u; i < solution.size(); ++i ) {
-                // 	solution[i] += dU[i];
-                // }
-
-                // std::transform(
-                //  dU.begin(), dU.end(), solution.begin(), solution.begin(), std::plus<double>());
-
                 solution = solution + dU;
+
+                currentNorm = norm(solution);
+
+                // std::cout << currentNorm << std::endl;
+
+                // postProcess(solution);
 
                 ++numOfIterations;
 
@@ -142,6 +142,12 @@ namespace MoisThermFEM
     std::vector<NodeFlux> IDomain::flux() const
     {
         return m_Elements.flux();
+    }
+
+    void IDomain::postProcess(std::vector<double> &) const
+    {
+        // Default post processing is to do nothing. Inherited classes should add
+        // some functionality if necessary.
     }
 
     void ThermalDomain::createConvectionBC(const size_t index1,
@@ -207,21 +213,32 @@ namespace MoisThermFEM
 
     void MoistureDomain::createMoistureBC(const size_t index1,
                                           const size_t index2,
-                                          const double t_ConvectiveCoefficient,
                                           const double t_AirHumidity,
                                           const double t_AirTemperature)
     {
         /// Need to pull material for current moisture boundary condition
         auto & Material = m_Elements.findElement(index1, index2)->getMaterial();
-        m_BCs.assignBC(fem::make_unique<MoisThermFEM::MoistureBC>(index1,
-                                                                  index2,
-                                                                  Material.name(),
-                                                                  t_ConvectiveCoefficient,
-                                                                  t_AirHumidity,
-                                                                  t_AirTemperature));
+        m_BCs.assignBC(fem::make_unique<MoisThermFEM::MoistureBC>(
+          index1, index2, Material.name(), t_AirHumidity, t_AirTemperature));
     }
 
     MoistureDomain::MoistureDomain() : IDomain(BaseVariable::humidity)
     {}
+
+    void MoistureDomain::postProcess(std::vector<double> & solution) const
+    {
+        IDomain::postProcess(solution);
+        for(auto & val : solution)
+        {
+            if(val > 1)
+            {
+                val = 1;
+            }
+            if(val < 0)
+            {
+                val = 0;
+            }
+        }
+    }
 
 }   // namespace MoisThermFEM

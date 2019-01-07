@@ -1,14 +1,23 @@
 #include <algorithm>
-#include <cmath>
 
-#include "FEMunique.hxx"
 #include "Functions.hxx"
-#include "State.hxx"
 #include "Node2D.hxx"
 #include "Common.hxx"
 
 namespace MoisThermFEM
 {
+    double boundarySaturationAtTemperature(const double t_temperature, const double exponent)
+    {
+        const auto temperature = t_temperature + 273.15;
+        return std::exp(77.345 + 0.0057 * temperature - 7235.0 / temperature)
+               / std::pow(temperature, exponent);
+    }
+
+    double saturationAtTemperature(const double t_temperature, const double exponent)
+    {
+        return boundarySaturationAtTemperature(t_temperature, exponent) / 461.4;
+    }
+
     //////////////////////////////////////////////////////////////////
     ///  IValue
     //////////////////////////////////////////////////////////////////
@@ -214,18 +223,12 @@ namespace MoisThermFEM
     ///  SaturationFunction
     //////////////////////////////////////////////////////////////////
 
-    SaturationFunction::SaturationFunction(const double saturationCoefficient) :
-        IFunction(Variable::temperature),
-        m_SaturationCoefficient(saturationCoefficient)
+    SaturationFunction::SaturationFunction() : IFunction(Variable::temperature)
     {}
 
     double SaturationFunction::evaluateFunction(const double t_position) const
     {
-        const auto temperature = t_position + 273.15;
-        auto temp = 77.345 + 0.0057 * temperature - 7235.0 / temperature;
-        temp = std::exp(temp);
-        temp = temp / (461.4 * std::pow(temperature, m_SaturationCoefficient));
-        return temp;
+        return saturationAtTemperature(t_position);
     }
 
     //////////////////////////////////////////////////////////////////
@@ -257,7 +260,7 @@ namespace MoisThermFEM
         if((t_position < Constants::FreezingPoint) && (t_position >= Constants::IcePoint))
         {
             result = Constants::EnthalpyOfFusion * (t_position - Constants::IcePoint)
-                /(Constants::FreezingPoint - Constants::IcePoint);
+                     / (Constants::FreezingPoint - Constants::IcePoint);
         }
 
         return result;

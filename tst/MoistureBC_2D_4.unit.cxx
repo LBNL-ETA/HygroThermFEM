@@ -6,7 +6,7 @@
 using MoisThermFEM::NodePool;
 using MoisThermFEM::MaterialPool;
 
-class MoistureBC_2D_2 : public testing::Test
+class MoistureBC_2D_4 : public testing::Test
 {
 protected:
     void SetUp() override
@@ -19,7 +19,7 @@ protected:
     }
 };
 
-TEST_F(MoistureBC_2D_2, TestExample_1)
+TEST_F(MoistureBC_2D_4, TestExample_1)
 {
     SCOPED_TRACE("Begin Test: Simple two elements example with moisture transfer.");
 
@@ -80,7 +80,7 @@ TEST_F(MoistureBC_2D_2, TestExample_1)
 
     domain.createMoistureBC(5, 6, humidity, airTemperature);
 
-    const auto dTime = 3600;
+    const auto dTime = 36000;
     const auto nSteps = 4;
 
     auto humidities = NodePool::Instance().properties(MoisThermFEM::Variable::humidity);

@@ -4,7 +4,7 @@
 
 namespace MoisThermFEM {
 	
-	const double ConvergenceError = 1e-5;
+	const double ConvergenceError = 1e-8;
 	const size_t MaxIterations = 1000;
 
 }

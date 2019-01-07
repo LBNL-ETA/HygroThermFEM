@@ -135,14 +135,8 @@ namespace MoisThermFEM
     {
     public:
         //! Construction for moisture boundary condition.
-        MoistureBC(size_t index1,   //!< Node 1 index
-                   size_t index2,   //!< Node 2 index
-                   const std::string &
-                     materialName,   //!< Material name adjacent to boundary condition line.
-                   double t_ConvectiveCoefficient,   //!< Heat transfer coefficient.
-                   double t_AirHumidity,             //!< Outside air humidity.
-                   double t_AirTemperature           //!< Outside air temperature.
-        );
+		MoistureBC( size_t index1, size_t index2, const std::string & materialName,
+					double t_AirHumidity, double t_AirTemperature );
 
         //! Function that calculates right hand side vector.
         std::vector<double> R_Vector() const override;
@@ -151,7 +145,9 @@ namespace MoisThermFEM
         FenestrationCommon::SquareMatrix H_Matrix() const override;
 
     protected:
-        double m_ConvectiveCoefficient;
+    	//! Calculates beta convective exterior (see technical document)
+    	std::vector<double> betaConv() const;
+
         double m_AirHumidity;
         double m_AirTemperature;
         const Material & m_Material;

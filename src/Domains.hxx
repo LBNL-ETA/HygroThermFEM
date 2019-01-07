@@ -64,6 +64,12 @@ namespace MoisThermFEM
         //! Returns if domain problem is linear.
         bool isLinear() const;
 
+        //! Some domains require post-processing of results. Good example is
+        //! moisture domain where humidity cannot go over 1.0 or lower than one.
+        //! With certain set of boundary conditions and long enough time-step,
+        //! solution can achieve such state and post processing should prevent it.
+        virtual void postProcess(std::vector<double> & solution) const;
+
         BaseVariable m_Property;
         ElementsLinear2D m_Elements;
         BoundaryConditions2D m_BCs;
@@ -127,13 +133,8 @@ namespace MoisThermFEM
         MoistureDomain();
 
         //! Creates moisture boundary conditions.
-        void createMoistureBC(
-          size_t index1,                    //!< Node 1 index
-          size_t index2,                    //!< Node 2 index
-          double t_ConvectiveCoefficient,   //!< Convective heat transfer coefficient
-          double t_AirHumidity,             //!< Outside air humidity
-          double t_AirTemperature           //!< Outside air temperature
-        );
+		void createMoistureBC( const size_t index1, const size_t index2,
+							   const double t_AirHumidity, const double t_AirTemperature );
 
         //! Creates and adds element into domain.
         virtual void createElement(size_t index1,                     //!< Node 1 index
@@ -142,6 +143,8 @@ namespace MoisThermFEM
                                    size_t index4,                     //!< Node 4 index
                                    const std::string & materialName   //!< Material name
                                    ) override;
-    };
+	protected:
+		void postProcess( std::vector< double > & solution ) const override;
+	};
 
 }   // namespace MoisThermFEM
