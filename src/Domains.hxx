@@ -7,6 +7,14 @@
 
 namespace MoisThermFEM
 {
+    //! \brief Class to hold solution from single timestep.
+    struct SingleSolution
+    {
+        std::vector<double> solution;   //!< Solution from single transient step
+        double dTime;   //!< Timestep for which solution has been performed. Engine can adopt new
+                        //!< timestep for which solution will converge.
+    };
+
     //! \brief Interface that will keep all elements and boundary conditions together.
     //!
     //! One domain will solve single differential equation and therefore, single domain will
@@ -24,14 +32,14 @@ namespace MoisThermFEM
         std::vector<double> steadyState();
 
         //! Calculates next timestep values from current (initial) values
-        std::vector<double> transient(
+        SingleSolution transient(
           const std::vector<double> &
             currentStateValues,   //!< Current values of state variable or initial condition
           double t_DTime          //!< Timestep in transient solution
         );
 
         //! Returns flux in x and y direction
-        std::vector< NodeFlux > flux() const;
+        std::vector<NodeFlux> flux() const;
 
         //! Adds element into domain
         virtual void createElement(
@@ -69,6 +77,12 @@ namespace MoisThermFEM
         //! With certain set of boundary conditions and long enough time-step,
         //! solution can achieve such state and post processing should prevent it.
         virtual void postProcess(std::vector<double> & solution) const;
+
+        std::pair<std::vector<double>, bool> transientTimestep(
+          const std::vector<double> &
+            currentStateValues,   //!< Current values of state variable or initial condition
+          double t_DTime          //!< Timestep in transient solution
+        );
 
         BaseVariable m_Property;
         ElementsLinear2D m_Elements;
@@ -133,8 +147,10 @@ namespace MoisThermFEM
         MoistureDomain();
 
         //! Creates moisture boundary conditions.
-		void createMoistureBC( const size_t index1, const size_t index2,
-							   const double t_AirHumidity, const double t_AirTemperature );
+        void createMoistureBC(const size_t index1,
+                              const size_t index2,
+                              const double t_AirHumidity,
+                              const double t_AirTemperature);
 
         //! Creates and adds element into domain.
         virtual void createElement(size_t index1,                     //!< Node 1 index
@@ -143,8 +159,9 @@ namespace MoisThermFEM
                                    size_t index4,                     //!< Node 4 index
                                    const std::string & materialName   //!< Material name
                                    ) override;
-	protected:
-		void postProcess( std::vector< double > & solution ) const override;
-	};
+
+    protected:
+        void postProcess(std::vector<double> & solution) const override;
+    };
 
 }   // namespace MoisThermFEM

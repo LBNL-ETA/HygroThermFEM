@@ -110,7 +110,7 @@ TEST_F(MoistureBC_2D_1, TestExample_1)
 
     for(unsigned i = 0; i < nSteps; ++i)
     {
-        humidities = domain.transient(humidities, dTime);
+        humidities = domain.transient(humidities, dTime).solution;
         auto waterContent = NodePool::Instance().properties(MoisThermFEM::Variable::water);
         humiditySolution.push_back(waterContent);
         fluxSolution.push_back(domain.flux());

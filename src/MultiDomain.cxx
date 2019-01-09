@@ -23,14 +23,14 @@ namespace MoisThermFEM
         {
             m_ThermalDomain.updateNodeValues(currentHumidity, BaseVariable::humidity);
             const auto temperatureSolution = m_ThermalDomain.transient(temperature, t_DTime);
-            temperatureError = normError(temperatureSolution, currentTemperature);
+            temperatureError = normError(temperatureSolution.solution, currentTemperature);
 
             m_MoistureDomain.updateNodeValues(currentTemperature, BaseVariable::temperature);
             const auto humiditySolution = m_MoistureDomain.transient(humidity, t_DTime);
-            humidityError = normError(humiditySolution, currentHumidity);
+            humidityError = normError(humiditySolution.solution, currentHumidity);
 
-            currentHumidity = humiditySolution;
-            currentTemperature = temperatureSolution;
+            currentHumidity = humiditySolution.solution;
+            currentTemperature = temperatureSolution.solution;
         }
 
         NodePool::Instance().updateNodeValues(currentHumidity, BaseVariable::humidity);

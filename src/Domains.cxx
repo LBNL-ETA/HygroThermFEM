@@ -9,6 +9,7 @@
 #include "FEMMath.hxx"
 #include "BoundaryCondition2D.hxx"
 #include "VectorOperators.hxx"
+#include "ConvergenceException.hxx"
 
 using FenestrationCommon::CLinearSolver;
 
@@ -56,8 +57,26 @@ namespace MoisThermFEM
         return CLinearSolver::solveEigen(steadyStateLeftHandSide(), B);
     }
 
-    std::vector<double> IDomain::transient(const std::vector<double> & currentStateValues,
-                                           const double t_DTime)
+    SingleSolution IDomain::transient(const std::vector<double> & currentStateValues,
+                                      const double t_DTime)
+    {
+        std::vector<double> solution;
+        bool converged{false};
+        double currentDTime{t_DTime};
+        while(!converged)
+        {
+            auto current = transientTimestep(currentStateValues, currentDTime);
+            solution = current.first;
+            converged = current.second;
+            currentDTime = currentDTime / 2.0;
+        }
+
+        return {solution, true};
+    }
+
+    std::pair<std::vector<double>, bool>
+      IDomain::transientTimestep(const std::vector<double> & currentStateValues,
+                                 const double t_DTime)
     {
         auto A = transientM_K_H_Matrix(t_DTime);
 
@@ -69,42 +88,33 @@ namespace MoisThermFEM
         // CLinearSolver aSolver;
 
         std::vector<double> solution;
+        bool converged{false};
+        bool stopIterations{false};
 
         if(isLinear())
         {
             solution = CLinearSolver::solveEigen(A, B);
+            converged = true;
         }
         else
         {
             solution = currentStateValues;
 
-            auto previousNorm = std::numeric_limits<double>::max();
             auto currentNorm = norm(solution);
 
             size_t numOfIterations = 0;
 
-            while(std::abs(previousNorm - currentNorm) > ConvergenceError)
+            while(!stopIterations && !converged)
             {
-                previousNorm = currentNorm;
+                double previousNorm = currentNorm;
                 auto temp = A * solution;
                 temp = B - temp;
-
-                /// Seems that DH can be avoided. Same solution is achieved faster without it. Topaz
-                /// does have this implementation. Will keep it commented in case we want to test it
-                /// in future when new kind of boundary conditions are introduced (Simon) auto DH =
-                /// transientDH_Matrix( ); DH = A + DH;
-
-                /// auto dU = aSolver.solveSystem( DH, temp );
 
                 auto dU = CLinearSolver::solveEigen(A, temp);
 
                 solution = solution + dU;
 
                 currentNorm = norm(solution);
-
-                // std::cout << currentNorm << std::endl;
-
-                // postProcess(solution);
 
                 ++numOfIterations;
 
@@ -113,16 +123,15 @@ namespace MoisThermFEM
                 A = transientM_K_H_Matrix(t_DTime);
                 B = transientMT_R_Vector(currentStateValues, t_DTime);
 
-                if(numOfIterations > MaxIterations)
-                {
-                    throw std::runtime_error("Solution failed to converge.");
-                }
+                converged = std::abs(previousNorm - currentNorm) <= ConvergenceError;
+
+                stopIterations = numOfIterations > MaxIterations;
             }
         }
 
         m_Elements.updateNodeValues(solution, m_Property);
 
-        return solution;
+        return std::make_pair(solution, converged);
     }
 
     bool IDomain::isLinear() const
