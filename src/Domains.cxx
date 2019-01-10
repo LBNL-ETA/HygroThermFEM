@@ -9,7 +9,6 @@
 #include "FEMMath.hxx"
 #include "BoundaryCondition2D.hxx"
 #include "VectorOperators.hxx"
-#include "ConvergenceException.hxx"
 
 using FenestrationCommon::CLinearSolver;
 
@@ -68,10 +67,13 @@ namespace MoisThermFEM
             auto current = transientTimestep(currentStateValues, currentDTime);
             solution = current.first;
             converged = current.second;
-            currentDTime = currentDTime / 2.0;
+            if(!converged)
+            {
+                currentDTime = currentDTime / 2.0;
+            }
         }
 
-        return {solution, true};
+        return {solution, currentDTime};
     }
 
     std::pair<std::vector<double>, bool>

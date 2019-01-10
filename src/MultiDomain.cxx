@@ -21,13 +21,38 @@ namespace MoisThermFEM
 
         while(temperatureError > ConvergenceError || humidityError > ConvergenceError)
         {
-            m_ThermalDomain.updateNodeValues(currentHumidity, BaseVariable::humidity);
-            const auto temperatureSolution = m_ThermalDomain.transient(temperature, t_DTime);
-            temperatureError = normError(temperatureSolution.solution, currentTemperature);
+            double dTimeThermal = t_DTime;
+            double dTimeMoisture = t_DTime;
+            SingleSolution temperatureSolution;
+            SingleSolution humiditySolution;
 
-            m_MoistureDomain.updateNodeValues(currentTemperature, BaseVariable::temperature);
-            const auto humiditySolution = m_MoistureDomain.transient(humidity, t_DTime);
-            humidityError = normError(humiditySolution.solution, currentHumidity);
+            do // Loop that performs adaptive timestep in case of convergence failure.
+            {
+                // do loop iterations need to make sure that both results are calculated for identical
+                // timestep. This is part of adaptive timestep that program tries to achieve in case
+                // when fail to converge.
+                if(dTimeMoisture < dTimeThermal)
+                {
+                    dTimeThermal = dTimeMoisture;
+                }
+
+                if(dTimeMoisture > dTimeThermal)
+                {
+                    dTimeMoisture = dTimeThermal;
+                }
+
+                m_ThermalDomain.updateNodeValues(currentHumidity, BaseVariable::humidity);
+                temperatureSolution = m_ThermalDomain.transient(temperature,
+                                                                           dTimeThermal);
+                temperatureError = normError(temperatureSolution.solution, currentTemperature);
+                dTimeThermal = temperatureSolution.dTime;
+
+                m_MoistureDomain.updateNodeValues(currentTemperature, BaseVariable::temperature);
+                humiditySolution = m_MoistureDomain.transient(humidity, dTimeMoisture);
+                humidityError = normError(humiditySolution.solution, currentHumidity);
+                dTimeMoisture = humiditySolution.dTime;
+
+            } while (dTimeThermal != dTimeMoisture);
 
             currentHumidity = humiditySolution.solution;
             currentTemperature = temperatureSolution.solution;
