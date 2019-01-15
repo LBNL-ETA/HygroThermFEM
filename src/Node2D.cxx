@@ -128,11 +128,16 @@ namespace MoisThermFEM
         return m_y;
     }
 
-    void Node2D::setStateProperty(const BaseVariable t_Property, double t_value)
+    void Node2D::setStateProperty(const BaseVariable t_Property,
+                                  double t_value,
+                                  bool updatePreviousValue)
     {
         // First store current to previous iteration and then store current.
-        m_State.at(Timestep::Previous)
-          .setValue(t_Property, m_State.at(Timestep::Current).getValue(t_Property));
+        if(updatePreviousValue)
+        {
+            m_State.at(Timestep::Previous)
+              .setValue(t_Property, m_State.at(Timestep::Current).getValue(t_Property));
+        }
         m_State.at(Timestep::Current).setValue(t_Property, t_value);
         updateWaterContent();
     }
@@ -201,7 +206,7 @@ namespace MoisThermFEM
         m_Nodes.push_back(node4);
     }
 
-    //Node2D & INodes::getNode(const std::size_t Index)
+    // Node2D & INodes::getNode(const std::size_t Index)
     //{
     //    assert(Index < m_Nodes.size());
     //    return m_Nodes[Index];

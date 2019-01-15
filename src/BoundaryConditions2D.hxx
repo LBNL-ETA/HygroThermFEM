@@ -37,7 +37,8 @@ namespace MoisThermFEM
 
         //! Used to update new values to nodes once solver finds new solution for any state
         //! variable.
-        void updateNodeValues(const std::vector<double> & values, const BaseVariable property);
+        void updateNodeValues(const std::vector<double> & values, const BaseVariable property,
+                              bool updatePreviousValue = true);
 
         //! Assign new boundary condition to the pool
         void assignBC(std::unique_ptr<IBCLinear2D> && bc);

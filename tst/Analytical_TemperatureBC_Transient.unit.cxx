@@ -86,7 +86,7 @@ TEST_F(Analytical_TemperatureBC_Transient, TestExample_1)
 
     for(unsigned i = 0; i < nSteps; ++i)
     {
-        temperatures = domain.transient(temperatures, dTime);
+        temperatures = domain.transient(temperatures, dTime).solution;
         solution.push_back(temperatures);
     }
 

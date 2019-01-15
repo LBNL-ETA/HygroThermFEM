@@ -7,6 +7,14 @@
 
 namespace MoisThermFEM
 {
+    //! \brief Class to hold solution from single timestep.
+    struct SingleSolution
+    {
+        std::vector<double> solution;   //!< Solution from single transient step
+        double dTime;   //!< Timestep for which solution has been performed. Engine can adopt new
+                        //!< timestep for which solution will converge.
+    };
+
     //! \brief Interface that will keep all elements and boundary conditions together.
     //!
     //! One domain will solve single differential equation and therefore, single domain will
@@ -17,21 +25,26 @@ namespace MoisThermFEM
         //! Domain construction. It is necessary to set up base variable that will be considered
         //! unknown.
         explicit IDomain(
-          const BaseVariable property   //!< State variable which will be considered unknown.
+          const BaseVariable property,   //!< State variable which will be considered unknown.
+          bool automaticUpdateOfPreviousTimestep =
+            true   //!< When solver finds solution, previous timestep will be automatically updated
+                   //!< by default. This should be set to false is Domain is used in outside
+                   //!< iterations for solving more complex problems in which case previous timestep
+                   //!< should not be updated till convergence is achieved.
         );
 
         //! Calculates steady state for given data
         std::vector<double> steadyState();
 
         //! Calculates next timestep values from current (initial) values
-        std::vector<double> transient(
+        SingleSolution transient(
           const std::vector<double> &
             currentStateValues,   //!< Current values of state variable or initial condition
           double t_DTime          //!< Timestep in transient solution
         );
 
         //! Returns flux in x and y direction
-        std::vector< NodeFlux > flux() const;
+        std::vector<NodeFlux> flux() const;
 
         //! Adds element into domain
         virtual void createElement(
@@ -46,7 +59,9 @@ namespace MoisThermFEM
         friend class MultiDomain;
 
         //! Helper class that will update property at nodes from new timestep values.
-        void updateNodeValues(const std::vector<double> & values, const BaseVariable property);
+        void updateNodeValues(const std::vector<double> & values,
+                              const BaseVariable property,
+                              bool updatePreviousValues = true);
 
         //! Forms left hand side matrix in steady state solution.
         FenestrationCommon::SquareMatrix steadyStateLeftHandSide();
@@ -70,9 +85,20 @@ namespace MoisThermFEM
         //! solution can achieve such state and post processing should prevent it.
         virtual void postProcess(std::vector<double> & solution) const;
 
+        std::pair<std::vector<double>, bool> transientTimestep(
+          const std::vector<double> &
+            currentStateValues,   //!< Current values of state variable or initial condition
+          double t_DTime          //!< Timestep in transient solution
+        );
+
         BaseVariable m_Property;
         ElementsLinear2D m_Elements;
         BoundaryConditions2D m_BCs;
+
+        // Indicates if transient timestep will automatically update previous timestep solution.
+        // This should be turned off if used in multidomain because previous timestep should
+        // remain constant during iterations.
+        bool m_AutomaticUpdatePreviousTimestep;
     };
 
     //! \brief Domain class for solving temperature solution.
@@ -80,7 +106,7 @@ namespace MoisThermFEM
     {
     public:
         //! Simple constructor
-        ThermalDomain();
+        ThermalDomain(bool automaticUpdatePreviousTimestep = true);
 
         //! Creation of convection boundary condition
         void createConvectionBC(
@@ -130,11 +156,13 @@ namespace MoisThermFEM
     {
     public:
         //! Simple constructor
-        MoistureDomain();
+        MoistureDomain(bool automaticUpdatePreviousTimestep = true);
 
         //! Creates moisture boundary conditions.
-		void createMoistureBC( const size_t index1, const size_t index2,
-							   const double t_AirHumidity, const double t_AirTemperature );
+        void createMoistureBC(const size_t index1,
+                              const size_t index2,
+                              const double t_AirHumidity,
+                              const double t_AirTemperature);
 
         //! Creates and adds element into domain.
         virtual void createElement(size_t index1,                     //!< Node 1 index
@@ -143,8 +171,9 @@ namespace MoisThermFEM
                                    size_t index4,                     //!< Node 4 index
                                    const std::string & materialName   //!< Material name
                                    ) override;
-	protected:
-		void postProcess( std::vector< double > & solution ) const override;
-	};
+
+    protected:
+        void postProcess(std::vector<double> & solution) const override;
+    };
 
 }   // namespace MoisThermFEM

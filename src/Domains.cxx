@@ -56,45 +56,61 @@ namespace MoisThermFEM
         return CLinearSolver::solveEigen(steadyStateLeftHandSide(), B);
     }
 
-    std::vector<double> IDomain::transient(const std::vector<double> & currentStateValues,
-                                           const double t_DTime)
+    SingleSolution IDomain::transient(const std::vector<double> & currentStateValues,
+                                      const double t_DTime)
+    {
+        std::vector<double> solution;
+        bool converged{false};
+        double currentDTime{t_DTime};
+        while(!converged)
+        {
+            auto current = transientTimestep(currentStateValues, currentDTime);
+            solution = current.first;
+            converged = current.second;
+            if(!converged)
+            {
+                currentDTime = currentDTime / 2.0;
+            }
+        }
+
+        return {solution, currentDTime};
+    }
+
+    std::pair<std::vector<double>, bool>
+      IDomain::transientTimestep(const std::vector<double> & currentStateValues,
+                                 const double t_DTime)
     {
         auto A = transientM_K_H_Matrix(t_DTime);
 
         // This is just for debugging purposes since Eigen vector is invisible.
-        // auto test = A.toVector();
+        auto test = A.toVector();
 
         auto B = transientMT_R_Vector(currentStateValues, t_DTime);
 
         // CLinearSolver aSolver;
 
         std::vector<double> solution;
+        bool converged{false};
+        bool stopIterations{false};
 
         if(isLinear())
         {
             solution = CLinearSolver::solveEigen(A, B);
+            converged = true;
         }
         else
         {
             solution = currentStateValues;
 
-            auto previousNorm = std::numeric_limits<double>::max();
             auto currentNorm = norm(solution);
 
             size_t numOfIterations = 0;
 
-            while(std::abs(previousNorm - currentNorm) > ConvergenceError)
+            while(!stopIterations && !converged)
             {
-                previousNorm = currentNorm;
+                double previousNorm = currentNorm;
                 auto temp = A * solution;
                 temp = B - temp;
-
-                /// Seems that DH can be avoided. Same solution is achieved faster without it. Topaz
-                /// does have this implementation. Will keep it commented in case we want to test it
-                /// in future when new kind of boundary conditions are introduced (Simon) auto DH =
-                /// transientDH_Matrix( ); DH = A + DH;
-
-                /// auto dU = aSolver.solveSystem( DH, temp );
 
                 auto dU = CLinearSolver::solveEigen(A, temp);
 
@@ -102,27 +118,22 @@ namespace MoisThermFEM
 
                 currentNorm = norm(solution);
 
-                // std::cout << currentNorm << std::endl;
-
-                // postProcess(solution);
-
                 ++numOfIterations;
 
-                m_BCs.updateNodeValues(solution, m_Property);
+                m_BCs.updateNodeValues(solution, m_Property, m_AutomaticUpdatePreviousTimestep);
 
                 A = transientM_K_H_Matrix(t_DTime);
                 B = transientMT_R_Vector(currentStateValues, t_DTime);
 
-                if(numOfIterations > MaxIterations)
-                {
-                    throw std::runtime_error("Solution failed to converge.");
-                }
+                converged = std::abs(previousNorm - currentNorm) <= ConvergenceError;
+
+                stopIterations = numOfIterations > MaxIterations;
             }
         }
 
-        m_Elements.updateNodeValues(solution, m_Property);
+        m_Elements.updateNodeValues(solution, m_Property, m_AutomaticUpdatePreviousTimestep);
 
-        return solution;
+        return std::make_pair(solution, converged);
     }
 
     bool IDomain::isLinear() const
@@ -130,13 +141,15 @@ namespace MoisThermFEM
         return m_BCs.isLinear() && m_Elements.isLinear();
     }
 
-    void IDomain::updateNodeValues(const std::vector<double> & values, const BaseVariable property)
+    void IDomain::updateNodeValues(const std::vector<double> & values,
+        const BaseVariable property, bool updatePreviousValues)
     {
-        m_BCs.updateNodeValues(values, property);
-        m_Elements.updateNodeValues(values, property);
+        m_BCs.updateNodeValues(values, property, updatePreviousValues);
+        m_Elements.updateNodeValues(values, property, updatePreviousValues);
     }
 
-    IDomain::IDomain(const BaseVariable property) : m_Property(property)
+    IDomain::IDomain(const BaseVariable property, bool automaticUpdateOfPreviousTimestep) :
+    m_Property(property), m_AutomaticUpdatePreviousTimestep(automaticUpdateOfPreviousTimestep)
     {}
 
     std::vector<NodeFlux> IDomain::flux() const
@@ -198,7 +211,8 @@ namespace MoisThermFEM
           fem::make_unique<ElementThermalLinear2D>(index1, index2, index3, index4, materialName));
     }
 
-    ThermalDomain::ThermalDomain() : IDomain(BaseVariable::temperature)
+    ThermalDomain::ThermalDomain(bool automaticUpdatePreviousTimestep) :
+    IDomain(BaseVariable::temperature, automaticUpdatePreviousTimestep)
     {}
 
     void MoistureDomain::createElement(const size_t index1,
@@ -222,7 +236,8 @@ namespace MoisThermFEM
           index1, index2, Material.name(), t_AirHumidity, t_AirTemperature));
     }
 
-    MoistureDomain::MoistureDomain() : IDomain(BaseVariable::humidity)
+    MoistureDomain::MoistureDomain(bool automaticUpdatePreviousTimestep) :
+    IDomain(BaseVariable::humidity, automaticUpdatePreviousTimestep)
     {}
 
     void MoistureDomain::postProcess(std::vector<double> & solution) const

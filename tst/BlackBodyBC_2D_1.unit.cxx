@@ -90,7 +90,7 @@ TEST_F(BlackBodyBC_2D_1, TestExample_1)
 
     for(unsigned i = 0; i < nSteps; ++i)
     {
-        temperatures = domain.transient(temperatures, dTime);
+        temperatures = domain.transient(temperatures, dTime).solution;
         solution.push_back(temperatures);
     }
 
