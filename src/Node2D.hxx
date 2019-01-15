@@ -120,7 +120,8 @@ namespace MoisThermFEM
         //! percentage)
         void setStateProperty(
           BaseVariable t_Property,   //!< Base state property for which value will be set
-          double t_value                    //!< New value that property will be set to.
+          double t_value,                   //!< New value that property will be set to.
+          bool updatePreviousValue = true //!< Indicates wheter previous timestep value should be updated or not.
         );
 
     private:

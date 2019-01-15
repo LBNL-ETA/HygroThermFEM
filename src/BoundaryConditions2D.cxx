@@ -67,7 +67,9 @@ namespace MoisThermFEM
     /// 	return HDMatrix;
     /// }
 
-    void BoundaryConditions2D::updateNodeValues(const std::vector<double> & values, const BaseVariable property)
+    void BoundaryConditions2D::updateNodeValues(const std::vector<double> & values,
+                                                const BaseVariable property,
+                                                bool updatePreviousValue)
     {
         for(auto & aBc : m_BCs)
         {
@@ -75,18 +77,18 @@ namespace MoisThermFEM
             {
                 auto & node = aBc->getNode(i);
                 auto index = node.getNodeNumber();
-				node.setStateProperty( property, values[ index - 1 ] );
+                node.setStateProperty(property, values[index - 1], updatePreviousValue);
             }
         }
     }
 
-    BoundaryConditions2D::BoundaryConditions2D() :
-        m_Linear(true)
+    BoundaryConditions2D::BoundaryConditions2D() : m_Linear(true)
     {}
 
-	void BoundaryConditions2D::assignBC( std::unique_ptr< IBCLinear2D > && bc ) {
-		m_Linear = m_Linear && bc->isLinear();
-		m_BCs.push_back(std::move(bc));
-	}
+    void BoundaryConditions2D::assignBC(std::unique_ptr<IBCLinear2D> && bc)
+    {
+        m_Linear = m_Linear && bc->isLinear();
+        m_BCs.push_back(std::move(bc));
+    }
 
 }   // namespace MoisThermFEM

@@ -37,6 +37,7 @@ namespace MoisThermFEM
         {
             auto indexes = aElement->nodeIndexes();
             auto capacitance = aElement->capacitanceMatrices();
+            auto capTest = capacitance.toVector();
             for(size_t i = 0; i < numOfQuadrilateralNodes; ++i)
             {
                 for(size_t j = 0; j < numOfQuadrilateralNodes; ++j)
@@ -99,15 +100,15 @@ namespace MoisThermFEM
     }
 
     void ElementsLinear2D::updateNodeValues(const std::vector<double> & values,
-                                            const BaseVariable property)
+                                            const BaseVariable property, bool updatePreviousValue)
     {
-        for(auto & aBc : m_Elements)
+        for(auto & aElement : m_Elements)
         {
             for(auto i = 0u; i < numOfQuadrilateralNodes; ++i)
             {
-                auto & node = aBc->getNode(i);
+                auto & node = aElement->getNode(i);
                 auto index = node.getNodeNumber();
-                node.setStateProperty(property, values[index - 1]);
+                node.setStateProperty(property, values[index - 1], updatePreviousValue);
             }
         }
     }

@@ -74,7 +74,8 @@ namespace MoisThermFEM
 		//! Interface for function definition. This is place where in inherited classes function
 		//! definitions will be stored.
 		virtual double
-		evaluateFunction(double t_position = 0   //!< Value at which function will be evaluated.
+		evaluateFunction(double t_position = 0,   //!< Value at which function will be evaluated.
+		double t_previousTimestep = 0 //!< Value from previous timestep
 		) const = 0;
 
 		/// Variable that is used to calculate function value. It is extracted from current
@@ -93,7 +94,7 @@ namespace MoisThermFEM
 		Constant(const double value);
 
 	private:
-		double evaluateFunction(double t_position) const override;
+		double evaluateFunction(double t_position, double t_previousTimestep) const override;
 
 		double m_Value;
 	};
@@ -292,7 +293,7 @@ namespace MoisThermFEM
 
 	private:
 		//! Inherited function evaluation for current property
-		double evaluateFunction(double t_position) const override;
+		double evaluateFunction(double t_position, double t_previousTimestep) const override;
 	};
 
 	//////////////////////////////////////////////////////////////////
@@ -342,7 +343,7 @@ namespace MoisThermFEM
 		FenestrationCommon::Interpolator m_Interpolator;
 
 		//! Overriden evaluation function.
-		double evaluateFunction(double t_position) const override;
+		double evaluateFunction(double t_position, double t_previousTimestep) const override;
 
 		//! Helper function that returns two closest points for interpolation.
 		virtual std::pair<std::pair<double, double>, std::pair<double, double>>
@@ -378,7 +379,7 @@ namespace MoisThermFEM
 		std::vector<std::pair<double, double>> m_Curve;
 
 		//! Overriden evaluation function.
-		double evaluateFunction(double t_position) const override;
+		double evaluateFunction(double t_position, double t_previousTimestep) const override;
 
 		//! Helper function that returns two closest points for interpolation.
 		virtual std::pair<std::pair<double, double>, std::pair<double, double>>
@@ -425,7 +426,7 @@ namespace MoisThermFEM
 
 	private:
 		//! Overriden evaluation function.
-		double evaluateFunction(double t_position) const override;
+		double evaluateFunction(double t_position, double t_previousTimestep) const override;
 	};
 
 	//////////////////////////////////////////////////////////////////
@@ -441,7 +442,7 @@ namespace MoisThermFEM
 
 	protected:
 		//! Overriden evaluation function.
-		double evaluateFunction(double t_position) const override;
+		double evaluateFunction(double t_position, double t_previousTimestep) const override;
 	};
 
 
@@ -456,7 +457,7 @@ namespace MoisThermFEM
 		PhaseChange();
 
 	protected:
-		double evaluateFunction(double t_position) const override;
+		double evaluateFunction(double t_position, double t_previousTimestep) const override;
 	};
 
 }   // namespace MoisThermFEM

@@ -7,7 +7,9 @@
 
 namespace MoisThermFEM
 {
-    MultiDomain::MultiDomain() : m_ThermalDomain(), m_MoistureDomain()
+    // passing false to subdomains means that previous timestep values will not be automatically
+    // updated. This mean that multidomain must update its values once solution converged.
+    MultiDomain::MultiDomain() : m_ThermalDomain(false), m_MoistureDomain(false)
     {}
 
     Solution MultiDomain::transient(std::vector<double> & temperature,
@@ -26,11 +28,11 @@ namespace MoisThermFEM
             SingleSolution temperatureSolution;
             SingleSolution humiditySolution;
 
-            do // Loop that performs adaptive timestep in case of convergence failure.
+            do   // Loop that performs adaptive timestep in case of convergence failure.
             {
-                // do loop iterations need to make sure that both results are calculated for identical
-                // timestep. This is part of adaptive timestep that program tries to achieve in case
-                // when fail to converge.
+                // do loop iterations need to make sure that both results are calculated for
+                // identical timestep. This is part of adaptive timestep that program tries to
+                // achieve in case when fail to converge.
                 if(dTimeMoisture < dTimeThermal)
                 {
                     dTimeThermal = dTimeMoisture;
@@ -42,8 +44,7 @@ namespace MoisThermFEM
                 }
 
                 m_ThermalDomain.updateNodeValues(currentHumidity, BaseVariable::humidity);
-                temperatureSolution = m_ThermalDomain.transient(temperature,
-                                                                           dTimeThermal);
+                temperatureSolution = m_ThermalDomain.transient(temperature, dTimeThermal);
                 temperatureError = normError(temperatureSolution.solution, currentTemperature);
                 dTimeThermal = temperatureSolution.dTime;
 
@@ -52,10 +53,18 @@ namespace MoisThermFEM
                 humidityError = normError(humiditySolution.solution, currentHumidity);
                 dTimeMoisture = humiditySolution.dTime;
 
-            } while (dTimeThermal != dTimeMoisture);
+
+
+            } while(dTimeThermal != dTimeMoisture);
 
             currentHumidity = humiditySolution.solution;
             currentTemperature = temperatureSolution.solution;
+
+            m_ThermalDomain.updateNodeValues(currentTemperature, BaseVariable::temperature, true);
+            m_ThermalDomain.updateNodeValues(currentHumidity, BaseVariable::humidity, true);
+            m_MoistureDomain.updateNodeValues(currentTemperature, BaseVariable::temperature, true);
+            m_MoistureDomain.updateNodeValues(currentHumidity, BaseVariable::humidity, true);
+
         }
 
         NodePool::Instance().updateNodeValues(currentHumidity, BaseVariable::humidity);
@@ -93,8 +102,7 @@ namespace MoisThermFEM
         m_ThermalDomain.createConvectionBC(
           index1, index2, t_ConvectionCoefficient, t_AirTemperature);
 
-		m_MoistureDomain.createMoistureBC(
-			index1, index2, t_Humidity, t_AirTemperature );
+        m_MoistureDomain.createMoistureBC(index1, index2, t_Humidity, t_AirTemperature);
     }
 
     void MultiDomain::createTemperatureBC(const size_t index1,

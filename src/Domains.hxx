@@ -25,7 +25,12 @@ namespace MoisThermFEM
         //! Domain construction. It is necessary to set up base variable that will be considered
         //! unknown.
         explicit IDomain(
-          const BaseVariable property   //!< State variable which will be considered unknown.
+          const BaseVariable property,   //!< State variable which will be considered unknown.
+          bool automaticUpdateOfPreviousTimestep =
+            true   //!< When solver finds solution, previous timestep will be automatically updated
+                   //!< by default. This should be set to false is Domain is used in outside
+                   //!< iterations for solving more complex problems in which case previous timestep
+                   //!< should not be updated till convergence is achieved.
         );
 
         //! Calculates steady state for given data
@@ -54,7 +59,9 @@ namespace MoisThermFEM
         friend class MultiDomain;
 
         //! Helper class that will update property at nodes from new timestep values.
-        void updateNodeValues(const std::vector<double> & values, const BaseVariable property);
+        void updateNodeValues(const std::vector<double> & values,
+                              const BaseVariable property,
+                              bool updatePreviousValues = true);
 
         //! Forms left hand side matrix in steady state solution.
         FenestrationCommon::SquareMatrix steadyStateLeftHandSide();
@@ -87,6 +94,11 @@ namespace MoisThermFEM
         BaseVariable m_Property;
         ElementsLinear2D m_Elements;
         BoundaryConditions2D m_BCs;
+
+        // Indicates if transient timestep will automatically update previous timestep solution.
+        // This should be turned off if used in multidomain because previous timestep should
+        // remain constant during iterations.
+        bool m_AutomaticUpdatePreviousTimestep;
     };
 
     //! \brief Domain class for solving temperature solution.
@@ -94,7 +106,7 @@ namespace MoisThermFEM
     {
     public:
         //! Simple constructor
-        ThermalDomain();
+        ThermalDomain(bool automaticUpdatePreviousTimestep = true);
 
         //! Creation of convection boundary condition
         void createConvectionBC(
@@ -144,7 +156,7 @@ namespace MoisThermFEM
     {
     public:
         //! Simple constructor
-        MoistureDomain();
+        MoistureDomain(bool automaticUpdatePreviousTimestep = true);
 
         //! Creates moisture boundary conditions.
         void createMoistureBC(const size_t index1,

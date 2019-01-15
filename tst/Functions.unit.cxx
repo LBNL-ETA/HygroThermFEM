@@ -11,6 +11,7 @@ using MoisThermFEM::TabularDerivative;
 using MoisThermFEM::SuctionCurve;
 using MoisThermFEM::SaturationFunction;
 using MoisThermFEM::Constant;
+using MoisThermFEM::PhaseChange;
 
 class CurveTest : public testing::Test
 {
@@ -233,4 +234,80 @@ TEST_F(CurveTest, TestTabularDerivative)
 	Node2D node4(0, 0, 0, State(273.15, 2.0, 101325, 0));
     result = waterContent.value(node4);
     EXPECT_NEAR(60000, result, 1e-6);
+}
+
+TEST_F(CurveTest, TestTotalMelting)
+{
+    const auto currentTemperature = -1.0;
+    const auto currentHumidity = 1.0;
+    const auto newTemperature = 1.0;
+
+    // Set nodes current state
+    Node2D node(0,0,0, State(currentTemperature, currentHumidity));
+
+    // This will trigger melting in this point
+    node.setStateProperty(MoisThermFEM::BaseVariable::temperature, newTemperature);
+
+    PhaseChange phaseChange;
+    const auto result = phaseChange.value(node);
+
+    EXPECT_NEAR(Constants::EnthalpyOfFusion, result, 1e-6);
+}
+
+TEST_F(CurveTest, TestPartialMelting)
+{
+    const auto currentTemperature = -1.0;
+    const auto currentHumidity = 1.0;
+    const auto icePointRatio = 0.3; // This is actually 30% away from freezing point
+    const auto newTemperature = icePointRatio * Constants::IcePoint;
+
+    // Set nodes current state
+    Node2D node(0,0,0, State(currentTemperature, currentHumidity));
+
+    // This will trigger melting in this point
+    node.setStateProperty(MoisThermFEM::BaseVariable::temperature, newTemperature);
+
+    PhaseChange phaseChange;
+    const auto result = phaseChange.value(node);
+
+    const auto percentOfIceMelted = (1-icePointRatio);
+    EXPECT_NEAR(percentOfIceMelted * Constants::EnthalpyOfFusion, result, 1e-6);
+}
+
+TEST_F(CurveTest, TestTotalFreezing)
+{
+    const auto currentTemperature = 1.0;
+    const auto currentHumidity = 1.0;
+    const auto newTemperature = -1.0;
+
+    // Set nodes current state
+    Node2D node(0,0,0, State(currentTemperature, currentHumidity));
+
+    // This will trigger melting in this point
+    node.setStateProperty(MoisThermFEM::BaseVariable::temperature, newTemperature);
+
+    PhaseChange phaseChange;
+    const auto result = phaseChange.value(node);
+
+    EXPECT_NEAR(-Constants::EnthalpyOfFusion, result, 1e-6);
+}
+
+TEST_F(CurveTest, TestPartialFreezing)
+{
+    const auto currentTemperature = 1.0;
+    const auto currentHumidity = 1.0;
+    const auto freezePointRatio = 0.3; // This is actually 30% away from freezing point
+    const auto newTemperature = freezePointRatio * Constants::IcePoint;
+
+    // Set nodes current state
+    Node2D node(0,0,0, State(currentTemperature, currentHumidity));
+
+    // This will trigger melting in this point
+    node.setStateProperty(MoisThermFEM::BaseVariable::temperature, newTemperature);
+
+    PhaseChange phaseChange;
+    const auto result = phaseChange.value(node);
+
+    const auto percentOfFrozenWater = freezePointRatio;
+    EXPECT_NEAR(-percentOfFrozenWater * Constants::EnthalpyOfFusion, result, 1e-6);
 }

@@ -41,7 +41,8 @@ namespace MoisThermFEM
 
     double IFunction::value(const Node2D & node) const
     {
-        return evaluateFunction(node.property(m_Property));
+        return evaluateFunction(node.property(m_Property),
+                                node.property(m_Property, Timestep::Previous));
     }
 
     //////////////////////////////////////////////////////////////////
@@ -51,7 +52,7 @@ namespace MoisThermFEM
     Constant::Constant(const double value) : IFunction(Variable::temperature), m_Value(value)
     {}
 
-    double Constant::evaluateFunction(const double) const
+    double Constant::evaluateFunction(const double, const double) const
     {
         return m_Value;
     }
@@ -63,7 +64,7 @@ namespace MoisThermFEM
     StateValue::StateValue(Variable property) : IFunction(property)
     {}
 
-    double StateValue::evaluateFunction(const double t_position) const
+    double StateValue::evaluateFunction(const double t_position, const double) const
     {
         return t_position;
     }
@@ -89,7 +90,7 @@ namespace MoisThermFEM
     {}
 
 
-    double TabularFunction::evaluateFunction(const double t_position) const
+    double TabularFunction::evaluateFunction(const double t_position, const double) const
     {
         auto it = std::find_if(m_Curve.begin(), m_Curve.end(), [&](std::pair<double, double> val) {
             return val.first > t_position;
@@ -155,7 +156,7 @@ namespace MoisThermFEM
         m_Curve(list)
     {}
 
-    double TabularDerivative::evaluateFunction(const double t_position) const
+    double TabularDerivative::evaluateFunction(const double t_position, const double) const
     {
         auto it = std::find_if(m_Curve.begin(), m_Curve.end(), [&](std::pair<double, double> val) {
             return val.first > t_position;
@@ -226,7 +227,7 @@ namespace MoisThermFEM
     SaturationFunction::SaturationFunction() : IFunction(Variable::temperature)
     {}
 
-    double SaturationFunction::evaluateFunction(const double t_position) const
+    double SaturationFunction::evaluateFunction(const double t_position, const double) const
     {
         return saturationAtTemperature(t_position);
     }
@@ -235,7 +236,7 @@ namespace MoisThermFEM
     ///  Heat of evaporation
     //////////////////////////////////////////////////////////////////
 
-    double HeatOfEvaporation::evaluateFunction(const double t_position) const
+    double HeatOfEvaporation::evaluateFunction(const double t_position, const double) const
     {
         return -(2500.8 - 2.36 * t_position + 0.016 * std::pow(t_position, 2)
                  - 0.00006 * std::pow(t_position, 3));
@@ -250,17 +251,46 @@ namespace MoisThermFEM
     PhaseChange::PhaseChange() : IFunction(Variable::temperature)
     {}
 
-    double PhaseChange::evaluateFunction(double t_position) const
+    double PhaseChange::evaluateFunction(const double t_position,
+                                         const double t_PreviousTimestep) const
     {
+        using Constants::FreezingPoint;
+        using Constants::IcePoint;
+        using Constants::EnthalpyOfFusion;
+
         auto result = 0.0;
-        if(t_position <= Constants::IcePoint)
+
+
+        if(t_PreviousTimestep < IcePoint)
         {
-            result = Constants::EnthalpyOfFusion;
+            // Entire content of ice has melted.
+            if(t_position >= FreezingPoint)
+            {
+                result = EnthalpyOfFusion;
+            }
+
+            // Only part of ice has melted and therefore linear interpolation is needed.
+            if((t_position < FreezingPoint) && (t_position >= IcePoint))
+            {
+                result = EnthalpyOfFusion * (t_position - IcePoint)
+                         / (FreezingPoint - IcePoint);
+            }
         }
-        if((t_position < Constants::FreezingPoint) && (t_position >= Constants::IcePoint))
+
+        if(t_PreviousTimestep >= FreezingPoint)
         {
-            result = Constants::EnthalpyOfFusion * (t_position - Constants::IcePoint)
-                     / (Constants::FreezingPoint - Constants::IcePoint);
+            // Entire content of water has froze.
+            if(t_position < IcePoint)
+            {
+                result = -Constants::EnthalpyOfFusion;
+            }
+
+            // Only part of water froze and therefore linear interpolation is needed.
+            if((t_position < FreezingPoint) && (t_position >= IcePoint))
+            {
+                result = EnthalpyOfFusion * (t_position - FreezingPoint)
+                         / (FreezingPoint - IcePoint);
+            }
         }
 
         return result;

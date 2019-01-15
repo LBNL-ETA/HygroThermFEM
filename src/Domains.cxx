@@ -83,7 +83,7 @@ namespace MoisThermFEM
         auto A = transientM_K_H_Matrix(t_DTime);
 
         // This is just for debugging purposes since Eigen vector is invisible.
-        // auto test = A.toVector();
+        auto test = A.toVector();
 
         auto B = transientMT_R_Vector(currentStateValues, t_DTime);
 
@@ -120,7 +120,7 @@ namespace MoisThermFEM
 
                 ++numOfIterations;
 
-                m_BCs.updateNodeValues(solution, m_Property);
+                m_BCs.updateNodeValues(solution, m_Property, m_AutomaticUpdatePreviousTimestep);
 
                 A = transientM_K_H_Matrix(t_DTime);
                 B = transientMT_R_Vector(currentStateValues, t_DTime);
@@ -131,7 +131,7 @@ namespace MoisThermFEM
             }
         }
 
-        m_Elements.updateNodeValues(solution, m_Property);
+        m_Elements.updateNodeValues(solution, m_Property, m_AutomaticUpdatePreviousTimestep);
 
         return std::make_pair(solution, converged);
     }
@@ -141,13 +141,15 @@ namespace MoisThermFEM
         return m_BCs.isLinear() && m_Elements.isLinear();
     }
 
-    void IDomain::updateNodeValues(const std::vector<double> & values, const BaseVariable property)
+    void IDomain::updateNodeValues(const std::vector<double> & values,
+        const BaseVariable property, bool updatePreviousValues)
     {
-        m_BCs.updateNodeValues(values, property);
-        m_Elements.updateNodeValues(values, property);
+        m_BCs.updateNodeValues(values, property, updatePreviousValues);
+        m_Elements.updateNodeValues(values, property, updatePreviousValues);
     }
 
-    IDomain::IDomain(const BaseVariable property) : m_Property(property)
+    IDomain::IDomain(const BaseVariable property, bool automaticUpdateOfPreviousTimestep) :
+    m_Property(property), m_AutomaticUpdatePreviousTimestep(automaticUpdateOfPreviousTimestep)
     {}
 
     std::vector<NodeFlux> IDomain::flux() const
@@ -209,7 +211,8 @@ namespace MoisThermFEM
           fem::make_unique<ElementThermalLinear2D>(index1, index2, index3, index4, materialName));
     }
 
-    ThermalDomain::ThermalDomain() : IDomain(BaseVariable::temperature)
+    ThermalDomain::ThermalDomain(bool automaticUpdatePreviousTimestep) :
+    IDomain(BaseVariable::temperature, automaticUpdatePreviousTimestep)
     {}
 
     void MoistureDomain::createElement(const size_t index1,
@@ -233,7 +236,8 @@ namespace MoisThermFEM
           index1, index2, Material.name(), t_AirHumidity, t_AirTemperature));
     }
 
-    MoistureDomain::MoistureDomain() : IDomain(BaseVariable::humidity)
+    MoistureDomain::MoistureDomain(bool automaticUpdatePreviousTimestep) :
+    IDomain(BaseVariable::humidity, automaticUpdatePreviousTimestep)
     {}
 
     void MoistureDomain::postProcess(std::vector<double> & solution) const
