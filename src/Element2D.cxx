@@ -422,8 +422,10 @@ namespace MoisThermFEM
         Cap(capacitance);
 
         // Phase change part
-        auto waterWithoutVapor = liquidContent + iceContent;
-        Cap(PhaseChange() * waterWithoutVapor);
+        // This is incorrect phase change equation. Correct one is kept in branch IceContentFix.
+        // Disable this for now because solver is not producing correct results
+        //auto waterWithoutVapor = liquidContent + iceContent;
+        //Cap(PhaseChange() * waterWithoutVapor);
 
         //////////////////////////////////////////////////////////////////////////
         /// Conductance
