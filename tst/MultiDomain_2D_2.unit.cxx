@@ -86,7 +86,7 @@ TEST_F(MultiDomain_2D_2, TestExample_1)
     const auto airTemperature = 20.0;
     const auto humidity = 0.2;
 
-    domain.createConvectionBC(1, 2, hc, airTemperature, humidity);
+    domain.createMoistureBC(1, 2, hc, airTemperature, humidity);
 
     const auto dTime = 3600;
     const auto nSteps = 10;

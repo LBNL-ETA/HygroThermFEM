@@ -39,11 +39,11 @@ namespace MoisThermFEM
                            const size_t index4,
                            const std::string & materialName);
 
-        void createConvectionBC(const size_t index1,
-                                const size_t index2,
-                                const double t_ConvectionCoefficient,
-                                const double t_AirTemperature,
-                                const double t_Humidity);
+        void createMoistureBC(const size_t index1,
+                              const size_t index2,
+                              const double t_ConvectionCoefficient,
+                              const double t_AirTemperature,
+                              const double t_Humidity);
 
         void createTemperatureBC(const size_t index1,
                                  const size_t index2,

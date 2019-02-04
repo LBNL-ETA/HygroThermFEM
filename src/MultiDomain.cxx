@@ -93,11 +93,9 @@ namespace MoisThermFEM
         m_MoistureDomain.createElement(index1, index2, index3, index4, materialName);
     }
 
-    void MultiDomain::createConvectionBC(const size_t index1,
-                                         const size_t index2,
-                                         const double t_ConvectionCoefficient,
-                                         const double t_AirTemperature,
-                                         const double t_Humidity)
+    void MultiDomain::createMoistureBC(const size_t index1, const size_t index2,
+                                       const double t_ConvectionCoefficient,
+                                       const double t_AirTemperature, const double t_Humidity)
     {
         m_ThermalDomain.createConvectionBC(
           index1, index2, t_ConvectionCoefficient, t_AirTemperature);
