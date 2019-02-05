@@ -158,6 +158,8 @@ namespace MoisThermFEM
     {
         std::vector<double> betaCon(numOfBCNodes, 0);
 
+        auto minimumConvectionCoefficient = 0.0;
+
         for(std::size_t j = 0; j < numOfBCNodes; ++j)
         {
             const double humidity = m_Nodes[j].property(Variable::humidity);
@@ -165,7 +167,8 @@ namespace MoisThermFEM
             {
                 const double T = m_Nodes[j].property(Variable::temperature);
                 const auto convectiveCoefficient =
-                  std::max(3.0, 1.31 * std::pow(std::abs(T - m_AirTemperature), 1.0 / 3.0));
+                  std::max(minimumConvectionCoefficient,
+                           1.31 * std::pow(std::abs(T - m_AirTemperature), 1.0 / 3.0));
                 betaCon[j] = 7e-9 * convectiveCoefficient;
             }
             else
