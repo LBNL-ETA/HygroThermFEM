@@ -97,7 +97,7 @@ TEST_F(MoistureBC_2D_1, TestExample_1)
     const auto airTemperature = 20;
     const auto airHumidity = 0.5;
 
-    domain.createMoistureBC(1, 2, airHumidity, airTemperature);
+    domain.createMoistureBCVariableHc(1, 2, airHumidity, airTemperature);
 
     const auto dTime = 36000;
     const auto nSteps = 4;

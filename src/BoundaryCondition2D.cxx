@@ -9,26 +9,104 @@
 namespace MoisThermFEM
 {
     ////////////////////////////////////////////////////////
-    /// ConvectionBC
+    /// VariableConvectionCoefficient
     ////////////////////////////////////////////////////////
-
-    ConvectionBC::ConvectionBC(const size_t index1,
-                               const size_t index2,
-                               const double t_ConvectionCoefficient,
-                               const double t_AirTemperature) :
-        IBCLinear2D(index1, index2),
-        m_ConvectionCoefficient(t_ConvectionCoefficient),
-        m_AirTemperature(t_AirTemperature)
+    VariableConvectionCoefficient::VariableConvectionCoefficient() :
+        IConvectiveCoefficient()
     {}
 
-    std::vector<double> ConvectionBC::R_Vector() const
+    std::vector<double> VariableConvectionCoefficient::value(const INodes & nodes, const double ambientTemperature) const
     {
-        return m_PsiVector * m_ConvectionCoefficient * m_AirTemperature;
+        auto minimumConvectionCoefficient = 3.0;
+        std::vector<double> result;
+        for(const auto & temperature : nodes.properties(Variable::temperature))
+        {
+            result.push_back(
+              std::max(minimumConvectionCoefficient,
+                       1.31 * std::pow(std::abs(temperature - ambientTemperature), 1.0 / 3.0)));
+        }
+        return result;
     }
 
-    FenestrationCommon::SquareMatrix ConvectionBC::H_Matrix() const
+    ////////////////////////////////////////////////////////
+    /// FixedConvectionCoefficient
+    ////////////////////////////////////////////////////////
+    FixedConvectionCoefficient::FixedConvectionCoefficient() :
+        IConvectiveCoefficient()
+    {}
+
+    std::vector<double> FixedConvectionCoefficient::value(const INodes & nodes, const double convectiveCoefficient) const
     {
-        return m_PsiPsiMatrix * m_ConvectionCoefficient;
+        std::vector<double> result(nodes.size(), convectiveCoefficient);
+
+        return result;
+    }
+
+    ////////////////////////////////////////////////////////
+    /// ConvectionModelFactory
+    ////////////////////////////////////////////////////////
+    std::unique_ptr<IConvectiveCoefficient>
+    ConvectionModelFactory::create(const ConvectionModel model)
+    {
+        switch(model)
+        {
+            case ConvectionModel::Fixed:
+                return std::unique_ptr<FixedConvectionCoefficient>(new FixedConvectionCoefficient());
+            case ConvectionModel::Variable:
+                return std::unique_ptr<VariableConvectionCoefficient>(new VariableConvectionCoefficient());
+        }
+        return nullptr;
+    }
+
+    ////////////////////////////////////////////////////////
+    /// IConvectionBC
+    ////////////////////////////////////////////////////////
+
+    IConvectionBC::IConvectionBC(size_t index1, size_t index2, double t_AirTemperature, ConvectionModel model)
+        :
+        IBCLinear2D(index1, index2),
+        m_AirTemperature(t_AirTemperature),
+        m_ConvectiveCoeffCalc(ConvectionModelFactory::create(model))
+    {}
+
+    std::vector<double> IConvectionBC::R_Vector() const
+    {
+        assert(m_ConvectiveCoefficient != nullptr);
+        return m_PsiVector * convectionCoefficients() * m_AirTemperature;
+    }
+
+    FenestrationCommon::SquareMatrix IConvectionBC::H_Matrix() const
+    {
+        assert(m_ConvectiveCoefficient != nullptr);
+        return m_PsiPsiMatrix.mmultRows(convectionCoefficients());
+    }
+
+    ////////////////////////////////////////////////////////
+    /// ConstantConvectionBC
+    ////////////////////////////////////////////////////////
+    ConstantConvectionBC::ConstantConvectionBC(size_t index1, size_t index2,
+                                               double t_AirTemperature,
+                                               const double m_ConvectionCoefficient)
+        : IConvectionBC(index1, index2, t_AirTemperature, ConvectionModel::Fixed),
+          m_ConvectionCoefficient(m_ConvectionCoefficient)
+    {}
+
+    std::vector<double> ConstantConvectionBC::convectionCoefficients() const
+    {
+        return m_ConvectiveCoeffCalc->value(m_Nodes, m_ConvectionCoefficient);
+    }
+
+    ////////////////////////////////////////////////////////
+    /// VariableConvectionBC
+    ////////////////////////////////////////////////////////
+    VariableConvectionBC::VariableConvectionBC(size_t index1, size_t index2,
+                                               double t_AirTemperature)
+        : IConvectionBC(index1, index2, t_AirTemperature, ConvectionModel::Variable)
+    {}
+
+    std::vector<double> VariableConvectionBC::convectionCoefficients() const
+    {
+        return m_ConvectiveCoeffCalc->value(m_Nodes, m_AirTemperature);
     }
 
     ////////////////////////////////////////////////////////
@@ -37,8 +115,8 @@ namespace MoisThermFEM
 
     TemperatureBC::TemperatureBC(const size_t index1,
                                  const size_t index2,
-                                 const double t_NodeTemperatures) :
-        ConvectionBC(index1, index2, 1e18, t_NodeTemperatures)
+                                 const double t_NodeTemperatures) : ConstantConvectionBC(index1, index2,
+                                                                                  t_NodeTemperatures, 1e18)
     {
         auto & node1 = NodePool::Instance().getNode(index1);
         auto & node2 = NodePool::Instance().getNode(index2);
@@ -49,8 +127,8 @@ namespace MoisThermFEM
     TemperatureBC::TemperatureBC(const size_t index1,
                                  const size_t index2,
                                  const double t_Temp1,
-                                 const double t_Temp2) :
-        ConvectionBC(index1, index2, 1e18, (t_Temp1 + t_Temp2) / 2)
+                                 const double t_Temp2) : ConstantConvectionBC(index1, index2,
+                                                                       (t_Temp1 + t_Temp2) / 2, 1e18)
     {
         auto & node1 = NodePool::Instance().getNode(index1);
         auto & node2 = NodePool::Instance().getNode(index2);
@@ -120,28 +198,30 @@ namespace MoisThermFEM
     }
 
     /////////////////////////////////////////////////////
-    /// MoistureBC
+    /// IMoistureBC
     /////////////////////////////////////////////////////
 
-    MoistureBC::MoistureBC(size_t index1,
-                           size_t index2,
-                           const std::string & materialName,
-                           double t_AirHumidity,
-                           double t_AirTemperature) :
+    IMoistureBC::IMoistureBC(size_t index1,
+                             size_t index2,
+                             const std::string & materialName,
+                             double t_AirHumidity,
+                             double t_AirTemperature,
+                             ConvectionModel model) :
         IBCLinear2D(index1, index2),
         m_AirHumidity(t_AirHumidity),
         m_AirTemperature(t_AirTemperature),
-        m_Material(MaterialPool::Instance().material(materialName))
+        m_Material(MaterialPool::Instance().material(materialName)),
+        m_ConvectiveCoeffCalc(ConvectionModelFactory::create(model))
     {}
 
-    std::vector<double> MoistureBC::R_Vector() const
+    std::vector<double> IMoistureBC::R_Vector() const
     {
         const auto satOutside = boundarySaturationAtTemperature(m_AirTemperature);
         const auto gconv = betaConv() * satOutside * m_AirHumidity;
         return m_PsiVector * gconv;
     }
 
-    FenestrationCommon::SquareMatrix MoistureBC::H_Matrix() const
+    FenestrationCommon::SquareMatrix IMoistureBC::H_Matrix() const
     {
         std::vector<double> saturation(numOfBCNodes, 0);
         for(std::size_t j = 0; j < numOfBCNodes; ++j)
@@ -154,28 +234,56 @@ namespace MoisThermFEM
         return m_PsiPsiMatrix.mmultRows(coeffs);
     }
 
-    std::vector<double> MoistureBC::betaConv() const
+    std::vector<double> IMoistureBC::betaConv() const
     {
         std::vector<double> betaCon(numOfBCNodes, 0);
-
-        auto minimumConvectionCoefficient = 0.0;
 
         for(std::size_t j = 0; j < numOfBCNodes; ++j)
         {
             const double humidity = m_Nodes[j].property(Variable::humidity);
             if(humidity <= 1)
             {
-                const double T = m_Nodes[j].property(Variable::temperature);
-                const auto convectiveCoefficient =
-                  std::max(minimumConvectionCoefficient,
-                           1.31 * std::pow(std::abs(T - m_AirTemperature), 1.0 / 3.0));
-                betaCon[j] = 7e-9 * convectiveCoefficient;
+                betaCon[j] = 7e-9;
             }
             else
             {
                 betaCon[j] = 0;
             }
         }
-        return betaCon;
+        return betaCon * convectiveCoefficient();
+    }
+
+    /////////////////////////////////////////////////////
+    /// MoistureBCVariableHc
+    /////////////////////////////////////////////////////
+    MoistureBCVariableHc::MoistureBCVariableHc(size_t index1,
+                                                   size_t index2,
+                                                   const std::string & materialName,
+                                                   double t_AirHumidity,
+                                                   double t_AirTemperature) :
+        IMoistureBC(index1, index2, materialName, t_AirHumidity, t_AirTemperature, ConvectionModel::Variable)
+    {}
+
+    std::vector<double> MoistureBCVariableHc::convectiveCoefficient() const
+    {
+        return m_ConvectiveCoeffCalc->value(m_Nodes, m_AirTemperature);
+    }
+
+    /////////////////////////////////////////////////////
+    /// MoistureBCFixedHc
+    /////////////////////////////////////////////////////
+    MoistureBCFixedHc::MoistureBCFixedHc(size_t index1,
+                                         size_t index2,
+                                         const std::string & materialName,
+                                         double t_AirHumidity,
+                                         double t_AirTemperature,
+                                         double convectiveCoefficient) :
+        IMoistureBC(index1, index2, materialName, t_AirHumidity, t_AirTemperature, ConvectionModel::Fixed),
+        m_ConvectiveCoefficient(convectiveCoefficient)
+    {}
+
+    std::vector<double> MoistureBCFixedHc::convectiveCoefficient() const
+    {
+        return m_ConvectiveCoeffCalc->value(m_Nodes, m_ConvectiveCoefficient);
     }
 }   // namespace MoisThermFEM

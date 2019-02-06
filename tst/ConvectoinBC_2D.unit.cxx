@@ -37,8 +37,8 @@ TEST_F(TestBoundaryConditions2D_test1, TestIntegrationPoints)
     auto const Tair2 = 294.15;
 
     MoisThermFEM::BoundaryConditions2D BCs;
-    BCs.assignBC(fem::make_unique<MoisThermFEM::ConvectionBC>(1, 2, hc1, Tair1));
-    BCs.assignBC(fem::make_unique<MoisThermFEM::ConvectionBC>(6, 5, hc2, Tair2));
+    BCs.assignBC(fem::make_unique<MoisThermFEM::ConstantConvectionBC>(1, 2, Tair1, hc1));
+    BCs.assignBC(fem::make_unique<MoisThermFEM::ConstantConvectionBC>(6, 5, Tair2, hc2));
 
     auto H = BCs.HMatrix();
 

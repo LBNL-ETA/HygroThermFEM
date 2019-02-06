@@ -142,14 +142,16 @@ namespace MoisThermFEM
     }
 
     void IDomain::updateNodeValues(const std::vector<double> & values,
-        const BaseVariable property, bool updatePreviousValues)
+                                   const BaseVariable property,
+                                   bool updatePreviousValues)
     {
         m_BCs.updateNodeValues(values, property, updatePreviousValues);
         m_Elements.updateNodeValues(values, property, updatePreviousValues);
     }
 
     IDomain::IDomain(const BaseVariable property, bool automaticUpdateOfPreviousTimestep) :
-    m_Property(property), m_AutomaticUpdatePreviousTimestep(automaticUpdateOfPreviousTimestep)
+        m_Property(property),
+        m_AutomaticUpdatePreviousTimestep(automaticUpdateOfPreviousTimestep)
     {}
 
     std::vector<NodeFlux> IDomain::flux() const
@@ -163,13 +165,18 @@ namespace MoisThermFEM
         // some functionality if necessary.
     }
 
-    void ThermalDomain::createConvectionBC(const size_t index1,
-                                           const size_t index2,
-                                           double t_ConvectionCoefficient,
-                                           double t_AirTemperature)
+    void ThermalDomain::createConvectionBCFixedHc(size_t index1, size_t index2, double t_AirTemperature,
+                                                      double t_ConvectionCoefficient)
     {
-        m_BCs.assignBC(fem::make_unique<ConvectionBC>(
-          index1, index2, t_ConvectionCoefficient, t_AirTemperature));
+        m_BCs.assignBC(fem::make_unique<ConstantConvectionBC>(
+          index1, index2, t_AirTemperature, t_ConvectionCoefficient));
+    }
+
+    void ThermalDomain::createConvectionBCVariableHc(size_t index1, size_t index2,
+                                                     double t_AirTemperature)
+    {
+        m_BCs.assignBC(fem::make_unique<VariableConvectionBC>(
+            index1, index2, t_AirTemperature));
     }
 
     void ThermalDomain::createTemperatureBC(const size_t index1,
@@ -212,7 +219,7 @@ namespace MoisThermFEM
     }
 
     ThermalDomain::ThermalDomain(bool automaticUpdatePreviousTimestep) :
-    IDomain(BaseVariable::temperature, automaticUpdatePreviousTimestep)
+        IDomain(BaseVariable::temperature, automaticUpdatePreviousTimestep)
     {}
 
     void MoistureDomain::createElement(const size_t index1,
@@ -225,19 +232,34 @@ namespace MoisThermFEM
           fem::make_unique<ElementMoistureLinear2D>(index1, index2, index3, index4, materialName));
     }
 
-    void MoistureDomain::createMoistureBC(const size_t index1,
-                                          const size_t index2,
-                                          const double t_AirHumidity,
-                                          const double t_AirTemperature)
+    void MoistureDomain::createMoistureBCVariableHc(const size_t index1, const size_t index2,
+                                                    const double t_AirHumidity,
+                                                    const double t_AirTemperature)
     {
         /// Need to pull material for current moisture boundary condition
         auto & Material = m_Elements.findElement(index1, index2)->getMaterial();
-        m_BCs.assignBC(fem::make_unique<MoisThermFEM::MoistureBC>(
+        m_BCs.assignBC(fem::make_unique<MoisThermFEM::MoistureBCVariableHc>(
           index1, index2, Material.name(), t_AirHumidity, t_AirTemperature));
     }
 
+    void MoistureDomain::createMoistureBCFixedHc(const size_t index1, const size_t index2,
+                                                     const double t_AirTemperature,
+                                                     const double t_ConvectiveFilmCoefficient,
+                                                     const double t_AirHumidity)
+    {
+        /// Need to pull material for current moisture boundary condition
+        auto & Material = m_Elements.findElement(index1, index2)->getMaterial();
+        m_BCs.assignBC(
+          fem::make_unique<MoisThermFEM::MoistureBCFixedHc>(index1,
+                                                            index2,
+                                                            Material.name(),
+                                                            t_AirHumidity,
+                                                            t_AirTemperature,
+                                                            t_ConvectiveFilmCoefficient));
+    }
+
     MoistureDomain::MoistureDomain(bool automaticUpdatePreviousTimestep) :
-    IDomain(BaseVariable::humidity, automaticUpdatePreviousTimestep)
+        IDomain(BaseVariable::humidity, automaticUpdatePreviousTimestep)
     {}
 
     void MoistureDomain::postProcess(std::vector<double> & solution) const

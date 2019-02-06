@@ -54,7 +54,6 @@ namespace MoisThermFEM
                 dTimeMoisture = humiditySolution.dTime;
 
 
-
             } while(dTimeThermal != dTimeMoisture);
 
             currentHumidity = humiditySolution.solution;
@@ -64,7 +63,6 @@ namespace MoisThermFEM
             m_ThermalDomain.updateNodeValues(currentHumidity, BaseVariable::humidity, true);
             m_MoistureDomain.updateNodeValues(currentTemperature, BaseVariable::temperature, true);
             m_MoistureDomain.updateNodeValues(currentHumidity, BaseVariable::humidity, true);
-
         }
 
         NodePool::Instance().updateNodeValues(currentHumidity, BaseVariable::humidity);
@@ -93,14 +91,27 @@ namespace MoisThermFEM
         m_MoistureDomain.createElement(index1, index2, index3, index4, materialName);
     }
 
-    void MultiDomain::createMoistureBC(const size_t index1, const size_t index2,
-                                       const double t_ConvectionCoefficient,
-                                       const double t_AirTemperature, const double t_Humidity)
+    void MultiDomain::createMoistureBCFixedHc(const size_t index1,
+                                              const size_t index2,
+                                              const double t_AirTemperature,
+                                              const double t_ConvectionCoefficient,
+                                              const double t_Humidity)
     {
-        m_ThermalDomain.createConvectionBC(
-          index1, index2, t_ConvectionCoefficient, t_AirTemperature);
+        m_ThermalDomain.createConvectionBCFixedHc(
+          index1, index2, t_AirTemperature, t_ConvectionCoefficient);
 
-        m_MoistureDomain.createMoistureBC(index1, index2, t_Humidity, t_AirTemperature);
+        m_MoistureDomain.createMoistureBCFixedHc(index1, index2, t_AirTemperature,
+                                                 t_ConvectionCoefficient, t_Humidity);
+    }
+
+    void MultiDomain::createMoistureBCVariableHc(const size_t index1,
+                                                 const size_t index2,
+                                                 const double t_AirTemperature,
+                                                 const double t_Humidity)
+    {
+        m_ThermalDomain.createConvectionBCVariableHc(index1, index2, t_AirTemperature);
+
+        m_MoistureDomain.createMoistureBCVariableHc(index1, index2, t_Humidity, t_AirTemperature);
     }
 
     void MultiDomain::createTemperatureBC(const size_t index1,
