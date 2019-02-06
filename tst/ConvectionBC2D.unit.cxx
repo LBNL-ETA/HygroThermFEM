@@ -29,7 +29,7 @@ TEST_F(TestConvectionBC2D, TestIntegrationPoints)
     const auto hc = 20.0;
     const auto tAir = 255.15;
 
-    auto aBc = MoisThermFEM::ConvectionBC(1, 2, hc, tAir);
+    auto aBc = MoisThermFEM::ConstantConvectionBC(1, 2, tAir, hc);
 
     auto h = aBc.H_Matrix();
 

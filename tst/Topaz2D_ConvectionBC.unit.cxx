@@ -82,7 +82,7 @@ TEST_F(Topaz2D_ConvectionBC, TestExample_1)
     const auto tSurface = 20.0;
     const auto hc = 20.0;
 
-    domain.createConvectionBC(5, 6, hc, tSurface);
+    domain.createConvectionBCFixedHc(5, 6, tSurface, hc);
 
     const auto dTime = 3600;
     const auto nSteps = 4;

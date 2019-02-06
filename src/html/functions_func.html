@@ -102,13 +102,13 @@ $(function() {
 <li>Constant()
 : <a class="el" href="class_mois_therm_f_e_m_1_1_constant.html#acb21a3f90b2f3cc3a443a07cdbde95d4">MoisThermFEM::Constant</a>
 </li>
-<li>ConvectionBC()
-: <a class="el" href="class_mois_therm_f_e_m_1_1_convection_b_c.html#a2f02e307a56e9a020b45c88ab8ceb584">MoisThermFEM::ConvectionBC</a>
+<li>IConvectionBC()
+: <a class="el" href="class_mois_therm_f_e_m_1_1_convection_b_c.html#a2f02e307a56e9a020b45c88ab8ceb584">MoisThermFEM::IConvectionBC</a>
 </li>
 <li>createBlackBodyRadiationBC()
 : <a class="el" href="class_mois_therm_f_e_m_1_1_thermal_domain.html#a6b8c5c9c8a2a4c2b34d56a8cad4e6e65">MoisThermFEM::ThermalDomain</a>
 </li>
-<li>createConvectionBC()
+<li>createConvectionBCFixedHc()
 : <a class="el" href="class_mois_therm_f_e_m_1_1_thermal_domain.html#ad69f09f3c8bd9889f310eeaac49b4aef">MoisThermFEM::ThermalDomain</a>
 </li>
 <li>createElement()
@@ -119,7 +119,7 @@ $(function() {
 <li>createFluxBC()
 : <a class="el" href="class_mois_therm_f_e_m_1_1_thermal_domain.html#aefc21ab4df147533f87a5757e1b6ecbe">MoisThermFEM::ThermalDomain</a>
 </li>
-<li>createMoistureBC()
+<li>createMoistureBCFixedHc()
 : <a class="el" href="class_mois_therm_f_e_m_1_1_moisture_domain.html#a8ee337b46e73641ccf7ffbc8731df53c">MoisThermFEM::MoistureDomain</a>
 </li>
 <li>createNode()
@@ -230,10 +230,10 @@ $(function() {
 <h3><a id="index_h"></a>- h -</h3><ul>
 <li>H_Matrix()
 : <a class="el" href="class_mois_therm_f_e_m_1_1_black_body_radiation_b_c.html#a09200ce0a9fe4f3ac7b7d9973e028dba">MoisThermFEM::BlackBodyRadiationBC</a>
-, <a class="el" href="class_mois_therm_f_e_m_1_1_convection_b_c.html#ae0cd0f7ed80d151125705890f4559fc4">MoisThermFEM::ConvectionBC</a>
+, <a class="el" href="class_mois_therm_f_e_m_1_1_convection_b_c.html#ae0cd0f7ed80d151125705890f4559fc4">MoisThermFEM::IConvectionBC</a>
 , <a class="el" href="class_mois_therm_f_e_m_1_1_flux_b_c.html#a3cd4f83dce50bd64f2b832a5c37c720b">MoisThermFEM::FluxBC</a>
 , <a class="el" href="class_mois_therm_f_e_m_1_1_i_b_c_linear2_d.html#a5829142c01996920f0cad8bf7c83cc8c">MoisThermFEM::IBCLinear2D</a>
-, <a class="el" href="class_mois_therm_f_e_m_1_1_moisture_b_c.html#aa56d74538f417b872a2b13a4eb25b400">MoisThermFEM::MoistureBC</a>
+, <a class="el" href="class_mois_therm_f_e_m_1_1_moisture_b_c.html#aa56d74538f417b872a2b13a4eb25b400">MoisThermFEM::IMoistureBC</a>
 </li>
 <li>haveBothNodes()
 : <a class="el" href="class_mois_therm_f_e_m_1_1_i_element_linear2_d.html#a8fa76c9604eba08c3b51b4b2d59caa33">MoisThermFEM::IElementLinear2D</a>
@@ -329,8 +329,8 @@ $(function() {
 <li>mmultRows()
 : <a class="el" href="class_fenestration_common_1_1_square_matrix.html#a8a605806bbe10eb4d8678f86a1c7a777">FenestrationCommon::SquareMatrix</a>
 </li>
-<li>MoistureBC()
-: <a class="el" href="class_mois_therm_f_e_m_1_1_moisture_b_c.html#a79705da5a133bb4691c0e38b9e7e9def">MoisThermFEM::MoistureBC</a>
+<li>IMoistureBC()
+: <a class="el" href="class_mois_therm_f_e_m_1_1_moisture_b_c.html#a79705da5a133bb4691c0e38b9e7e9def">MoisThermFEM::IMoistureBC</a>
 </li>
 <li>MoistureDomain()
 : <a class="el" href="class_mois_therm_f_e_m_1_1_moisture_domain.html#a3f4b3bc3965fe50d94578b3eadb65a6c">MoisThermFEM::MoistureDomain</a>
@@ -433,10 +433,10 @@ $(function() {
 <h3><a id="index_r"></a>- r -</h3><ul>
 <li>R_Vector()
 : <a class="el" href="class_mois_therm_f_e_m_1_1_black_body_radiation_b_c.html#a95cb4c68267f2aa20f0d46359bcaf001">MoisThermFEM::BlackBodyRadiationBC</a>
-, <a class="el" href="class_mois_therm_f_e_m_1_1_convection_b_c.html#a97ac0ac2baf86ec0e29adb7134b6548d">MoisThermFEM::ConvectionBC</a>
+, <a class="el" href="class_mois_therm_f_e_m_1_1_convection_b_c.html#a97ac0ac2baf86ec0e29adb7134b6548d">MoisThermFEM::IConvectionBC</a>
 , <a class="el" href="class_mois_therm_f_e_m_1_1_flux_b_c.html#af893cbcfde846c02153980cd019a828d">MoisThermFEM::FluxBC</a>
 , <a class="el" href="class_mois_therm_f_e_m_1_1_i_b_c_linear2_d.html#a60aa75d815da705ca4fbb005f7f8737b">MoisThermFEM::IBCLinear2D</a>
-, <a class="el" href="class_mois_therm_f_e_m_1_1_moisture_b_c.html#a12acd795cf9c5dd9ce438d52d518be6e">MoisThermFEM::MoistureBC</a>
+, <a class="el" href="class_mois_therm_f_e_m_1_1_moisture_b_c.html#a12acd795cf9c5dd9ce438d52d518be6e">MoisThermFEM::IMoistureBC</a>
 </li>
 <li>rightSideVector()
 : <a class="el" href="class_mois_therm_f_e_m_1_1_i_element_linear2_d.html#aa0e71dc7197c4e58a902ab224b86c371">MoisThermFEM::IElementLinear2D</a>

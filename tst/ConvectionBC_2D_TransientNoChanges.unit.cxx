@@ -82,7 +82,7 @@ TEST_F(ConvectionBC_2D_TransientNoChanges, TestExample_1)
     const auto tSurface = 20;
     const auto hc = 1.0;
 
-    domain.createConvectionBC(1, 2, hc, tSurface);
+    domain.createConvectionBCFixedHc(1, 2, tSurface, hc);
 
     const auto dTime = 36000;
     const auto nSteps = 4;

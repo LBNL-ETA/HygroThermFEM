@@ -109,11 +109,13 @@ namespace MoisThermFEM
         ThermalDomain(bool automaticUpdatePreviousTimestep = true);
 
         //! Creation of convection boundary condition
-        void createConvectionBC(
-          size_t index1,                    //!< Node 1 index
-          size_t index2,                    //!< Node 2 index
-          double t_ConvectionCoefficient,   //!< Heat transfer convection coefficient
-          double t_AirTemperature           //!< Outside air temperature
+        void createConvectionBCFixedHc(size_t index1, size_t index2, double t_AirTemperature,
+                                       double t_ConvectionCoefficient);
+
+        //! Creation of convection boundary condition
+        void createConvectionBCVariableHc(size_t index1,                    //!< Node 1 index
+                                       size_t index2,                    //!< Node 2 index
+                                       double t_AirTemperature           //!< Outside air temperature
         );
 
         //! Creation of temperature boundary condition
@@ -158,11 +160,15 @@ namespace MoisThermFEM
         //! Simple constructor
         MoistureDomain(bool automaticUpdatePreviousTimestep = true);
 
-        //! Creates moisture boundary conditions.
-        void createMoistureBC(const size_t index1,
-                              const size_t index2,
-                              const double t_AirHumidity,
-                              const double t_AirTemperature);
+        //! Creates moisture boundary condition that will calculate convection film coefficient.
+        void createMoistureBCVariableHc(const size_t index1, const size_t index2,
+                                        const double t_AirHumidity, const double t_AirTemperature);
+
+        //! Creates moisture boundary condition with fixed film coefficient
+        void createMoistureBCFixedHc(const size_t index1, const size_t index2,
+                                     const double t_AirTemperature,
+                                     const double t_ConvectiveFilmCoefficient,
+                                     const double t_AirHumidity);
 
         //! Creates and adds element into domain.
         virtual void createElement(size_t index1,                     //!< Node 1 index

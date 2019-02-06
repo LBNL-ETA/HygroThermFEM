@@ -71,8 +71,8 @@ TEST_F(ConvectionBC_2D_SteadyState, TestExample_1)
     const auto hc2 = 2.4;
     const auto temperatureAir2 = 21.0;
 
-    domain.createConvectionBC(1, 2, hc1, temperatureAir1);
-    domain.createConvectionBC(6, 5, hc2, temperatureAir2);
+    domain.createConvectionBCFixedHc(1, 2, temperatureAir1, hc1);
+    domain.createConvectionBCFixedHc(6, 5, temperatureAir2, hc2);
 
     auto solution = domain.steadyState();
 

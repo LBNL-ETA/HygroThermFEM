@@ -76,7 +76,7 @@ TEST_F(Analytical_TemperatureBC_Transient, TestExample_1)
     const auto tAir = 0.0;
     const auto hc = 1.0;
 
-    domain.createConvectionBC(21, 22, hc, tAir);
+    domain.createConvectionBCFixedHc(21, 22, tAir, hc);
 
     const auto dTime = 0.001;
     const auto nSteps = 1000;
