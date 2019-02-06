@@ -3,7 +3,7 @@
 #include <random>
 #include <chrono>
 
-#include "MoisThermFEM2D.hxx"
+#include "HygroThermFEM2D.hxx"
 
 #pragma warning(push, 0)
 #include <Eigen/SparseCore>

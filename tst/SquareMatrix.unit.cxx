@@ -2,7 +2,7 @@
 #include <memory>
 #include <vector>
 
-#include "MoisThermFEM2D.hxx"
+#include "HygroThermFEM2D.hxx"
 
 using FenestrationCommon::SquareMatrix;
 

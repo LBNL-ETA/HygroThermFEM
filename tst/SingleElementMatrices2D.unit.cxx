@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 #include <stdexcept>
 
-#include "MoisThermFEM2D.hxx"
+#include "HygroThermFEM2D.hxx"
 
 using HygroThermFEM::NodePool;
 using HygroThermFEM::MaterialPool;

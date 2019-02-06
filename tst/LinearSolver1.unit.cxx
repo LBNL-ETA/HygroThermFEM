@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 #include <memory>
 
-#include "MoisThermFEM2D.hxx"
+#include "HygroThermFEM2D.hxx"
 
 using FenestrationCommon::SquareMatrix;
 using FenestrationCommon::CLinearSolver;

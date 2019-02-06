@@ -4,7 +4,7 @@
 
 #include <memory>
 
-#include "MoisThermFEM2D.hxx"
+#include "HygroThermFEM2D.hxx"
 
 class TestQuadLinearElementLocal2D : public testing::Test {
 

@@ -2,7 +2,7 @@
 #include <gtest/gtest.h>
 #include <cmath>
 
-#include "MoisThermFEM2D.hxx"
+#include "HygroThermFEM2D.hxx"
 
 class TestQuadrilateralIntegrationPointsThreePointFormula2D : public testing::Test {
 
