@@ -11,6 +11,7 @@ namespace MoisThermFEM
     class IConvectiveCoefficient
     {
     public:
+        virtual ~IConvectiveCoefficient() = default;
         virtual std::vector<double> value(const INodes & nodes, const double variable) const = 0;
     };
 
