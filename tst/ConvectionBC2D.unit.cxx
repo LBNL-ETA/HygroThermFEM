@@ -2,7 +2,7 @@
 
 #include "MoisThermFEM2D.hxx"
 
-using MoisThermFEM::NodePool;
+using HygroThermFEM::NodePool;
 
 
 class TestConvectionBC2D : public testing::Test
@@ -29,7 +29,7 @@ TEST_F(TestConvectionBC2D, TestIntegrationPoints)
     const auto hc = 20.0;
     const auto tAir = 255.15;
 
-    auto aBc = MoisThermFEM::ConstantConvectionBC(1, 2, tAir, hc);
+    auto aBc = HygroThermFEM::ConstantConvectionBC(1, 2, tAir, hc);
 
     auto h = aBc.H_Matrix();
 

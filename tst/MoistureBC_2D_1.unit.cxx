@@ -3,9 +3,9 @@
 
 #include "MoisThermFEM2D.hxx"
 
-using MoisThermFEM::NodePool;
-using MoisThermFEM::MaterialPool;
-using MoisThermFEM::State;
+using HygroThermFEM::NodePool;
+using HygroThermFEM::MaterialPool;
+using HygroThermFEM::State;
 
 class MoistureBC_2D_1 : public testing::Test
 {
@@ -81,10 +81,10 @@ TEST_F(MoistureBC_2D_1, TestExample_1)
                  // { 0.999, 120 },
        {1, 5.3}});
 
-    MoisThermFEM::MoistureDomain domain;
+    HygroThermFEM::MoistureDomain domain;
 
     /// Create elements
-    for(size_t i = 1; i <= (MoisThermFEM::NodePool::Instance().maxIndex() - 2) / 2; ++i)
+    for(size_t i = 1; i <= (HygroThermFEM::NodePool::Instance().maxIndex() - 2) / 2; ++i)
     {
         const auto node1 = 2u * i + 1u;
         const auto node2 = 2u * i + 2u;
@@ -104,14 +104,14 @@ TEST_F(MoistureBC_2D_1, TestExample_1)
     /// const auto dTime = 60;
     /// const auto nSteps = 3000;
 
-    auto humidities = NodePool::Instance().properties(MoisThermFEM::Variable::humidity);
+    auto humidities = NodePool::Instance().properties(HygroThermFEM::Variable::humidity);
     std::vector<std::vector<double>> humiditySolution;
-    std::vector<std::vector<MoisThermFEM::NodeFlux>> fluxSolution;
+    std::vector<std::vector<HygroThermFEM::NodeFlux>> fluxSolution;
 
     for(unsigned i = 0; i < nSteps; ++i)
     {
         humidities = domain.transient(humidities, dTime).solution;
-        auto waterContent = NodePool::Instance().properties(MoisThermFEM::Variable::water);
+        auto waterContent = NodePool::Instance().properties(HygroThermFEM::Variable::water);
         humiditySolution.push_back(waterContent);
         fluxSolution.push_back(domain.flux());
     }
@@ -123,7 +123,7 @@ TEST_F(MoistureBC_2D_1, TestExample_1)
 		{2.61066881, 1.61113671,  1.09779936, 0.718583764, 0.455612121, 0.281555853,  0.170376182,  0.101317461,  0.059379986,   0.0343875362,  0.0197390215,  0.0112980566,   0.00655032456,  0.00402063722,  0.00286500433},
 		{2.61634629, 1.75929546,  1.28284593, 0.901236225, 0.61323934,  0.406029363,  0.262614396,  0.166473245,  0.103725657,   0.0637060574,  0.0387127503,  0.0234438353,   0.0143998598,   0.00937891852,  0.00699666859}};
 
-	std::vector<std::vector<MoisThermFEM::NodeFlux>> correctFluxSolution{
+	std::vector<std::vector<HygroThermFEM::NodeFlux>> correctFluxSolution{
 		{{5.77799618e-007, 0.0}, {4.16123197e-007, 0.0}, {1.90310013e-007, 0.0}, {9.43695683e-008, 0.0}, {4.67952982e-008, 0.0}, {2.32044968e-008, 0.0}, {1.15064357e-008, 0.0}, {5.70563883e-009, 0.0}, {2.82908897e-009, 0.0}, {1.4025003e-009, 0.0}, {6.94719362e-010, 0.0}, {3.42995138e-010, 0.0}, {1.6706236e-010, 0.0}, {6.89248734e-011, 0.0}, {2.97883513e-011, 0.0}},
 		{{4.43738816e-007, 0.0}, {3.67170611e-007, 0.0}, {2.38613061e-007, 0.0}, {1.50125372e-007, 0.0}, {9.0213578e-008, 0.0}, {5.25544675e-008, 0.0}, {2.9937768e-008, 0.0}, {1.67674722e-008, 0.0}, {9.2665736e-009, 0.0}, {5.06500675e-009, 0.0}, {2.7405432e-009, 0.0}, {1.46460276e-009, 0.0}, {7.63507288e-010, 0.0}, {3.31672526e-010, 0.0}, {1.49529985e-010, 0.0}},
 		{{3.61154649e-007, 0.0}, {3.19688042e-007, 0.0}, {2.41875407e-007, 0.0}, {1.74028108e-007, 0.0}, {1.1843141e-007, 0.0}, {7.72968814e-008, 0.0}, {4.88433038e-008, 0.0}, {3.00791682e-008, 0.0}, {1.81375268e-008, 0.0}, {1.07424153e-008, 0.0}, {6.25708236e-009, 0.0}, {3.57404172e-009, 0.0}, {1.97212815e-009, 0.0}, {8.94305798e-010, 0.0}, {4.17557566e-010, 0.0}},

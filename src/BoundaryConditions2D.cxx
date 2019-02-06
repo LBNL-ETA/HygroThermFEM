@@ -3,7 +3,7 @@
 
 using FenestrationCommon::SquareMatrix;
 
-namespace MoisThermFEM
+namespace HygroThermFEM
 {
     /// BoundaryConditions2D::BoundaryConditions2D(
     /// 		std::vector< std::reference_wrapper< IBCLinear2D > > & t_BCs ) :
@@ -91,4 +91,4 @@ namespace MoisThermFEM
         m_BCs.push_back(std::move(bc));
     }
 
-}   // namespace MoisThermFEM
+}   // namespace HygroThermFEM

@@ -2,7 +2,7 @@
 
 #include <algorithm>
 
-namespace MoisThermFEM
+namespace HygroThermFEM
 {
     /// Operator +
 
@@ -132,4 +132,4 @@ namespace MoisThermFEM
         return result;
     }
 
-}   // namespace MoisThermFEM
+}   // namespace HygroThermFEM

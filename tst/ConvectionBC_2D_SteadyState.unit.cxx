@@ -3,8 +3,8 @@
 
 #include "MoisThermFEM2D.hxx"
 
-using MoisThermFEM::NodePool;
-using MoisThermFEM::MaterialPool;
+using HygroThermFEM::NodePool;
+using HygroThermFEM::MaterialPool;
 
 class ConvectionBC_2D_SteadyState : public testing::Test
 {
@@ -59,7 +59,7 @@ TEST_F(ConvectionBC_2D_SteadyState, TestExample_1)
        {0.999, 120},
        {1, 180}});
 
-    MoisThermFEM::ThermalDomain domain;
+    HygroThermFEM::ThermalDomain domain;
 
     domain.createElement(3, 4, 2, 1, material.name());
     domain.createElement(6, 4, 3, 5, material.name());

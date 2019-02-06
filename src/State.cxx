@@ -1,6 +1,6 @@
 #include "State.hxx"
 
-namespace MoisThermFEM
+namespace HygroThermFEM
 {
     ////////////////////////////////////////////////////////////////////////////
     ///  State
@@ -58,4 +58,4 @@ namespace MoisThermFEM
         m_Property[t_Property] = t_Value;
     }
 
-}   // namespace MoisThermFEM
+}   // namespace HygroThermFEM

@@ -13,7 +13,7 @@
 /// building. Functions are stacked together to make full function that later
 /// will be stored in FEM element.
 
-namespace MoisThermFEM
+namespace HygroThermFEM
 {
 	enum class Variable;
 
@@ -460,4 +460,4 @@ namespace MoisThermFEM
 		double evaluateFunction(double t_position, double t_previousTimestep) const override;
 	};
 
-}   // namespace MoisThermFEM
+}   // namespace HygroThermFEM

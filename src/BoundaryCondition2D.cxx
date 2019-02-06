@@ -6,7 +6,7 @@
 #include "VectorOperators.hxx"
 #include "Common.hxx"
 
-namespace MoisThermFEM
+namespace HygroThermFEM
 {
     ////////////////////////////////////////////////////////
     /// VariableConvectionCoefficient
@@ -284,4 +284,4 @@ namespace MoisThermFEM
     {
         return m_ConvectiveCoeffCalc->value(m_Nodes, m_ConvectiveCoefficient);
     }
-}   // namespace MoisThermFEM
+}   // namespace HygroThermFEM

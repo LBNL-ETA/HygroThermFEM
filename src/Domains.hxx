@@ -5,7 +5,7 @@
 #include "BoundaryConditions2D.hxx"
 #include "Elements2D.hxx"
 
-namespace MoisThermFEM
+namespace HygroThermFEM
 {
     //! \brief Class to hold solution from single timestep.
     struct SingleSolution
@@ -182,4 +182,4 @@ namespace MoisThermFEM
         void postProcess(std::vector<double> & solution) const override;
     };
 
-}   // namespace MoisThermFEM
+}   // namespace HygroThermFEM

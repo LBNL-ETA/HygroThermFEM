@@ -2,7 +2,7 @@
 
 #include <vector>
 
-namespace MoisThermFEM {
+namespace HygroThermFEM {
 
 	double norm( const std::vector< double > & t_vector );
 

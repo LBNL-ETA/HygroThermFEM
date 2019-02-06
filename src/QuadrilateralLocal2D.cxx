@@ -3,7 +3,7 @@
 #include "IntegrationPoints.hxx"
 #include "FEMunique.hxx"
 
-namespace MoisThermFEM
+namespace HygroThermFEM
 {
     ////////////////////////////////////////////////////////////////////////////
     ///   QuadElement2DLinearLocal::QuadLinearPoint2D
@@ -122,4 +122,4 @@ namespace MoisThermFEM
         return m_Ksi[IntegrationPointIndex]->VPsiDEta();
     }
 
-}   // namespace MoisThermFEM
+}   // namespace HygroThermFEM

@@ -3,15 +3,15 @@
 
 #include "MoisThermFEM2D.hxx"
 
-using MoisThermFEM::Variable;
-using MoisThermFEM::State;
-using MoisThermFEM::Node2D;
-using MoisThermFEM::TabularFunction;
-using MoisThermFEM::TabularDerivative;
-using MoisThermFEM::SuctionCurve;
-using MoisThermFEM::SaturationFunction;
-using MoisThermFEM::Constant;
-using MoisThermFEM::PhaseChange;
+using HygroThermFEM::Variable;
+using HygroThermFEM::State;
+using HygroThermFEM::Node2D;
+using HygroThermFEM::TabularFunction;
+using HygroThermFEM::TabularDerivative;
+using HygroThermFEM::SuctionCurve;
+using HygroThermFEM::SaturationFunction;
+using HygroThermFEM::Constant;
+using HygroThermFEM::PhaseChange;
 
 class CurveTest : public testing::Test
 {
@@ -246,7 +246,7 @@ TEST_F(CurveTest, TestTotalMelting)
     Node2D node(0,0,0, State(currentTemperature, currentHumidity));
 
     // This will trigger melting in this point
-    node.setStateProperty(MoisThermFEM::BaseVariable::temperature, newTemperature);
+    node.setStateProperty(HygroThermFEM::BaseVariable::temperature, newTemperature);
 
     PhaseChange phaseChange;
     const auto result = phaseChange.value(node);
@@ -265,7 +265,7 @@ TEST_F(CurveTest, TestPartialMelting)
     Node2D node(0,0,0, State(currentTemperature, currentHumidity));
 
     // This will trigger melting in this point
-    node.setStateProperty(MoisThermFEM::BaseVariable::temperature, newTemperature);
+    node.setStateProperty(HygroThermFEM::BaseVariable::temperature, newTemperature);
 
     PhaseChange phaseChange;
     const auto result = phaseChange.value(node);
@@ -284,7 +284,7 @@ TEST_F(CurveTest, TestTotalFreezing)
     Node2D node(0,0,0, State(currentTemperature, currentHumidity));
 
     // This will trigger melting in this point
-    node.setStateProperty(MoisThermFEM::BaseVariable::temperature, newTemperature);
+    node.setStateProperty(HygroThermFEM::BaseVariable::temperature, newTemperature);
 
     PhaseChange phaseChange;
     const auto result = phaseChange.value(node);
@@ -303,7 +303,7 @@ TEST_F(CurveTest, TestPartialFreezing)
     Node2D node(0,0,0, State(currentTemperature, currentHumidity));
 
     // This will trigger melting in this point
-    node.setStateProperty(MoisThermFEM::BaseVariable::temperature, newTemperature);
+    node.setStateProperty(HygroThermFEM::BaseVariable::temperature, newTemperature);
 
     PhaseChange phaseChange;
     const auto result = phaseChange.value(node);

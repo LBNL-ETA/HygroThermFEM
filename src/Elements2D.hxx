@@ -5,7 +5,7 @@
 #include "Element2D.hxx"
 #include "SquareMatrix.hxx"
 
-namespace MoisThermFEM
+namespace HygroThermFEM
 {
     /// Container class to hold all elements connected into global matrix. This is only for elements
     /// and not for boundary conditions
@@ -40,4 +40,4 @@ namespace MoisThermFEM
         std::vector<std::unique_ptr<IElementLinear2D>> m_Elements;
     };
 
-}   // namespace MoisThermFEM
+}   // namespace HygroThermFEM

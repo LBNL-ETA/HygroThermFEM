@@ -3,7 +3,7 @@
 #include "LocalShapeFunctions.hxx"
 #include "Node2D.hxx"
 
-namespace MoisThermFEM
+namespace HygroThermFEM
 {
     //////////////////////////////////////////////////////////////////////////////////////////////
     //  ILocalShapeFunctions2DQuadrilateral
@@ -78,4 +78,4 @@ namespace MoisThermFEM
         return m_Psi[Index];
     }
 
-}   // namespace MoisThermFEM
+}   // namespace HygroThermFEM

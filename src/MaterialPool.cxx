@@ -2,9 +2,9 @@
 
 #include "MaterialPool.hxx"
 
-namespace MoisThermFEM
+namespace HygroThermFEM
 {
-    MaterialPool & MoisThermFEM::MaterialPool::Instance()
+    MaterialPool & HygroThermFEM::MaterialPool::Instance()
     {
         static MaterialPool m_Instance;
         return m_Instance;
@@ -42,4 +42,4 @@ namespace MoisThermFEM
         return m_Materials.at(name);
     }
 
-}   // namespace MoisThermFEM
+}   // namespace HygroThermFEM

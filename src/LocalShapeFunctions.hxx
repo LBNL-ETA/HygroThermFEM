@@ -2,7 +2,7 @@
 
 #include <vector>
 
-namespace MoisThermFEM
+namespace HygroThermFEM
 {
     struct LocalPoint2D;
     struct LocalPoint1D;
@@ -59,4 +59,4 @@ namespace MoisThermFEM
         std::vector<double> m_Psi;
     };
 
-}   // namespace MoisThermFEM
+}   // namespace HygroThermFEM

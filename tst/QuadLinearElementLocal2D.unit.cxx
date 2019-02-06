@@ -18,7 +18,7 @@ protected:
 TEST_F( TestQuadLinearElementLocal2D, TestIntegrationPoint1 ) {
     SCOPED_TRACE( "Begin Test: Quadrilateral linear element 2D in local coordinates." );
 
-    auto & aElement = MoisThermFEM::QuadrilateralLinearLocal2D::Instance();
+    auto & aElement = HygroThermFEM::QuadrilateralLinearLocal2D::Instance();
 
     // Integration point 1
     const auto IntegrationPoint = 0;
@@ -57,7 +57,7 @@ TEST_F( TestQuadLinearElementLocal2D, TestIntegrationPoint1 ) {
 TEST_F( TestQuadLinearElementLocal2D, TestIntegrationPoint2 ) {
     SCOPED_TRACE( "Begin Test: Quadrilateral linear element 2D in local coordinates." );
 
-    auto & aElement = MoisThermFEM::QuadrilateralLinearLocal2D::Instance();
+    auto & aElement = HygroThermFEM::QuadrilateralLinearLocal2D::Instance();
 
     // Integration point 2
     const auto IntegrationPoint = 1;
@@ -96,7 +96,7 @@ TEST_F( TestQuadLinearElementLocal2D, TestIntegrationPoint2 ) {
 TEST_F( TestQuadLinearElementLocal2D, TestIntegrationPoint3 ) {
     SCOPED_TRACE( "Begin Test: Quadrilateral linear element 2D in local coordinates." );
 
-    auto & aElement = MoisThermFEM::QuadrilateralLinearLocal2D::Instance();
+    auto & aElement = HygroThermFEM::QuadrilateralLinearLocal2D::Instance();
 
     // Integration point 3
     const auto IntegrationPoint = 2;
@@ -135,7 +135,7 @@ TEST_F( TestQuadLinearElementLocal2D, TestIntegrationPoint3 ) {
 TEST_F( TestQuadLinearElementLocal2D, TestIntegrationPoint4 ) {
     SCOPED_TRACE( "Begin Test: Quadrilateral linear element 2D in local coordinates." );
 
-    auto & aElement = MoisThermFEM::QuadrilateralLinearLocal2D::Instance();
+    auto & aElement = HygroThermFEM::QuadrilateralLinearLocal2D::Instance();
 
     // Integration point 4
     const auto integrationPoint = 3;

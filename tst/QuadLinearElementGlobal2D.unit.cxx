@@ -4,7 +4,7 @@
 
 #include "MoisThermFEM2D.hxx"
 
-using MoisThermFEM::NodePool;
+using HygroThermFEM::NodePool;
 
 class TestQuadLinearElementGlobal2D : public testing::Test
 {
@@ -30,7 +30,7 @@ TEST_F(TestQuadLinearElementGlobal2D, TestIntegrationPoint1)
     auto node3 = NodePool::Instance().createNode(3, 5, 5);
     auto node4 = NodePool::Instance().createNode(4, 0, 5);
 
-    auto aElement = MoisThermFEM::QuadrilateralLinearGlobal2D(node1, node2, node3, node4);
+    auto aElement = HygroThermFEM::QuadrilateralLinearGlobal2D(node1, node2, node3, node4);
 
     /////////////////////////////////////////////////////////
     ///    Integration Point 1

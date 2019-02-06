@@ -5,7 +5,7 @@
 
 #include "LocalShapeFunctions.hxx"
 
-namespace MoisThermFEM {
+namespace HygroThermFEM {
   
   class LineLinearLocal1D {
   public:

@@ -6,7 +6,7 @@
 
 #include "Functions.hxx"
 
-namespace MoisThermFEM
+namespace HygroThermFEM
 {
     //! \brief Enumerates different state of water content.
     //!
@@ -111,16 +111,16 @@ namespace MoisThermFEM
         double m_DiffusionResistanceFactor;
 
         // Thermal conductivity table is (x-water content [kg/m3], y-thermal conductivity[W/(mK)])
-        std::unique_ptr<MoisThermFEM::TabularFunction> m_ThermalConductivity;
+        std::unique_ptr<HygroThermFEM::TabularFunction> m_ThermalConductivity;
 
         // Liquid transportation coefficient is function of water content. It shows how much of
         // water will be transferred through material in relation to water content (x-water content
         // [kg/m3], y-liquid transportation coefficient [m2/s]
-        std::unique_ptr<MoisThermFEM::TabularFunction> m_LiquidTransportCoefficient;
+        std::unique_ptr<HygroThermFEM::TabularFunction> m_LiquidTransportCoefficient;
 
         // Sorption curve shows how much of water content will be in relation to relative humidity
         // (x-relative humidity [between zero to one], y-water content [kg/m3]
-        std::unique_ptr<MoisThermFEM::TabularFunction> m_SorptionCurve;
+        std::unique_ptr<HygroThermFEM::TabularFunction> m_SorptionCurve;
 
         //! Saturated vapor content calculations at given node. It is necessary
         //! for water content calculations.
@@ -133,4 +133,4 @@ namespace MoisThermFEM
         double airPorosity(const Node2D & node) const;
     };
 
-}   // namespace MoisThermFEM
+}   // namespace HygroThermFEM

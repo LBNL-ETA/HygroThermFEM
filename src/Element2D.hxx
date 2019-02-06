@@ -8,7 +8,7 @@
 #include "Quadrilateral2D.hxx"
 #include "SquareMatrix.hxx"
 
-namespace MoisThermFEM
+namespace HygroThermFEM
 {
     //! Constant that holds number of nodes in certain elementsCreator
     const std::size_t numOfQuadrilateralNodes = 4;
@@ -502,4 +502,4 @@ namespace MoisThermFEM
         );
     };
 
-}   // namespace MoisThermFEM
+}   // namespace HygroThermFEM

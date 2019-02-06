@@ -3,8 +3,8 @@
 
 #include "MoisThermFEM2D.hxx"
 
-using MoisThermFEM::NodePool;
-using MoisThermFEM::MaterialPool;
+using HygroThermFEM::NodePool;
+using HygroThermFEM::MaterialPool;
 
 class Topaz2D_FluxBC : public testing::Test
 {
@@ -26,7 +26,7 @@ TEST_F(Topaz2D_FluxBC, TestExample_1)
     // Enter nodes. Arguments are: node number, x-coordinate, y-coordinate, initial temperature
 
     // same temperature in every node (humidity and pressure irrelevant for this example)
-    auto state = MoisThermFEM::State(0, 0, 101325, 0);
+    auto state = HygroThermFEM::State(0, 0, 101325, 0);
 
     NodePool::Instance().createNode(1, 0.15, 0.05, state);
     NodePool::Instance().createNode(2, 0.15, 0, state);
@@ -62,7 +62,7 @@ TEST_F(Topaz2D_FluxBC, TestExample_1)
        {0.999, 120},
        {1, 180}});
 
-    MoisThermFEM::ThermalDomain domain;
+    HygroThermFEM::ThermalDomain domain;
 
     domain.createElement(1, 2, 4, 3, material.name());
     domain.createElement(5, 3, 4, 6, material.name());
@@ -76,7 +76,7 @@ TEST_F(Topaz2D_FluxBC, TestExample_1)
     const auto dTime = 3600;
     const auto nSteps = 4;
 
-    auto temperatures = NodePool::Instance().properties(MoisThermFEM::Variable::temperature);
+    auto temperatures = NodePool::Instance().properties(HygroThermFEM::Variable::temperature);
     std::vector<std::vector<double>> solution;
 
     for(unsigned i = 0; i < nSteps; ++i)

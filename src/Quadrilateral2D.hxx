@@ -5,7 +5,7 @@
 
 #include "Node2D.hxx"
 
-namespace MoisThermFEM
+namespace HygroThermFEM
 {
     ////////////////////////////////////////////////////////////////////////////
     ///   QuadrilateralLinearGlobal2D
@@ -99,4 +99,4 @@ namespace MoisThermFEM
         std::vector<GaussPoint2DGlobal> m_GaussPoints;
     };
 
-}   // namespace MoisThermFEM
+}   // namespace HygroThermFEM

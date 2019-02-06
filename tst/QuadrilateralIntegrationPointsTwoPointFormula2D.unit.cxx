@@ -7,17 +7,17 @@
 class TestQuadrilateralIntegrationPointsTwoPointFormula2D : public testing::Test {
 
 private:
-    std::unique_ptr< MoisThermFEM::IIntegrationPoints2D > m_IntPoints;
+    std::unique_ptr< HygroThermFEM::IIntegrationPoints2D > m_IntPoints;
 
 protected:
     void
     SetUp() override {
-        m_IntPoints = fem::make_unique< MoisThermFEM::TwoIntegrationPoint2D >();
+        m_IntPoints = fem::make_unique< HygroThermFEM::TwoIntegrationPoint2D >();
         ASSERT_TRUE( m_IntPoints != nullptr );
     }
 
 public:
-	MoisThermFEM::IIntegrationPoints2D *
+	HygroThermFEM::IIntegrationPoints2D *
     getIntPoints() const {
         return m_IntPoints.get();
     };
@@ -31,7 +31,7 @@ TEST_F( TestQuadrilateralIntegrationPointsTwoPointFormula2D, TestIntegrationPoin
 
     const auto aElement = getIntPoints();
 
-    using MoisThermFEM::LocalPoint2D;
+    using HygroThermFEM::LocalPoint2D;
 
     std::vector< LocalPoint2D > correctPoints = {
             LocalPoint2D( -point, -point ), LocalPoint2D( point, -point ),

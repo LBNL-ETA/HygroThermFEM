@@ -5,7 +5,7 @@
 
 using FenestrationCommon::SquareMatrix;
 
-namespace MoisThermFEM
+namespace HygroThermFEM
 {
     SquareMatrix ElementsLinear2D::conductanceMatrix()
     {
@@ -180,4 +180,4 @@ namespace MoisThermFEM
     }
 
 
-}   // namespace MoisThermFEM
+}   // namespace HygroThermFEM

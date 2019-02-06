@@ -2,9 +2,9 @@
 
 #include "MoisThermFEM2D.hxx"
 
-using MoisThermFEM::NodePool;
-using MoisThermFEM::MaterialPool;
-using MoisThermFEM::WaterContent;
+using HygroThermFEM::NodePool;
+using HygroThermFEM::MaterialPool;
+using HygroThermFEM::WaterContent;
 
 class MultiMaterialNode : public testing::Test
 {
@@ -28,7 +28,7 @@ TEST_F(MultiMaterialNode, TestExample_1)
     const auto pressure = 101325.0;
     const auto liquidPercent = 1.0;
 
-    MoisThermFEM::State state(temperature, humidity, pressure, liquidPercent);
+    HygroThermFEM::State state(temperature, humidity, pressure, liquidPercent);
 
     auto node1 = NodePool::Instance().createNode(1, 0, 0, state);
 
@@ -89,7 +89,7 @@ TEST_F(MultiMaterialNode, TestExample_1)
     node1.assignMaterial(material1.name(), 0.5);
     node1.assignMaterial(material2.name(), 0.5);
 
-    EXPECT_NEAR(node1.property(MoisThermFEM::Variable::ice), 0, 1e-6);
-    EXPECT_NEAR(node1.property(MoisThermFEM::Variable::vapor), 0.001062, 1e-6);
-    EXPECT_NEAR(node1.property(MoisThermFEM::Variable::liquid), 48.498938, 1e-6);
+    EXPECT_NEAR(node1.property(HygroThermFEM::Variable::ice), 0, 1e-6);
+    EXPECT_NEAR(node1.property(HygroThermFEM::Variable::vapor), 0.001062, 1e-6);
+    EXPECT_NEAR(node1.property(HygroThermFEM::Variable::liquid), 48.498938, 1e-6);
 }

@@ -12,7 +12,7 @@
 
 using FenestrationCommon::SquareMatrix;
 
-namespace MoisThermFEM
+namespace HygroThermFEM
 {
     //////////////////////////////////////////////////////////////////////////////
     ///  IQLEMatrix2D
@@ -532,4 +532,4 @@ namespace MoisThermFEM
 		Cond(SuctionCurve(m_Material.liquidTransportationCurve()));
     }
 
-}   // namespace MoisThermFEM
+}   // namespace HygroThermFEM

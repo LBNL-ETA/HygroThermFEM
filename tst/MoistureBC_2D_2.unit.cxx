@@ -3,8 +3,8 @@
 
 #include "MoisThermFEM2D.hxx"
 
-using MoisThermFEM::NodePool;
-using MoisThermFEM::MaterialPool;
+using HygroThermFEM::NodePool;
+using HygroThermFEM::MaterialPool;
 
 class MoistureBC_2D_2 : public testing::Test
 {
@@ -25,7 +25,7 @@ TEST_F(MoistureBC_2D_2, TestExample_1)
 
     std::vector<double> gridXCoordinates{0.15, 0.05, 0.00};
 
-    MoisThermFEM::State state(0, 0, 101325, 0);
+    HygroThermFEM::State state(0, 0, 101325, 0);
     size_t nodeIndex = 0;
     for(auto val : gridXCoordinates)
     {
@@ -62,7 +62,7 @@ TEST_F(MoistureBC_2D_2, TestExample_1)
        {0.999, 120},
        {1, 180}});
 
-    MoisThermFEM::MoistureDomain domain;
+    HygroThermFEM::MoistureDomain domain;
 
     /// Create elements
     for(size_t i = 1; i <= (NodePool::Instance().maxIndex() - 2) / 2; ++i)
@@ -83,13 +83,13 @@ TEST_F(MoistureBC_2D_2, TestExample_1)
     const auto dTime = 3600;
     const auto nSteps = 4;
 
-    auto humidities = NodePool::Instance().properties(MoisThermFEM::Variable::humidity);
+    auto humidities = NodePool::Instance().properties(HygroThermFEM::Variable::humidity);
     std::vector<std::vector<double>> solution;
 
     for(size_t i = 0u; i < nSteps; ++i)
     {
         humidities = domain.transient(humidities, dTime).solution;
-        auto waterContent = NodePool::Instance().properties(MoisThermFEM::Variable::water);
+        auto waterContent = NodePool::Instance().properties(HygroThermFEM::Variable::water);
         solution.push_back(waterContent);
     }
 

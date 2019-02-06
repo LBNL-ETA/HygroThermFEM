@@ -2,8 +2,8 @@
 
 #include "MoisThermFEM2D.hxx"
 
-using MoisThermFEM::NodePool;
-using MoisThermFEM::MaterialPool;
+using HygroThermFEM::NodePool;
+using HygroThermFEM::MaterialPool;
 
 class TestBoundaryConditions2D_test1 : public testing::Test
 {
@@ -36,9 +36,9 @@ TEST_F(TestBoundaryConditions2D_test1, TestIntegrationPoints)
     auto const hc2 = 2.4;
     auto const Tair2 = 294.15;
 
-    MoisThermFEM::BoundaryConditions2D BCs;
-    BCs.assignBC(fem::make_unique<MoisThermFEM::ConstantConvectionBC>(1, 2, Tair1, hc1));
-    BCs.assignBC(fem::make_unique<MoisThermFEM::ConstantConvectionBC>(6, 5, Tair2, hc2));
+    HygroThermFEM::BoundaryConditions2D BCs;
+    BCs.assignBC(fem::make_unique<HygroThermFEM::ConstantConvectionBC>(1, 2, Tair1, hc1));
+    BCs.assignBC(fem::make_unique<HygroThermFEM::ConstantConvectionBC>(6, 5, Tair2, hc2));
 
     auto H = BCs.HMatrix();
 

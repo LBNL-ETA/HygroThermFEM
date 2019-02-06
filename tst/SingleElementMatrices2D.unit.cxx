@@ -3,8 +3,8 @@
 
 #include "MoisThermFEM2D.hxx"
 
-using MoisThermFEM::NodePool;
-using MoisThermFEM::MaterialPool;
+using HygroThermFEM::NodePool;
+using HygroThermFEM::MaterialPool;
 
 class TestSingleElementMatrices2D : public testing::Test
 {
@@ -58,7 +58,7 @@ TEST_F(TestSingleElementMatrices2D, TestConductionMatrix)
        {0.999, 120},
        {1, 180}});
 
-    const MoisThermFEM::ElementThermalLinear2D aElem{1, 2, 3, 4, material.name()};
+    const HygroThermFEM::ElementThermalLinear2D aElem{1, 2, 3, 4, material.name()};
 
     auto condMat = aElem.DDuMatrices();
 

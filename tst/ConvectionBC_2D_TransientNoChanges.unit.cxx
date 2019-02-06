@@ -3,8 +3,8 @@
 
 #include "MoisThermFEM2D.hxx"
 
-using MoisThermFEM::NodePool;
-using MoisThermFEM::MaterialPool;
+using HygroThermFEM::NodePool;
+using HygroThermFEM::MaterialPool;
 
 class ConvectionBC_2D_TransientNoChanges : public testing::Test
 {
@@ -29,7 +29,7 @@ TEST_F(ConvectionBC_2D_TransientNoChanges, TestExample_1)
     const double initialMoistureContent = 0;
     const double initialPressure = 101325;
 
-    MoisThermFEM::State state(initialTemperature, initialMoistureContent, initialPressure, 0);
+    HygroThermFEM::State state(initialTemperature, initialMoistureContent, initialPressure, 0);
     size_t nodeIndex = 0;
     for(auto val : gridXCoordinates)
     {
@@ -66,7 +66,7 @@ TEST_F(ConvectionBC_2D_TransientNoChanges, TestExample_1)
        {0.999, 120},
        {1, 180}});
 
-    MoisThermFEM::ThermalDomain domain;
+    HygroThermFEM::ThermalDomain domain;
 
     /// Create elements
     for(size_t i = 1u; i <= (NodePool::Instance().maxIndex() - 2) / 2; ++i)
@@ -87,7 +87,7 @@ TEST_F(ConvectionBC_2D_TransientNoChanges, TestExample_1)
     const auto dTime = 36000;
     const auto nSteps = 4;
 
-    auto temperatures = NodePool::Instance().properties(MoisThermFEM::Variable::temperature);
+    auto temperatures = NodePool::Instance().properties(HygroThermFEM::Variable::temperature);
     std::vector<std::vector<double>> solution;
 
     for(unsigned i = 0; i < nSteps; ++i)

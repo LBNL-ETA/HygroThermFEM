@@ -5,7 +5,7 @@
 #include "IntegrationPoints.hxx"
 #include "Node2D.hxx"
 
-namespace MoisThermFEM {
+namespace HygroThermFEM {
 
 	////////////////////////////////////////////////////////////////////////////
 	///   IIntegrationPoints2D

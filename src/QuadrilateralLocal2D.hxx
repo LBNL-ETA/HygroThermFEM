@@ -5,7 +5,7 @@
 
 #include "LocalShapeFunctions.hxx"
 
-namespace MoisThermFEM
+namespace HygroThermFEM
 {
     ////////////////////////////////////////////////////////////////////////////
     ////   QuadrilateralLinearLocal2D
@@ -70,4 +70,4 @@ namespace MoisThermFEM
         };
     };
 
-}   // namespace MoisThermFEM
+}   // namespace HygroThermFEM

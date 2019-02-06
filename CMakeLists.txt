@@ -1,7 +1,7 @@
 
 cmake_minimum_required(VERSION 3.12)
 
-set(target_name MoisThermFEM)
+set(target_name HygroThermFEM)
 
 set(CMAKE_PROJECT_VERSION_MAJOR "1")
 set(CMAKE_PROJECT_VERSION_MINOR "0")

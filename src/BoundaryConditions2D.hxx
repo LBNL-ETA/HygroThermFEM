@@ -9,7 +9,7 @@
 #include "State.hxx"
 #include "IBCLine2D.hxx"
 
-namespace MoisThermFEM
+namespace HygroThermFEM
 {
     //! \brief Container for all boundary conditions.
     //!
@@ -48,4 +48,4 @@ namespace MoisThermFEM
         bool m_Linear;
     };
 
-}   // namespace MoisThermFEM
+}   // namespace HygroThermFEM

@@ -4,7 +4,7 @@
 #include <vector>
 #include <memory>
 
-namespace MoisThermFEM {
+namespace HygroThermFEM {
 
   struct LocalPoint2D;
   struct LocalPoint1D;

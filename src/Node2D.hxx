@@ -11,7 +11,7 @@
 #include "Functions.hxx"
 
 
-namespace MoisThermFEM
+namespace HygroThermFEM
 {
     ////////////////////////////////////////////////////////////////////////////
     ///   LocalPoint1D
@@ -224,4 +224,4 @@ namespace MoisThermFEM
                              Node2D & t_Node4);
     };
 
-}   // namespace MoisThermFEM
+}   // namespace HygroThermFEM

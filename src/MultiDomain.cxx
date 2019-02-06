@@ -5,7 +5,7 @@
 #include "FEMMath.hxx"
 #include "NodePool.hxx"
 
-namespace MoisThermFEM
+namespace HygroThermFEM
 {
     // passing false to subdomains means that previous timestep values will not be automatically
     // updated. This mean that multidomain must update its values once solution converged.
@@ -165,4 +165,4 @@ namespace MoisThermFEM
         vaporContent(vaporContent),
         iceContent(iceContent)
     {}
-}   // namespace MoisThermFEM
+}   // namespace HygroThermFEM

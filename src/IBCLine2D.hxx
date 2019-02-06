@@ -6,7 +6,7 @@
 #include "Node2D.hxx"
 #include "Material.hxx"
 
-namespace MoisThermFEM
+namespace HygroThermFEM
 {
     const std::size_t numOfBCNodes = 2;
 
@@ -15,7 +15,7 @@ namespace MoisThermFEM
 
     //! \brief Interface class for boundary conditions in linear 2D finite elementsCreator.
     //!
-    //! Any new boundary condition created in MoisThermFEM engine must be inherited from this class.
+    //! Any new boundary condition created in HygroThermFEM engine must be inherited from this class.
     //! It provides necessary interface for rest of the program to be able to communicate with
     //! boundary condition. In finite element world, every boundary condition will return matrix
     //! and vector. Matrix is what stand next to state variable (unknown) that program is seeking
@@ -75,4 +75,4 @@ namespace MoisThermFEM
         std::vector<double> m_PsiVector;
     };
 
-}   // namespace MoisThermFEM
+}   // namespace HygroThermFEM

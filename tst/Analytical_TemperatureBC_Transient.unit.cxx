@@ -3,8 +3,8 @@
 
 #include "MoisThermFEM2D.hxx"
 
-using MoisThermFEM::NodePool;
-using MoisThermFEM::MaterialPool;
+using HygroThermFEM::NodePool;
+using HygroThermFEM::MaterialPool;
 
 /////////////////////////////////////////////////////////////////////////////////////
 /// Transient temperature boundary conditions vs Analytical solution
@@ -36,7 +36,7 @@ TEST_F(Analytical_TemperatureBC_Transient, TestExample_1)
     const auto initialHumidity = 0.0;
     const auto initialPressure = 101325.0;
 
-    MoisThermFEM::State state(initialTemperature, initialHumidity, initialPressure, 0);
+    HygroThermFEM::State state(initialTemperature, initialHumidity, initialPressure, 0);
 
     size_t nodeIndex = 0;
     for(auto val : gridXCoordinates)
@@ -59,7 +59,7 @@ TEST_F(Analytical_TemperatureBC_Transient, TestExample_1)
 
     );
 
-    MoisThermFEM::ThermalDomain domain;
+    HygroThermFEM::ThermalDomain domain;
 
     /// Create elements
     for(size_t i = 1; i <= (NodePool::Instance().maxIndex() - 2) / 2; ++i)
@@ -81,7 +81,7 @@ TEST_F(Analytical_TemperatureBC_Transient, TestExample_1)
     const auto dTime = 0.001;
     const auto nSteps = 1000;
 
-    auto temperatures = NodePool::Instance().properties(MoisThermFEM::Variable::temperature);
+    auto temperatures = NodePool::Instance().properties(HygroThermFEM::Variable::temperature);
     std::vector<std::vector<double>> solution;
 
     for(unsigned i = 0; i < nSteps; ++i)

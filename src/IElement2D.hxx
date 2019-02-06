@@ -2,7 +2,7 @@
 
 #include <vector>
 
-namespace MoisThermFEM {
+namespace HygroThermFEM {
 	
 	
 

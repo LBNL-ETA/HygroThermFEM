@@ -3,7 +3,7 @@
 #include "Node2D.hxx"
 #include "MaterialPool.hxx"
 
-namespace MoisThermFEM
+namespace HygroThermFEM
 {
     ////////////////////////////////////////////////////////////////////////////
     ///   LocalPoint1D
@@ -263,4 +263,4 @@ namespace MoisThermFEM
                                                Node2D & t_Node4) :
         INodes({t_Node1, t_Node2, t_Node3, t_Node4})
     {}
-}   // namespace MoisThermFEM
+}   // namespace HygroThermFEM

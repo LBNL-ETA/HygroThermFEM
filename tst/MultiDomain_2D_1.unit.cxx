@@ -3,9 +3,9 @@
 
 #include "MoisThermFEM2D.hxx"
 
-using MoisThermFEM::NodePool;
-using MoisThermFEM::MaterialPool;
-using MoisThermFEM::State;
+using HygroThermFEM::NodePool;
+using HygroThermFEM::MaterialPool;
+using HygroThermFEM::State;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// This is simple two elements multi-domain example without boundary conditions. Initial
@@ -91,7 +91,7 @@ TEST_F(MultiDomain_2D_1, TestExample_1)
        {0.999, 120},
        {1, 180}});
 
-    MoisThermFEM::MultiDomain domain;
+    HygroThermFEM::MultiDomain domain;
 
     /// Create elements
     for(size_t i = 1; i <= (NodePool::Instance().maxIndex() - 2) / 2; ++i)
@@ -108,8 +108,8 @@ TEST_F(MultiDomain_2D_1, TestExample_1)
     const auto nSteps = 10;
     /// const auto nSteps = 10;
 
-    auto temperatures = NodePool::Instance().properties(MoisThermFEM::Variable::temperature);
-    auto humidities = NodePool::Instance().properties(MoisThermFEM::Variable::humidity);
+    auto temperatures = NodePool::Instance().properties(HygroThermFEM::Variable::temperature);
+    auto humidities = NodePool::Instance().properties(HygroThermFEM::Variable::humidity);
     std::vector<std::vector<double>> temperatureSolution;
     std::vector<std::vector<double>> waterContentSolution;
 

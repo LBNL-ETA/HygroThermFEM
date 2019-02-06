@@ -3,7 +3,7 @@
 
 #include "NodePool.hxx"
 
-namespace MoisThermFEM
+namespace HygroThermFEM
 {
     NodePool & NodePool::Instance()
     {
@@ -59,4 +59,4 @@ namespace MoisThermFEM
         m_Nodes.clear();
     }
 
-}   // namespace MoisThermFEM
+}   // namespace HygroThermFEM

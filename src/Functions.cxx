@@ -4,7 +4,7 @@
 #include "Node2D.hxx"
 #include "Common.hxx"
 
-namespace MoisThermFEM
+namespace HygroThermFEM
 {
     double boundarySaturationAtTemperature(const double t_temperature, const double exponent)
     {
@@ -296,4 +296,4 @@ namespace MoisThermFEM
         return result;
     }
 
-}   // namespace MoisThermFEM
+}   // namespace HygroThermFEM

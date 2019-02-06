@@ -2,7 +2,7 @@
 
 #include "Domains.hxx"
 
-namespace MoisThermFEM
+namespace HygroThermFEM
 {
     struct Solution
     {
@@ -66,4 +66,4 @@ namespace MoisThermFEM
         MoistureDomain m_MoistureDomain;
     };
 
-}   // namespace MoisThermFEM
+}   // namespace HygroThermFEM

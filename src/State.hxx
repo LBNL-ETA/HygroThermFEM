@@ -2,7 +2,7 @@
 
 #include <map>
 
-namespace MoisThermFEM
+namespace HygroThermFEM
 {
     //! \brief Enumerator that hold basic state variables defined in finite element model
     //!
@@ -50,4 +50,4 @@ namespace MoisThermFEM
         std::map<BaseVariable, double> m_Property;
     };
 
-}   // namespace MoisThermFEM
+}   // namespace HygroThermFEM

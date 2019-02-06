@@ -6,7 +6,7 @@
 #include "State.hxx"
 #include "Node2D.hxx"
 
-namespace MoisThermFEM
+namespace HygroThermFEM
 {
     Material::Material(const std::string & Name,
                        const double Density,
@@ -161,4 +161,4 @@ namespace MoisThermFEM
     {
         return m_Porosity - liquidPorosity(node);
     }
-}   // namespace MoisThermFEM
+}   // namespace HygroThermFEM

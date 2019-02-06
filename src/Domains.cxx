@@ -12,7 +12,7 @@
 
 using FenestrationCommon::CLinearSolver;
 
-namespace MoisThermFEM
+namespace HygroThermFEM
 {
     FenestrationCommon::SquareMatrix IDomain::steadyStateLeftHandSide()
     {
@@ -238,7 +238,7 @@ namespace MoisThermFEM
     {
         /// Need to pull material for current moisture boundary condition
         auto & Material = m_Elements.findElement(index1, index2)->getMaterial();
-        m_BCs.assignBC(fem::make_unique<MoisThermFEM::MoistureBCVariableHc>(
+        m_BCs.assignBC(fem::make_unique<HygroThermFEM::MoistureBCVariableHc>(
           index1, index2, Material.name(), t_AirHumidity, t_AirTemperature));
     }
 
@@ -250,7 +250,7 @@ namespace MoisThermFEM
         /// Need to pull material for current moisture boundary condition
         auto & Material = m_Elements.findElement(index1, index2)->getMaterial();
         m_BCs.assignBC(
-          fem::make_unique<MoisThermFEM::MoistureBCFixedHc>(index1,
+          fem::make_unique<HygroThermFEM::MoistureBCFixedHc>(index1,
                                                             index2,
                                                             Material.name(),
                                                             t_AirHumidity,
@@ -278,4 +278,4 @@ namespace MoisThermFEM
         }
     }
 
-}   // namespace MoisThermFEM
+}   // namespace HygroThermFEM

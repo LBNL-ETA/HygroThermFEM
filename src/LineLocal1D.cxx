@@ -6,7 +6,7 @@
 #include "Node2D.hxx"
 #include "FEMunique.hxx"
 
-namespace MoisThermFEM {
+namespace HygroThermFEM {
 
 	////////////////////////////////////////////////////////////////////////////
 	//   LineElement1DLinearLocal::LineLinearLocalShapeFunctions1D

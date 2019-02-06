@@ -3,9 +3,9 @@
 
 #include "MoisThermFEM2D.hxx"
 
-using MoisThermFEM::NodePool;
-using MoisThermFEM::QuadrilateralLinearGlobal2D;
-using MoisThermFEM::QLEDpDuIntegrator2D;
+using HygroThermFEM::NodePool;
+using HygroThermFEM::QuadrilateralLinearGlobal2D;
+using HygroThermFEM::QLEDpDuIntegrator2D;
 
 class TestQLEDpDuIntegrator2D : public testing::Test
 {

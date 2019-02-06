@@ -8,7 +8,7 @@
 
 using FenestrationCommon::SquareMatrix;
 
-namespace MoisThermFEM
+namespace HygroThermFEM
 {
     IBCLinear2D::IBCLinear2D(const size_t index1, const size_t index2, const bool t_Linear) :
         m_Nodes(NodePool::Instance().getNode(index1), NodePool::Instance().getNode(index2)),
@@ -63,4 +63,4 @@ namespace MoisThermFEM
         return m_Nodes[index];
     }
 
-}   // namespace MoisThermFEM
+}   // namespace HygroThermFEM

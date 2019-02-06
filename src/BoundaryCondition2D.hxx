@@ -3,7 +3,7 @@
 #include "IBCLine2D.hxx"
 #include "Material.hxx"
 
-namespace MoisThermFEM
+namespace HygroThermFEM
 {
     enum class ConvectionModel {Fixed, Variable};
 
@@ -262,4 +262,4 @@ namespace MoisThermFEM
         const double m_ConvectiveCoefficient;
     };
 
-}   // namespace MoisThermFEM
+}   // namespace HygroThermFEM

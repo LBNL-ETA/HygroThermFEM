@@ -2,10 +2,10 @@
 
 #include "MoisThermFEM2D.hxx"
 
-using MoisThermFEM::NodePool;
-using MoisThermFEM::MaterialPool;
-using MoisThermFEM::WaterContent;
-using MoisThermFEM::MultiDomain;
+using HygroThermFEM::NodePool;
+using HygroThermFEM::MaterialPool;
+using HygroThermFEM::WaterContent;
+using HygroThermFEM::MultiDomain;
 
 /// This is example of water content calculation in nodes that are shared between two elements
 /// with different material. In this case, one of the elements is triangular which will lead
@@ -33,7 +33,7 @@ TEST_F(TwoElementsTwoMaterials_2, NodeInTwoMaterials)
     const auto pressure = 101325.0;
     const auto liquidPercent = 1.0;
 
-    MoisThermFEM::State state(temperature, humidity, pressure, liquidPercent);
+    HygroThermFEM::State state(temperature, humidity, pressure, liquidPercent);
 
     NodePool::Instance().createNode(1, 0, 1, state);
     NodePool::Instance().createNode(2, 1, 0, state);
@@ -100,9 +100,9 @@ TEST_F(TwoElementsTwoMaterials_2, NodeInTwoMaterials)
     domain.createElement(1, 1, 2, 3, material1.name());
     domain.createElement(2, 4, 5, 3, material2.name());
 
-    auto iceContent = domain.property(MoisThermFEM::Variable::ice);
-    auto vaporContent = domain.property(MoisThermFEM::Variable::vapor);
-    auto liquidContent = domain.property(MoisThermFEM::Variable::liquid);
+    auto iceContent = domain.property(HygroThermFEM::Variable::ice);
+    auto vaporContent = domain.property(HygroThermFEM::Variable::vapor);
+    auto liquidContent = domain.property(HygroThermFEM::Variable::liquid);
 
     /// Test water content in node number 2 (material 2 will have more influence)
     EXPECT_NEAR(iceContent[1], 0, 1e-6);

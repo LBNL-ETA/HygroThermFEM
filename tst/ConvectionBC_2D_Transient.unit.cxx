@@ -3,8 +3,8 @@
 
 #include "MoisThermFEM2D.hxx"
 
-using MoisThermFEM::NodePool;
-using MoisThermFEM::MaterialPool;
+using HygroThermFEM::NodePool;
+using HygroThermFEM::MaterialPool;
 
 class ConvectionBC_2D_Transient : public testing::Test
 {
@@ -57,7 +57,7 @@ TEST_F(ConvectionBC_2D_Transient, TestExample_1)
        {0.999, 120},
        {1, 180}});
 
-    MoisThermFEM::ThermalDomain domain;
+    HygroThermFEM::ThermalDomain domain;
 
     domain.createElement(3, 4, 2, 1, material.name());
     domain.createElement(6, 4, 3, 5, material.name());
@@ -75,9 +75,9 @@ TEST_F(ConvectionBC_2D_Transient, TestExample_1)
     const auto dTime = 3600;
     const auto nSteps = 4;
 
-    auto temperatures = NodePool::Instance().properties(MoisThermFEM::Variable::temperature);
+    auto temperatures = NodePool::Instance().properties(HygroThermFEM::Variable::temperature);
     std::vector<std::vector<double>> temperaturesSolution;
-    std::vector<std::vector<MoisThermFEM::NodeFlux>> fluxSolution;
+    std::vector<std::vector<HygroThermFEM::NodeFlux>> fluxSolution;
 
     for(unsigned i = 0; i < nSteps; ++i)
     {
@@ -92,7 +92,7 @@ TEST_F(ConvectionBC_2D_Transient, TestExample_1)
       {1.788809043, 1.788809043, -2.264759626, -2.264759626, -10.15443472, -10.15443472},
       {1.680631717, 1.680631717, -2.977820826, -2.977820826, -11.08768765, -11.08768765}};
 
-    std::vector<std::vector<MoisThermFEM::NodeFlux>> correctFluxSolution{{{-17.88375616, 0},
+    std::vector<std::vector<HygroThermFEM::NodeFlux>> correctFluxSolution{{{-17.88375616, 0},
                                                                           {-17.88375616, 0},
                                                                           {-33.76579929, 0},
                                                                           {-33.76579929, 0},

@@ -3,7 +3,7 @@
 #include <vector>
 #include "Node2D.hxx"
 
-namespace MoisThermFEM
+namespace HygroThermFEM
 {
     //! \brief Singleton class holds poll of nodes used in one domain.
     //!
@@ -52,4 +52,4 @@ namespace MoisThermFEM
         std::vector<Node2D> m_Nodes;
     };
 
-}   // namespace MoisThermFEM
+}   // namespace HygroThermFEM

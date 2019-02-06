@@ -6,7 +6,7 @@
 #include "IntegrationPoints.hxx"
 #include "QuadrilateralLocal2D.hxx"
 
-namespace MoisThermFEM
+namespace HygroThermFEM
 {
     ////////////////////////////////////////////////////////////////////////////
     //   QuadrilateralLinearGlobal2D
@@ -164,4 +164,4 @@ namespace MoisThermFEM
         return m_JacobiDet;
     }
 
-}   // namespace MoisThermFEM
+}   // namespace HygroThermFEM

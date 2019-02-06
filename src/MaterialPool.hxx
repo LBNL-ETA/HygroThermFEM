@@ -4,7 +4,7 @@
 
 #include "Material.hxx"
 
-namespace MoisThermFEM
+namespace HygroThermFEM
 {
     class MaterialPool
     {
@@ -33,4 +33,4 @@ namespace MoisThermFEM
         std::map<std::string, Material> m_Materials;
     };
 
-}   // namespace MoisThermFEM
+}   // namespace HygroThermFEM

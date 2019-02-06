@@ -14,7 +14,7 @@ TEST_F(TestSaturationFunctions, BoundarySaturation)
 {
     const auto temperature = 20.0;
 
-    const auto result = MoisThermFEM::boundarySaturationAtTemperature(temperature);
+    const auto result = HygroThermFEM::boundarySaturationAtTemperature(temperature);
 
     const auto correctResult = 2331.215017;
 
@@ -25,7 +25,7 @@ TEST_F(TestSaturationFunctions, Saturation)
 {
     const auto temperature = 20.0;
 
-	const auto result = MoisThermFEM::saturationAtTemperature(temperature);
+	const auto result = HygroThermFEM::saturationAtTemperature(temperature);
 
 	const auto correctResult = 0.017235141;
 

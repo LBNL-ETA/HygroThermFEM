@@ -3,8 +3,8 @@
 
 #include "MoisThermFEM2D.hxx"
 
-using MoisThermFEM::NodePool;
-using MoisThermFEM::MaterialPool;
+using HygroThermFEM::NodePool;
+using HygroThermFEM::MaterialPool;
 
 /////////////////////////////////////////////////////////////////////////////////////
 /// Transient heat transfer example on Sandstone specimen using data from database
@@ -35,7 +35,7 @@ TEST_F(BlackBodyBC_2D_1, TestExample_1)
     // Enter nodes. Arguments are: node number, x-coordinate, y-coordinate, initial temperature
 
     // same temperature in every node (humidity and pressure irrelevant for this example)
-    auto state = MoisThermFEM::State(0, 0, 101325, 0);
+    auto state = HygroThermFEM::State(0, 0, 101325, 0);
 
     NodePool::Instance().createNode(1, 0.15, 0.05, state);
     NodePool::Instance().createNode(2, 0.15, 0, state);
@@ -71,7 +71,7 @@ TEST_F(BlackBodyBC_2D_1, TestExample_1)
        {0.999, 120},
        {1, 180}});
 
-    MoisThermFEM::ThermalDomain domain;
+    HygroThermFEM::ThermalDomain domain;
 
     domain.createElement(3, 4, 2, 1, material.name());
     domain.createElement(6, 4, 3, 5, material.name());
@@ -85,7 +85,7 @@ TEST_F(BlackBodyBC_2D_1, TestExample_1)
     const auto dTime = 3600;
     const auto nSteps = 4;
 
-    auto temperatures = NodePool::Instance().properties(MoisThermFEM::Variable::temperature);
+    auto temperatures = NodePool::Instance().properties(HygroThermFEM::Variable::temperature);
     std::vector<std::vector<double>> solution;
 
     for(unsigned i = 0; i < nSteps; ++i)
