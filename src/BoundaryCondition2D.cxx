@@ -71,13 +71,11 @@ namespace MoisThermFEM
 
     std::vector<double> IConvectionBC::R_Vector() const
     {
-        assert(m_ConvectiveCoefficient != nullptr);
         return m_PsiVector * convectionCoefficients() * m_AirTemperature;
     }
 
     FenestrationCommon::SquareMatrix IConvectionBC::H_Matrix() const
     {
-        assert(m_ConvectiveCoefficient != nullptr);
         return m_PsiPsiMatrix.mmultRows(convectionCoefficients());
     }
 
