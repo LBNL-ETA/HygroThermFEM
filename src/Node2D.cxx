@@ -1,5 +1,3 @@
-#include <cassert>
-
 #include "Node2D.hxx"
 #include "MaterialPool.hxx"
 
@@ -67,34 +65,6 @@ namespace HygroThermFEM
                 return waterContent(WaterContent::Vapor);
             case Variable::ice:
                 return waterContent(WaterContent::Ice);
-        }
-        return 0;
-    }
-
-    double Node2D::deltaProperty(const Variable property) const
-    {
-        switch(property)
-        {
-            case Variable::temperature:
-                return m_State.at(Timestep::Current).getValue(BaseVariable::temperature)
-                       - m_State.at(Timestep::Previous).getValue(BaseVariable::temperature);
-            case Variable::humidity:
-                return m_State.at(Timestep::Current).getValue(BaseVariable::humidity)
-                       - m_State.at(Timestep::Previous).getValue(BaseVariable::humidity);
-            case Variable::pressure:
-                return m_State.at(Timestep::Current).getValue(BaseVariable::pressure)
-                       - m_State.at(Timestep::Previous).getValue(BaseVariable::pressure);
-            case Variable::liquidPercent:
-                return m_State.at(Timestep::Current).getValue(BaseVariable::liquidPercent)
-                       - m_State.at(Timestep::Previous).getValue(BaseVariable::liquidPercent);
-            case Variable::water:
-                return waterContent(WaterContent::Water) - waterContent(WaterContent::Water);
-            case Variable::liquid:
-                return waterContent(WaterContent::Liquid) - waterContent(WaterContent::Liquid);
-            case Variable::vapor:
-                return waterContent(WaterContent::Vapor) - waterContent(WaterContent::Vapor);
-            case Variable::ice:
-                return waterContent(WaterContent::Ice) - waterContent(WaterContent::Ice);
         }
         return 0;
     }

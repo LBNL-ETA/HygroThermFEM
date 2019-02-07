@@ -1,5 +1,4 @@
 #include <cassert>
-#include <iostream>
 
 #include "Common.hxx"
 #include "Element2D.hxx"
@@ -7,7 +6,6 @@
 #include "NodePool.hxx"
 #include "MaterialPool.hxx"
 #include "QuadrilateralLocal2D.hxx"
-#include "FEMunique.hxx"
 #include "VectorOperators.hxx"
 
 using FenestrationCommon::SquareMatrix;
@@ -179,7 +177,7 @@ namespace HygroThermFEM
         m_DDuIntegrator{m_Global2D},
         m_Linear{isLinear}
     {
-        auto matName = m_Material.name();
+        const auto matName = m_Material.name();
 
         /// Evaluating material influence in every node (This is important to know when
         /// calculating water content).
@@ -305,7 +303,7 @@ namespace HygroThermFEM
         return results;
     }
 
-    Node2D & IElementLinear2D::getNode(const std::size_t index)
+    Node2D & IElementLinear2D::getNode(const std::size_t index) const
     {
         assert(index < m_Nodes.size());
         return m_Nodes[index];
@@ -424,8 +422,8 @@ namespace HygroThermFEM
         // Phase change part
         // This is incorrect phase change equation. Correct one is kept in branch IceContentFix.
         // Disable this for now because solver is not producing correct results
-        //auto waterWithoutVapor = liquidContent + iceContent;
-        //Cap(PhaseChange() * waterWithoutVapor);
+        // auto waterWithoutVapor = liquidContent + iceContent;
+        // Cap(PhaseChange() * waterWithoutVapor);
 
         //////////////////////////////////////////////////////////////////////////
         /// Conductance
@@ -524,12 +522,12 @@ namespace HygroThermFEM
 
         Cap(sorptionDerivative);
 
-		//////////////////////////////////////////////////////////////////////
-		/// Functions for flux calculations
-		//////////////////////////////////////////////////////////////////////
-		Cond(conductance);
-		//Cond(delta);
-		Cond(SuctionCurve(m_Material.liquidTransportationCurve()));
+        //////////////////////////////////////////////////////////////////////
+        /// Functions for flux calculations
+        //////////////////////////////////////////////////////////////////////
+        Cond(conductance);
+        // Cond(delta);
+        Cond(SuctionCurve(m_Material.liquidTransportationCurve()));
     }
 
 }   // namespace HygroThermFEM

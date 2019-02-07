@@ -25,6 +25,7 @@ namespace HygroThermFEM
     class IQLEIntegrator2D
     {
     public:
+        virtual ~IQLEIntegrator2D() = default;
         IQLEIntegrator2D(const QuadrilateralLinearGlobal2D & t_Element);
 
         //! Integrate matrix over all points of integration
@@ -41,7 +42,7 @@ namespace HygroThermFEM
             matrix,   //!< Matrix that integration results will be added to
           const std::vector<double> &
             t_Values,   //!< Nodal values for which integration will be performed
-          const std::size_t t_IntegrationPointIndex   //!< Integration point
+          std::size_t t_IntegrationPointIndex   //!< Integration point
           ) const final;
 
         const QuadrilateralLinearGlobal2D & m_Global2D;
@@ -131,6 +132,7 @@ namespace HygroThermFEM
     class IElementLinear2D
     {
     public:
+        virtual ~IElementLinear2D() = default;
         //! Construction of base element. Constructor will make all necessary shape functions in
         //! background (since they are dependent on element geometry). In constructor will
         //! calculate weighting factors that will be used to calculate some local node properties.
@@ -138,15 +140,15 @@ namespace HygroThermFEM
         //! doing averaging, program will have information about how much of weight one node
         //! this element will have.
         IElementLinear2D(
-          const size_t index1,                //!< Node 1 index
-          const size_t index2,                //!< Node 2 index
-          const size_t index3,                //!< Node 3 index
-          const size_t index4,                //!< Node 4 index
+          size_t index1,                      //!< Node 1 index
+          size_t index2,                      //!< Node 2 index
+          size_t index3,                      //!< Node 3 index
+          size_t index4,                      //!< Node 4 index
           const std::string & materialName,   //!< Material assigned to the element
-          const Variable
+          Variable
             variable,   //! Variable is used to determine for which property flux will be calculated
-          const bool isLinear = true   //!< States if element equations can be solved by linear
-                                       //!< approach or non-linear iterations needs to be used.
+          bool isLinear = true   //!< States if element equations can be solved by linear
+                                 //!< approach or non-linear iterations needs to be used.
         );
 
         //! Integrates all matrices that are part of K * (D/Dx(Du/Dx) + D/Dy(Du/Dy)) equation.
@@ -163,12 +165,12 @@ namespace HygroThermFEM
 
         std::vector<NodeFlux> flux() const;
 
-        Node2D & getNode(std::size_t index);
+        Node2D & getNode(std::size_t index) const;
 
         //! Returns true of element have both nodes. This is used to test if certain boundary
         //! condition is part of the element.
-        bool haveBothNodes(const size_t index1,   //!< Node 1 index
-                           const size_t index2    //!< Node 2 index
+        bool haveBothNodes(size_t index1,   //!< Node 1 index
+                           size_t index2    //!< Node 2 index
                            ) const;
 
         //! Returns indexes of all four nodes in the element
@@ -183,29 +185,33 @@ namespace HygroThermFEM
     protected:
         //! Template function that will add DDu matrix into the system.
         template<typename T>
-        void DDu(T & t,
-                 const typename std::enable_if<std::is_base_of<IValue, T>::value, T>::type * = 0)
+        void
+          DDu(T & t,
+              const typename std::enable_if<std::is_base_of<IValue, T>::value, T>::type * = nullptr)
         {
             m_DDuFunctions.emplace_back(std::unique_ptr<T>(new T(t)));
         }
 
         //! Template function that will add K*(D/Dx(Du/Dx) + D/Dy(Du/Dy)) matrix into the system.
         template<typename T>
-        void DDu(T && t,
-                 const typename std::enable_if<std::is_base_of<IValue, T>::value, T>::type * = 0)
+        void
+          DDu(T && t,
+              const typename std::enable_if<std::is_base_of<IValue, T>::value, T>::type * = nullptr)
         {
             m_DDuFunctions.emplace_back(std::unique_ptr<T>(new T(t)));
         }
 
         //! Template function that will add K * Du/Dt matrix into the system.
         template<typename T>
-        void Cap(T & t, typename std::enable_if<std::is_base_of<IValue, T>::value, T>::type * = 0)
+        void Cap(T & t,
+                 typename std::enable_if<std::is_base_of<IValue, T>::value, T>::type * = nullptr)
         {
             m_CapacitanceFunctions.emplace_back(std::unique_ptr<T>(new T(t)));
         }
 
         template<typename T>
-        void Cap(T && t, typename std::enable_if<std::is_base_of<IValue, T>::value, T>::type * = 0)
+        void Cap(T && t,
+                 typename std::enable_if<std::is_base_of<IValue, T>::value, T>::type * = nullptr)
         {
             m_CapacitanceFunctions.emplace_back(std::unique_ptr<T>(new T(t)));
         }
@@ -215,49 +221,51 @@ namespace HygroThermFEM
         template<typename T, typename U>
         void DpDu(T & t,
                   U & u,
-                  typename std::enable_if<std::is_base_of<IValue, T>::value, T>::type * = 0)
+                  typename std::enable_if<std::is_base_of<IValue, T>::value, T>::type * = nullptr)
         {
             m_DpDuFunctions.emplace_back(std::unique_ptr<T>(new T(t)),
                                          std::unique_ptr<U>(new U(u)));
         }
 
-		template<typename T, typename U>
-		void DpDu(T && t,
-				  U & u,
-				  typename std::enable_if<std::is_base_of<IValue, T>::value, T>::type * = 0)
-		{
-			m_DpDuFunctions.emplace_back(std::unique_ptr<T>(new T(t)),
-										 std::unique_ptr<U>(new U(u)));
-		}
+        template<typename T, typename U>
+        void DpDu(T && t,
+                  U & u,
+                  typename std::enable_if<std::is_base_of<IValue, T>::value, T>::type * = nullptr)
+        {
+            m_DpDuFunctions.emplace_back(std::unique_ptr<T>(new T(t)),
+                                         std::unique_ptr<U>(new U(u)));
+        }
 
-		template<typename T, typename U>
-		void DpDu(T & t,
-				  U && u,
-				  typename std::enable_if<std::is_base_of<IValue, T>::value, T>::type * = 0)
-		{
-			m_DpDuFunctions.emplace_back(std::unique_ptr<T>(new T(t)),
-										 std::unique_ptr<U>(new U(u)));
-		}
+        template<typename T, typename U>
+        void DpDu(T & t,
+                  U && u,
+                  typename std::enable_if<std::is_base_of<IValue, T>::value, T>::type * = nullptr)
+        {
+            m_DpDuFunctions.emplace_back(std::unique_ptr<T>(new T(t)),
+                                         std::unique_ptr<U>(new U(u)));
+        }
 
-		template<typename T, typename U>
-		void DpDu(T && t,
-				  U && u,
-				  typename std::enable_if<std::is_base_of<IValue, T>::value, T>::type * = 0)
-		{
-			m_DpDuFunctions.emplace_back(std::unique_ptr<T>(new T(t)),
-										 std::unique_ptr<U>(new U(u)));
-		}
+        template<typename T, typename U>
+        void DpDu(T && t,
+                  U && u,
+                  typename std::enable_if<std::is_base_of<IValue, T>::value, T>::type * = nullptr)
+        {
+            m_DpDuFunctions.emplace_back(std::unique_ptr<T>(new T(t)),
+                                         std::unique_ptr<U>(new U(u)));
+        }
 
         //! Template function that will create functions used in equivalent material conductivity
         //! and therefore used in flux calculations.
         template<typename T>
-        void Cond(T & t, typename std::enable_if<std::is_base_of<IValue, T>::value, T>::type * = 0)
+        void Cond(T & t,
+                  typename std::enable_if<std::is_base_of<IValue, T>::value, T>::type * = nullptr)
         {
             m_ConductanceFunctions.emplace_back(std::unique_ptr<T>(new T(t)));
         }
 
         template<typename T>
-        void Cond(T && t, typename std::enable_if<std::is_base_of<IValue, T>::value, T>::type * = 0)
+        void Cond(T && t,
+                  typename std::enable_if<std::is_base_of<IValue, T>::value, T>::type * = nullptr)
         {
             m_ConductanceFunctions.emplace_back(std::unique_ptr<T>(new T(t)));
         }
@@ -274,8 +282,8 @@ namespace HygroThermFEM
             //! Simple constructor for matrix-vector pair. It contains function that will be used to
             //! create matrix and vector that will be created from some of node properties.
             MatrixVector(
-              iValue && MatrixFunction,       //!< Function that will be used to create matrix
-              const Variable PropertyVector   //!< Node property that will be used to create vector
+              iValue && MatrixFunction,   //!< Function that will be used to create matrix
+              Variable PropertyVector     //!< Node property that will be used to create vector
             );
             iValue MatrixFunction;
             Variable PropertyVector;
@@ -286,7 +294,7 @@ namespace HygroThermFEM
         void multiplies(
           T & t,
           Variable property,
-          const typename std::enable_if<std::is_base_of<IValue, T>::value, T>::type * = 0)
+          const typename std::enable_if<std::is_base_of<IValue, T>::value, T>::type * = nullptr)
         {
             m_Matrix_x_Vector.emplace_back(std::unique_ptr<T>(new T(t)), property);
         }
@@ -296,7 +304,7 @@ namespace HygroThermFEM
         void multiplies(
           T && t,
           Variable property,
-          const typename std::enable_if<std::is_base_of<IValue, T>::value, T>::type * = 0)
+          const typename std::enable_if<std::is_base_of<IValue, T>::value, T>::type * = nullptr)
         {
             m_Matrix_x_Vector.emplace_back(std::unique_ptr<T>(new T(t)), property);
         }
@@ -344,32 +352,25 @@ namespace HygroThermFEM
         public:
             explicit CircularNodesVector(
               const std::initializer_list<std::reference_wrapper<Node2D>> & __l) :
-                INodes(__l),
-                currentIndex(0),
-                passedLast(false)
+                INodes(__l)
             {}
 
-            explicit CircularNodesVector(Node2D & node1, Node2D & node2) :
-                INodes(node1, node2),
-                currentIndex(0),
-                passedLast(false)
+            explicit CircularNodesVector(Node2D & node1, Node2D & node2) : INodes(node1, node2)
             {}
 
             explicit CircularNodesVector(Node2D & node1,
                                          Node2D & node2,
                                          Node2D & node3,
                                          Node2D & node4) :
-                INodes(node1, node2, node3, node4),
-                currentIndex(0),
-                passedLast(false)
+                INodes(node1, node2, node3, node4)
             {}
 
-            typename std::vector<std::reference_wrapper<Node2D>>::const_iterator begin() const
+            std::vector<std::reference_wrapper<Node2D>>::const_iterator begin() const
             {
                 return m_Nodes.begin();
             }
 
-            typename std::vector<std::reference_wrapper<Node2D>>::const_iterator end() const
+            std::vector<std::reference_wrapper<Node2D>>::const_iterator end() const
             {
                 return m_Nodes.end();
             }
@@ -380,7 +381,7 @@ namespace HygroThermFEM
                 return m_Nodes[currentIndex];
             }
 
-            bool last()
+            bool last() const
             {
                 return passedLast;
             }
@@ -477,10 +478,10 @@ namespace HygroThermFEM
     {
     public:
         ElementThermalLinear2D(
-          const size_t index1,               //!< Node 1 index
-          const size_t index2,               //!< Node 2 index
-          const size_t index3,               //!< Node 3 index
-          const size_t index4,               //!< Node 4 index
+          size_t index1,                     //!< Node 1 index
+          size_t index2,                     //!< Node 2 index
+          size_t index3,                     //!< Node 3 index
+          size_t index4,                     //!< Node 4 index
           const std::string & materialName   //!< Material name assigned to the element
         );
     };
@@ -494,10 +495,10 @@ namespace HygroThermFEM
     {
     public:
         ElementMoistureLinear2D(
-          const size_t index1,               //!< Node 1 index
-          const size_t index2,               //!< Node 2 index
-          const size_t index3,               //!< Node 3 index
-          const size_t index4,               //!< Node 4 index
+          size_t index1,                     //!< Node 1 index
+          size_t index2,                     //!< Node 2 index
+          size_t index3,                     //!< Node 3 index
+          size_t index4,                     //!< Node 4 index
           const std::string & materialName   //!< Material name assigned to the element
         );
     };

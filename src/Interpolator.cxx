@@ -1,5 +1,4 @@
 #include <cmath>
-#include <memory>
 #include <functional>
 
 #include "Interpolator.hxx"
@@ -8,8 +7,8 @@ namespace FenestrationCommon {
 
 	double Interpolator::f( const std::pair< double, double > & t_point1,
 													const std::pair< double, double > & t_point2,
-													const double t_position ) const {
-		auto delta = t_point2.first - t_point1.first;
+													const double t_position ) {
+		const auto delta = t_point2.first - t_point1.first;
 		return delta != 0 ? ( t_position - t_point1.first ) / ( t_point2.first - t_point1.first ) : 0;
 	}
 

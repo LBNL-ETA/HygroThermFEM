@@ -4,7 +4,6 @@
 
 #include "SquareMatrix.hxx"
 #include "Node2D.hxx"
-#include "Material.hxx"
 
 namespace HygroThermFEM
 {

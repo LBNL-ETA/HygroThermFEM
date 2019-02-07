@@ -2,10 +2,8 @@
 
 #include <memory>
 #include <vector>
-#include <functional>
 
 #include "SquareMatrix.hxx"
-#include "FEMunique.hxx"
 #include "State.hxx"
 #include "IBCLine2D.hxx"
 
@@ -37,7 +35,8 @@ namespace HygroThermFEM
 
         //! Used to update new values to nodes once solver finds new solution for any state
         //! variable.
-        void updateNodeValues(const std::vector<double> & values, const BaseVariable property,
+        void updateNodeValues(const std::vector<double> & values,
+                              BaseVariable property,
                               bool updatePreviousValue = true);
 
         //! Assign new boundary condition to the pool

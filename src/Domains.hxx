@@ -1,9 +1,7 @@
 #pragma once
 
-#include <memory>
 #include "Elements2D.hxx"
 #include "BoundaryConditions2D.hxx"
-#include "Elements2D.hxx"
 
 namespace HygroThermFEM
 {
@@ -22,10 +20,11 @@ namespace HygroThermFEM
     class IDomain
     {
     public:
+        virtual ~IDomain() = default;
         //! Domain construction. It is necessary to set up base variable that will be considered
         //! unknown.
         explicit IDomain(
-          const BaseVariable property,   //!< State variable which will be considered unknown.
+          BaseVariable property,   //!< State variable which will be considered unknown.
           bool automaticUpdateOfPreviousTimestep =
             true   //!< When solver finds solution, previous timestep will be automatically updated
                    //!< by default. This should be set to false is Domain is used in outside
@@ -60,7 +59,7 @@ namespace HygroThermFEM
 
         //! Helper class that will update property at nodes from new timestep values.
         void updateNodeValues(const std::vector<double> & values,
-                              const BaseVariable property,
+                              BaseVariable property,
                               bool updatePreviousValues = true);
 
         //! Forms left hand side matrix in steady state solution.
@@ -70,11 +69,11 @@ namespace HygroThermFEM
         std::vector<double> steadyStateRightHandSide() const;
 
         //! Forms mass, conductance and H (from boundary condition) matrices.
-        FenestrationCommon::SquareMatrix transientM_K_H_Matrix(const double t_DTime);
+        FenestrationCommon::SquareMatrix transientM_K_H_Matrix(double t_DTime);
 
         //! This function retrieves M*U+R vector (where U is state variable)
         std::vector<double> transientMT_R_Vector(const std::vector<double> & t_PreviousSolution,
-                                                 const double t_DTime);
+                                                 double t_DTime);
 
         //! Returns if domain problem is linear.
         bool isLinear() const;
@@ -109,13 +108,15 @@ namespace HygroThermFEM
         ThermalDomain(bool automaticUpdatePreviousTimestep = true);
 
         //! Creation of convection boundary condition
-        void createConvectionBCFixedHc(size_t index1, size_t index2, double t_AirTemperature,
+        void createConvectionBCFixedHc(size_t index1,
+                                       size_t index2,
+                                       double t_AirTemperature,
                                        double t_ConvectionCoefficient);
 
         //! Creation of convection boundary condition
-        void createConvectionBCVariableHc(size_t index1,                    //!< Node 1 index
-                                       size_t index2,                    //!< Node 2 index
-                                       double t_AirTemperature           //!< Outside air temperature
+        void createConvectionBCVariableHc(size_t index1,            //!< Node 1 index
+                                          size_t index2,            //!< Node 2 index
+                                          double t_AirTemperature   //!< Outside air temperature
         );
 
         //! Creation of temperature boundary condition
@@ -161,14 +162,17 @@ namespace HygroThermFEM
         MoistureDomain(bool automaticUpdatePreviousTimestep = true);
 
         //! Creates moisture boundary condition that will calculate convection film coefficient.
-        void createMoistureBCVariableHc(const size_t index1, const size_t index2,
-                                        const double t_AirHumidity, const double t_AirTemperature);
+        void createMoistureBCVariableHc(size_t index1,
+                                        size_t index2,
+                                        double t_AirHumidity,
+                                        double t_AirTemperature);
 
         //! Creates moisture boundary condition with fixed film coefficient
-        void createMoistureBCFixedHc(const size_t index1, const size_t index2,
-                                     const double t_AirTemperature,
-                                     const double t_ConvectiveFilmCoefficient,
-                                     const double t_AirHumidity);
+        void createMoistureBCFixedHc(size_t index1,
+                                     size_t index2,
+                                     double t_AirTemperature,
+                                     double t_ConvectiveFilmCoefficient,
+                                     double t_AirHumidity);
 
         //! Creates and adds element into domain.
         virtual void createElement(size_t index1,                     //!< Node 1 index

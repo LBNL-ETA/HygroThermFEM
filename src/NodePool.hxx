@@ -17,14 +17,14 @@ namespace HygroThermFEM
 
         //! Creates node with node index and x, y coordinate and sets starting state conditions
         Node2D &
-          createNode(const std::size_t NodeIndex,   //!< Node index in finite element domain.
-                     const double x,                //!< x-coordinate.
-                     const double y,                //!< y-coordinate
+          createNode(std::size_t NodeIndex,   //!< Node index in finite element domain.
+                     double x,                //!< x-coordinate.
+                     double y,                //!< y-coordinate
                      const State & state = State(0, 0, 0, 0)   //!< State of variables in the node.
           );
 
         //! Returns node at given index.
-        Node2D & getNode(std::size_t const Index   //!< Node index.
+        Node2D & getNode(std::size_t Index   //!< Node index.
         );
 
         //! Returns maximum node index from pool of nodes.
@@ -32,7 +32,7 @@ namespace HygroThermFEM
 
         //! Returns state values (temperature, water content or pressure) at all nodes.
         std::vector<double>
-          properties(const Variable t_Property   //!< Variable for which values are obtained.
+          properties(Variable t_Property   //!< Variable for which values are obtained.
           );
 
         //! Update all node values for given state property.

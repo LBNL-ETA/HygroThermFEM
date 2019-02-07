@@ -1,7 +1,6 @@
 #pragma once
 
 #include <memory>
-#include <functional>
 #include "Element2D.hxx"
 #include "SquareMatrix.hxx"
 
@@ -17,8 +16,8 @@ namespace HygroThermFEM
         FenestrationCommon::SquareMatrix conductanceMatrix();
 
         /// Creates lumped mass matrix that includes time derivative
-        std::vector<double> getLumpedMass(const double DTime);
-        FenestrationCommon::SquareMatrix getMassMatrix(const double DTime);
+        std::vector<double> getLumpedMass(double DTime);
+        FenestrationCommon::SquareMatrix getMassMatrix(double DTime);
 
         std::vector<double> RVector() const;
 
@@ -26,10 +25,11 @@ namespace HygroThermFEM
 
         bool isLinear() const;
 
-        void updateNodeValues(const std::vector<double> & values, const BaseVariable property,
+        void updateNodeValues(const std::vector<double> & values,
+                              BaseVariable property,
                               bool updatePreviousValue = true);
 
-        IElementLinear2D * findElement(const size_t index1, const size_t index2);
+        IElementLinear2D * findElement(size_t index1, size_t index2);
 
         void assignElement(std::unique_ptr<IElementLinear2D> && el);
 

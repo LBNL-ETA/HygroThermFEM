@@ -96,7 +96,7 @@ namespace HygroThermFEM
             return val.first > t_position;
         });
 
-        auto points = getInterpolationPoints(it);
+        const auto points = getInterpolationPoints(it);
 
         return m_Interpolator.interpolate(points.first, points.second, t_position);
     }
@@ -207,7 +207,7 @@ namespace HygroThermFEM
     {
         /// Suction curve takes care that first segment of curve always return value of first
         /// element.
-        it == m_Curve.end() ? m_Curve.back() : *it;
+        //it == m_Curve.end() ? m_Curve.back() : *it;
         const auto second = std::next(m_Curve.begin());
         const auto pt2 = it == second ? m_Curve.front() : *it;
         if(it != m_Curve.begin())

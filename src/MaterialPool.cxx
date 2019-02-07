@@ -1,5 +1,3 @@
-#include <algorithm>
-
 #include "MaterialPool.hxx"
 
 namespace HygroThermFEM

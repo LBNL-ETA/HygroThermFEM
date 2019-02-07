@@ -12,7 +12,7 @@ namespace HygroThermFEM
     {
     public:
         virtual ~IConvectiveCoefficient() = default;
-        virtual std::vector<double> value(const INodes & nodes, const double variable) const = 0;
+        virtual std::vector<double> value(const INodes & nodes, double variable) const = 0;
     };
 
     ////////////////////////////////////////////////////////
@@ -24,7 +24,7 @@ namespace HygroThermFEM
     {
     public:
         VariableConvectionCoefficient();
-        std::vector<double> value(const INodes & nodes, const double ambientTemperature) const override;
+        std::vector<double> value(const INodes & nodes, double ambientTemperature) const override;
     };
 
     ////////////////////////////////////////////////////////
@@ -35,7 +35,7 @@ namespace HygroThermFEM
     {
     public:
         FixedConvectionCoefficient();
-        std::vector<double> value(const INodes & nodes, const double convectiveCoefficient) const override;
+        std::vector<double> value(const INodes & nodes, double convectiveCoefficient) const override;
     };
 
     ////////////////////////////////////////////////////////
@@ -46,7 +46,7 @@ namespace HygroThermFEM
     class ConvectionModelFactory
     {
     public:
-        static std::unique_ptr<IConvectiveCoefficient> create(const ConvectionModel model);
+        static std::unique_ptr<IConvectiveCoefficient> create(ConvectionModel model);
     };
 
     ////////////////////////////////////////////////////////
@@ -83,7 +83,7 @@ namespace HygroThermFEM
     public:
         ConstantConvectionBC(size_t index1, size_t index2,
                                      double t_AirTemperature,
-                                     const double m_ConvectionCoefficient);
+                                     double m_ConvectionCoefficient);
     protected:
         std::vector<double> convectionCoefficients() const override;
     private:

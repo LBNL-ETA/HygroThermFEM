@@ -20,7 +20,7 @@ namespace HygroThermFEM
     //! Holds local point coordinate in 1D
     struct LocalPoint1D
     {
-        explicit LocalPoint1D(const double t_ksi);
+        explicit LocalPoint1D(double t_ksi);
 
         LocalPoint1D(const LocalPoint1D & t_LocalPoint);
 
@@ -111,11 +111,6 @@ namespace HygroThermFEM
                           Timestep::Current   //!< Timestep for which value will be returned
                         ) const;
 
-        //! Returns back change in Variable between two timesteps.
-        double
-          deltaProperty(Variable property   //!< Variable for which calculation is performed
-                        ) const;
-
         //! Sets the value of basic state property (temperature, humidity, pressure or liquid water
         //! percentage)
         void setStateProperty(
@@ -174,11 +169,11 @@ namespace HygroThermFEM
 
         //! Returns properties for all nodes in the storage.
         std::vector<double> properties(
-          const Variable property   //!< Variable for which node values will be calculated.
+          Variable property   //!< Variable for which node values will be calculated.
           ) const;
 
         //! Simple operator[] overload for access to nodes storage by index.
-        Node2D & operator[](const std::size_t index   //!< Node index
+        Node2D & operator[](std::size_t index   //!< Node index
                             ) const;
 
         //! Returns node indexes.

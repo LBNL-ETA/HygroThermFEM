@@ -59,10 +59,10 @@ namespace FenestrationCommon
         SquareMatrix inverse() const;
 
         //! Operator to access element of matrix
-        double operator()(const std::size_t i, const std::size_t j) const;
+        double operator()(std::size_t i, std::size_t j) const;
 
         //! Operator to access element of matrix
-        double & operator()(const std::size_t i, const std::size_t j);
+        double & operator()(std::size_t i, std::size_t j);
 
         //! Every row in matrix is multiplied with values in vector (element by element).
         SquareMatrix mmultRows(const std::vector<double> & tInput) const;
@@ -71,10 +71,10 @@ namespace FenestrationCommon
         Eigen::SparseMatrix<double> getSparseMatrix() const;
 
         //! Operator to multiply every element of matrix with single double value.
-        SquareMatrix operator*(const double value) const;
+        SquareMatrix operator*(double value) const;
 
 		//! Operator to multiply every element of matrix with single double value.
-        friend SquareMatrix operator*(const double value, const SquareMatrix & other);
+        friend SquareMatrix operator*(double value, const SquareMatrix & other);
 
         //! Two matrices multiplication
         friend SquareMatrix operator*(const SquareMatrix & first, const SquareMatrix & second);

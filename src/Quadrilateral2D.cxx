@@ -1,5 +1,4 @@
 #include <cmath>
-#include <stdexcept>
 #include <cassert>
 
 #include "Quadrilateral2D.hxx"
@@ -20,7 +19,7 @@ namespace HygroThermFEM
     {
         // Setting up gauss points in global coordinate system
         auto & aElement = IntegrationPoints2D::Instance();
-        auto numOfPoints = aElement.count2D();
+        const auto numOfPoints = aElement.count2D();
         for(unsigned i = 0; i < numOfPoints; ++i)
         {
             m_GaussPoints.emplace_back(t_Node1, t_Node2, t_Node3, t_Node4, i);
@@ -126,7 +125,7 @@ namespace HygroThermFEM
         m_JacobiDet = j11 * j22 - j21 * j12;
 
         // integrate inverse matrix now
-        auto temp = j11;
+        const auto temp = j11;
         j11 = j22 / m_JacobiDet;
         j22 = temp / m_JacobiDet;
         j12 = -j12 / m_JacobiDet;

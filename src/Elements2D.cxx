@@ -107,7 +107,7 @@ namespace HygroThermFEM
             for(auto i = 0u; i < numOfQuadrilateralNodes; ++i)
             {
                 auto & node = aElement->getNode(i);
-                auto index = node.getNodeNumber();
+                const auto index = node.getNodeNumber();
                 node.setStateProperty(property, values[index - 1], updatePreviousValue);
             }
         }

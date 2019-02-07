@@ -16,7 +16,7 @@ namespace HygroThermFEM
         m_PsiPsiMatrix(numOfBCNodes),
         m_PsiVector(numOfBCNodes, 0)
     {
-        double det =
+        const double det =
           0.5
           * sqrt(pow(m_Nodes[0].X() - m_Nodes[1].X(), 2) + pow(m_Nodes[0].Y() - m_Nodes[1].Y(), 2));
 

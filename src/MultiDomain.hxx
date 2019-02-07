@@ -29,35 +29,35 @@ namespace HygroThermFEM
         /// Calculates next timestep value from current values
         Solution transient(std::vector<double> & temperature,
                            std::vector<double> & humidity,
-                           const double t_DTime);
+                           double t_DTime);
 
-        std::vector<double> property(Variable property) const;
+        static std::vector<double> property(Variable property);
 
-        void createElement(const size_t index1,
-                           const size_t index2,
-                           const size_t index3,
-                           const size_t index4,
+        void createElement(size_t index1,
+                           size_t index2,
+                           size_t index3,
+                           size_t index4,
                            const std::string & materialName);
 
-        void createMoistureBCFixedHc(const size_t index1, const size_t index2,
-                                             const double t_AirTemperature,
-                                             const double t_ConvectionCoefficient,
-                                             const double t_Humidity);
+        void createMoistureBCFixedHc(size_t index1,
+                                     size_t index2,
+                                     double t_AirTemperature,
+                                     double t_ConvectionCoefficient,
+                                     double t_Humidity);
 
-        void createMoistureBCVariableHc(const size_t index1, const size_t index2,
-                                        const double t_AirTemperature, const double t_Humidity);
+        void createMoistureBCVariableHc(size_t index1,
+                                        size_t index2,
+                                        double t_AirTemperature,
+                                        double t_Humidity);
 
-        void createTemperatureBC(const size_t index1,
-                                 const size_t index2,
-                                 const double t_Temp1,
-                                 const double t_Temp2);
+        void createTemperatureBC(size_t index1, size_t index2, double t_Temp1, double t_Temp2);
 
-        void createTemperatureBC(const size_t index1, const size_t index2, const double t_Temp);
+        void createTemperatureBC(size_t index1, size_t index2, double t_Temp);
 
-        void createBlackBodyRadiationBC(const size_t index1,
-                                        const size_t index2,
-                                        const double t_Emissivity,
-                                        const double t_RadiationTemperature);
+        void createBlackBodyRadiationBC(size_t index1,
+                                        size_t index2,
+                                        double t_Emissivity,
+                                        double t_RadiationTemperature);
 
     private:
         static double normError(const std::vector<double> & vec1, const std::vector<double> & vec2);

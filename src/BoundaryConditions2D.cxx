@@ -76,7 +76,7 @@ namespace HygroThermFEM
             for(auto i = 0u; i < numOfBCNodes; ++i)
             {
                 auto & node = aBc->getNode(i);
-                auto index = node.getNodeNumber();
+                const auto index = node.getNodeNumber();
                 node.setStateProperty(property, values[index - 1], updatePreviousValue);
             }
         }

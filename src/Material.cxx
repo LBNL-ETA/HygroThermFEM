@@ -2,7 +2,6 @@
 #include <iostream>
 
 #include "Material.hxx"
-#include "FEMunique.hxx"
 #include "State.hxx"
 #include "Node2D.hxx"
 

@@ -1,7 +1,6 @@
 #pragma once
 
 #include <vector>
-#include <memory>
 
 #include "Node2D.hxx"
 
@@ -28,25 +27,23 @@ namespace HygroThermFEM
         QuadrilateralLinearGlobal2D(const QuadrilateralLinearGlobal2D & t_Element);
 
         //! x coordinate of Gauss integration point
-        double xg(const size_t IntPointIndex   //! Gauss integration point index
+        double xg(size_t IntPointIndex   //! Gauss integration point index
                   ) const;
 
         //! y coordinate of Gauss integration point
-        double yg(const size_t IntPointIndex   //! Gauss integration point index
+        double yg(size_t IntPointIndex   //! Gauss integration point index
                   ) const;
 
         //! Shape function derivative over x in global coordinate system
-		const std::vector< double > & DPsiDx(
-			const size_t IntPointIndex   //! Gauss integration point index
-		) const;
+        const std::vector<double> & DPsiDx(size_t IntPointIndex   //! Gauss integration point index
+                                           ) const;
 
         //! Shape function derivative over y in global coordinate system
-		const std::vector< double > & DPsiDy(
-			const size_t IntPointIndex   //! Gauss integration point index
-		) const;
+        const std::vector<double> & DPsiDy(size_t IntPointIndex   //! Gauss integration point index
+                                           ) const;
 
         //! Element determinant in Gauss point of integration
-        double det(const size_t IntPointIndex   //! Gauss integration point index
+        double det(size_t IntPointIndex   //! Gauss integration point index
                    ) const;
 
         std::vector<std::size_t> nodeIndexes() const;
@@ -65,12 +62,12 @@ namespace HygroThermFEM
         {
         public:
             // Nodes represent global coordinates and Index is the index of integration point
-            GaussPoint2DGlobal(const Node2D & t_Node1, //!< Node 1 of the element
-                               const Node2D & t_Node2, //!< Node 2 of the element
-                               const Node2D & t_Node3, //!< Node 3 of the element
-                               const Node2D & t_Node4, //!< Node 4 of the element
-                               const size_t Index //!< Integration point index
-                               );
+            GaussPoint2DGlobal(const Node2D & t_Node1,   //!< Node 1 of the element
+                               const Node2D & t_Node2,   //!< Node 2 of the element
+                               const Node2D & t_Node3,   //!< Node 3 of the element
+                               const Node2D & t_Node4,   //!< Node 4 of the element
+                               size_t Index              //!< Integration point index
+            );
 
             //! x coordinate of integration point
             double xg() const;

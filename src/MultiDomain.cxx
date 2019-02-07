@@ -147,8 +147,7 @@ namespace HygroThermFEM
         return std::abs(norm1 - norm2) / norm1;
     }
 
-    std::vector<double> MultiDomain::property(Variable property) const
-    {
+    std::vector<double> MultiDomain::property(Variable property) {
         return NodePool::Instance().properties(property);
     }
 
