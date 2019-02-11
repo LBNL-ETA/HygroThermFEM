@@ -207,15 +207,13 @@ namespace HygroThermFEM
     {
         /// Suction curve takes care that first segment of curve always return value of first
         /// element.
-        //it == m_Curve.end() ? m_Curve.back() : *it;
-        const auto second = std::next(m_Curve.begin());
-        const auto pt2 = it == second ? m_Curve.front() : *it;
+        const auto pt2 = it == m_Curve.end() ? *std::prev( m_Curve.end() ) : *it;
         if(it != m_Curve.begin())
         {
             --it;
         }
 
-        const auto pt1 = it == m_Curve.begin() ? m_Curve.front() : *it;
+        const auto pt1 = *it;
 
         return std::make_pair(pt1, pt2);
     }
@@ -272,8 +270,7 @@ namespace HygroThermFEM
             // Only part of ice has melted and therefore linear interpolation is needed.
             if((t_position < FreezingPoint) && (t_position >= IcePoint))
             {
-                result = EnthalpyOfFusion * (t_position - IcePoint)
-                         / (FreezingPoint - IcePoint);
+                result = EnthalpyOfFusion * (t_position - IcePoint) / (FreezingPoint - IcePoint);
             }
         }
 
@@ -288,8 +285,8 @@ namespace HygroThermFEM
             // Only part of water froze and therefore linear interpolation is needed.
             if((t_position < FreezingPoint) && (t_position >= IcePoint))
             {
-                result = EnthalpyOfFusion * (t_position - FreezingPoint)
-                         / (FreezingPoint - IcePoint);
+                result =
+                  EnthalpyOfFusion * (t_position - FreezingPoint) / (FreezingPoint - IcePoint);
             }
         }
 

@@ -42,7 +42,7 @@ TEST_F(CurveTest, TestTabularLinear)
     EXPECT_NEAR(10, min, 1e-6);
 }
 
-TEST_F(CurveTest, TestTabularLogarithmic)
+TEST_F(CurveTest, TestTabularLogarithmic1)
 {
     SCOPED_TRACE("Begin Test: Test tabular logarithmic curve.");
     const TabularFunction curve({{1, 10}, {2, 20}, {3, 30}},
@@ -50,39 +50,57 @@ TEST_F(CurveTest, TestTabularLogarithmic)
                                 FenestrationCommon::Interpolation::Logarithmic);
 
     State interpolationPoint(2.5, 0, 101325, 0);
-	Node2D node(0, 0, 0, interpolationPoint);
+    Node2D node(0, 0, 0, interpolationPoint);
 
     auto result = curve.value(node);
 
     EXPECT_NEAR(24.4948974, result, 1e-6);
 }
 
+TEST_F(CurveTest, TestTabularLogarithmic2)
+{
+    SCOPED_TRACE("Begin Test: Test tabular logarithmic curve.");
+    const TabularFunction curve({{31, 2.5e-10}, {52, 3.9e-9}},
+                                Variable::temperature,
+                                FenestrationCommon::Interpolation::Logarithmic);
+
+    State interpolationPoint(40, 0, 101325, 0);
+    Node2D node(0, 0, 0, interpolationPoint);
+
+    auto result = curve.value(node);
+
+    EXPECT_NEAR(8.114824e-10, result, 1e-16);
+}
+
 TEST_F(CurveTest, TestSuctionCurve)
 {
     SCOPED_TRACE("Begin Test: Test suction function.");
-    const SuctionCurve curve( { { 0.1, 10 },
-								{ 0.2, 20 },
-								{ 0.3, 30 } } );
+    const SuctionCurve curve({{0.1, 10}, {0.2, 20}, {0.3, 30}});
 
-    /// First segment should have constant values
+    // First segment should have constant values
     State interpolationPoint(0, 0.15, 101325, 0);
-	Node2D node(0, 0, 0, interpolationPoint);
+    Node2D node(0, 0, 0, interpolationPoint);
 
     auto result = curve.value(node);
-    EXPECT_NEAR(10, result, 1e-6);
+    EXPECT_NEAR(14.142136, result, 1e-6);
 
-    /// Test outside of curve
+    // Point is before table
     State interpolationPoint1(0, 0.05, 101325, 0);
-	Node2D node1(0, 0, 0, interpolationPoint1);
+    Node2D node1(0, 0, 0, interpolationPoint1);
 
     result = curve.value(node1);
     EXPECT_NEAR(10, result, 1e-6);
 
-    /// Other segments should have logarithmic interpolation
     State interpolationPoint2(0, 0.25, 101325, 0);
-	Node2D node2(0, 0, 0, interpolationPoint2);
+    Node2D node2(0, 0, 0, interpolationPoint2);
     result = curve.value(node2);
     EXPECT_NEAR(24.4948974, result, 1e-6);
+
+    // Point is after table
+    State interpolationPoint3(0, 0.35, 101325, 0);
+    Node2D node3(0, 0, 0, interpolationPoint3);
+    result = curve.value(node3);
+    EXPECT_NEAR(30, result, 1e-6);
 }
 
 TEST_F(CurveTest, TestConstantCurve)
@@ -91,7 +109,7 @@ TEST_F(CurveTest, TestConstantCurve)
     const auto cons = Constant(5.0);
 
     State interpolationPoint(2.5, 0, 101325, 0);
-	Node2D node(0, 0, 0, interpolationPoint);
+    Node2D node(0, 0, 0, interpolationPoint);
 
     auto result = cons.value(node);
     EXPECT_NEAR(5, result, 1e-6);
@@ -103,7 +121,7 @@ TEST_F(CurveTest, TestTabularOutOfRangeBack)
     const TabularFunction curve({{1, 10}, {2, 20}, {3, 30}}, Variable::temperature);
 
     State interpolationPoint(3.5, 0, 101325, 0);
-	Node2D node(0, 0, 0, interpolationPoint);
+    Node2D node(0, 0, 0, interpolationPoint);
 
     auto result = curve.value(node);
     EXPECT_NEAR(30, result, 1e-6);
@@ -115,7 +133,7 @@ TEST_F(CurveTest, TestTabularOutOfRangeFront)
     const TabularFunction curve({{1, 10}, {2, 20}, {3, 30}}, Variable::temperature);
 
     State interpolationPoint(0.5, 0, 101325, 0);
-	Node2D node(0, 0, 0, interpolationPoint);
+    Node2D node(0, 0, 0, interpolationPoint);
 
     auto result = curve.value(node);
     EXPECT_NEAR(10, result, 1e-6);
@@ -129,7 +147,7 @@ TEST_F(CurveTest, TestComposition1)
     auto tabular1 = tabular * 5.0;
 
     State interpolationPoint(2.5, 0, 101325, 0);
-	Node2D node(0, 0, 0, interpolationPoint);
+    Node2D node(0, 0, 0, interpolationPoint);
 
     auto result = tabular1.value(node);
 
@@ -153,14 +171,14 @@ TEST_F(CurveTest, TestPorosityCalculation)
                                   {1.000, 40.0}},
                                  Variable::humidity);
 
-	Node2D node(0, 0, 0, State(0, 1, 0, 0));
+    Node2D node(0, 0, 0, State(0, 1, 0, 0));
 
     auto maxWaterContent = waterContent.value(node);
     const auto materialPorosity = 0.05;
 
     auto waterFill = materialPorosity / maxWaterContent * waterContent;
 
-	Node2D outdoor(0,0,0, State(10, 0.98, 101325, 0));
+    Node2D outdoor(0, 0, 0, State(10, 0.98, 101325, 0));
 
     auto result = waterFill.value(outdoor);
     EXPECT_NEAR(0.0136875, result, 1e-6);
@@ -187,7 +205,7 @@ TEST_F(CurveTest, TestSaturationFunction)
                                   {1.000, 180}},
                                  Variable::humidity);
 
-    auto maxWaterContent = waterContent.value(Node2D(0,0,0,State(0, 1, 0, 0)));
+    auto maxWaterContent = waterContent.value(Node2D(0, 0, 0, State(0, 1, 0, 0)));
     const auto materialPorosity = 0.22;
 
     auto waterFill = materialPorosity / maxWaterContent * waterContent;
@@ -197,7 +215,7 @@ TEST_F(CurveTest, TestSaturationFunction)
     auto sat1 = SaturationFunction() * airFill;
 
     State interpolationPoint(10.0, 0.5, 101325, 0);
-    Node2D node(0,0,0,interpolationPoint);
+    Node2D node(0, 0, 0, interpolationPoint);
 
     auto result = sat1.value(node);
     EXPECT_NEAR(0.002000939, result, 1e-6);
@@ -223,15 +241,15 @@ TEST_F(CurveTest, TestTabularDerivative)
     auto result = waterContent.value(node1);
     EXPECT_NEAR(10.6, result, 1e-6);
 
-	Node2D node2(0, 0, 0, State(273.15, 1.0, 101325, 0));
+    Node2D node2(0, 0, 0, State(273.15, 1.0, 101325, 0));
     result = waterContent.value(node2);
     EXPECT_NEAR(60000, result, 1e-6);
 
-	Node2D node3(0, 0, 0, State(273.15, -1.0, 101325, 0));
+    Node2D node3(0, 0, 0, State(273.15, -1.0, 101325, 0));
     result = waterContent.value(node3);
     EXPECT_NEAR(10.6, result, 1e-6);
 
-	Node2D node4(0, 0, 0, State(273.15, 2.0, 101325, 0));
+    Node2D node4(0, 0, 0, State(273.15, 2.0, 101325, 0));
     result = waterContent.value(node4);
     EXPECT_NEAR(60000, result, 1e-6);
 }
@@ -243,7 +261,7 @@ TEST_F(CurveTest, TestTotalMelting)
     const auto newTemperature = 1.0;
 
     // Set nodes current state
-    Node2D node(0,0,0, State(currentTemperature, currentHumidity));
+    Node2D node(0, 0, 0, State(currentTemperature, currentHumidity));
 
     // This will trigger melting in this point
     node.setStateProperty(HygroThermFEM::BaseVariable::temperature, newTemperature);
@@ -258,11 +276,11 @@ TEST_F(CurveTest, TestPartialMelting)
 {
     const auto currentTemperature = -1.0;
     const auto currentHumidity = 1.0;
-    const auto icePointRatio = 0.3; // This is actually 30% away from freezing point
+    const auto icePointRatio = 0.3;   // This is actually 30% away from freezing point
     const auto newTemperature = icePointRatio * Constants::IcePoint;
 
     // Set nodes current state
-    Node2D node(0,0,0, State(currentTemperature, currentHumidity));
+    Node2D node(0, 0, 0, State(currentTemperature, currentHumidity));
 
     // This will trigger melting in this point
     node.setStateProperty(HygroThermFEM::BaseVariable::temperature, newTemperature);
@@ -270,7 +288,7 @@ TEST_F(CurveTest, TestPartialMelting)
     PhaseChange phaseChange;
     const auto result = phaseChange.value(node);
 
-    const auto percentOfIceMelted = (1-icePointRatio);
+    const auto percentOfIceMelted = (1 - icePointRatio);
     EXPECT_NEAR(percentOfIceMelted * Constants::EnthalpyOfFusion, result, 1e-6);
 }
 
@@ -281,7 +299,7 @@ TEST_F(CurveTest, TestTotalFreezing)
     const auto newTemperature = -1.0;
 
     // Set nodes current state
-    Node2D node(0,0,0, State(currentTemperature, currentHumidity));
+    Node2D node(0, 0, 0, State(currentTemperature, currentHumidity));
 
     // This will trigger melting in this point
     node.setStateProperty(HygroThermFEM::BaseVariable::temperature, newTemperature);
@@ -296,11 +314,11 @@ TEST_F(CurveTest, TestPartialFreezing)
 {
     const auto currentTemperature = 1.0;
     const auto currentHumidity = 1.0;
-    const auto freezePointRatio = 0.3; // This is actually 30% away from freezing point
+    const auto freezePointRatio = 0.3;   // This is actually 30% away from freezing point
     const auto newTemperature = freezePointRatio * Constants::IcePoint;
 
     // Set nodes current state
-    Node2D node(0,0,0, State(currentTemperature, currentHumidity));
+    Node2D node(0, 0, 0, State(currentTemperature, currentHumidity));
 
     // This will trigger melting in this point
     node.setStateProperty(HygroThermFEM::BaseVariable::temperature, newTemperature);
