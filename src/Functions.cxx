@@ -190,6 +190,77 @@ namespace HygroThermFEM
     }
 
     //////////////////////////////////////////////////////////////////
+    ///  TabularDerivativeSmooth
+    //////////////////////////////////////////////////////////////////
+
+    TabularDerivativeSmooth::TabularDerivativeSmooth(
+      const std::vector<std::pair<double, double>> & values, Variable property) :
+        IFunction(property)
+    {
+        for(size_t i = 1u; i < values.size(); ++i)
+        {
+            const auto x1 = values[i - 1].first;
+            const auto x2 = values[i].first;
+            const auto y1 = values[i - 1].second;
+            const auto y2 = values[i].second;
+            const auto newX = (x1 + x2) / 2.0;
+            const auto newY = (y2 - y1) / (x2 - x1);
+            m_Curve.emplace_back(newX, newY);
+        }
+    }
+
+    TabularDerivativeSmooth::TabularDerivativeSmooth(
+      const std::initializer_list<std::pair<double, double>> & list, Variable property) :
+        IFunction(property)
+    {
+    	std::vector<std::pair<double,double>> helperVector{list};
+        for(size_t i = 1u; i < helperVector.size(); ++i)
+        {
+            const auto x1 = helperVector[i - 1].first;
+            const auto x2 = helperVector[i].first;
+            const auto y1 = helperVector[i - 1].second;
+            const auto y2 = helperVector[i].second;
+            const auto newX = (x1 + x2) / 2.0;
+            const auto newY = (y2 - y1) / (x2 - x1);
+            m_Curve.emplace_back(newX, newY);
+        }
+    }
+
+    double TabularDerivativeSmooth::evaluateFunction(const double t_position, const double) const
+    {
+        auto it = std::find_if(m_Curve.begin(), m_Curve.end(), [&](std::pair<double, double> val) {
+            return val.first > t_position;
+        });
+        const auto points = getInterpolationPoints(it);
+
+        const auto dy = points.second.second - points.first.second;
+        const auto dx = points.second.first - points.first.first;
+
+        auto result = points.first.second;
+        if(dx != 0)
+        {
+            result += dy / dx * (t_position - points.first.first);
+        }
+
+        return result;
+    }
+
+    std::pair<std::pair<double, double>, std::pair<double, double>>
+      TabularDerivativeSmooth::getInterpolationPoints(
+        std::vector<std::pair<double, double>>::const_iterator & it) const
+    {
+        const auto pt2 = it == m_Curve.end() ? *std::prev(m_Curve.end()) : *it;
+        if(it != m_Curve.begin())
+        {
+            --it;
+        }
+
+        const auto pt1 = *it;
+
+        return std::make_pair(pt1, pt2);
+    }
+
+    //////////////////////////////////////////////////////////////////
     ///  SuctionFunction
     //////////////////////////////////////////////////////////////////
 
@@ -207,7 +278,7 @@ namespace HygroThermFEM
     {
         /// Suction curve takes care that first segment of curve always return value of first
         /// element.
-        const auto pt2 = it == m_Curve.end() ? *std::prev( m_Curve.end() ) : *it;
+        const auto pt2 = it == m_Curve.end() ? *std::prev(m_Curve.end()) : *it;
         if(it != m_Curve.begin())
         {
             --it;

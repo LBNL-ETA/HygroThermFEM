@@ -464,7 +464,7 @@ namespace HygroThermFEM
         //////////////////////////////////////////////////////////////////////
         ///  Conduction from liquid
         //////////////////////////////////////////////////////////////////////
-        const TabularDerivative sorptionDerivative(m_Material.sorptionCurve(), Variable::humidity);
+        const TabularDerivativeSmooth sorptionDerivative(m_Material.sorptionCurve(), Variable::humidity);
         const SuctionCurve Dl(m_Material.liquidTransportationCurve());
         auto cd = Dl * sorptionDerivative * Constants::Cp_Water;
         DpDu(cd, humidity);
@@ -518,7 +518,7 @@ namespace HygroThermFEM
         //////////////////////////////////////////////////////////////////////////////
         /// Creating capacitance function
         //////////////////////////////////////////////////////////////////////////////
-        auto sorptionDerivative = TabularDerivative(m_Material.sorptionCurve(), Variable::humidity);
+        auto sorptionDerivative = TabularDerivativeSmooth(m_Material.sorptionCurve(), Variable::humidity);
 
         Cap(sorptionDerivative);
 

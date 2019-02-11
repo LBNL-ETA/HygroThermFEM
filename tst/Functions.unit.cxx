@@ -8,6 +8,7 @@ using HygroThermFEM::State;
 using HygroThermFEM::Node2D;
 using HygroThermFEM::TabularFunction;
 using HygroThermFEM::TabularDerivative;
+using HygroThermFEM::TabularDerivativeSmooth;
 using HygroThermFEM::SuctionCurve;
 using HygroThermFEM::SaturationFunction;
 using HygroThermFEM::Constant;
@@ -252,6 +253,47 @@ TEST_F(CurveTest, TestTabularDerivative)
     Node2D node4(0, 0, 0, State(273.15, 2.0, 101325, 0));
     result = waterContent.value(node4);
     EXPECT_NEAR(60000, result, 1e-6);
+}
+
+TEST_F(CurveTest, TestTabularDerivativeSmooth)
+{
+    SCOPED_TRACE("Begin Test: Test tabular derivative with smoothing.");
+
+    TabularDerivativeSmooth waterContent({{0.000, 0.0},
+                                          {0.500, 5.3},
+                                          {0.650, 8.4},
+                                          {0.800, 12},
+                                          {0.930, 17},
+                                          {0.950, 25},
+                                          {0.990, 63},
+                                          {0.995, 83},
+                                          {0.999, 120},
+                                          {1.000, 180}},
+                                         Variable::humidity);
+
+    Node2D node1(0, 0, 0, State(273.15, 0, 101325, 0));
+    auto result = waterContent.value(node1);
+    EXPECT_NEAR(10.6, result, 1e-6);
+
+    Node2D node2(0, 0, 0, State(273.15, 1.0, 101325, 0));
+    result = waterContent.value(node2);
+    EXPECT_NEAR(60000, result, 1e-6);
+
+    Node2D node3(0, 0, 0, State(273.15, -1.0, 101325, 0));
+    result = waterContent.value(node3);
+    EXPECT_NEAR(10.6, result, 1e-6);
+
+    Node2D node4(0, 0, 0, State(273.15, 2.0, 101325, 0));
+    result = waterContent.value(node4);
+    EXPECT_NEAR(60000, result, 1e-6);
+
+    Node2D node5(0, 0, 0, State(273.15, 0.575, 101325, 0));
+    result = waterContent.value(node5);
+    EXPECT_NEAR(20.6666667, result, 1e-6);
+
+    Node2D node6(0, 0, 0, State(273.15, 0.6, 101325, 0));
+    result = waterContent.value(node6);
+    EXPECT_NEAR(21.222222, result, 1e-6);
 }
 
 TEST_F(CurveTest, TestTotalMelting)

@@ -393,6 +393,41 @@ namespace HygroThermFEM
     };
 
     //////////////////////////////////////////////////////////////////
+    ///  TabularDerivativeSmooth
+    //////////////////////////////////////////////////////////////////
+
+    //! \brief Estimates tabular derivative with values being smoothed between different values.
+    //!
+    //! When providing table with x-y values, calculating simple derivative will cause step function between
+    //! certain values. This class will provide smooth transition between different values.
+    class TabularDerivativeSmooth : public IFunction {
+    public:
+        //! Construction of tabular derivative from standard vector values.
+        TabularDerivativeSmooth(
+            const std::vector<std::pair<double, double>> &
+            values,           //!< Pair of vector values used to construct tabular derivative.
+            Variable property   //!< Variable that represent value type in first column.
+        );
+
+        //! Construction of tabular derivative from standard vector values.
+        TabularDerivativeSmooth(
+            const std::initializer_list<std::pair<double, double>> &
+            list,             //!< Initializer list used to construct tabular derivative.
+            Variable property   //!< Variable that represent value type in first column.
+        );
+
+    protected:
+        std::vector<std::pair<double, double>> m_Curve;
+
+        //! Overriden evaluation function.
+        double evaluateFunction(double t_position, double t_previousTimestep) const override;
+
+        //! Helper function that returns two closest points for interpolation.
+        virtual std::pair<std::pair<double, double>, std::pair<double, double>>
+            getInterpolationPoints(std::vector<std::pair<double, double>>::const_iterator & it) const;
+    };
+
+    //////////////////////////////////////////////////////////////////
     ///  SuctionFunction
     //////////////////////////////////////////////////////////////////
 
