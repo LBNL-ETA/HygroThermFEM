@@ -4,8 +4,8 @@
 
 namespace HygroThermFEM
 {
-    const double ConvergenceError = 1e-8;
-    const size_t MaxIterations = 25;
+    const double ConvergenceError = 1e-5;
+    const size_t MaxIterations = 1000;
 
 }   // namespace HygroThermFEM
 
@@ -23,7 +23,7 @@ namespace Constants
 
     //// TODO: Keep these constant for now. Gases can calculate these properties.
     static const double Density_Air = 1.2922;
-    static const double Cp_Air = 1;
+    static const double Cp_Air = 1000;
     static const double K_Air = 0.025;
 
     //// TODO: Check if water and ice properties need to be recalculated

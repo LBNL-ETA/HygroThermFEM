@@ -7,7 +7,7 @@ using HygroThermFEM::NodePool;
 using HygroThermFEM::MaterialPool;
 using HygroThermFEM::State;
 
-class MoistureBC_2D_1 : public testing::Test
+class Moisture_2D_TwoElements_1 : public testing::Test
 {
 protected:
     void SetUp() override
@@ -20,34 +20,29 @@ protected:
     }
 };
 
-TEST_F(MoistureBC_2D_1, TestExample_1)
+TEST_F(Moisture_2D_TwoElements_1, TestExample_1)
 {
     SCOPED_TRACE("Begin Test: Simple two elements example with moisture transfer.");
 
-    std::vector<double> gridXCoordinates{
-      0, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.10, 0.11, 0.12, 0.13, 0.15};
-
     const auto initialTemperature = 20;
-    const auto initialHumidity = 0.7;
+    const auto initialHumidity = 0.9999;
     const auto initialPressure = 101325.0;
 
     State state(initialTemperature, initialHumidity, initialPressure, 0);
-    size_t nodeIndex = 0;
-    for(auto val : gridXCoordinates)
-    {
-        ++nodeIndex;
-        NodePool::Instance().createNode(nodeIndex, val, 0.00, state);
-        ++nodeIndex;
-        NodePool::Instance().createNode(nodeIndex, val, 0.05, state);
-    }
+    NodePool::Instance().createNode(1, 0.15, 0.05, state);
+    NodePool::Instance().createNode(2, 0.15, 0, state);
+    NodePool::Instance().createNode(3, 0.05, 0.05, state);
+    NodePool::Instance().createNode(4, 0.05, 0, state);
+    NodePool::Instance().createNode(5, 0, 0.05, state);
+    NodePool::Instance().createNode(6, 0, 0, state);
 
     auto & material = MaterialPool::Instance().createMaterial(
       "Cottaer Sandstone",
-      2050,                       // density
-      0.22,                       // porosity
-      850,                        // specific heat capacity (dry)
-      15,                         // diffusion resistance factor (this is mi value)
-      {{0.0, 1.8}, {180, 1.8}},   // thermal conductivity as function of water content
+      2050,                       /// density
+      0.22,                       /// porosity
+      850,                        /// specific heat capacity (dry)
+      15,                         /// diffusion resistance factor (this is mi value)
+      {{0.0, 1.8}, {5.3, 1.8}},   /// thermal conductivity as function of water content
       {{0, 0},
        {27, 1e-8},
        {45, 4e-8},
@@ -57,7 +52,7 @@ TEST_F(MoistureBC_2D_1, TestExample_1)
        {162, 3e-7},
        {171, 5e-7},
        {180, 2e-6}},
-      {{0, 0},   // sorption curve
+      {{0, 0},   /// sorption curve
        {0.5, 5.3},
        {0.65, 8.4},
        {0.8, 12},
@@ -70,31 +65,24 @@ TEST_F(MoistureBC_2D_1, TestExample_1)
 
     HygroThermFEM::MoistureDomain domain;
 
-    // Create elements
-    for(size_t i = 1; i <= (HygroThermFEM::NodePool::Instance().maxIndex() - 2) / 2; ++i)
-    {
-        const auto node1 = 2u * i + 1u;
-        const auto node2 = 2u * i + 2u;
-        const auto node3 = 2u * i;
-        const auto node4 = 2u * i - 1u;
-        domain.createElement(node1, node2, node3, node4, material.name());
-    }
+    /// Create elements
+    domain.createElement(3, 4, 2, 1, material.name());
+    domain.createElement(6, 4, 3, 5, material.name());
 
     // Create Boundary Conditions
     const auto airTemperature = 20;
     const auto airHumidity = 0.0;
     const auto hc = 10.0;
 
-    domain.createMoistureBCFixedHc(1, 2, airTemperature, hc, airHumidity);
-    domain.createMoistureBCFixedHc(27, 28, airTemperature, hc, airHumidity);
+    domain.createMoistureBCFixedHc(5, 6, airTemperature, hc, airHumidity);
 
-    const auto dTime = 360;
-    const auto nSteps = 200;
+    const auto dTime = 3600;
+    const auto nSteps = 48;
 
     auto humidities = NodePool::Instance().properties(HygroThermFEM::Variable::humidity);
+    std::vector<double> times;
     std::vector<std::vector<double>> waterContentSolution;
     std::vector<std::vector<HygroThermFEM::NodeFlux>> fluxSolution;
-    std::vector<double> times;
 
     for(unsigned i = 0; i < nSteps; ++i)
     {
@@ -123,10 +111,10 @@ TEST_F(MoistureBC_2D_1, TestExample_1)
 
     // EXPECT_EQ(humiditySolution.size(), correctHumiditySolution.size());
 
-    std::cout << std::endl << "Water Content" << std::endl << std::endl;
+    std::cout << "Water Content" << std::endl << std::endl;
     for(auto i = 0u; i < waterContentSolution.size(); ++i)
     {
-        std::cout << times[i] << ",";
+        std::cout << times[i] << ", ";
         for(auto j = 0u; j < waterContentSolution[i].size() / 2.0; ++j)
         {
             std::cout << waterContentSolution[i][2 * j] << ", ";

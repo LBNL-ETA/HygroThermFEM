@@ -6,16 +6,19 @@
 
 namespace HygroThermFEM
 {
-    double boundarySaturationAtTemperature(const double t_temperature, const double exponent)
+    double vaporPressureAtTemperature(const double t_temperature)
     {
         const auto temperature = t_temperature + 273.15;
         return std::exp(77.345 + 0.0057 * temperature - 7235.0 / temperature)
-               / std::pow(temperature, exponent);
+               / std::pow(temperature, 8.2);
     }
 
-    double saturationAtTemperature(const double t_temperature, const double exponent)
+    double saturationConcentrationAtTemperature(const double t_temperature)
     {
-        return boundarySaturationAtTemperature(t_temperature, exponent) / 461.4;
+        // RT/M for water vapor
+        const auto gasConstantForWaterVapor = 461.4;
+        return vaporPressureAtTemperature(t_temperature)
+               / ((t_temperature + 273.15) * gasConstantForWaterVapor);
     }
 
     //////////////////////////////////////////////////////////////////
@@ -105,12 +108,21 @@ namespace HygroThermFEM
       TabularFunction::getInterpolationPoints(
         std::vector<std::pair<double, double>>::const_iterator & it) const
     {
-        auto pt2 = it == m_Curve.end() ? m_Curve.back() : *it;
+        if(it == m_Curve.end())
+        {
+            --it;
+        }
+        const auto pt2 = *it;
         if(it != m_Curve.begin())
         {
             --it;
         }
-        auto pt1 = it == m_Curve.begin() ? m_Curve.front() : *it;
+        else
+        {
+            ++it;
+        }
+
+        const auto pt1 = *it;
 
         return std::make_pair(pt1, pt2);
     }
@@ -213,7 +225,7 @@ namespace HygroThermFEM
       const std::initializer_list<std::pair<double, double>> & list, Variable property) :
         IFunction(property)
     {
-    	std::vector<std::pair<double,double>> helperVector{list};
+        std::vector<std::pair<double, double>> helperVector{list};
         for(size_t i = 1u; i < helperVector.size(); ++i)
         {
             const auto x1 = helperVector[i - 1].first;
@@ -264,20 +276,20 @@ namespace HygroThermFEM
     ///  SuctionFunction
     //////////////////////////////////////////////////////////////////
 
-    SuctionCurve::SuctionCurve(const std::vector<std::pair<double, double>> & values) :
-        TabularFunction(values, Variable::humidity, FenestrationCommon::Interpolation::Logarithmic)
+    LiquidTransportationCurve::LiquidTransportationCurve(
+      const std::vector<std::pair<double, double>> & values) :
+        TabularFunction(values, Variable::water, FenestrationCommon::Interpolation::Logarithmic)
     {}
 
-    SuctionCurve::SuctionCurve(const std::initializer_list<std::pair<double, double>> & list) :
-        TabularFunction(list, Variable::humidity, FenestrationCommon::Interpolation::Logarithmic)
+    LiquidTransportationCurve::LiquidTransportationCurve(
+      const std::initializer_list<std::pair<double, double>> & list) :
+        TabularFunction(list, Variable::water, FenestrationCommon::Interpolation::Logarithmic)
     {}
 
     std::pair<std::pair<double, double>, std::pair<double, double>>
-      SuctionCurve::getInterpolationPoints(
+      LiquidTransportationCurve::getInterpolationPoints(
         std::vector<std::pair<double, double>>::const_iterator & it) const
     {
-        /// Suction curve takes care that first segment of curve always return value of first
-        /// element.
         const auto pt2 = it == m_Curve.end() ? *std::prev(m_Curve.end()) : *it;
         if(it != m_Curve.begin())
         {
@@ -298,7 +310,7 @@ namespace HygroThermFEM
 
     double SaturationFunction::evaluateFunction(const double t_position, const double) const
     {
-        return saturationAtTemperature(t_position);
+        return saturationConcentrationAtTemperature(t_position);
     }
 
     //////////////////////////////////////////////////////////////////

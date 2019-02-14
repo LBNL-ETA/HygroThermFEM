@@ -24,10 +24,10 @@ namespace HygroThermFEM
     class INodes;
 
     //! Saturation function that will be used at boundary conditions
-    double boundarySaturationAtTemperature(double temperature, double exponent = 8.2);
+    double vaporPressureAtTemperature(const double temperature);
 
     //! Saturation function
-    double saturationAtTemperature(double temperature, double exponent = 9.2);
+    double saturationConcentrationAtTemperature(const double temperature);
 
     //! \brief Definition of interface used to perform various calculation(s) over state given in
     //! \brief node(s).
@@ -136,7 +136,7 @@ namespace HygroThermFEM
         double value(const Node2D & node) const override
         {
             return m_Operator.at(m_Operation)(m_Function1.value(node), m_Function2.value(node));
-        };
+        }
 
     private:
         /// Functions can be shared between different operations and that is why it is
@@ -428,23 +428,23 @@ namespace HygroThermFEM
     };
 
     //////////////////////////////////////////////////////////////////
-    ///  SuctionFunction
+    ///  LiquidTransportationCurve
     //////////////////////////////////////////////////////////////////
 
     //! \brief Sorption curve is specialized type for tabular function.
     //!
     //! Sorption curve is table that represents material water content as function of
     //! relative humidity. For in between values, logarithmic interpolation is used.
-    class SuctionCurve : public TabularFunction
+    class LiquidTransportationCurve : public TabularFunction
     {
     public:
         //! Construction of suction curve from standard vector values.
-        SuctionCurve(const std::vector<std::pair<double, double>> &
+        LiquidTransportationCurve(const std::vector<std::pair<double, double>> &
                        values   //!< Sorption curve values in standard vector form.
         );
 
         //! Construction of suction curve from initializer list.
-        SuctionCurve(const std::initializer_list<std::pair<double, double>> &
+        LiquidTransportationCurve(const std::initializer_list<std::pair<double, double>> &
                        list   //!< Soprtion curve values in initializer list form.
         );
 

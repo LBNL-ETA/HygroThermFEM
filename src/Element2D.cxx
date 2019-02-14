@@ -440,7 +440,8 @@ namespace HygroThermFEM
         /// liquid
         auto humidity = StateValue(Variable::humidity);
         const auto liquidConductivity =
-          SuctionCurve(m_Material.liquidTransportationCurve()) * Constants::Cp_Water * humidity;
+          LiquidTransportationCurve(m_Material.liquidTransportationCurve()) * Constants::Cp_Water
+          * humidity;
 
         // iValue conductance = materialConductivity + vaporConductivity + liquidConductivity;
         auto conductance = materialConductivity + vaporConductivity + liquidConductivity;
@@ -464,8 +465,9 @@ namespace HygroThermFEM
         //////////////////////////////////////////////////////////////////////
         ///  Conduction from liquid
         //////////////////////////////////////////////////////////////////////
-        const TabularDerivativeSmooth sorptionDerivative(m_Material.sorptionCurve(), Variable::humidity);
-        const SuctionCurve Dl(m_Material.liquidTransportationCurve());
+        const TabularDerivativeSmooth sorptionDerivative(m_Material.sorptionCurve(),
+                                                         Variable::humidity);
+        const LiquidTransportationCurve Dl(m_Material.liquidTransportationCurve());
         auto cd = Dl * sorptionDerivative * Constants::Cp_Water;
         DpDu(cd, humidity);
 
@@ -513,21 +515,28 @@ namespace HygroThermFEM
         //////////////////////////////////////////////////////////////////////////////
         /// Water liquid transportation
         //////////////////////////////////////////////////////////////////////////////
-        DDu(SuctionCurve(m_Material.liquidTransportationCurve()));
+        auto sorptionDerivative1 =
+          TabularDerivativeSmooth(m_Material.sorptionCurve(), Variable::humidity);
+        auto WaterLiquidTransport =
+          LiquidTransportationCurve(m_Material.liquidTransportationCurve()) * sorptionDerivative1;
+        DDu(WaterLiquidTransport);
+
+        DpDu(Constant(1), WaterLiquidTransport);
+        
 
         //////////////////////////////////////////////////////////////////////////////
         /// Creating capacitance function
         //////////////////////////////////////////////////////////////////////////////
-        auto sorptionDerivative = TabularDerivativeSmooth(m_Material.sorptionCurve(), Variable::humidity);
-
-        Cap(sorptionDerivative);
+        auto sorptionDerivative2 =
+          TabularDerivativeSmooth(m_Material.sorptionCurve(), Variable::humidity);
+        Cap(sorptionDerivative2);
 
         //////////////////////////////////////////////////////////////////////
         /// Functions for flux calculations
         //////////////////////////////////////////////////////////////////////
         Cond(conductance);
         // Cond(delta);
-        Cond(SuctionCurve(m_Material.liquidTransportationCurve()));
+        Cond(LiquidTransportationCurve(m_Material.liquidTransportationCurve()));
     }
 
 }   // namespace HygroThermFEM

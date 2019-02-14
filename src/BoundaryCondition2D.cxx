@@ -214,22 +214,22 @@ namespace HygroThermFEM
 
     std::vector<double> IMoistureBC::R_Vector() const
     {
-        const auto satOutside = boundarySaturationAtTemperature(m_AirTemperature);
+        const auto satOutside = saturationConcentrationAtTemperature(m_AirTemperature);
         const auto gconv = betaConv() * satOutside * m_AirHumidity;
         return m_PsiVector * gconv;
     }
 
     FenestrationCommon::SquareMatrix IMoistureBC::H_Matrix() const
     {
-        std::vector<double> saturation(numOfBCNodes, 0);
+        std::vector<double> concentration(numOfBCNodes, 0);
         for(std::size_t j = 0; j < numOfBCNodes; ++j)
         {
             double T = m_Nodes[j].property(Variable::temperature);
-            saturation[j] = boundarySaturationAtTemperature(T);
+            concentration[j] = saturationConcentrationAtTemperature(T);
         }
-        const auto coeffs = saturation * betaConv();
+        const auto vaporFlux = concentration * betaConv();
 
-        return m_PsiPsiMatrix.mmultRows(coeffs);
+        return m_PsiPsiMatrix.mmultRows(vaporFlux);
     }
 
     std::vector<double> IMoistureBC::betaConv() const
@@ -241,7 +241,7 @@ namespace HygroThermFEM
             const double humidity = m_Nodes[j].property(Variable::humidity);
             if(humidity <= 1)
             {
-                betaCon[j] = 7e-9;
+                betaCon[j] = 1/(Constants::Cp_Air * Constants::Density_Air);
             }
             else
             {

@@ -9,7 +9,7 @@ using HygroThermFEM::Node2D;
 using HygroThermFEM::TabularFunction;
 using HygroThermFEM::TabularDerivative;
 using HygroThermFEM::TabularDerivativeSmooth;
-using HygroThermFEM::SuctionCurve;
+using HygroThermFEM::LiquidTransportationCurve;
 using HygroThermFEM::SaturationFunction;
 using HygroThermFEM::Constant;
 using HygroThermFEM::PhaseChange;
@@ -41,6 +41,22 @@ TEST_F(CurveTest, TestTabularLinear)
 
     auto min = curve.minY();
     EXPECT_NEAR(10, min, 1e-6);
+
+    // Need to extrapolate data if out of range. This is important to keep solution stable.
+
+    // Point set higher than any other point in the table.
+    State interpolationPoint1(3.5, 0, 101325, 0);
+    Node2D node1(0, 0, 0, interpolationPoint1);
+
+    result = curve.value(node1);
+    EXPECT_NEAR(35, result, 1e-6);
+
+    // Point set lower than any other point in the table.
+    State interpolationPoint2(0.5, 0, 101325, 0);
+    Node2D node2(0, 0, 0, interpolationPoint2);
+
+    result = curve.value(node2);
+    EXPECT_NEAR(5, result, 1e-6);
 }
 
 TEST_F(CurveTest, TestTabularLogarithmic1)
@@ -76,7 +92,7 @@ TEST_F(CurveTest, TestTabularLogarithmic2)
 TEST_F(CurveTest, TestSuctionCurve)
 {
     SCOPED_TRACE("Begin Test: Test suction function.");
-    const SuctionCurve curve({{0.1, 10}, {0.2, 20}, {0.3, 30}});
+    const LiquidTransportationCurve curve({{0.1, 10}, {0.2, 20}, {0.3, 30}});
 
     // First segment should have constant values
     State interpolationPoint(0, 0.15, 101325, 0);

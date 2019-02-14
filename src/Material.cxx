@@ -21,7 +21,7 @@ namespace HygroThermFEM
         m_HeatCapacity(HeatCapacity),
         m_DiffusionResistanceFactor(DiffusionResistanceFactor),
         m_ThermalConductivity(new TabularFunction(ThermalConductivity, Variable::water)),
-        m_LiquidTransportCoefficient(new SuctionCurve(LiquidTransportCurve)),
+        m_LiquidTransportCoefficient(new LiquidTransportationCurve(LiquidTransportCurve)),
         m_SorptionCurve(new TabularFunction(SorptionCurve, Variable::humidity))
     {
         try
@@ -95,16 +95,13 @@ namespace HygroThermFEM
         return m_LiquidTransportCoefficient->getCurve();
     }
 
-    double Material::saturatedVaporContent(const Node2D & node) const
+    double Material::saturationConcentration(const Node2D &node) const
     {
         const auto temperature = node.property(Variable::temperature);
 
         const auto tempinK = temperature + 273.15;
 
-        auto temp = 77.345 + 0.0057 * tempinK - 7235.0 / tempinK;
-        temp = std::exp(temp);
-        temp = temp / (461.4 * std::pow(tempinK, 9.2));
-        return temp;
+        return saturationConcentrationAtTemperature(tempinK);
     }
 
     double Material::waterContent(const Node2D & node, WaterContent wContent) const
@@ -125,7 +122,7 @@ namespace HygroThermFEM
 
     double Material::vaporContent(const Node2D & node) const
     {
-        return saturatedVaporContent(node) * airPorosity(node) * node.property(Variable::humidity);
+        return saturationConcentration(node) * airPorosity(node) * node.property(Variable::humidity);
     }
 
     double Material::liquidWaterContent(const Node2D & node) const
