@@ -28,7 +28,7 @@ TEST_F(MoistureBC_2D_1, TestExample_1)
       0, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.10, 0.11, 0.12, 0.13, 0.15};
 
     const auto initialTemperature = 20;
-    const auto initialHumidity = 0.7;
+    const auto initialHumidity = 0.9;
     const auto initialPressure = 101325.0;
 
     State state(initialTemperature, initialHumidity, initialPressure, 0);
@@ -88,8 +88,8 @@ TEST_F(MoistureBC_2D_1, TestExample_1)
     domain.createMoistureBCFixedHc(1, 2, airTemperature, hc, airHumidity);
     domain.createMoistureBCFixedHc(27, 28, airTemperature, hc, airHumidity);
 
-    const auto dTime = 360;
-    const auto nSteps = 200;
+    const auto dTime = 3600;
+    const auto nSteps = 48;
 
     auto humidities = NodePool::Instance().properties(HygroThermFEM::Variable::humidity);
     std::vector<std::vector<double>> waterContentSolution;

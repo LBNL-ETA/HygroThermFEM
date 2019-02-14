@@ -29,6 +29,9 @@ namespace HygroThermFEM
     //! Saturation function
     double saturationConcentrationAtTemperature(const double temperature);
 
+    //! Heat of evaporation
+    double heatOfEvaporation(double temperature);
+
     //! \brief Definition of interface used to perform various calculation(s) over state given in
     //! \brief node(s).
     //!

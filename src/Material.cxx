@@ -95,13 +95,10 @@ namespace HygroThermFEM
         return m_LiquidTransportCoefficient->getCurve();
     }
 
-    double Material::saturationConcentration(const Node2D &node) const
-    {
+    double Material::saturationConcentration(const Node2D &node) {
         const auto temperature = node.property(Variable::temperature);
 
-        const auto tempinK = temperature + 273.15;
-
-        return saturationConcentrationAtTemperature(tempinK);
+        return saturationConcentrationAtTemperature(temperature);
     }
 
     double Material::waterContent(const Node2D & node, WaterContent wContent) const

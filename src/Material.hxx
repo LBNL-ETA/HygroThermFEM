@@ -124,7 +124,7 @@ namespace HygroThermFEM
 
         //! Saturated vapor content calculations at given node. It is necessary
         //! for water content calculations.
-        double saturationConcentration(const Node2D &node) const;
+        static double saturationConcentration(const Node2D &node);
 
         //! Calculates amount of pores filled with liquid. Necessary for water content calculations.
         double liquidPorosity(const Node2D & node) const;

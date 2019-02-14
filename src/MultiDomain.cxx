@@ -25,8 +25,8 @@ namespace HygroThermFEM
         {
             double dTimeThermal = t_DTime;
             double dTimeMoisture = t_DTime;
-            SingleSolution temperatureSolution;
-            SingleSolution humiditySolution;
+            SingleSolution temperatureSolution{ temperature, t_DTime };
+            SingleSolution humiditySolution{humidity, t_DTime};
 
             do   // Loop that performs adaptive timestep in case of convergence failure.
             {
@@ -43,12 +43,12 @@ namespace HygroThermFEM
                     dTimeMoisture = dTimeThermal;
                 }
 
-                m_ThermalDomain.updateNodeValues(currentHumidity, BaseVariable::humidity);
+                m_ThermalDomain.updateNodeValues(humiditySolution.solution, BaseVariable::humidity, false);
                 temperatureSolution = m_ThermalDomain.transient(temperature, dTimeThermal);
                 temperatureError = normError(temperatureSolution.solution, currentTemperature);
                 dTimeThermal = temperatureSolution.dTime;
 
-                m_MoistureDomain.updateNodeValues(currentTemperature, BaseVariable::temperature);
+                m_MoistureDomain.updateNodeValues(temperatureSolution.solution, BaseVariable::temperature, false);
                 humiditySolution = m_MoistureDomain.transient(humidity, dTimeMoisture);
                 humidityError = normError(humiditySolution.solution, currentHumidity);
                 dTimeMoisture = humiditySolution.dTime;
@@ -57,13 +57,13 @@ namespace HygroThermFEM
             } while(dTimeThermal != dTimeMoisture);
 
             currentHumidity = humiditySolution.solution;
-            currentTemperature = temperatureSolution.solution;
-
-            m_ThermalDomain.updateNodeValues(currentTemperature, BaseVariable::temperature, true);
-            m_ThermalDomain.updateNodeValues(currentHumidity, BaseVariable::humidity, true);
-            m_MoistureDomain.updateNodeValues(currentTemperature, BaseVariable::temperature, true);
-            m_MoistureDomain.updateNodeValues(currentHumidity, BaseVariable::humidity, true);
+            currentTemperature = temperatureSolution.solution;            
         }
+
+        m_ThermalDomain.updateNodeValues(currentTemperature, BaseVariable::temperature, true);
+        m_ThermalDomain.updateNodeValues(currentHumidity, BaseVariable::humidity, true);
+        m_MoistureDomain.updateNodeValues(currentTemperature, BaseVariable::temperature, true);
+        m_MoistureDomain.updateNodeValues(currentHumidity, BaseVariable::humidity, true);
 
         NodePool::Instance().updateNodeValues(currentHumidity, BaseVariable::humidity);
         NodePool::Instance().updateNodeValues(currentTemperature, BaseVariable::temperature);
@@ -98,7 +98,7 @@ namespace HygroThermFEM
                                               const double t_Humidity)
     {
         m_ThermalDomain.createConvectionBCFixedHc(
-          index1, index2, t_AirTemperature, t_ConvectionCoefficient);
+          index1, index2, t_AirTemperature, t_ConvectionCoefficient, t_Humidity);
 
         m_MoistureDomain.createMoistureBCFixedHc(index1, index2, t_AirTemperature,
                                                  t_ConvectionCoefficient, t_Humidity);
@@ -109,7 +109,7 @@ namespace HygroThermFEM
                                                  const double t_AirTemperature,
                                                  const double t_Humidity)
     {
-        m_ThermalDomain.createConvectionBCVariableHc(index1, index2, t_AirTemperature);
+        m_ThermalDomain.createConvectionBCVariableHc(index1, index2, t_AirTemperature, t_Humidity);
 
         m_MoistureDomain.createMoistureBCVariableHc(index1, index2, t_Humidity, t_AirTemperature);
     }

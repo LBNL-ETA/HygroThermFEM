@@ -143,13 +143,15 @@ namespace HygroThermFEM
                 ++numOfIterations;
 
                 m_BCs.updateNodeValues(solution, m_Property, m_AutomaticUpdatePreviousTimestep);
-                m_Elements.updateNodeValues(solution, m_Property, m_AutomaticUpdatePreviousTimestep);
+                m_Elements.updateNodeValues(
+                  solution, m_Property, m_AutomaticUpdatePreviousTimestep);
 
                 A = transientM_K_H_Matrix(t_DTime);
-                //test = A.toVector();
+                // test = A.toVector();
                 B = transientMT_R_Vector(currentStateValues, t_DTime);
 
-                converged = (std::abs(previousNorm - currentNorm) / currentNorm) <= (ConvergenceError * RelaxParameter);
+                converged = (std::abs(previousNorm - currentNorm) / (currentNorm + 1e-6))
+                            <= (ConvergenceError * RelaxParameter);
 
                 stopIterations = numOfIterations > MaxIterations;
             }
@@ -192,17 +194,20 @@ namespace HygroThermFEM
     void ThermalDomain::createConvectionBCFixedHc(size_t index1,
                                                   size_t index2,
                                                   double t_AirTemperature,
-                                                  double t_ConvectionCoefficient)
+                                                  double t_ConvectionCoefficient,
+                                                  double t_AirHumidity)
     {
         m_BCs.assignBC(fem::make_unique<ConstantConvectionBC>(
-          index1, index2, t_AirTemperature, t_ConvectionCoefficient));
+          index1, index2, t_AirTemperature, t_ConvectionCoefficient, t_AirHumidity));
     }
 
     void ThermalDomain::createConvectionBCVariableHc(size_t index1,
                                                      size_t index2,
-                                                     double t_AirTemperature)
+                                                     double t_AirTemperature,
+                                                     double t_AirHumidity)
     {
-        m_BCs.assignBC(fem::make_unique<VariableConvectionBC>(index1, index2, t_AirTemperature));
+        m_BCs.assignBC(
+          fem::make_unique<VariableConvectionBC>(index1, index2, t_AirTemperature, t_AirHumidity));
     }
 
     void ThermalDomain::createTemperatureBC(const size_t index1,

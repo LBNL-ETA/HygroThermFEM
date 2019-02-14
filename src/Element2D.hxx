@@ -257,14 +257,14 @@ namespace HygroThermFEM
         //! Template function that will create functions used in equivalent material conductivity
         //! and therefore used in flux calculations.
         template<typename T>
-        void Cond(T & t,
+        void CondFlux(T & t,
                   typename std::enable_if<std::is_base_of<IValue, T>::value, T>::type * = nullptr)
         {
             m_ConductanceFunctions.emplace_back(std::unique_ptr<T>(new T(t)));
         }
 
         template<typename T>
-        void Cond(T && t,
+        void CondFlux(T && t,
                   typename std::enable_if<std::is_base_of<IValue, T>::value, T>::type * = nullptr)
         {
             m_ConductanceFunctions.emplace_back(std::unique_ptr<T>(new T(t)));

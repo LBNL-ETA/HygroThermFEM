@@ -399,21 +399,18 @@ namespace HygroThermFEM
         /// Capacitance functions
         //////////////////////////////////////////////////////////////////////////////////////
 
-        const auto dryContent = (1 - m_Material.porosity()) * m_Material.density();
+        // const auto dryContent = (1 - m_Material.porosity()) * m_Material.density();
         const StateValue liquidContent(Variable::liquid);
         const StateValue iceContent(Variable::ice);
         // auto airContent = getMaterialAirFill(mat);
-        const StateValue airContent(Variable::vapor);
+        // const StateValue airContent(Variable::vapor);
 
-        const auto equivalentDensity =
-          (dryContent * m_Material.density() + iceContent * Constants::Density_Ice
-           + liquidContent * Constants::Density_Water + airContent * Constants::Density_Air)
-          / (dryContent + iceContent + liquidContent + airContent);
+        // Vapor content changes are ignored for now
+        const auto equivalentDensity = m_Material.density() + liquidContent + iceContent;
 
         const auto equivalentCapacitance =
-          (dryContent * m_Material.heatCapacity() + iceContent * Constants::Cp_Ice
-           + liquidContent * Constants::Cp_Water + airContent * Constants::Cp_Air)
-          / (dryContent + iceContent + liquidContent + airContent);
+          m_Material.heatCapacity() + (iceContent / Constants::Density_Ice) * Constants::Cp_Ice
+          + (liquidContent / Constants::Density_Water) * Constants::Cp_Water;
 
         auto capacitance = equivalentDensity * equivalentCapacitance;
 
@@ -433,27 +430,19 @@ namespace HygroThermFEM
         const auto materialConductivity =
           TabularFunction(m_Material.thermalConductivity(), Variable::water);
 
-        /// vapor
-        const auto delta = Constant(2.5E-5 / m_Material.diffusionResistanceFactor());
-        const auto vaporConductivity = Constants::Cp_Vapor * delta * airContent;
-
-        /// liquid
-        auto humidity = StateValue(Variable::humidity);
-        const auto liquidConductivity =
-          LiquidTransportationCurve(m_Material.liquidTransportationCurve()) * Constants::Cp_Water
-          * humidity;
-
-        // iValue conductance = materialConductivity + vaporConductivity + liquidConductivity;
-        auto conductance = materialConductivity + vaporConductivity + liquidConductivity;
+        auto conductance = materialConductivity;
 
         DDu(conductance);
 
         //////////////////////////////////////////////////////////////////////
         ///  Conversion from liquid to gas (vapor part)
         //////////////////////////////////////////////////////////////////////
+        const auto delta = Constant(2.5E-5 / m_Material.diffusionResistanceFactor());
         auto h = HeatOfEvaporation() * delta;
+        //Constant c(1);
 
         multiplies(h, Variable::vapor);
+        //multiplies(c, Variable::temperature);
 
         //////////////////////////////////////////////////////////////////////
         ///  Conversion from liquid to gas (air part)
@@ -461,16 +450,17 @@ namespace HygroThermFEM
 
         /// TODO: Add this later when air pressure equation is added
         // auto waterVaporPressure = SaturationFunction() * StateValue(Variable::humidity);
-
+        
         //////////////////////////////////////////////////////////////////////
         ///  Conduction from liquid
         //////////////////////////////////////////////////////////////////////
+        auto humidity = StateValue(Variable::humidity);
         const TabularDerivativeSmooth sorptionDerivative(m_Material.sorptionCurve(),
                                                          Variable::humidity);
         const LiquidTransportationCurve Dl(m_Material.liquidTransportationCurve());
         auto cd = Dl * sorptionDerivative * Constants::Cp_Water;
         DpDu(cd, humidity);
-
+        
         //////////////////////////////////////////////////////////////////////
         ///  Conduction from vapor
         //////////////////////////////////////////////////////////////////////
@@ -478,7 +468,7 @@ namespace HygroThermFEM
         auto vapCond = delta * Constants::Cp_Vapor;
         StateValue vaporContent(Variable::vapor);
 
-        DpDu(vaporContent, humidity);
+        DpDu(vapCond, vaporContent);
 
         //////////////////////////////////////////////////////////////////////
         ///  Conduction from airflow
@@ -488,7 +478,7 @@ namespace HygroThermFEM
         /// Material conductance for flux calculations
         //////////////////////////////////////////////////////////////////////
         TabularFunction matCond(m_Material.thermalConductivity(), Variable::water);
-        Cond(matCond);
+        CondFlux(matCond);
     }
 
     //////////////////////////////////////////////////////////////////////////////
@@ -521,9 +511,6 @@ namespace HygroThermFEM
           LiquidTransportationCurve(m_Material.liquidTransportationCurve()) * sorptionDerivative1;
         DDu(WaterLiquidTransport);
 
-        DpDu(Constant(1), WaterLiquidTransport);
-        
-
         //////////////////////////////////////////////////////////////////////////////
         /// Creating capacitance function
         //////////////////////////////////////////////////////////////////////////////
@@ -534,9 +521,9 @@ namespace HygroThermFEM
         //////////////////////////////////////////////////////////////////////
         /// Functions for flux calculations
         //////////////////////////////////////////////////////////////////////
-        Cond(conductance);
+        CondFlux(conductance);
         // Cond(delta);
-        Cond(LiquidTransportationCurve(m_Material.liquidTransportationCurve()));
+        CondFlux(LiquidTransportationCurve(m_Material.liquidTransportationCurve()));
     }
 
 }   // namespace HygroThermFEM
