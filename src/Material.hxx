@@ -55,7 +55,7 @@ namespace HygroThermFEM
         const std::vector<std::pair<double, double>> & liquidTransportationCurve() const;
 
         //! Water content for given node
-        double waterContent(const Node2D & node,   //!< Node for which water content is required.
+        double waterContent(const INode2D & node,   //!< Node for which water content is required.
                             WaterContent waterContent   //!< Water content property (total water,
                                                         //!< liquid, vapor or ice).
                             ) const;
@@ -74,16 +74,16 @@ namespace HygroThermFEM
 
     private:
         //! Returns total water content in given node.
-        double waterContent(const Node2D & node) const;
+        double waterContent(const INode2D & node) const;
 
         //! Returns vapor content in given node.
-        double vaporContent(const Node2D & node) const;
+        double vaporContent(const INode2D & node) const;
 
         //! Returns liquid content in given node.
-        double liquidWaterContent(const Node2D & node) const;
+        double liquidWaterContent(const INode2D & node) const;
 
         //! Returns ice content in given node.
-        double iceContent(const Node2D & node) const;
+        double iceContent(const INode2D & node) const;
 
         /// Create material by using MaterialPool.
 
@@ -124,13 +124,13 @@ namespace HygroThermFEM
 
         //! Saturated vapor content calculations at given node. It is necessary
         //! for water content calculations.
-        static double saturationConcentration(const Node2D &node);
+        static double saturationConcentration(const INode2D &node);
 
         //! Calculates amount of pores filled with liquid. Necessary for water content calculations.
-        double liquidPorosity(const Node2D & node) const;
+        double liquidPorosity(const INode2D & node) const;
 
         //! Calculates amount of pores filled with air. Necessary for water content calculations.
-        double airPorosity(const Node2D & node) const;
+        double airPorosity(const INode2D & node) const;
     };
 
 }   // namespace HygroThermFEM

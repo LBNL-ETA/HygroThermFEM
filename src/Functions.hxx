@@ -19,7 +19,7 @@ namespace HygroThermFEM
 
     class State;
 
-    class Node2D;
+    class INode2D;
 
     class INodes;
 
@@ -42,7 +42,7 @@ namespace HygroThermFEM
     {
     public:
         //! Value at given node (redefined at every child class).
-        virtual double value(const Node2D & node   //!< Node for which value is calculated for.
+        virtual double value(const INode2D & node   //!< Node for which value is calculated for.
                              ) const = 0;
 
         //! Values at all nodes given with parameter INodes.
@@ -70,7 +70,7 @@ namespace HygroThermFEM
         );
 
         //! Returns function evaluation for given node.
-        double value(const Node2D & node   //!< Node at which function will be evaluated.
+        double value(const INode2D & node   //!< Node at which function will be evaluated.
                      ) const override;
 
     protected:
@@ -136,7 +136,7 @@ namespace HygroThermFEM
         }
 
         //! Returns value of operation.
-        double value(const Node2D & node) const override
+        double value(const INode2D & node) const override
         {
             return m_Operator.at(m_Operation)(m_Function1.value(node), m_Function2.value(node));
         }

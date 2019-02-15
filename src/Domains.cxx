@@ -79,7 +79,7 @@ namespace HygroThermFEM
       IDomain::transientTimestep(const std::vector<double> & currentStateValues,
                                  const double t_DTime)
     {
-        const auto RelaxParameter = 0.1;
+        const auto RelaxParameter = 1.0;
         auto A = transientM_K_H_Matrix(t_DTime);
 
         // This is just for debugging purposes.
@@ -153,7 +153,7 @@ namespace HygroThermFEM
                 converged = (std::abs(previousNorm - currentNorm) / (currentNorm + 1e-6))
                             <= (ConvergenceError * RelaxParameter);
 
-                stopIterations = numOfIterations > MaxIterations;
+                stopIterations = numOfIterations > (MaxIterations / RelaxParameter);
             }
         }
 

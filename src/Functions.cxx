@@ -49,7 +49,7 @@ namespace HygroThermFEM
     IFunction::IFunction(const Variable t_Property) : m_Property(t_Property)
     {}
 
-    double IFunction::value(const Node2D & node) const
+    double IFunction::value(const INode2D & node) const
     {
         return evaluateFunction(node.property(m_Property),
                                 node.property(m_Property, Timestep::Previous));

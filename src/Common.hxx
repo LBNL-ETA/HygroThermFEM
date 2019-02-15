@@ -5,7 +5,7 @@
 namespace HygroThermFEM
 {
     const double ConvergenceError = 1e-5;
-    const size_t MaxIterations = 1000;
+    const size_t MaxIterations = 100;
 
 }   // namespace HygroThermFEM
 
