@@ -111,13 +111,14 @@ namespace HygroThermFEM
         void createConvectionBCFixedHc(size_t index1,
                                        size_t index2,
                                        double t_AirTemperature,
-                                       double t_ConvectionCoefficient);
+                                       double t_ConvectionCoefficient,
+                                       double t_AirHumidity = 0);
 
         //! Creation of convection boundary condition
-        void createConvectionBCVariableHc(size_t index1,            //!< Node 1 index
-                                          size_t index2,            //!< Node 2 index
-                                          double t_AirTemperature   //!< Outside air temperature
-        );
+        void createConvectionBCVariableHc(size_t index1,             //!< Node 1 index
+                                          size_t index2,             //!< Node 2 index
+                                          double t_AirTemperature,   //!< Outside air temperature
+                                          double t_AirHumidity);
 
         //! Creation of temperature boundary condition
         void createTemperatureBC(size_t index1,    //!< Node 1 index

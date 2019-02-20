@@ -6,16 +6,26 @@
 
 namespace HygroThermFEM
 {
-    double boundarySaturationAtTemperature(const double t_temperature, const double exponent)
+    double vaporPressureAtTemperature(const double t_temperature)
     {
         const auto temperature = t_temperature + 273.15;
         return std::exp(77.345 + 0.0057 * temperature - 7235.0 / temperature)
-               / std::pow(temperature, exponent);
+               / std::pow(temperature, 8.2);
     }
 
-    double saturationAtTemperature(const double t_temperature, const double exponent)
+    double saturationConcentrationAtTemperature(const double t_temperature)
     {
-        return boundarySaturationAtTemperature(t_temperature, exponent) / 461.4;
+        // RT/M for water vapor
+        const auto gasConstantForWaterVapor = 461.4;
+        return vaporPressureAtTemperature(t_temperature)
+               / ((t_temperature + 273.15) * gasConstantForWaterVapor);
+    }
+
+    double heatOfEvaporation(const double temperature)
+    {
+        return (2500.8 - 2.36 * temperature + 0.016 * std::pow(temperature, 2)
+                - 0.00006 * std::pow(temperature, 3))
+               * 1000;
     }
 
     //////////////////////////////////////////////////////////////////
@@ -39,7 +49,7 @@ namespace HygroThermFEM
     IFunction::IFunction(const Variable t_Property) : m_Property(t_Property)
     {}
 
-    double IFunction::value(const Node2D & node) const
+    double IFunction::value(const INode2D & node) const
     {
         return evaluateFunction(node.property(m_Property),
                                 node.property(m_Property, Timestep::Previous));
@@ -105,12 +115,21 @@ namespace HygroThermFEM
       TabularFunction::getInterpolationPoints(
         std::vector<std::pair<double, double>>::const_iterator & it) const
     {
-        auto pt2 = it == m_Curve.end() ? m_Curve.back() : *it;
+        if(it == m_Curve.end())
+        {
+            --it;
+        }
+        const auto pt2 = *it;
         if(it != m_Curve.begin())
         {
             --it;
         }
-        auto pt1 = it == m_Curve.begin() ? m_Curve.front() : *it;
+        else
+        {
+            ++it;
+        }
+
+        const auto pt1 = *it;
 
         return std::make_pair(pt1, pt2);
     }
@@ -190,32 +209,101 @@ namespace HygroThermFEM
     }
 
     //////////////////////////////////////////////////////////////////
-    ///  SuctionFunction
+    ///  TabularDerivativeSmooth
     //////////////////////////////////////////////////////////////////
 
-    SuctionCurve::SuctionCurve(const std::vector<std::pair<double, double>> & values) :
-        TabularFunction(values, Variable::humidity, FenestrationCommon::Interpolation::Logarithmic)
-    {}
+    TabularDerivativeSmooth::TabularDerivativeSmooth(
+      const std::vector<std::pair<double, double>> & values, Variable property) :
+        IFunction(property)
+    {
+        for(size_t i = 1u; i < values.size(); ++i)
+        {
+            const auto x1 = values[i - 1].first;
+            const auto x2 = values[i].first;
+            const auto y1 = values[i - 1].second;
+            const auto y2 = values[i].second;
+            const auto newX = (x1 + x2) / 2.0;
+            const auto newY = (y2 - y1) / (x2 - x1);
+            m_Curve.emplace_back(newX, newY);
+        }
+    }
 
-    SuctionCurve::SuctionCurve(const std::initializer_list<std::pair<double, double>> & list) :
-        TabularFunction(list, Variable::humidity, FenestrationCommon::Interpolation::Logarithmic)
-    {}
+    TabularDerivativeSmooth::TabularDerivativeSmooth(
+      const std::initializer_list<std::pair<double, double>> & list, Variable property) :
+        IFunction(property)
+    {
+        std::vector<std::pair<double, double>> helperVector{list};
+        for(size_t i = 1u; i < helperVector.size(); ++i)
+        {
+            const auto x1 = helperVector[i - 1].first;
+            const auto x2 = helperVector[i].first;
+            const auto y1 = helperVector[i - 1].second;
+            const auto y2 = helperVector[i].second;
+            const auto newX = (x1 + x2) / 2.0;
+            const auto newY = (y2 - y1) / (x2 - x1);
+            m_Curve.emplace_back(newX, newY);
+        }
+    }
+
+    double TabularDerivativeSmooth::evaluateFunction(const double t_position, const double) const
+    {
+        auto it = std::find_if(m_Curve.begin(), m_Curve.end(), [&](std::pair<double, double> val) {
+            return val.first > t_position;
+        });
+        const auto points = getInterpolationPoints(it);
+
+        const auto dy = points.second.second - points.first.second;
+        const auto dx = points.second.first - points.first.first;
+
+        auto result = points.first.second;
+        if(dx != 0)
+        {
+            result += dy / dx * (t_position - points.first.first);
+        }
+
+        return result;
+    }
 
     std::pair<std::pair<double, double>, std::pair<double, double>>
-      SuctionCurve::getInterpolationPoints(
+      TabularDerivativeSmooth::getInterpolationPoints(
         std::vector<std::pair<double, double>>::const_iterator & it) const
     {
-        /// Suction curve takes care that first segment of curve always return value of first
-        /// element.
-        //it == m_Curve.end() ? m_Curve.back() : *it;
-        const auto second = std::next(m_Curve.begin());
-        const auto pt2 = it == second ? m_Curve.front() : *it;
+        const auto pt2 = it == m_Curve.end() ? *std::prev(m_Curve.end()) : *it;
         if(it != m_Curve.begin())
         {
             --it;
         }
 
-        const auto pt1 = it == m_Curve.begin() ? m_Curve.front() : *it;
+        const auto pt1 = *it;
+
+        return std::make_pair(pt1, pt2);
+    }
+
+    //////////////////////////////////////////////////////////////////
+    ///  SuctionFunction
+    //////////////////////////////////////////////////////////////////
+
+    LiquidTransportationCurve::LiquidTransportationCurve(
+      const std::vector<std::pair<double, double>> & values) :
+        TabularFunction(values, Variable::water, FenestrationCommon::Interpolation::Logarithmic)
+    {}
+
+    LiquidTransportationCurve::LiquidTransportationCurve(
+      const std::initializer_list<std::pair<double, double>> & list) :
+        TabularFunction(list, Variable::water, FenestrationCommon::Interpolation::Logarithmic)
+    {}
+
+    std::pair<std::pair<double, double>, std::pair<double, double>>
+      LiquidTransportationCurve::getInterpolationPoints(
+        std::vector<std::pair<double, double>>::const_iterator & it) const
+    {
+        const auto pt2 = it == m_Curve.end() ? *std::prev(m_Curve.end()) : *it;
+        if(it != m_Curve.begin())
+        {
+            --it;
+        }
+
+        const auto pt1 = *it;
 
         return std::make_pair(pt1, pt2);
     }
@@ -229,7 +317,7 @@ namespace HygroThermFEM
 
     double SaturationFunction::evaluateFunction(const double t_position, const double) const
     {
-        return saturationAtTemperature(t_position);
+        return saturationConcentrationAtTemperature(t_position);
     }
 
     //////////////////////////////////////////////////////////////////
@@ -238,8 +326,7 @@ namespace HygroThermFEM
 
     double HeatOfEvaporation::evaluateFunction(const double t_position, const double) const
     {
-        return -(2500.8 - 2.36 * t_position + 0.016 * std::pow(t_position, 2)
-                 - 0.00006 * std::pow(t_position, 3));
+        return heatOfEvaporation(t_position);
     }
 
     HeatOfEvaporation::HeatOfEvaporation() : IFunction(Variable::temperature)
@@ -272,8 +359,7 @@ namespace HygroThermFEM
             // Only part of ice has melted and therefore linear interpolation is needed.
             if((t_position < FreezingPoint) && (t_position >= IcePoint))
             {
-                result = EnthalpyOfFusion * (t_position - IcePoint)
-                         / (FreezingPoint - IcePoint);
+                result = EnthalpyOfFusion * (t_position - IcePoint) / (FreezingPoint - IcePoint);
             }
         }
 
@@ -288,8 +374,8 @@ namespace HygroThermFEM
             // Only part of water froze and therefore linear interpolation is needed.
             if((t_position < FreezingPoint) && (t_position >= IcePoint))
             {
-                result = EnthalpyOfFusion * (t_position - FreezingPoint)
-                         / (FreezingPoint - IcePoint);
+                result =
+                  EnthalpyOfFusion * (t_position - FreezingPoint) / (FreezingPoint - IcePoint);
             }
         }
 

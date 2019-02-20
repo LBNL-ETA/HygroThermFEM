@@ -15,6 +15,7 @@ namespace HygroThermFEM
         {
             auto indexes = aElement->nodeIndexes();
             auto conductance = aElement->DDuMatrices();
+            auto testConductance = conductance.toVector();
             auto condDer = aElement->DpDuMatrices();
             for(size_t i = 0; i < numOfQuadrilateralNodes; ++i)
             {
@@ -100,7 +101,8 @@ namespace HygroThermFEM
     }
 
     void ElementsLinear2D::updateNodeValues(const std::vector<double> & values,
-                                            const BaseVariable property, bool updatePreviousValue)
+                                            const BaseVariable property,
+                                            bool updatePreviousValue)
     {
         for(auto & aElement : m_Elements)
         {
@@ -167,13 +169,17 @@ namespace HygroThermFEM
         // Now need to average them
         for(size_t j = 0; j < fluxes.size(); ++j)
         {
-            const double x = std::accumulate(
-                         fluxes[j].begin(), fluxes[j].end(), 0.0, [&](double lhs, NodeFlux & a) { return lhs + a.x; })
-                       / fluxes[j].size();
-            const double y = std::accumulate(
-                         fluxes[j].begin(), fluxes[j].end(), 0.0, [&](double lhs, NodeFlux & a) { return lhs + a.y; })
-                       / fluxes[j].size();
-            result[j] = { x, y };
+            const double x = std::accumulate(fluxes[j].begin(),
+                                             fluxes[j].end(),
+                                             0.0,
+                                             [&](double lhs, NodeFlux & a) { return lhs + a.x; })
+                             / fluxes[j].size();
+            const double y = std::accumulate(fluxes[j].begin(),
+                                             fluxes[j].end(),
+                                             0.0,
+                                             [&](double lhs, NodeFlux & a) { return lhs + a.y; })
+                             / fluxes[j].size();
+            result[j] = {x, y};
         }
 
         return result;

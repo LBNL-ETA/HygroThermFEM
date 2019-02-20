@@ -55,7 +55,7 @@ TEST_F(Analytical_ConvectionBC_Transient, TestExample_1)
     MaterialPool::Instance().createMaterial(
       materialName,
       2050,   /// Density
-      0.00,   /// Porosity
+      0.22,   /// Porosity
       850,    /// Specific Heat Capacity (dry)
       /// No need for liquid coefficients
       15E-6,                   /// Diffusion Resistance Factor

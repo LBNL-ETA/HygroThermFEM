@@ -19,15 +19,18 @@ namespace HygroThermFEM
 
     class State;
 
-    class Node2D;
+    class INode2D;
 
     class INodes;
 
     //! Saturation function that will be used at boundary conditions
-    double boundarySaturationAtTemperature(double temperature, double exponent = 8.2);
+    double vaporPressureAtTemperature(const double temperature);
 
     //! Saturation function
-    double saturationAtTemperature(double temperature, double exponent = 9.2);
+    double saturationConcentrationAtTemperature(const double temperature);
+
+    //! Heat of evaporation
+    double heatOfEvaporation(double temperature);
 
     //! \brief Definition of interface used to perform various calculation(s) over state given in
     //! \brief node(s).
@@ -39,7 +42,7 @@ namespace HygroThermFEM
     {
     public:
         //! Value at given node (redefined at every child class).
-        virtual double value(const Node2D & node   //!< Node for which value is calculated for.
+        virtual double value(const INode2D & node   //!< Node for which value is calculated for.
                              ) const = 0;
 
         //! Values at all nodes given with parameter INodes.
@@ -67,7 +70,7 @@ namespace HygroThermFEM
         );
 
         //! Returns function evaluation for given node.
-        double value(const Node2D & node   //!< Node at which function will be evaluated.
+        double value(const INode2D & node   //!< Node at which function will be evaluated.
                      ) const override;
 
     protected:
@@ -133,10 +136,10 @@ namespace HygroThermFEM
         }
 
         //! Returns value of operation.
-        double value(const Node2D & node) const override
+        double value(const INode2D & node) const override
         {
             return m_Operator.at(m_Operation)(m_Function1.value(node), m_Function2.value(node));
-        };
+        }
 
     private:
         /// Functions can be shared between different operations and that is why it is
@@ -393,23 +396,58 @@ namespace HygroThermFEM
     };
 
     //////////////////////////////////////////////////////////////////
-    ///  SuctionFunction
+    ///  TabularDerivativeSmooth
+    //////////////////////////////////////////////////////////////////
+
+    //! \brief Estimates tabular derivative with values being smoothed between different values.
+    //!
+    //! When providing table with x-y values, calculating simple derivative will cause step function between
+    //! certain values. This class will provide smooth transition between different values.
+    class TabularDerivativeSmooth : public IFunction {
+    public:
+        //! Construction of tabular derivative from standard vector values.
+        TabularDerivativeSmooth(
+            const std::vector<std::pair<double, double>> &
+            values,           //!< Pair of vector values used to construct tabular derivative.
+            Variable property   //!< Variable that represent value type in first column.
+        );
+
+        //! Construction of tabular derivative from standard vector values.
+        TabularDerivativeSmooth(
+            const std::initializer_list<std::pair<double, double>> &
+            list,             //!< Initializer list used to construct tabular derivative.
+            Variable property   //!< Variable that represent value type in first column.
+        );
+
+    protected:
+        std::vector<std::pair<double, double>> m_Curve;
+
+        //! Overriden evaluation function.
+        double evaluateFunction(double t_position, double t_previousTimestep) const override;
+
+        //! Helper function that returns two closest points for interpolation.
+        virtual std::pair<std::pair<double, double>, std::pair<double, double>>
+            getInterpolationPoints(std::vector<std::pair<double, double>>::const_iterator & it) const;
+    };
+
+    //////////////////////////////////////////////////////////////////
+    ///  LiquidTransportationCurve
     //////////////////////////////////////////////////////////////////
 
     //! \brief Sorption curve is specialized type for tabular function.
     //!
     //! Sorption curve is table that represents material water content as function of
     //! relative humidity. For in between values, logarithmic interpolation is used.
-    class SuctionCurve : public TabularFunction
+    class LiquidTransportationCurve : public TabularFunction
     {
     public:
         //! Construction of suction curve from standard vector values.
-        SuctionCurve(const std::vector<std::pair<double, double>> &
+        LiquidTransportationCurve(const std::vector<std::pair<double, double>> &
                        values   //!< Sorption curve values in standard vector form.
         );
 
         //! Construction of suction curve from initializer list.
-        SuctionCurve(const std::initializer_list<std::pair<double, double>> &
+        LiquidTransportationCurve(const std::initializer_list<std::pair<double, double>> &
                        list   //!< Soprtion curve values in initializer list form.
         );
 

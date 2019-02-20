@@ -25,7 +25,13 @@ TEST_F(MoistureBC_2D_2, TestExample_1)
 
     std::vector<double> gridXCoordinates{0.15, 0.05, 0.00};
 
-    HygroThermFEM::State state(0, 0, 101325, 0);
+    const auto domainTemperature = 20.0;
+    const auto domainHumidity = 0.0;
+    const auto domainPressure = 101325;
+    const auto liquidPercentage = 1.0;
+
+    const HygroThermFEM::State state(
+      domainTemperature, domainHumidity, domainPressure, liquidPercentage);
     size_t nodeIndex = 0;
     for(auto val : gridXCoordinates)
     {
@@ -75,10 +81,10 @@ TEST_F(MoistureBC_2D_2, TestExample_1)
     }
 
     // Create Boundary Conditions
-    const auto airTemperature = 20;
-    const auto humidity = 0.2;
+    const auto ambientTemperature = 20;
+    const auto ambientHumidity = 0.2;
 
-    domain.createMoistureBCVariableHc(5, 6, humidity, airTemperature);
+    domain.createMoistureBCVariableHc(5, 6, ambientHumidity, ambientTemperature);
 
     const auto dTime = 3600;
     const auto nSteps = 4;
@@ -94,10 +100,10 @@ TEST_F(MoistureBC_2D_2, TestExample_1)
     }
 
     std::vector<std::vector<double>> correctSolution{
-      {5.51708803e-007, 5.51708803e-007, 0.00100840714, 0.00100840714, 1.38312243, 1.38312243},
-      {2.11083667e-006, 2.11083667e-006, 0.00285030807, 0.00285030807, 2.52784731, 2.52784731},
-      {5.05364382e-006, 5.05364382e-006, 0.00538094058, 0.00538094058, 3.47526711, 3.47526711},
-      {9.69063639e-006, 9.69063639e-006, 0.00848049644, 0.00848049644, 4.2593912, 4.2593912}};
+      {3.748586e-06, 3.748586e-06, 0.001924969331, 0.001924969331, 0.7428227662, 0.7428227662},
+      {1.364027149e-05, 1.364027149e-05, 0.005083314705, 0.005083314705, 1.221651619, 1.221651619},
+      {3.11968812e-05, 3.11968812e-05, 0.009029288908, 0.009029288908, 1.530317721, 1.530317721},
+      {5.737783803e-05, 5.737783803e-05, 0.01347560965, 0.01347560965, 1.729301858, 1.729301858}};
 
     EXPECT_EQ(solution.size(), correctSolution.size());
 
@@ -105,7 +111,7 @@ TEST_F(MoistureBC_2D_2, TestExample_1)
     {
         for(auto j = 0u; j < correctSolution[i].size(); ++j)
         {
-            EXPECT_NEAR(correctSolution[i][j], solution[i][j], 1e-6);
+            EXPECT_NEAR(correctSolution[i][j], solution[i][j], 1e-9);
         }
     }
 }

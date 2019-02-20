@@ -21,7 +21,7 @@ namespace HygroThermFEM
         m_HeatCapacity(HeatCapacity),
         m_DiffusionResistanceFactor(DiffusionResistanceFactor),
         m_ThermalConductivity(new TabularFunction(ThermalConductivity, Variable::water)),
-        m_LiquidTransportCoefficient(new SuctionCurve(LiquidTransportCurve)),
+        m_LiquidTransportCoefficient(new LiquidTransportationCurve(LiquidTransportCurve)),
         m_SorptionCurve(new TabularFunction(SorptionCurve, Variable::humidity))
     {
         try
@@ -95,19 +95,13 @@ namespace HygroThermFEM
         return m_LiquidTransportCoefficient->getCurve();
     }
 
-    double Material::saturatedVaporContent(const Node2D & node) const
-    {
+    double Material::saturationConcentration(const INode2D &node) {
         const auto temperature = node.property(Variable::temperature);
 
-        const auto tempinK = temperature + 273.15;
-
-        auto temp = 77.345 + 0.0057 * tempinK - 7235.0 / tempinK;
-        temp = std::exp(temp);
-        temp = temp / (461.4 * std::pow(tempinK, 9.2));
-        return temp;
+        return saturationConcentrationAtTemperature(temperature);
     }
 
-    double Material::waterContent(const Node2D & node, WaterContent wContent) const
+    double Material::waterContent(const INode2D & node, WaterContent wContent) const
     {
         std::map<WaterContent, double> results;
         results[WaterContent::Water] = waterContent(node);
@@ -118,22 +112,22 @@ namespace HygroThermFEM
         return results.at(wContent);
     }
 
-    double Material::waterContent(const Node2D & node) const
+    double Material::waterContent(const INode2D & node) const
     {
         return m_SorptionCurve->value(node);
     }
 
-    double Material::vaporContent(const Node2D & node) const
+    double Material::vaporContent(const INode2D & node) const
     {
-        return saturatedVaporContent(node) * airPorosity(node) * node.property(Variable::humidity);
+        return saturationConcentration(node) * airPorosity(node) * node.property(Variable::humidity);
     }
 
-    double Material::liquidWaterContent(const Node2D & node) const
+    double Material::liquidWaterContent(const INode2D & node) const
     {
         return node.property(Variable::liquidPercent) * (waterContent(node) - vaporContent(node));
     }
 
-    double Material::iceContent(const Node2D & node) const
+    double Material::iceContent(const INode2D & node) const
     {
         return (1 - node.property(Variable::liquidPercent))
                * (waterContent(node) - vaporContent(node));
@@ -149,14 +143,14 @@ namespace HygroThermFEM
         return m_Name;
     }
 
-    double Material::liquidPorosity(const Node2D & node) const
+    double Material::liquidPorosity(const INode2D & node) const
     {
         const auto waterContent = m_SorptionCurve->value(node);
         const auto maxWaterContent = m_SorptionCurve->maxY();
         return waterContent / maxWaterContent * m_Porosity;
     }
 
-    double Material::airPorosity(const Node2D & node) const
+    double Material::airPorosity(const INode2D & node) const
     {
         return m_Porosity - liquidPorosity(node);
     }
