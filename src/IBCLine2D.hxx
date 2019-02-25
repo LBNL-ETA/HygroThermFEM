@@ -56,7 +56,7 @@ namespace HygroThermFEM
         //! Returns number of integration points.
         static std::size_t numOfIntegrationPoints();
 
-        //! Calculates psi value for given integration point and shape function
+        //! Calculates psi convectiveCoefficients for given integration point and shape function
         static double psi(std::size_t IntegrationPointIndex,   //!< Integration point index.
                           std::size_t Index                    //!< Shape function index
         );
