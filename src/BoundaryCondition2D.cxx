@@ -77,7 +77,7 @@ namespace HygroThermFEM
 
     std::vector<double> IConvectionBC::R_Vector() const
     {
-        // TODO: Add vapor leaking part
+        
         std::vector<double> beta(numOfBCNodes, 0);
         for(std::size_t j = 0; j < numOfBCNodes; ++j)
         {
@@ -92,6 +92,7 @@ namespace HygroThermFEM
             }
         }
 
+        // Vapor leaking part is added here
         std::vector<double> con(numOfBCNodes, 0);
         for(std::size_t j = 0; j < numOfBCNodes; ++j)
         {

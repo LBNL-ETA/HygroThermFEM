@@ -15,7 +15,12 @@ namespace HygroThermFEM
     class IConvectiveCoefficient
     {
     public:
+        IConvectiveCoefficient() = default;
         virtual ~IConvectiveCoefficient() = default;
+        IConvectiveCoefficient(const IConvectiveCoefficient & other) = default;
+        IConvectiveCoefficient(IConvectiveCoefficient && other) = default;
+        IConvectiveCoefficient & operator=(const IConvectiveCoefficient & other) = default;
+        IConvectiveCoefficient & operator=(IConvectiveCoefficient && other) = default;
         virtual std::vector<double> value(const INodes & nodes, double variable) const = 0;
     };
 
