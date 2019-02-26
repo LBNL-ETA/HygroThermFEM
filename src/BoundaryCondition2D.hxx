@@ -11,12 +11,26 @@ namespace HygroThermFEM
         Variable
     };
 
+    ////////////////////////////////////////////////////////
+    /// IConvectiveCoefficient
+    ////////////////////////////////////////////////////////
+
     //! \brief Interface for convective coefficient calculations
     class IConvectiveCoefficient
     {
     public:
+        IConvectiveCoefficient(const INodes & nodes, double ambientVariable);
         virtual ~IConvectiveCoefficient() = default;
-        virtual std::vector<double> value(const INodes & nodes, double variable) const = 0;
+        IConvectiveCoefficient(const IConvectiveCoefficient & other) = default;
+        IConvectiveCoefficient(IConvectiveCoefficient && other) = default;
+        IConvectiveCoefficient & operator=(const IConvectiveCoefficient & other) = default;
+        IConvectiveCoefficient & operator=(IConvectiveCoefficient && other) = default;
+        virtual std::vector<double> convectiveCoefficients() const = 0;
+        std::vector<double> betaConv() const;
+
+    protected:
+        const INodes & m_Nodes;
+        const double m_AmbientVariable;
     };
 
     ////////////////////////////////////////////////////////
@@ -27,8 +41,9 @@ namespace HygroThermFEM
     class VariableConvectionCoefficient : public IConvectiveCoefficient
     {
     public:
-        VariableConvectionCoefficient();
-        std::vector<double> value(const INodes & nodes, double ambientTemperature) const override;
+        VariableConvectionCoefficient(const INodes & nodes, double ambientVariable);
+
+        std::vector<double> convectiveCoefficients() const override;
     };
 
     ////////////////////////////////////////////////////////
@@ -38,9 +53,9 @@ namespace HygroThermFEM
     class FixedConvectionCoefficient : public IConvectiveCoefficient
     {
     public:
-        FixedConvectionCoefficient();
-        std::vector<double> value(const INodes & nodes,
-                                  double convectiveCoefficient) const override;
+        FixedConvectionCoefficient(const INodes & nodes, double ambientVariable);
+
+        std::vector<double> convectiveCoefficients() const override;
     };
 
     ////////////////////////////////////////////////////////
@@ -51,7 +66,8 @@ namespace HygroThermFEM
     class ConvectionModelFactory
     {
     public:
-        static std::unique_ptr<IConvectiveCoefficient> create(ConvectionModel model);
+        static std::unique_ptr<IConvectiveCoefficient>
+          create(ConvectionModel model, const INodes & nodes, double ambientVariable);
     };
 
     ////////////////////////////////////////////////////////
@@ -69,7 +85,7 @@ namespace HygroThermFEM
         IConvectionBC(size_t index1,
                       size_t index2,
                       double t_AirTemperature,
-                      ConvectionModel model,
+                      std::unique_ptr<IConvectiveCoefficient>,
                       double t_AirHumidity = 0);
 
         //! Function that calculates right hand side vector.
@@ -82,7 +98,6 @@ namespace HygroThermFEM
         const double m_AirTemperature;
         std::unique_ptr<IConvectiveCoefficient> m_ConvectiveCoeffCalc;
         const double m_AirHumidity;
-        virtual std::vector<double> convectionCoefficients() const = 0;
     };
 
     ////////////////////////////////////////////////////////
@@ -96,12 +111,6 @@ namespace HygroThermFEM
                              double t_AirTemperature,
                              double t_ConvectionCoefficient,
                              double t_AirHumidity = 0);
-
-    protected:
-        std::vector<double> convectionCoefficients() const override;
-
-    private:
-        const double m_ConvectionCoefficient;
     };
 
     ////////////////////////////////////////////////////////
@@ -114,9 +123,6 @@ namespace HygroThermFEM
                              size_t index2,
                              double t_AirTemperature,
                              double t_AirHumidity);
-
-    protected:
-        std::vector<double> convectionCoefficients() const override;
     };
 
     ////////////////////////////////////////////////////////
@@ -125,7 +131,7 @@ namespace HygroThermFEM
 
     //! Constant temperature boundary condition
     //!
-    //! TemperatureBC will be just special case of convection BC with huge value
+    //! TemperatureBC will be just special case of convection BC with huge convectiveCoefficients
     //! for film coefficients. It is used only in thermal module.
     class TemperatureBC : public ConstantConvectionBC
     {
@@ -223,7 +229,7 @@ namespace HygroThermFEM
                     const std::string & materialName,
                     double t_AirHumidity,
                     double t_AirTemperature,
-                    ConvectionModel model);
+                    std::unique_ptr<IConvectiveCoefficient> model);
 
         //! Function that calculates right hand side vector.
         std::vector<double> R_Vector() const override;
@@ -232,9 +238,6 @@ namespace HygroThermFEM
         FenestrationCommon::SquareMatrix H_Matrix() const override;
 
     protected:
-        //! Calculates beta convective exterior (see technical document)
-        std::vector<double> betaConv() const;
-        virtual std::vector<double> convectiveCoefficient() const = 0;
 
         double m_AirHumidity;
         double m_AirTemperature;
@@ -256,8 +259,6 @@ namespace HygroThermFEM
                              double t_AirHumidity,
                              double t_AirTemperature);
 
-    protected:
-        std::vector<double> convectiveCoefficient() const override;
     };
 
     /////////////////////////////////////////////////////
@@ -274,9 +275,6 @@ namespace HygroThermFEM
                           double t_AirHumidity,
                           double t_AirTemperature,
                           double m_ConvectiveCoefficient);
-
-    protected:
-        std::vector<double> convectiveCoefficient() const override;
 
     private:
         const double m_ConvectiveCoefficient;

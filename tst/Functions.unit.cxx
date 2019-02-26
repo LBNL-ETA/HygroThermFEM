@@ -34,9 +34,7 @@ namespace HygroThermFEM
         MockNode2D() : m_Property{{Timestep::Current, 0}, {Timestep::Previous, 0}}
         {}
         ~MockNode2D() = default;
-        MockNode2D(const MockNode2D & mockNode) : m_Property(mockNode.m_Property)
-        {}
-        MockNode2D(MockNode2D &&) = default;
+        MockNode2D(const MockNode2D & mockNode) = default;
         MockNode2D & operator=(const MockNode2D &) = default;
         MockNode2D & operator=(MockNode2D &&) = default;
 
