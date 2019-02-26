@@ -26,7 +26,7 @@ namespace HygroThermFEM
         IConvectiveCoefficient & operator=(const IConvectiveCoefficient & other) = default;
         IConvectiveCoefficient & operator=(IConvectiveCoefficient && other) = default;
         virtual std::vector<double> convectiveCoefficients() const = 0;
-        std::vector<double> betaConv(const INodes & nodes) const;
+        std::vector<double> betaConv() const;
 
     protected:
         const INodes & m_Nodes;
@@ -98,7 +98,6 @@ namespace HygroThermFEM
         const double m_AirTemperature;
         std::unique_ptr<IConvectiveCoefficient> m_ConvectiveCoeffCalc;
         const double m_AirHumidity;
-        std::vector<double> convectionCoefficients() const;
     };
 
     ////////////////////////////////////////////////////////
@@ -239,9 +238,6 @@ namespace HygroThermFEM
         FenestrationCommon::SquareMatrix H_Matrix() const override;
 
     protected:
-        //! Calculates beta convective exterior (see technical document)
-        std::vector<double> betaConv() const;
-        std::vector<double> convectiveCoefficient() const;
 
         double m_AirHumidity;
         double m_AirTemperature;

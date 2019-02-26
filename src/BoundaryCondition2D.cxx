@@ -18,12 +18,12 @@ namespace HygroThermFEM
         m_AmbientVariable(ambientVariable)
     {}
 
-    std::vector<double> IConvectiveCoefficient::betaConv(const INodes & nodes) const
+    std::vector<double> IConvectiveCoefficient::betaConv() const
     {
-        std::vector<double> beta(nodes.size(), 0);
+        std::vector<double> beta(m_Nodes.size(), 0);
         for(std::size_t j = 0; j < numOfBCNodes; ++j)
         {
-            const double humidity = nodes[j].property(Variable::humidity);
+            const double humidity = m_Nodes[j].property(Variable::humidity);
             if(humidity <= 1)
             {
                 beta[j] = 1 / (Constants::Cp_Air * Constants::Density_Air);
@@ -110,32 +110,18 @@ namespace HygroThermFEM
 
     std::vector<double> IConvectionBC::R_Vector() const
     {
-        std::vector<double> beta(numOfBCNodes, 0);
-        for(std::size_t j = 0; j < numOfBCNodes; ++j)
-        {
-            const double humidity = m_Nodes[j].property(Variable::humidity);
-            if(humidity <= 1)
-            {
-                beta[j] = 1 / (Constants::Cp_Air * Constants::Density_Air);
-            }
-            else
-            {
-                beta[j] = 0;
-            }
-        }
-
         // Vapor leaking part is added here
-        std::vector<double> con(numOfBCNodes, 0);
+        std::vector<double> vaporLeak(numOfBCNodes, 0);
         for(std::size_t j = 0; j < numOfBCNodes; ++j)
         {
             const double T = m_Nodes[j].property(Variable::temperature);
             const double humidity = m_Nodes[j].property(Variable::humidity);
-            con[j] = (m_AirHumidity * saturationConcentrationAtTemperature(m_AirTemperature)
+            vaporLeak[j] = (m_AirHumidity * saturationConcentrationAtTemperature(m_AirTemperature)
                       - humidity * saturationConcentrationAtTemperature(T))
                      * heatOfEvaporation(T);
         }
-        const auto vaporFluxEnergy = con * beta * convectionCoefficients();
-        const auto convectionFluxEnergy = convectionCoefficients() * m_AirTemperature;
+        const auto vaporFluxEnergy = vaporLeak * m_ConvectiveCoeffCalc->betaConv();
+        const auto convectionFluxEnergy = m_ConvectiveCoeffCalc->convectiveCoefficients() * m_AirTemperature;
 
         const auto rightHandSide = convectionFluxEnergy + vaporFluxEnergy;
 
@@ -145,12 +131,7 @@ namespace HygroThermFEM
 
     FenestrationCommon::SquareMatrix IConvectionBC::H_Matrix() const
     {
-        return m_PsiPsiMatrix.mmultRows(convectionCoefficients());
-    }
-
-    std::vector<double> IConvectionBC::convectionCoefficients() const
-    {
-        return m_ConvectiveCoeffCalc->convectiveCoefficients();
+        return m_PsiPsiMatrix.mmultRows(m_ConvectiveCoeffCalc->convectiveCoefficients());
     }
 
     ////////////////////////////////////////////////////////
@@ -292,7 +273,7 @@ namespace HygroThermFEM
     std::vector<double> IMoistureBC::R_Vector() const
     {
         const auto satOutside = saturationConcentrationAtTemperature(m_AirTemperature);
-        const auto gconv = betaConv() * satOutside * m_AirHumidity;
+        const auto gconv = m_ConvectiveCoeffCalc->betaConv() * satOutside * m_AirHumidity;
         return m_PsiVector * gconv;
     }
 
@@ -304,33 +285,9 @@ namespace HygroThermFEM
             const double T = m_Nodes[j].property(Variable::temperature);
             concentration[j] = saturationConcentrationAtTemperature(T);
         }
-        const auto vaporFlux = concentration * betaConv();
+        const auto vaporFlux = concentration * m_ConvectiveCoeffCalc->betaConv();
 
         return m_PsiPsiMatrix.mmultRows(vaporFlux);
-    }
-
-    std::vector<double> IMoistureBC::betaConv() const
-    {
-        std::vector<double> betaCon(numOfBCNodes, 0);
-
-        for(std::size_t j = 0; j < numOfBCNodes; ++j)
-        {
-            const double humidity = m_Nodes[j].property(Variable::humidity);
-            if(humidity <= 1)
-            {
-                betaCon[j] = 1 / (Constants::Cp_Air * Constants::Density_Air);
-            }
-            else
-            {
-                betaCon[j] = 0;
-            }
-        }
-        return betaCon * convectiveCoefficient();
-    }
-
-    std::vector<double> IMoistureBC::convectiveCoefficient() const
-    {
-        return m_ConvectiveCoeffCalc->convectiveCoefficients();
     }
 
     /////////////////////////////////////////////////////
