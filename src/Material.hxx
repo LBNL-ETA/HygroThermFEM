@@ -27,7 +27,7 @@ namespace HygroThermFEM
     enum class MaterialType
     {
         Solid,
-        FrameCavity
+        FrameCavity_ISO15099
     };
 
     //! \brief Keeps necessary material data
