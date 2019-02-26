@@ -20,6 +20,16 @@ namespace HygroThermFEM
         Ice       //!< Water content in frozen state.
     };
 
+    //! \brief Used to describe different type of materials.
+    //!
+    //! Depending on material type, engine will perform different algorithms on how to calculate
+    //! equivalent material properties.
+    enum class MaterialType
+    {
+        Solid,
+        FrameCavity
+    };
+
     //! \brief Keeps necessary material data
     //!
     //! Material data necessary for mass and thermal transfer are held in this class. Mainly used as
@@ -101,8 +111,10 @@ namespace HygroThermFEM
             LiquidTransportCurve,   //!< Liquid transportation curve. Relationship between relative
                                     //!< humidity and ability of material to transport water.
           const std::vector<std::pair<double, double>> &
-            SorptionCurve);   //!< Moisture storage function. Relationship between relative humidity
+            SorptionCurve,    //!< Moisture storage function. Relationship between relative humidity
                               //!< and water content.
+          double emissivity = 0.9, //!< Material emissivity
+          MaterialType materialType = MaterialType::Solid);
 
         std::string m_Name;
         double m_Density;
@@ -121,6 +133,9 @@ namespace HygroThermFEM
         // Sorption curve shows how much of water content will be in relation to relative humidity
         // (x-relative humidity [between zero to one], y-water content [kg/m3]
         std::unique_ptr<HygroThermFEM::TabularFunction> m_SorptionCurve;
+
+        double m_Emissivity;
+        MaterialType m_MaterialType;
 
         //! Saturated vapor content calculations at given node. It is necessary
         //! for water content calculations.

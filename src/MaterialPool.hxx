@@ -17,9 +17,11 @@ namespace HygroThermFEM
                          double Porosity,
                          double HeatCapacity,
                          double DiffusionResistanceFactor,
-						 const std::vector<std::pair<double, double>> & ThermalConductivity,
+                         const std::vector<std::pair<double, double>> & ThermalConductivity,
                          const std::vector<std::pair<double, double>> & LiquidTransportCurve,
-                         const std::vector<std::pair<double, double>> & SorptionCurve);
+                         const std::vector<std::pair<double, double>> & SorptionCurve,
+                         double emissivity = 0.9,
+                         MaterialType materialType = MaterialType::Solid);
 
         const Material & material(const std::string & name) const;
 

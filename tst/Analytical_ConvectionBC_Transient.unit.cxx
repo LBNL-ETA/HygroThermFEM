@@ -58,10 +58,10 @@ TEST_F(Analytical_ConvectionBC_Transient, TestExample_1)
       0.22,   /// Porosity
       850,    /// Specific Heat Capacity (dry)
       /// No need for liquid coefficients
-      15E-6,                   /// Diffusion Resistance Factor
-	  {{0.0, 1.8}, {180, 1.8}},    /// Thermal Conductivity as function of water content
-      {{0, 0}, {180, 7E-7}},   /// Liquid Transportation Coefficient
-      {{0, 0}, {1, 180}}       /// Moisture Storage Function
+      15E-6,                      /// Diffusion Resistance Factor
+      {{0.0, 1.8}, {180, 1.8}},   /// Thermal Conductivity as function of water content
+      {{0, 0}, {180, 7E-7}},      /// Liquid Transportation Coefficient
+      {{0, 0}, {1, 180}}          /// Moisture Storage Function
 
     );
 

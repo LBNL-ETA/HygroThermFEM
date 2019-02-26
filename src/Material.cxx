@@ -14,7 +14,9 @@ namespace HygroThermFEM
                        const double DiffusionResistanceFactor,
                        const std::vector<std::pair<double, double>> & ThermalConductivity,
                        const std::vector<std::pair<double, double>> & LiquidTransportCurve,
-                       const std::vector<std::pair<double, double>> & SorptionCurve) :
+                       const std::vector<std::pair<double, double>> & SorptionCurve,
+                       const double emissivity,
+                       const MaterialType materialType) :
         m_Name(Name),
         m_Density(Density),
         m_Porosity(Porosity),
@@ -22,7 +24,9 @@ namespace HygroThermFEM
         m_DiffusionResistanceFactor(DiffusionResistanceFactor),
         m_ThermalConductivity(new TabularFunction(ThermalConductivity, Variable::water)),
         m_LiquidTransportCoefficient(new LiquidTransportationCurve(LiquidTransportCurve)),
-        m_SorptionCurve(new TabularFunction(SorptionCurve, Variable::humidity))
+        m_SorptionCurve(new TabularFunction(SorptionCurve, Variable::humidity)),
+        m_Emissivity(emissivity),
+        m_MaterialType(materialType)
     {
         try
         {

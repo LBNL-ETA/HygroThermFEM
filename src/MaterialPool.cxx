@@ -15,13 +15,15 @@ namespace HygroThermFEM
 
     const Material & MaterialPool::createMaterial(
       const std::string & Name,
-      const double Density,
-      const double Porosity,
-      const double HeatCapacity,
-      const double DiffusionResistanceFactor,
-	  const std::vector<std::pair<double, double>> & ThermalConductivity,
+      double Density,
+      double Porosity,
+      double HeatCapacity,
+      double DiffusionResistanceFactor,
+      const std::vector<std::pair<double, double>> & ThermalConductivity,
       const std::vector<std::pair<double, double>> & LiquidTransportCurve,
-      const std::vector<std::pair<double, double>> & SorptionCurve)
+      const std::vector<std::pair<double, double>> & SorptionCurve,
+      double emissivity,
+      MaterialType materialType)
     {
         m_Materials.emplace(std::make_pair(Name,
                                            Material(Name,
@@ -31,7 +33,9 @@ namespace HygroThermFEM
                                                     DiffusionResistanceFactor,
                                                     ThermalConductivity,
                                                     LiquidTransportCurve,
-                                                    SorptionCurve)));
+                                                    SorptionCurve,
+                                                    emissivity,
+                                                    materialType)));
         return m_Materials.at(Name);
     }
 
