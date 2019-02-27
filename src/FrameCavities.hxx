@@ -108,10 +108,10 @@ namespace HygroThermFEM
         //! Function to perform calculation of equivalent frame cavities over entire domain.
         void calculateEquivalentFrameCavities();
 
-        //! calculate edges of frame cavity with no sorted lines
+        //! Calculate edges of frame cavity with lines in no specific order
         static std::set<line> getEdges(const std::vector<std::vector<size_t>> & elNodes);
 
-        //! calculate nodes in ordered way. These nodes are boundary of the frame cavity. One frame
+        //! Calculate nodes in ordered way. These nodes are boundary of the frame cavity. One frame
         //! cavity is processed at the time.
         static std::vector<size_t> edgeNodesOrdered(std::set<line> & allEdges);
 

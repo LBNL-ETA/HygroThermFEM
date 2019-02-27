@@ -56,25 +56,30 @@ namespace HygroThermFEM
     }
 
     std::set<EquivalentFrameCavities::line>
-      EquivalentFrameCavities::getEdges(const std::vector<std::vector<size_t>> & elNodes) {
+      EquivalentFrameCavities::getEdges(const std::vector<std::vector<size_t>> & elNodes)
+    {
         std::map<std::set<size_t>, size_t> edges;
         std::set<line> allEdges;
 
-        for (auto &n : elNodes) {
-            for (size_t i = 0u; i < n.size(); ++i) {
-
+        for(auto & n : elNodes)
+        {
+            for(size_t i = 0u; i < n.size(); ++i)
+            {
                 const auto index1 = n[i];
                 auto index2 = n[0u];
-                if (i != n.size() - 1) {
+                if(i != n.size() - 1)
+                {
                     index2 = n[i + 1u];
                 }
-                std::set<size_t> edge({ index1, index2 });
-                if (edges.find(edge) != edges.end()) {
+                std::set<size_t> edge({index1, index2});
+                if(edges.find(edge) != edges.end())
+                {
                     edges[edge]++;
                     allEdges.erase(line(index1, index2));
                     allEdges.erase(line(index2, index1));
                 }
-                else {
+                else
+                {
                     edges[edge] = 1u;
                     allEdges.insert(line(index1, index2));
                 }
@@ -84,16 +89,17 @@ namespace HygroThermFEM
         return allEdges;
     }
 
-    std::vector<size_t> EquivalentFrameCavities::edgeNodesOrdered(std::set<line> & allEdges) {
+    std::vector<size_t> EquivalentFrameCavities::edgeNodesOrdered(std::set<line> & allEdges)
+    {
         std::vector<size_t> boundaryLine;
 
         line first = *allEdges.begin();
         boundaryLine.push_back(first.getN1());
         allEdges.erase(first);
 
-        while (!allEdges.empty()) {
-            auto second =
-                std::find_if(allEdges.begin(), allEdges.end(), [&first](const line &l) {
+        while(!allEdges.empty())
+        {
+            auto second = std::find_if(allEdges.begin(), allEdges.end(), [&first](const line & l) {
                 return first.getN2() == l.getN1();
             });
             first = *second;
