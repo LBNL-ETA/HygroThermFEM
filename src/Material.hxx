@@ -53,11 +53,17 @@ namespace HygroThermFEM
         //! Material's porosity.
         double porosity() const;
 
+        MaterialType materialType() const;
+
         //! Material's diffusion resistance factor.
         double diffusionResistanceFactor() const;
 
         //! Thermal conductivity table is (x-water content [kg/m3], y-thermal conductivity[W/(mK)])
         const std::vector<std::pair<double, double>> & thermalConductivity() const;
+
+        //! This will delete old table and put constant thermal conductivity.
+        //! It is necessary behavior for air cavities.
+        void updateThermalConductivity(double thermalConductivity);
 
         //! Liquid transportation curve of the material. Liquid transportation coefficient shows how
         //! much of water can be distributed through the material with certain water content
@@ -122,16 +128,16 @@ namespace HygroThermFEM
         double m_HeatCapacity;
         double m_DiffusionResistanceFactor;
 
-        // Thermal conductivity table is (x-water content [kg/m3], y-thermal conductivity[W/(mK)])
+        //! Thermal conductivity table is (x-water content [kg/m3], y-thermal conductivity[W/(mK)])
         std::unique_ptr<HygroThermFEM::TabularFunction> m_ThermalConductivity;
 
-        // Liquid transportation coefficient is function of water content. It shows how much of
-        // water will be transferred through material in relation to water content (x-water content
-        // [kg/m3], y-liquid transportation coefficient [m2/s]
+        //! Liquid transportation coefficient is function of water content. It shows how much of
+        //! water will be transferred through material in relation to water content (x-water content
+        //! [kg/m3], y-liquid transportation coefficient [m2/s]
         std::unique_ptr<HygroThermFEM::TabularFunction> m_LiquidTransportCoefficient;
 
-        // Sorption curve shows how much of water content will be in relation to relative humidity
-        // (x-relative humidity [between zero to one], y-water content [kg/m3]
+        //! Sorption curve shows how much of water content will be in relation to relative humidity
+        //! (x-relative humidity [between zero to one], y-water content [kg/m3]
         std::unique_ptr<HygroThermFEM::TabularFunction> m_SorptionCurve;
 
         double m_Emissivity;

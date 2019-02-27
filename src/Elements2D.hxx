@@ -33,10 +33,9 @@ namespace HygroThermFEM
 
         void assignElement(std::unique_ptr<IElementLinear2D> && el);
 
-    protected:
-        /// FenestrationCommon::SquareMatrix< double > m_Conductance;
-        /// FenestrationCommon::SquareMatrix< double > m_Capacitance;
+        const std::vector<std::unique_ptr<IElementLinear2D>> & elements() const;
 
+    protected:
         std::vector<std::unique_ptr<IElementLinear2D>> m_Elements;
     };
 

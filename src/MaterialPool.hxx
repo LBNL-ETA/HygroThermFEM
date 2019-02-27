@@ -27,6 +27,9 @@ namespace HygroThermFEM
 
         void clear();
 
+        //! Returns all material names of given type
+        std::vector<std::string> getMaterials(MaterialType materialType) const;
+
     private:
         MaterialPool() = default;
 

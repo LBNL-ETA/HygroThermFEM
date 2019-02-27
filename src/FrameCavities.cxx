@@ -1,8 +1,12 @@
-
 #include "FrameCavities.hxx"
+#include "MaterialPool.hxx"
 
 namespace HygroThermFEM
 {
+    ///////////////////////////////////////////////////////////////////////////////
+    ///  FrameCavity
+    ///////////////////////////////////////////////////////////////////////////////
+
     FrameCavity::FrameCavity(const double effectiveConductivity,
                              const double horizontalDimension,
                              const double verticalDimension,
@@ -21,7 +25,82 @@ namespace HygroThermFEM
         m_Side2{temperature2, emissivity2}
     {}
 
+    ///////////////////////////////////////////////////////////////////////////////
+    ///  EquivalentFrameCavities
+    ///////////////////////////////////////////////////////////////////////////////
+
     EquivalentFrameCavities::EquivalentFrameCavities(const ElementsLinear2D & m_Elements) :
         m_Elements(m_Elements)
-    {}
+    {
+        calculateEquivalentFrameCavities();
+    }
+
+    void EquivalentFrameCavities::calculateEquivalentFrameCavities()
+    {
+        auto frameCavities =
+          MaterialPool::Instance().getMaterials(MaterialType::FrameCavity_ISO15099);
+
+        for(const auto & frameCavity : frameCavities)
+        {
+            std::vector<std::vector<size_t>> elementNodes;
+            for(const auto & element : m_Elements.elements())
+            {
+                if(element->getMaterial().name() == frameCavity)
+                {
+                    elementNodes.push_back(element->nodeIndexes());
+                }
+            }
+            auto edges = getEdges(elementNodes);
+            auto boundaryNodes = edgeNodesOrdered(edges);
+        }
+    }
+
+    std::set<EquivalentFrameCavities::line>
+      EquivalentFrameCavities::getEdges(const std::vector<std::vector<size_t>> & elNodes) {
+        std::map<std::set<size_t>, size_t> edges;
+        std::set<line> allEdges;
+
+        for (auto &n : elNodes) {
+            for (size_t i = 0u; i < n.size(); ++i) {
+
+                const auto index1 = n[i];
+                auto index2 = n[0u];
+                if (i != n.size() - 1) {
+                    index2 = n[i + 1u];
+                }
+                std::set<size_t> edge({ index1, index2 });
+                if (edges.find(edge) != edges.end()) {
+                    edges[edge]++;
+                    allEdges.erase(line(index1, index2));
+                    allEdges.erase(line(index2, index1));
+                }
+                else {
+                    edges[edge] = 1u;
+                    allEdges.insert(line(index1, index2));
+                }
+            }
+        }
+
+        return allEdges;
+    }
+
+    std::vector<size_t> EquivalentFrameCavities::edgeNodesOrdered(std::set<line> & allEdges) {
+        std::vector<size_t> boundaryLine;
+
+        line first = *allEdges.begin();
+        boundaryLine.push_back(first.getN1());
+        allEdges.erase(first);
+
+        while (!allEdges.empty()) {
+            auto second =
+                std::find_if(allEdges.begin(), allEdges.end(), [&first](const line &l) {
+                return first.getN2() == l.getN1();
+            });
+            first = *second;
+            boundaryLine.push_back(first.getN1());
+            allEdges.erase(first);
+        }
+
+        return boundaryLine;
+    }
 }   // namespace HygroThermFEM

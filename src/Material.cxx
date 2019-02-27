@@ -158,4 +158,18 @@ namespace HygroThermFEM
     {
         return m_Porosity - liquidPorosity(node);
     }
+
+    void Material::updateThermalConductivity(double thermalConductivity)
+    {
+        const auto minX = m_ThermalConductivity->minX();
+        const auto maxX = m_ThermalConductivity->maxX();
+        auto & curve = m_ThermalConductivity->getCurve();
+        curve.clear();
+        curve.emplace_back(minX, thermalConductivity);
+        curve.emplace_back(maxX, thermalConductivity);
+    }
+
+    MaterialType Material::materialType() const {
+        return m_MaterialType;
+    }
 }   // namespace HygroThermFEM

@@ -22,3 +22,4 @@
 #include "../src/FEMMath.hxx"
 #include "../src/MultiDomain.hxx"
 #include "../src/Common.hxx"
+#include "../src/FrameCavities.hxx"

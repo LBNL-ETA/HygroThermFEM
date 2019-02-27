@@ -44,4 +44,16 @@ namespace HygroThermFEM
         return m_Materials.at(name);
     }
 
+    std::vector<std::string> MaterialPool::getMaterials(MaterialType materialType) const {
+        std::vector<std::string> result;
+        for(auto & mat : m_Materials)
+        {
+            if(mat.second.materialType() == materialType)
+            {
+                result.push_back(mat.second.name());
+            }
+        }
+        return result;
+    }
+
 }   // namespace HygroThermFEM

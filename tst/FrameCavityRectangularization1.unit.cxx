@@ -81,14 +81,15 @@ TEST_F(TestFrameCavityRectangularization1, Test1)
     ElementsLinear2D elements;
     size_t elementNumber{0u};
     for(auto ix = 1u; ix < gridX.size(); ++ix)
+    {
         for(auto iy = 1u; iy < gridY.size(); ++iy)
         {
             {
                 ++elementNumber;
                 const auto node1 = ix * gridX.size() + iy - gridX.size();
                 const auto node2 = ix * gridX.size() + iy - gridX.size() + 1u;
-                const auto node3 = ix * gridX.size() + iy;
-                const auto node4 = ix * gridX.size() + (iy + 1u);
+                const auto node3 = ix * gridX.size() + (iy + 1u);
+                const auto node4 = ix * gridX.size() + iy;
                 if(frameCavityElement.find(elementNumber) != frameCavityElement.end())
                 {
                     elements.assignElement(std::unique_ptr<ElementThermalLinear2D>(
@@ -102,4 +103,6 @@ TEST_F(TestFrameCavityRectangularization1, Test1)
                 }
             }
         }
+    }
+    HygroThermFEM::EquivalentFrameCavities eqFrameCav(elements);
 }
