@@ -6,13 +6,15 @@ namespace HygroThermFEM
 {
     struct Solution
     {
-        Solution(const std::vector<double> & temperature,
+        Solution(double dtime,
+                 const std::vector<double> & temperature,
                  const std::vector<double> & humidity,
                  const std::vector<double> & waterContent,
                  const std::vector<double> & liquidWaterContent,
                  const std::vector<double> & vaporContent,
                  const std::vector<double> & iceContent);
 
+        double dTime;
         std::vector<double> temperature;
         std::vector<double> humidity;
         std::vector<double> waterContent;

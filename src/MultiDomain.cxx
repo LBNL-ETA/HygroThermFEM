@@ -20,12 +20,13 @@ namespace HygroThermFEM
         auto humidityError = std::numeric_limits<double>::max();
         auto currentTemperature = temperature;
         auto currentHumidity = humidity;
+        double dTime = t_DTime;
 
         while(temperatureError > ConvergenceError || humidityError > ConvergenceError)
         {
             double dTimeThermal = t_DTime;
             double dTimeMoisture = t_DTime;
-            SingleSolution temperatureSolution{ temperature, t_DTime };
+            SingleSolution temperatureSolution{temperature, t_DTime};
             SingleSolution humiditySolution{humidity, t_DTime};
 
             do   // Loop that performs adaptive timestep in case of convergence failure.
@@ -43,21 +44,23 @@ namespace HygroThermFEM
                     dTimeMoisture = dTimeThermal;
                 }
 
-                m_ThermalDomain.updateNodeValues(humiditySolution.solution, BaseVariable::humidity, false);
+                m_ThermalDomain.updateNodeValues(
+                  humiditySolution.solution, BaseVariable::humidity, false);
                 temperatureSolution = m_ThermalDomain.transient(temperature, dTimeThermal);
                 temperatureError = normError(temperatureSolution.solution, currentTemperature);
                 dTimeThermal = temperatureSolution.dTime;
 
-                m_MoistureDomain.updateNodeValues(temperatureSolution.solution, BaseVariable::temperature, false);
+                m_MoistureDomain.updateNodeValues(
+                  temperatureSolution.solution, BaseVariable::temperature, false);
                 humiditySolution = m_MoistureDomain.transient(humidity, dTimeMoisture);
                 humidityError = normError(humiditySolution.solution, currentHumidity);
                 dTimeMoisture = humiditySolution.dTime;
-
+                dTime = dTimeThermal;
 
             } while(dTimeThermal != dTimeMoisture);
 
             currentHumidity = humiditySolution.solution;
-            currentTemperature = temperatureSolution.solution;            
+            currentTemperature = temperatureSolution.solution;
         }
 
         m_ThermalDomain.updateNodeValues(currentTemperature, BaseVariable::temperature, true);
@@ -73,7 +76,8 @@ namespace HygroThermFEM
         const auto vaporContent = NodePool::Instance().properties(Variable::vapor);
         const auto iceContent = NodePool::Instance().properties(Variable::ice);
 
-        return Solution{currentTemperature,
+        return Solution{dTime,
+                        currentTemperature,
                         currentHumidity,
                         waterContent,
                         liquidContent,
@@ -100,8 +104,8 @@ namespace HygroThermFEM
         m_ThermalDomain.createConvectionBCFixedHc(
           index1, index2, t_AirTemperature, t_ConvectionCoefficient, t_Humidity);
 
-        m_MoistureDomain.createMoistureBCFixedHc(index1, index2, t_AirTemperature,
-                                                 t_ConvectionCoefficient, t_Humidity);
+        m_MoistureDomain.createMoistureBCFixedHc(
+          index1, index2, t_AirTemperature, t_ConvectionCoefficient, t_Humidity);
     }
 
     void MultiDomain::createMoistureBCVariableHc(const size_t index1,
@@ -147,16 +151,19 @@ namespace HygroThermFEM
         return std::abs(norm1 - norm2) / norm1;
     }
 
-    std::vector<double> MultiDomain::property(Variable property) {
+    std::vector<double> MultiDomain::property(Variable property)
+    {
         return NodePool::Instance().properties(property);
     }
 
-    Solution::Solution(const std::vector<double> & temperature,
+    Solution::Solution(const double dtime,
+                       const std::vector<double> & temperature,
                        const std::vector<double> & humidity,
                        const std::vector<double> & waterContent,
                        const std::vector<double> & liquidWaterContent,
                        const std::vector<double> & vaporContent,
                        const std::vector<double> & iceContent) :
+        dTime(dtime),
         temperature(temperature),
         humidity(humidity),
         waterContent(waterContent),
