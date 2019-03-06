@@ -95,11 +95,21 @@ namespace HygroThermFEM
         //! cavity is processed at the time.
         static std::vector<size_t> edgeNodesOrdered(std::set<line> & allEdges);
 
-        std::vector<FrameCavity> m_EquivalentFrameCavities;
         const ElementsLinear2D & m_Elements;
 
         //! Keeps boundary nodes for every frame cavity in the domain.
         std::map<std::string, std::vector<size_t>> m_BoundaryNodes;
+    };
+
+    ///////////////////////////////////////////////////////////////////////////////
+    ///  RectangularizedCavity
+    ///////////////////////////////////////////////////////////////////////////////
+
+    //! \brief Used to create equivalent rectangular frame cavity.
+    class RectangularizedCavity
+    {
+    public:
+        RectangularizedCavity(const std::vector<size_t> & nodes);
     };
 
 }   // namespace HygroThermFEM

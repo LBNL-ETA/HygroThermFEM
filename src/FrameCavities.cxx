@@ -116,19 +116,21 @@ namespace HygroThermFEM
         return m_BoundaryNodes.at(frameCavityName);
     }
 
-    FrameCavityBoundaries::line::line(const size_t n1, const size_t n2): n1(n1),
-                                                               n2(n2) {
-    }
+    FrameCavityBoundaries::line::line(const size_t n1, const size_t n2) : n1(n1), n2(n2)
+    {}
 
-    size_t FrameCavityBoundaries::line::getN1() const {
+    size_t FrameCavityBoundaries::line::getN1() const
+    {
         return n1;
     }
 
-    size_t FrameCavityBoundaries::line::getN2() const {
+    size_t FrameCavityBoundaries::line::getN2() const
+    {
         return n2;
     }
 
-    bool FrameCavityBoundaries::line::operator<(const line & rhs) const {
+    bool FrameCavityBoundaries::line::operator<(const line & rhs) const
+    {
         if(n1 < rhs.n1)
             return true;
         if(rhs.n1 < n1)
@@ -136,15 +138,21 @@ namespace HygroThermFEM
         return n2 < rhs.n2;
     }
 
-    bool FrameCavityBoundaries::line::operator>(const line & rhs) const {
+    bool FrameCavityBoundaries::line::operator>(const line & rhs) const
+    {
         return rhs < *this;
     }
 
-    bool FrameCavityBoundaries::line::operator<=(const line & rhs) const {
+    bool FrameCavityBoundaries::line::operator<=(const line & rhs) const
+    {
         return !(rhs < *this);
     }
 
-    bool FrameCavityBoundaries::line::operator>=(const line & rhs) const {
+    bool FrameCavityBoundaries::line::operator>=(const line & rhs) const
+    {
         return !(*this < rhs);
     }
+
+    RectangularizedCavity::RectangularizedCavity(const std::vector<size_t> & nodes)
+    {}
 }   // namespace HygroThermFEM
