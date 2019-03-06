@@ -26,16 +26,16 @@ namespace HygroThermFEM
     {}
 
     ///////////////////////////////////////////////////////////////////////////////
-    ///  EquivalentFrameCavities
+    ///  FrameCavityBoundaries
     ///////////////////////////////////////////////////////////////////////////////
 
-    EquivalentFrameCavities::EquivalentFrameCavities(const ElementsLinear2D & m_Elements) :
+    FrameCavityBoundaries::FrameCavityBoundaries(const ElementsLinear2D & m_Elements) :
         m_Elements(m_Elements)
     {
         calculateEquivalentFrameCavities();
     }
 
-    void EquivalentFrameCavities::calculateEquivalentFrameCavities()
+    void FrameCavityBoundaries::calculateEquivalentFrameCavities()
     {
         auto frameCavities =
           MaterialPool::Instance().getMaterials(MaterialType::FrameCavity_ISO15099);
@@ -51,12 +51,12 @@ namespace HygroThermFEM
                 }
             }
             auto edges = getEdges(elementNodes);
-            auto boundaryNodes = edgeNodesOrdered(edges);
+            m_BoundaryNodes[frameCavity] = edgeNodesOrdered(edges);
         }
     }
 
-    std::set<EquivalentFrameCavities::line>
-      EquivalentFrameCavities::getEdges(const std::vector<std::vector<size_t>> & elNodes)
+    std::set<FrameCavityBoundaries::line>
+      FrameCavityBoundaries::getEdges(const std::vector<std::vector<size_t>> & elNodes)
     {
         std::map<std::set<size_t>, size_t> edges;
         std::set<line> allEdges;
@@ -89,7 +89,7 @@ namespace HygroThermFEM
         return allEdges;
     }
 
-    std::vector<size_t> EquivalentFrameCavities::edgeNodesOrdered(std::set<line> & allEdges)
+    std::vector<size_t> FrameCavityBoundaries::edgeNodesOrdered(std::set<line> & allEdges)
     {
         std::vector<size_t> boundaryLine;
 
@@ -108,5 +108,43 @@ namespace HygroThermFEM
         }
 
         return boundaryLine;
+    }
+
+    const std::vector<size_t> &
+      FrameCavityBoundaries::boundaryNodes(const std::string & frameCavityName) const
+    {
+        return m_BoundaryNodes.at(frameCavityName);
+    }
+
+    FrameCavityBoundaries::line::line(const size_t n1, const size_t n2): n1(n1),
+                                                               n2(n2) {
+    }
+
+    size_t FrameCavityBoundaries::line::getN1() const {
+        return n1;
+    }
+
+    size_t FrameCavityBoundaries::line::getN2() const {
+        return n2;
+    }
+
+    bool FrameCavityBoundaries::line::operator<(const line & rhs) const {
+        if(n1 < rhs.n1)
+            return true;
+        if(rhs.n1 < n1)
+            return false;
+        return n2 < rhs.n2;
+    }
+
+    bool FrameCavityBoundaries::line::operator>(const line & rhs) const {
+        return rhs < *this;
+    }
+
+    bool FrameCavityBoundaries::line::operator<=(const line & rhs) const {
+        return !(rhs < *this);
+    }
+
+    bool FrameCavityBoundaries::line::operator>=(const line & rhs) const {
+        return !(*this < rhs);
     }
 }   // namespace HygroThermFEM

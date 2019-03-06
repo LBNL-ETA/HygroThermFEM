@@ -50,55 +50,35 @@ namespace HygroThermFEM
     };
 
     ///////////////////////////////////////////////////////////////////////////////
-    ///  EquivalentFrameCavities
+    ///  FrameCavityBoundaries
     ///////////////////////////////////////////////////////////////////////////////
 
     //! \brief Class to calculate equivalent frame cavities from mesh model
-    class EquivalentFrameCavities
+    class FrameCavityBoundaries
     {
     public:
-        explicit EquivalentFrameCavities(const ElementsLinear2D & m_Elements);
+        explicit FrameCavityBoundaries(const ElementsLinear2D & m_Elements);
+
+        const std::vector<size_t> & boundaryNodes(const std::string & frameCavityName) const;
 
     private:
         //! Helper function used in algorithm to determine frame cavity boundaries
         class line
         {
         public:
-            line(size_t n1, size_t n2) : n1(n1), n2(n2)
-            {}
+            line(size_t n1, size_t n2);
 
-            size_t getN1() const
-            {
-                return n1;
-            }
-            size_t getN2() const
-            {
-                return n2;
-            }
+            size_t getN1() const;
 
-            bool operator<(const line & rhs) const
-            {
-                if(n1 < rhs.n1)
-                    return true;
-                if(rhs.n1 < n1)
-                    return false;
-                return n2 < rhs.n2;
-            }
+            size_t getN2() const;
 
-            bool operator>(const line & rhs) const
-            {
-                return rhs < *this;
-            }
+            bool operator<(const line & rhs) const;
 
-            bool operator<=(const line & rhs) const
-            {
-                return !(rhs < *this);
-            }
+            bool operator>(const line & rhs) const;
 
-            bool operator>=(const line & rhs) const
-            {
-                return !(*this < rhs);
-            }
+            bool operator<=(const line & rhs) const;
+
+            bool operator>=(const line & rhs) const;
 
         private:
             size_t n1;
@@ -117,6 +97,9 @@ namespace HygroThermFEM
 
         std::vector<FrameCavity> m_EquivalentFrameCavities;
         const ElementsLinear2D & m_Elements;
+
+        //! Keeps boundary nodes for every frame cavity in the domain.
+        std::map<std::string, std::vector<size_t>> m_BoundaryNodes;
     };
 
 }   // namespace HygroThermFEM
