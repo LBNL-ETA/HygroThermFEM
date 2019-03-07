@@ -10,8 +10,8 @@ using HygroThermFEM::State;
 using HygroThermFEM::ElementsLinear2D;
 using HygroThermFEM::ElementThermalLinear2D;
 
-// Testing of search for frame cavity boundaries.
-class TestFrameCavityBoundaries2 : public testing::Test
+
+class TestEquivalentFrameCavity2 : public testing::Test
 {
 protected:
     void SetUp() override
@@ -26,7 +26,7 @@ protected:
 public:
 };
 
-TEST_F(TestFrameCavityBoundaries2, TestDoubleFrameCavityBoundaries)
+TEST_F(TestEquivalentFrameCavity2, TestDoubleFrameCavity)
 {
     SCOPED_TRACE("Begin Test: Model with two frame cavities.");
 
@@ -122,24 +122,25 @@ TEST_F(TestFrameCavityBoundaries2, TestDoubleFrameCavityBoundaries)
             }
         }
     }
-    HygroThermFEM::FrameCavityBoundaries eqFrameCav1(elements);
-    const auto edges1 = eqFrameCav1.boundaryNodes(frameCavity1.name());
+    HygroThermFEM::EquivalentFrameCavities eqFrameCav1(elements);
+    const auto cavity1 = eqFrameCav1.getCavity(frameCavity1.name());
 
-    std::vector<size_t> correctEdges1{11, 12, 13, 21, 29, 37, 45, 44, 43, 42, 34, 26, 27, 19};
-    EXPECT_EQ(correctEdges1.size(), edges1.size());
-    for(size_t i = 0u; i < correctEdges1.size(); ++i)
-    {
-        EXPECT_EQ(correctEdges1[i], edges1[i]);
-    }
+    const auto area1 = cavity1.area();
+    const auto L1 = cavity1.L();
+    const auto H1 = cavity1.H();
 
-    HygroThermFEM::FrameCavityBoundaries eqFrameCav2(elements);
-    const auto edges2 = eqFrameCav2.boundaryNodes(frameCavity2.name());
+    EXPECT_NEAR(area1, 0.005, 1e-6);
+    EXPECT_NEAR(L1, 0.027386, 1e-6);
+    EXPECT_NEAR(H1, 0.182574, 1e-6);
 
-    std::vector<size_t> correctEdges2{
-      22, 23, 24, 32, 40, 48, 56, 64, 63, 62, 61, 53, 54, 46, 38, 30};
-    EXPECT_EQ(correctEdges2.size(), edges2.size());
-    for(size_t i = 0u; i < correctEdges2.size(); ++i)
-    {
-        EXPECT_EQ(correctEdges2[i], edges2[i]);
-    }
+    HygroThermFEM::EquivalentFrameCavities eqFrameCav2(elements);
+    const auto cavity2 = eqFrameCav2.getCavity(frameCavity2.name());
+
+    const auto area2 = cavity2.area();
+    const auto L2 = cavity2.L();
+    const auto H2 = cavity2.H();
+
+    EXPECT_NEAR(area2, 0.0055, 1e-6);
+    EXPECT_NEAR(L2, 0.025690, 1e-6);
+    EXPECT_NEAR(H2, 0.214087, 1e-6);
 }

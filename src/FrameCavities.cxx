@@ -30,13 +30,13 @@ namespace HygroThermFEM
     ///  FrameCavityBoundaries
     ///////////////////////////////////////////////////////////////////////////////
 
-    FrameCavityBoundaries::FrameCavityBoundaries(const ElementsLinear2D & m_Elements) :
+    EquivalentFrameCavities::EquivalentFrameCavities(const ElementsLinear2D & m_Elements) :
         m_Elements(m_Elements)
     {
         calculateEquivalentFrameCavities();
     }
 
-    void FrameCavityBoundaries::calculateEquivalentFrameCavities()
+    void EquivalentFrameCavities::calculateEquivalentFrameCavities()
     {
         auto frameCavities = MaterialPool::Instance().getMaterials(MaterialType::Gas);
 
@@ -55,8 +55,8 @@ namespace HygroThermFEM
         }
     }
 
-    std::set<FrameCavityBoundaries::line>
-      FrameCavityBoundaries::getEdges(const std::vector<std::vector<size_t>> & elNodes)
+    std::set<EquivalentFrameCavities::line>
+      EquivalentFrameCavities::getEdges(const std::vector<std::vector<size_t>> & elNodes)
     {
         std::map<std::set<size_t>, size_t> edges;
         std::set<line> allEdges;
@@ -89,7 +89,7 @@ namespace HygroThermFEM
         return allEdges;
     }
 
-    std::vector<size_t> FrameCavityBoundaries::edgeNodesOrdered(std::set<line> & allEdges)
+    std::vector<size_t> EquivalentFrameCavities::edgeNodesOrdered(std::set<line> & allEdges)
     {
         std::vector<size_t> boundaryLine;
 
@@ -111,25 +111,33 @@ namespace HygroThermFEM
     }
 
     const std::vector<size_t> &
-      FrameCavityBoundaries::boundaryNodes(const std::string & frameCavityName) const
+      EquivalentFrameCavities::boundaryNodes(const std::string & frameCavityName) const
     {
         return m_BoundaryNodes.at(frameCavityName);
     }
 
-    FrameCavityBoundaries::line::line(const size_t n1, const size_t n2) : n1(n1), n2(n2)
+    RectangularizedCavity
+      EquivalentFrameCavities::getCavity(const std::string & frameCavityName) const
+    {
+        const auto bNodes = boundaryNodes(frameCavityName);
+        RectangularizedCavity cavity(bNodes);
+        return cavity;
+    }
+
+    EquivalentFrameCavities::line::line(const size_t n1, const size_t n2) : n1(n1), n2(n2)
     {}
 
-    size_t FrameCavityBoundaries::line::getN1() const
+    size_t EquivalentFrameCavities::line::getN1() const
     {
         return n1;
     }
 
-    size_t FrameCavityBoundaries::line::getN2() const
+    size_t EquivalentFrameCavities::line::getN2() const
     {
         return n2;
     }
 
-    bool FrameCavityBoundaries::line::operator<(const line & rhs) const
+    bool EquivalentFrameCavities::line::operator<(const line & rhs) const
     {
         if(n1 < rhs.n1)
             return true;
@@ -138,17 +146,17 @@ namespace HygroThermFEM
         return n2 < rhs.n2;
     }
 
-    bool FrameCavityBoundaries::line::operator>(const line & rhs) const
+    bool EquivalentFrameCavities::line::operator>(const line & rhs) const
     {
         return rhs < *this;
     }
 
-    bool FrameCavityBoundaries::line::operator<=(const line & rhs) const
+    bool EquivalentFrameCavities::line::operator<=(const line & rhs) const
     {
         return !(rhs < *this);
     }
 
-    bool FrameCavityBoundaries::line::operator>=(const line & rhs) const
+    bool EquivalentFrameCavities::line::operator>=(const line & rhs) const
     {
         return !(*this < rhs);
     }
@@ -156,7 +164,7 @@ namespace HygroThermFEM
     RectangularizedCavity::RectangularizedCavity(const std::vector<size_t> & nodes) :
         m_Segments(buildSegments(nodes)),
         m_Area(area()),
-        m_Size(calcSize(0))
+        m_Size(calcSize(m_Area))
     {}
 
     std::vector<RectangularizedCavity::Segment>
@@ -165,12 +173,17 @@ namespace HygroThermFEM
         std::vector<Segment> segments;
         for(size_t i = 0u; i < nodes.size(); ++i)
         {
-            const auto firstIndex = i == 0 ? nodes.size() - 1 : i;
-            const auto & node1 = NodePool::Instance().getNode(firstIndex);
-            const auto & node2 = NodePool::Instance().getNode(i);
+            const auto firstIndex = i == 0 ? nodes.size() - 1 : i - 1;
+            const auto & node1 = NodePool::Instance().getNode(nodes[firstIndex]);
+            const auto & node2 = NodePool::Instance().getNode(nodes[i]);
+            auto emissivity{0.0};
             const auto materialName = findCommonMaterial(node1, node2);
-            const auto & material = MaterialPool::Instance().material(materialName);
-            segments.emplace_back(node1, node2, material.emissivity());
+            if(materialName != "")
+            {
+                const auto & material = MaterialPool::Instance().material(materialName);
+                emissivity = material.emissivity();
+            }
+            segments.emplace_back(node1, node2, emissivity);
         }
         return segments;
     }
@@ -214,7 +227,7 @@ namespace HygroThermFEM
         double maxY = m_Segments[0].firstNode().Y();
         double minY = m_Segments[0].firstNode().Y();
 
-        for (size_t i = 1u; i < m_Segments.size(); ++i)
+        for(size_t i = 1u; i < m_Segments.size(); ++i)
         {
             maxX = std::max(maxX, m_Segments[i].firstNode().X());
             minX = std::min(minX, m_Segments[i].firstNode().X());
@@ -230,6 +243,16 @@ namespace HygroThermFEM
         const auto L = ratio * H;
 
         return {L, H};
+    }
+
+    double RectangularizedCavity::L() const
+    {
+        return m_Size.L;
+    }
+
+    double RectangularizedCavity::H() const
+    {
+        return m_Size.H;
     }
 
     RectangularizedCavity::Segment::Segment(const Node2D & node1,

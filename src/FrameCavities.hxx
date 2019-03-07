@@ -50,58 +50,6 @@ namespace HygroThermFEM
     };
 
     ///////////////////////////////////////////////////////////////////////////////
-    ///  FrameCavityBoundaries
-    ///////////////////////////////////////////////////////////////////////////////
-
-    //! \brief Class to calculate equivalent frame cavities from mesh model
-    class FrameCavityBoundaries
-    {
-    public:
-        explicit FrameCavityBoundaries(const ElementsLinear2D & m_Elements);
-
-        const std::vector<size_t> & boundaryNodes(const std::string & frameCavityName) const;
-
-    private:
-        //! Helper function used in algorithm to determine frame cavity boundaries
-        class line
-        {
-        public:
-            line(size_t n1, size_t n2);
-
-            size_t getN1() const;
-
-            size_t getN2() const;
-
-            bool operator<(const line & rhs) const;
-
-            bool operator>(const line & rhs) const;
-
-            bool operator<=(const line & rhs) const;
-
-            bool operator>=(const line & rhs) const;
-
-        private:
-            size_t n1;
-            size_t n2;
-        };
-
-        //! Function to perform calculation of equivalent frame cavities over entire domain.
-        void calculateEquivalentFrameCavities();
-
-        //! Calculate edges of frame cavity with lines in no specific order
-        static std::set<line> getEdges(const std::vector<std::vector<size_t>> & elNodes);
-
-        //! Calculate nodes in ordered way. These nodes are boundary of the frame cavity. One frame
-        //! cavity is processed at the time.
-        static std::vector<size_t> edgeNodesOrdered(std::set<line> & allEdges);
-
-        const ElementsLinear2D & m_Elements;
-
-        //! Keeps boundary nodes for every frame cavity in the domain.
-        std::map<std::string, std::vector<size_t>> m_BoundaryNodes;
-    };
-
-    ///////////////////////////////////////////////////////////////////////////////
     ///  RectangularizedCavity
     ///////////////////////////////////////////////////////////////////////////////
 
@@ -113,6 +61,11 @@ namespace HygroThermFEM
     {
     public:
         explicit RectangularizedCavity(const std::vector<size_t> & nodes);
+
+        double L() const;
+        double H() const;
+
+        double area() const;
 
     private:
 
@@ -165,13 +118,65 @@ namespace HygroThermFEM
 
         std::vector<Segment> buildSegments(const std::vector<size_t> & nodes);
 
-        double area() const;
-
         RectangularizedCavity::Size calcSize(double area) const;
 
         const std::vector<Segment> m_Segments;
         const double m_Area;
         const Size m_Size;
+    };
+
+    ///////////////////////////////////////////////////////////////////////////////
+    ///  EquivalentFrameCavities
+    ///////////////////////////////////////////////////////////////////////////////
+
+    //! \brief Class to calculate equivalent frame cavities from mesh model
+    class EquivalentFrameCavities
+    {
+    public:
+        explicit EquivalentFrameCavities(const ElementsLinear2D & m_Elements);
+
+        RectangularizedCavity getCavity(const std::string & frameCavityName) const;
+
+    private:
+        const std::vector<size_t> & boundaryNodes(const std::string & frameCavityName) const;
+
+        //! Helper function used in algorithm to determine frame cavity boundaries
+        class line
+        {
+        public:
+            line(size_t n1, size_t n2);
+
+            size_t getN1() const;
+
+            size_t getN2() const;
+
+            bool operator<(const line & rhs) const;
+
+            bool operator>(const line & rhs) const;
+
+            bool operator<=(const line & rhs) const;
+
+            bool operator>=(const line & rhs) const;
+
+        private:
+            size_t n1;
+            size_t n2;
+        };
+
+        //! Function to perform calculation of equivalent frame cavities over entire domain.
+        void calculateEquivalentFrameCavities();
+
+        //! Calculate edges of frame cavity with lines in no specific order
+        static std::set<line> getEdges(const std::vector<std::vector<size_t>> & elNodes);
+
+        //! Calculate nodes in ordered way. These nodes are boundary of the frame cavity. One frame
+        //! cavity is processed at the time.
+        static std::vector<size_t> edgeNodesOrdered(std::set<line> & allEdges);
+
+        const ElementsLinear2D & m_Elements;
+
+        //! Keeps boundary nodes for every frame cavity in the domain.
+        std::map<std::string, std::vector<size_t>> m_BoundaryNodes;
     };
 
 }   // namespace HygroThermFEM

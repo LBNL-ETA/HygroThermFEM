@@ -10,8 +10,7 @@ using HygroThermFEM::State;
 using HygroThermFEM::ElementsLinear2D;
 using HygroThermFEM::ElementThermalLinear2D;
 
-// Testing of search for frame cavity boundaries.
-class TestFrameCavityBoundaries1 : public testing::Test
+class TestEquivalentFrameCavity1 : public testing::Test
 {
 protected:
     void SetUp() override
@@ -26,7 +25,7 @@ protected:
 public:
 };
 
-TEST_F(TestFrameCavityBoundaries1, TestSingleFrameCavityBoundaries)
+TEST_F(TestEquivalentFrameCavity1, TestSingleFrameCavity)
 {
     SCOPED_TRACE("Begin Test: Model with single frame cavity.");
 
@@ -104,13 +103,14 @@ TEST_F(TestFrameCavityBoundaries1, TestSingleFrameCavityBoundaries)
             }
         }
     }
-    HygroThermFEM::FrameCavityBoundaries eqFrameCav(elements);
-    const auto edges = eqFrameCav.boundaryNodes(frameCavity.name());
+    HygroThermFEM::EquivalentFrameCavities eqFrameCav(elements);
+    const auto cavity = eqFrameCav.getCavity(frameCavity.name());
 
-    std::vector<size_t> correctEdges{7, 8, 9, 14, 13, 18, 17, 12};
-    EXPECT_EQ(correctEdges.size(), edges.size());
-    for(size_t i = 0u; i < correctEdges.size(); ++i)
-    {
-        EXPECT_EQ(correctEdges[i], edges[i]);
-    }
+    const auto area = cavity.area();
+    const auto L = cavity.L();
+    const auto H = cavity.H();
+
+    EXPECT_NEAR(area, 0.0015, 1e-6);
+    EXPECT_NEAR(L, 0.017321, 1e-6);
+    EXPECT_NEAR(H, 0.086603, 1e-6);
 }
