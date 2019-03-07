@@ -115,6 +115,7 @@ namespace HygroThermFEM
         explicit RectangularizedCavity(const std::vector<size_t> & nodes);
 
     private:
+
         //! \brief Local enumerator used to assign segment to certain side of rectangular frame
         //! cavity.
         enum class Side
@@ -123,6 +124,12 @@ namespace HygroThermFEM
             Bottom,
             Left,
             Right
+        };
+
+        struct Size
+        {
+            double L;
+            double H;
         };
 
         //! \brief Local class segment that keeps basic properties for recangular cavity
@@ -137,6 +144,8 @@ namespace HygroThermFEM
             double node1Temperature() const;
             double node2Temperature() const;
             double averageTemperature() const;
+
+            const Node2D & firstNode() const;
 
             //! Helper function that is used in area calculation for entire frame cavity.
             double crossCalc() const;
@@ -158,8 +167,11 @@ namespace HygroThermFEM
 
         double area() const;
 
+        RectangularizedCavity::Size calcSize(double area) const;
+
         const std::vector<Segment> m_Segments;
         const double m_Area;
+        const Size m_Size;
     };
 
 }   // namespace HygroThermFEM

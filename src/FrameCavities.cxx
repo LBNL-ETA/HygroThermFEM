@@ -155,16 +155,18 @@ namespace HygroThermFEM
 
     RectangularizedCavity::RectangularizedCavity(const std::vector<size_t> & nodes) :
         m_Segments(buildSegments(nodes)),
-        m_Area(area())
+        m_Area(area()),
+        m_Size(calcSize(0))
     {}
 
     std::vector<RectangularizedCavity::Segment>
       RectangularizedCavity::buildSegments(const std::vector<size_t> & nodes)
     {
         std::vector<Segment> segments;
-        for(size_t i = 1u; i < nodes.size(); ++i)
+        for(size_t i = 0u; i < nodes.size(); ++i)
         {
-            const auto & node1 = NodePool::Instance().getNode(i - 1);
+            const auto firstIndex = i == 0 ? nodes.size() - 1 : i;
+            const auto & node1 = NodePool::Instance().getNode(firstIndex);
             const auto & node2 = NodePool::Instance().getNode(i);
             const auto materialName = findCommonMaterial(node1, node2);
             const auto & material = MaterialPool::Instance().material(materialName);
@@ -203,6 +205,31 @@ namespace HygroThermFEM
             area += segment.crossCalc();
         }
         return 0.5 * area;
+    }
+
+    RectangularizedCavity::Size RectangularizedCavity::calcSize(const double area) const
+    {
+        double maxX = m_Segments[0].firstNode().X();
+        double minX = m_Segments[0].firstNode().X();
+        double maxY = m_Segments[0].firstNode().Y();
+        double minY = m_Segments[0].firstNode().Y();
+
+        for (size_t i = 1u; i < m_Segments.size(); ++i)
+        {
+            maxX = std::max(maxX, m_Segments[i].firstNode().X());
+            minX = std::min(minX, m_Segments[i].firstNode().X());
+            maxY = std::max(maxY, m_Segments[i].firstNode().Y());
+            minY = std::min(minY, m_Segments[i].firstNode().Y());
+        }
+
+        const auto XSize = maxX - minX;
+        const auto YSize = maxY - minY;
+        const auto ratio = XSize / YSize;
+
+        const auto H = std::sqrt(area / ratio);
+        const auto L = ratio * H;
+
+        return {L, H};
     }
 
     RectangularizedCavity::Segment::Segment(const Node2D & node1,
@@ -271,5 +298,10 @@ namespace HygroThermFEM
     double RectangularizedCavity::Segment::crossCalc() const
     {
         return node1.X() * node2.Y() - node1.Y() * node2.X();
+    }
+
+    const Node2D & RectangularizedCavity::Segment::firstNode() const
+    {
+        return node1;
     }
 }   // namespace HygroThermFEM
