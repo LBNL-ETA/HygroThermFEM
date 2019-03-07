@@ -266,28 +266,28 @@ namespace HygroThermFEM
         m_Side(calcSide(node1, node2))
     {}
 
-    RectangularizedCavity::Side RectangularizedCavity::Segment::calcSide(const Node2D & node1,
-                                                                         const Node2D & node2) const
+    RectangularizedCavity::Side RectangularizedCavity::Segment::calcSide(const Node2D & n1,
+                                                                         const Node2D & n2) const
     {
-        auto angle =
-          node1.X() != node2.X() ? atan(node2.Y() - node1.Y() / (node2.X() - node1.X())) : M_PI / 2;
-        HygroThermFEM::RectangularizedCavity::Side aSide{Side::Left};
-        const auto sectorAngle{M_PI / 4};
+        const auto PI = 4 * std::atan(1);
+        const auto angle = n1.X() != n2.X() ? std::atan(n2.Y() - n1.Y() / (n2.X() - n1.X())) : PI / 2;
+        Side aSide{Side::Left};
+        const auto sectorAngle{PI / 4};
         if(angle >= sectorAngle && angle < 3 * sectorAngle)
         {
-            aSide = HygroThermFEM::RectangularizedCavity::Side::Left;
+            aSide = Side::Left;
         }
         else if(angle >= 3 * sectorAngle && angle < 5 * sectorAngle)
         {
-            aSide = HygroThermFEM::RectangularizedCavity::Side::Bottom;
+            aSide = Side::Bottom;
         }
         else if(angle >= 5 * sectorAngle && angle < 7 * sectorAngle)
         {
-            aSide = HygroThermFEM::RectangularizedCavity::Side::Right;
+            aSide = Side::Right;
         }
         else if((angle < sectorAngle && angle >= 7 * sectorAngle))
         {
-            aSide = HygroThermFEM::RectangularizedCavity::Side::Top;
+            aSide = Side::Top;
         }
         return aSide;
     }
