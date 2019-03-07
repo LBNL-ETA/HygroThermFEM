@@ -106,10 +106,60 @@ namespace HygroThermFEM
     ///////////////////////////////////////////////////////////////////////////////
 
     //! \brief Used to create equivalent rectangular frame cavity.
+    //!
+    //! Rectangularization is done according to ISO 15099 standard. These calculations are needed
+    //! for calculation of thermal conductivity.
     class RectangularizedCavity
     {
     public:
-        RectangularizedCavity(const std::vector<size_t> & nodes);
+        explicit RectangularizedCavity(const std::vector<size_t> & nodes);
+
+    private:
+        //! \brief Local enumerator used to assign segment to certain side of rectangular frame
+        //! cavity.
+        enum class Side
+        {
+            Top,
+            Bottom,
+            Left,
+            Right
+        };
+
+        //! \brief Local class segment that keeps basic properties for recangular cavity
+        //! calculations.
+        class Segment
+        {
+        public:
+            Segment(const Node2D & node1, const Node2D & node2, double emissivity);
+
+            double emissivity() const;
+            double length() const;
+            double node1Temperature() const;
+            double node2Temperature() const;
+            double averageTemperature() const;
+
+            //! Helper function that is used in area calculation for entire frame cavity.
+            double crossCalc() const;
+
+        private:
+            Side calcSide(const Node2D &node1, const Node2D &node2) const;
+
+            const Node2D & node1;
+            const Node2D & node2;
+            double m_Emissivity;
+            // Length is calculated once in segment constructor. It is just faster to execute.
+            const double m_Length;
+            const Side m_Side;
+        };
+
+        std::string findCommonMaterial(const Node2D & node1, const Node2D & node2) const;
+
+        std::vector<Segment> buildSegments(const std::vector<size_t> & nodes);
+
+        double area() const;
+
+        const std::vector<Segment> m_Segments;
+        const double m_Area;
     };
 
 }   // namespace HygroThermFEM

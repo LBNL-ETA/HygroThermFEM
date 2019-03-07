@@ -72,7 +72,7 @@ TEST_F(TestFrameCavityBoundaries1, TestSingleFrameCavityBoundaries)
       {{0, 0}, {180, 2e-6}},        // liquid transportation curve
       {{0, 0}, {1, 180}},           // Sorption curve
       0.0,
-      HygroThermFEM::MaterialType::FrameCavity_ISO15099);
+      HygroThermFEM::MaterialType::Gas);
 
     // Elements that will contain frame cavity
     std::set<size_t> frameCavityElement{6, 7, 10};

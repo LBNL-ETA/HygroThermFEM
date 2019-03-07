@@ -1,5 +1,6 @@
 #include "FrameCavities.hxx"
 #include "MaterialPool.hxx"
+#include "NodePool.hxx"
 
 namespace HygroThermFEM
 {
@@ -37,8 +38,7 @@ namespace HygroThermFEM
 
     void FrameCavityBoundaries::calculateEquivalentFrameCavities()
     {
-        auto frameCavities =
-          MaterialPool::Instance().getMaterials(MaterialType::FrameCavity_ISO15099);
+        auto frameCavities = MaterialPool::Instance().getMaterials(MaterialType::Gas);
 
         for(const auto & frameCavity : frameCavities)
         {
@@ -153,6 +153,123 @@ namespace HygroThermFEM
         return !(*this < rhs);
     }
 
-    RectangularizedCavity::RectangularizedCavity(const std::vector<size_t> & nodes)
+    RectangularizedCavity::RectangularizedCavity(const std::vector<size_t> & nodes) :
+        m_Segments(buildSegments(nodes)),
+        m_Area(area())
     {}
+
+    std::vector<RectangularizedCavity::Segment>
+      RectangularizedCavity::buildSegments(const std::vector<size_t> & nodes)
+    {
+        std::vector<Segment> segments;
+        for(size_t i = 1u; i < nodes.size(); ++i)
+        {
+            const auto & node1 = NodePool::Instance().getNode(i - 1);
+            const auto & node2 = NodePool::Instance().getNode(i);
+            const auto materialName = findCommonMaterial(node1, node2);
+            const auto & material = MaterialPool::Instance().material(materialName);
+            segments.emplace_back(node1, node2, material.emissivity());
+        }
+        return segments;
+    }
+
+    std::string RectangularizedCavity::findCommonMaterial(const Node2D & node1,
+                                                          const Node2D & node2) const
+    {
+        std::string name;
+        auto node1Materials = node1.getMaterialNames(MaterialType::Solid);
+        auto node2Materials = node2.getMaterialNames(MaterialType::Solid);
+
+        for(const auto & mat1 : node1Materials)
+        {
+            for(const auto & mat2 : node2Materials)
+            {
+                if(mat1 == mat2)
+                {
+                    name = mat1;
+                    break;
+                }
+            }
+        }
+
+        return name;
+    }
+
+    double RectangularizedCavity::area() const
+    {
+        double area{0};
+        for(const auto & segment : m_Segments)
+        {
+            area += segment.crossCalc();
+        }
+        return 0.5 * area;
+    }
+
+    RectangularizedCavity::Segment::Segment(const Node2D & node1,
+                                            const Node2D & node2,
+                                            double emissivity) :
+        node1(node1),
+        node2(node2),
+        m_Emissivity(emissivity),
+        m_Length(
+          std::sqrt(std::pow(node1.X() - node2.X(), 2) + std::pow(node1.Y() - node2.Y(), 2))),
+        m_Side(calcSide(node1, node2))
+    {}
+
+    RectangularizedCavity::Side RectangularizedCavity::Segment::calcSide(const Node2D & node1,
+                                                                         const Node2D & node2) const
+    {
+        auto angle =
+          node1.X() != node2.X() ? atan(node2.Y() - node1.Y() / (node2.X() - node1.X())) : M_PI / 2;
+        HygroThermFEM::RectangularizedCavity::Side aSide{Side::Left};
+        const auto sectorAngle{M_PI / 4};
+        if(angle >= sectorAngle && angle < 3 * sectorAngle)
+        {
+            aSide = HygroThermFEM::RectangularizedCavity::Side::Left;
+        }
+        else if(angle >= 3 * sectorAngle && angle < 5 * sectorAngle)
+        {
+            aSide = HygroThermFEM::RectangularizedCavity::Side::Bottom;
+        }
+        else if(angle >= 5 * sectorAngle && angle < 7 * sectorAngle)
+        {
+            aSide = HygroThermFEM::RectangularizedCavity::Side::Right;
+        }
+        else if((angle < sectorAngle && angle >= 7 * sectorAngle))
+        {
+            aSide = HygroThermFEM::RectangularizedCavity::Side::Top;
+        }
+        return aSide;
+    }
+
+    double RectangularizedCavity::Segment::emissivity() const
+    {
+        return m_Emissivity;
+    }
+
+    double RectangularizedCavity::Segment::node1Temperature() const
+    {
+        return node1.property(Variable::temperature);
+    }
+
+    double RectangularizedCavity::Segment::node2Temperature() const
+    {
+        return node2.property(Variable::temperature);
+    }
+
+    double RectangularizedCavity::Segment::length() const
+    {
+        return m_Length;
+    }
+
+    double RectangularizedCavity::Segment::averageTemperature() const
+    {
+        return 0.5
+               * (node1.property(Variable::temperature) + node2.property(Variable::temperature));
+    }
+
+    double RectangularizedCavity::Segment::crossCalc() const
+    {
+        return node1.X() * node2.Y() - node1.Y() * node2.X();
+    }
 }   // namespace HygroThermFEM

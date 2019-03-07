@@ -99,7 +99,8 @@ namespace HygroThermFEM
         return m_LiquidTransportCoefficient->getCurve();
     }
 
-    double Material::saturationConcentration(const INode2D &node) {
+    double Material::saturationConcentration(const INode2D & node)
+    {
         const auto temperature = node.property(Variable::temperature);
 
         return saturationConcentrationAtTemperature(temperature);
@@ -123,7 +124,8 @@ namespace HygroThermFEM
 
     double Material::vaporContent(const INode2D & node) const
     {
-        return saturationConcentration(node) * airPorosity(node) * node.property(Variable::humidity);
+        return saturationConcentration(node) * airPorosity(node)
+               * node.property(Variable::humidity);
     }
 
     double Material::liquidWaterContent(const INode2D & node) const
@@ -169,7 +171,13 @@ namespace HygroThermFEM
         curve.emplace_back(maxX, thermalConductivity);
     }
 
-    MaterialType Material::materialType() const {
+    MaterialType Material::materialType() const
+    {
         return m_MaterialType;
+    }
+
+    double Material::emissivity() const
+    {
+        return m_Emissivity;
     }
 }   // namespace HygroThermFEM

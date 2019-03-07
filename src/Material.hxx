@@ -27,7 +27,7 @@ namespace HygroThermFEM
     enum class MaterialType
     {
         Solid,
-        FrameCavity_ISO15099
+        Gas
     };
 
     //! \brief Keeps necessary material data
@@ -53,7 +53,11 @@ namespace HygroThermFEM
         //! Material's porosity.
         double porosity() const;
 
+        //! Returns type of material
         MaterialType materialType() const;
+
+        //! Returns material emissivity
+        double emissivity() const;
 
         //! Material's diffusion resistance factor.
         double diffusionResistanceFactor() const;

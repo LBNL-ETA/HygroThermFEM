@@ -72,7 +72,7 @@ TEST_F(TestFrameCavityBoundaries2, TestDoubleFrameCavityBoundaries)
       {{0, 0}, {180, 2e-6}},        // liquid transportation curve
       {{0, 0}, {1, 180}},           // Sorption curve
       0.0,
-      HygroThermFEM::MaterialType::FrameCavity_ISO15099);
+      HygroThermFEM::MaterialType::Gas);
 
     auto & frameCavity2 = MaterialPool::Instance().createMaterial(
       "Frame Cavity 2",
@@ -84,7 +84,7 @@ TEST_F(TestFrameCavityBoundaries2, TestDoubleFrameCavityBoundaries)
       {{0, 0}, {180, 2e-6}},        // liquid transportation curve
       {{0, 0}, {1, 180}},           // Sorption curve
       0.0,
-      HygroThermFEM::MaterialType::FrameCavity_ISO15099);
+      HygroThermFEM::MaterialType::Gas);
 
     // Elements that will contain frame cavity
     std::set<size_t> frameCavity1Element{10, 11, 17, 18, 23, 24, 25, 30, 31, 32};
