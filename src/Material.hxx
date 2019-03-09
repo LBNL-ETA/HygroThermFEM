@@ -8,6 +8,7 @@
 
 namespace HygroThermFEM
 {
+
     //! \brief Enumerates different state of water content.
     //!
     //! Water content can be obtained in three different states or simply in total value of water

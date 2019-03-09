@@ -22,6 +22,12 @@ execute_process(COMMAND ${CMAKE_COMMAND} --build .
 
 include_directories(${CMAKE_BINARY_DIR}/eigen-src)
 
+# Include Windows-CalcEngine
+# include(CMakeLists-Windows-CalcEngine.txt)
+
+# Include KeffCavity
+include(CMakeLists-KeffCavity.txt)
+
 # google test will not be created by this project if this is not main project. Main project is expected to handle google test.
 get_directory_property(hasParent PARENT_DIRECTORY)
 
@@ -72,6 +78,8 @@ endif ()
 add_library(${target_name} STATIC ${SOURCES})
 
 set_target_properties(${target_name} PROPERTIES LINKER_LANGUAGE CXX)
+
+target_link_libraries( ${target_name} PRIVATE KeffCavity)
 
 if (BUILD_TESTING)
     #include_directories( src )
