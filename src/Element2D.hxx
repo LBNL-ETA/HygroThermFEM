@@ -144,7 +144,7 @@ namespace HygroThermFEM
           size_t index2,                      //!< Node 2 index
           size_t index3,                      //!< Node 3 index
           size_t index4,                      //!< Node 4 index
-          const std::string & materialName,   //!< Material assigned to the element
+          const std::string & materialName,   //!< SolidMaterial assigned to the element
           Variable
             variable,   //! Variable is used to determine for which property flux will be calculated
           bool isLinear = true   //!< States if element equations can be solved by linear
@@ -177,7 +177,7 @@ namespace HygroThermFEM
         std::vector<std::size_t> nodeIndexes() const;
 
         //! Returns material that is assigned to the element.
-        const Material & getMaterial() const;
+        const IMaterial & getMaterial() const;
 
         //! Returns if element satisfies linear problem.
         virtual bool isLinear() const final;
@@ -309,7 +309,7 @@ namespace HygroThermFEM
             m_Matrix_x_Vector.emplace_back(std::unique_ptr<T>(new T(t)), property);
         }
 
-        const Material & m_Material;
+        const IMaterial & m_Material;
         Variable m_FluxVariable;   // State variable used to calculate flux
 
     private:
@@ -482,7 +482,7 @@ namespace HygroThermFEM
           size_t index2,                     //!< Node 2 index
           size_t index3,                     //!< Node 3 index
           size_t index4,                     //!< Node 4 index
-          const std::string & materialName   //!< Material name assigned to the element
+          const std::string & materialName   //!< SolidMaterial name assigned to the element
         );
     };
 
@@ -499,7 +499,7 @@ namespace HygroThermFEM
           size_t index2,                     //!< Node 2 index
           size_t index3,                     //!< Node 3 index
           size_t index4,                     //!< Node 4 index
-          const std::string & materialName   //!< Material name assigned to the element
+          const std::string & materialName   //!< SolidMaterial name assigned to the element
         );
     };
 

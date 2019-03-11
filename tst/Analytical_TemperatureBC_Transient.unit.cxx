@@ -47,17 +47,17 @@ TEST_F(Analytical_TemperatureBC_Transient, TestExample_1)
         NodePool::Instance().createNode(nodeIndex, val, 0.05, state);
     }
 
-    auto & material = MaterialPool::Instance().createMaterial(
-      "Test Material",
-      1.0,                       /// Density
-      0.00,                      /// Porosity
-      1.0,                       /// Specific Heat Capacity (dry)
-      15E-6,                     /// Diffusion Resistance Factor
-      {{0.0, 1.}, {180, 1.0}},   /// Thermal Conductivity (dry)
-      {{0, 0}, {180, 7E-7}},     /// Liquid Transportation Coefficient
-      {{0, 0}, {1, 180}}         /// Moisture Storage Function
+    auto & material = MaterialPool::Instance().createSolidMaterial(
+                                                              "Test Material",
+                                                              1.0,                     /// Density
+                                                              0.00,                    /// Porosity
+                                                              1.0,                     /// Specific Heat Capacity (dry)
+                                                              15E-6,                   /// Diffusion Resistance Factor
+                                                              {{0.0, 1.}, {180, 1.0}}, /// Thermal Conductivity (dry)
+                                                              {{0, 0}, {180, 7E-7}},   /// Liquid Transportation Coefficient
+                                                              {{0, 0}, {1, 180}}       /// Moisture Storage Function
 
-    );
+                                                             );
 
     HygroThermFEM::ThermalDomain domain;
 

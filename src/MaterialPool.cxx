@@ -13,7 +13,7 @@ namespace HygroThermFEM
         m_Materials.clear();
     }
 
-    const Material & MaterialPool::createMaterial(
+    const IMaterial & MaterialPool::createSolidMaterial(
       const std::string & Name,
       double Density,
       double Porosity,
@@ -22,35 +22,41 @@ namespace HygroThermFEM
       const std::vector<std::pair<double, double>> & ThermalConductivity,
       const std::vector<std::pair<double, double>> & LiquidTransportCurve,
       const std::vector<std::pair<double, double>> & SorptionCurve,
-      double emissivity,
-      MaterialType materialType)
+      double emissivity)
     {
-        m_Materials.emplace(std::make_pair(Name,
-                                           Material(Name,
-                                                    Density,
-                                                    Porosity,
-                                                    HeatCapacity,
-                                                    DiffusionResistanceFactor,
-                                                    ThermalConductivity,
-                                                    LiquidTransportCurve,
-                                                    SorptionCurve,
-                                                    emissivity,
-                                                    materialType)));
-        return m_Materials.at(Name);
+        m_Materials.emplace(
+          std::make_pair(Name,
+                         std::unique_ptr<SolidMaterial>(new SolidMaterial(Name,
+                                                                          Density,
+                                                                          Porosity,
+                                                                          HeatCapacity,
+                                                                          DiffusionResistanceFactor,
+                                                                          ThermalConductivity,
+                                                                          LiquidTransportCurve,
+                                                                          SorptionCurve,
+                                                                          emissivity))));
+        return *m_Materials.at(Name);
     }
 
-    const Material & MaterialPool::material(const std::string & name) const
+    const IMaterial & MaterialPool::createGas(const std::string & Name)
     {
-        return m_Materials.at(name);
+        m_Materials.emplace(std::make_pair(Name, std::unique_ptr<Gas>(new Gas(Name))));
+        return *m_Materials.at(Name);
     }
 
-    std::vector<std::string> MaterialPool::getMaterials(MaterialType materialType) const {
+    const IMaterial & MaterialPool::material(const std::string & name) const
+    {
+        return *m_Materials.at(name);
+    }
+
+    std::vector<std::string> MaterialPool::getMaterials(MaterialType materialType) const
+    {
         std::vector<std::string> result;
         for(auto & mat : m_Materials)
         {
-            if(mat.second.materialType() == materialType)
+            if(mat.second->materialType() == materialType)
             {
-                result.push_back(mat.second.name());
+                result.push_back(mat.second->name());
             }
         }
         return result;

@@ -241,7 +241,7 @@ namespace HygroThermFEM
 
         double m_AirHumidity;
         double m_AirTemperature;
-        const Material & m_Material;
+        const IMaterial & m_Material;
         std::unique_ptr<IConvectiveCoefficient> m_ConvectiveCoeffCalc;
     };
 
