@@ -31,27 +31,37 @@ namespace HygroThermFEM
         Gas
     };
 
-    //! \brief Keeps necessary material data
-    //!
-    //! Material data necessary for mass and thermal transfer are held in this class. Mainly used as
-    //! storage. No heavy calculations are performed by this class.
-    class Material
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+    // IMaterial
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+
+    //! \brief Material class interface.
+    class IMaterial
     {
-        friend class MaterialPool;
-
     public:
-        Material() = delete;
+        ~IMaterial() = default;
 
-        //! Material's name.
+        IMaterial(std::string cs,
+                  double density,
+                  double porosity,
+                  double heatCapacity,
+                  double diffusionResistanceFactor,
+                  const std::vector<std::pair<double, double>> & thermalConductivity,
+                  const std::vector<std::pair<double, double>> & liquidTransportationCurve,
+                  const std::vector<std::pair<double, double>> & sorptionCurve,
+                  double emissivity,
+                  MaterialType material);
+
+        //! SolidMaterial's name.
         std::string name() const;
 
-        //! Material's density.
+        //! SolidMaterial's density.
         double density() const;
 
-        //! Material's specific heat capacity.
+        //! SolidMaterial's specific heat capacity.
         double heatCapacity() const;
 
-        //! Material's porosity.
+        //! SolidMaterial's porosity.
         double porosity() const;
 
         //! Returns type of material
@@ -60,38 +70,78 @@ namespace HygroThermFEM
         //! Returns material emissivity
         double emissivity() const;
 
-        //! Material's diffusion resistance factor.
+        //! SolidMaterial's diffusion resistance factor.
         double diffusionResistanceFactor() const;
 
-        //! Thermal conductivity table is (x-water content [kg/m3], y-thermal conductivity[W/(mK)])
+        //! Thermal conductivity table (x-water content [kg/m3], y-thermal conductivity[W/(mK)])
         const std::vector<std::pair<double, double>> & thermalConductivity() const;
-
-        //! This will delete old table and put constant thermal conductivity.
-        //! It is necessary behavior for air cavities.
-        void updateThermalConductivity(double thermalConductivity);
 
         //! Liquid transportation curve of the material. Liquid transportation coefficient shows how
         //! much of water can be distributed through the material with certain water content
         //! (x-water content [kg/m3], y-water flow [m2/s]
         const std::vector<std::pair<double, double>> & liquidTransportationCurve() const;
 
-        //! Water content for given node
-        double waterContent(const INode2D & node,   //!< Node for which water content is required.
-                            WaterContent waterContent   //!< Water content property (total water,
-                                                        //!< liquid, vapor or ice).
-                            ) const;
-
-        //! Material's sorption curve. Sorption curve or moisture storage function show how much of
+        //! SolidMaterial's sorption curve. Sorption curve or moisture storage function show how much of
         //! water content is contained in the material at certain relative humidity (x-relative
         //! humidity [-], y-water content [kg/m3])
         const std::vector<std::pair<double, double>> & sorptionCurve() const;
 
+        virtual double waterContent(const INode2D & node,   //!< Node for which water content is required.
+            WaterContent waterContent   //!< Water content property (total water,
+                                        //!< liquid, vapor or ice).
+        ) const = 0;
+
+        friend bool operator<(const IMaterial & lhs, const IMaterial & rhs);
+        friend bool operator>(const IMaterial & lhs, const IMaterial & rhs);
+        friend bool operator<=(const IMaterial & lhs, const IMaterial & rhs);
+        friend bool operator>=(const IMaterial & lhs, const IMaterial & rhs);
+
+    protected:
+        std::string m_Name;
+        double m_Density;
+        double m_Porosity;
+        double m_HeatCapacity;
+        double m_DiffusionResistanceFactor;
+
+        //! Thermal conductivity table is (x-water content [kg/m3], y-thermal conductivity[W/(mK)])
+        std::unique_ptr<TabularFunction> m_ThermalConductivity;
+
+        //! Liquid transportation coefficient is function of water content. It shows how much of
+        //! water will be transferred through material in relation to water content (x-water content
+        //! [kg/m3], y-liquid transportation coefficient [m2/s]
+        std::unique_ptr<TabularFunction> m_LiquidTransportCoefficient;
+
+        //! Sorption curve shows how much of water content will be in relation to relative humidity
+        //! (x-relative humidity [between zero to one], y-water content [kg/m3]
+        std::unique_ptr<TabularFunction> m_SorptionCurve;
+
+        double m_Emissivity;
+        MaterialType m_MaterialType;
+    };
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+    // SolidMaterial
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+
+    //! \brief Keeps necessary material data and does some minor water content calculations.
+    //!
+    //! SolidMaterial data necessary for mass and thermal transfer are held in this class. Mainly used as
+    //! storage.
+    class SolidMaterial : public IMaterial
+    {
+        friend class MaterialPool;
+    public:
+        SolidMaterial() = delete;
+
+        //! Water content for given node
+        double waterContent(const INode2D & node,   //!< Node for which water content is required.
+                            WaterContent waterContent   //!< Water content property (total water,
+                                                        //!< liquid, vapor or ice).
+                            ) const override;
+
         /// Materials will be stored in set which require operator >.
 
-        friend bool operator<(const Material & lhs, const Material & rhs);
-        friend bool operator>(const Material & lhs, const Material & rhs);
-        friend bool operator<=(const Material & lhs, const Material & rhs);
-        friend bool operator>=(const Material & lhs, const Material & rhs);
+        void updateThermalConductivity(double thermalConductivity);
 
     private:
         //! Returns total water content in given node.
@@ -106,47 +156,24 @@ namespace HygroThermFEM
         //! Returns ice content in given node.
         double iceContent(const INode2D & node) const;
 
-        /// Create material by using MaterialPool.
-
-        //! \brief Material construction is done through singleton class
-        Material(
-          const std::string & Name,           //!< Material name
-          double Density,                     //!< Density of dry material
-          double Porosity,                    //!< Material porosity
-          double HeatCapacity,                //!< Specific heat capacity of dry material
-          double DiffusionResistanceFactor,   //!< Diffuse resistance factor
+        //! \brief SolidMaterial construction is done through singleton class
+        SolidMaterial(
+          const std::string & name,           //!< SolidMaterial name
+          double density,                     //!< Density of dry material
+          double porosity,                    //!< SolidMaterial porosity
+          double heatCapacity,                //!< Specific heat capacity of dry material
+          double diffusionResistanceFactor,   //!< Diffuse resistance factor
           const std::vector<std::pair<double, double>> &
-            ThermalConductivity,   //!< Material conductivity of dry material where conductivity
+            thermalConductivity,   //!< SolidMaterial conductivity of dry material where conductivity
                                    //!< depends on water content
           const std::vector<std::pair<double, double>> &
-            LiquidTransportCurve,   //!< Liquid transportation curve. Relationship between relative
+            liquidTransportCurve,   //!< Liquid transportation curve. Relationship between relative
                                     //!< humidity and ability of material to transport water.
           const std::vector<std::pair<double, double>> &
-            SorptionCurve,    //!< Moisture storage function. Relationship between relative humidity
+            sorptionCurve,    //!< Moisture storage function. Relationship between relative humidity
                               //!< and water content.
-          double emissivity = 0.9, //!< Material emissivity
-          MaterialType materialType = MaterialType::Solid);
-
-        std::string m_Name;
-        double m_Density;
-        double m_Porosity;
-        double m_HeatCapacity;
-        double m_DiffusionResistanceFactor;
-
-        //! Thermal conductivity table is (x-water content [kg/m3], y-thermal conductivity[W/(mK)])
-        std::unique_ptr<HygroThermFEM::TabularFunction> m_ThermalConductivity;
-
-        //! Liquid transportation coefficient is function of water content. It shows how much of
-        //! water will be transferred through material in relation to water content (x-water content
-        //! [kg/m3], y-liquid transportation coefficient [m2/s]
-        std::unique_ptr<HygroThermFEM::TabularFunction> m_LiquidTransportCoefficient;
-
-        //! Sorption curve shows how much of water content will be in relation to relative humidity
-        //! (x-relative humidity [between zero to one], y-water content [kg/m3]
-        std::unique_ptr<HygroThermFEM::TabularFunction> m_SorptionCurve;
-
-        double m_Emissivity;
-        MaterialType m_MaterialType;
+          double emissivity = 0.9 //!< SolidMaterial emissivity
+          );
 
         //! Saturated vapor content calculations at given node. It is necessary
         //! for water content calculations.
@@ -159,4 +186,24 @@ namespace HygroThermFEM
         double airPorosity(const INode2D & node) const;
     };
 
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+    // Gas
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+
+    class Gas : public IMaterial
+    {
+        friend class MaterialPool;
+    public:
+        Gas() = delete;
+
+        Gas(const std::string & name);
+
+        //! Water content for given node
+        double waterContent(const INode2D & node,   //!< Node for which water content is required.
+                            WaterContent waterContent   //!< Water content property (total water,
+                //!< liquid, vapor or ice).
+        ) const override;
+
+        void updateThermalConductivity(double thermalConductivity);
+    };
 }   // namespace HygroThermFEM
