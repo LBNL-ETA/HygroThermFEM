@@ -40,7 +40,7 @@ namespace HygroThermFEM
 
     const IMaterial & MaterialPool::createGas(const std::string & Name)
     {
-        m_Materials.emplace(std::make_pair(Name, std::unique_ptr<Gas>(new Gas(Name))));
+        m_Materials[Name] = std::unique_ptr<Gas>(new Gas(Name));
         return *m_Materials.at(Name);
     }
 
