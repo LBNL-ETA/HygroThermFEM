@@ -39,7 +39,7 @@ namespace HygroThermFEM
     class IMaterial
     {
     public:
-        ~IMaterial() = default;
+        virtual ~IMaterial() = default;
 
         IMaterial(std::string cs,
                   double density,
