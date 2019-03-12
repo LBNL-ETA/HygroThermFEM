@@ -22,9 +22,6 @@ execute_process(COMMAND ${CMAKE_COMMAND} --build .
 
 include_directories(${CMAKE_BINARY_DIR}/eigen-src)
 
-# Include Windows-CalcEngine
-# include(CMakeLists-Windows-CalcEngine.txt)
-
 # Include KeffCavity
 include(CMakeLists-KeffCavity.txt)
 
@@ -32,12 +29,12 @@ include(CMakeLists-KeffCavity.txt)
 get_directory_property(hasParent PARENT_DIRECTORY)
 
 if (hasParent)
-    set(BUILD_TESTING OFF)
+    set(BUILD_HTFEM_TESTING OFF)
 else ()
-    option(BUILD_TESTING "Build testing targets" ON)
+    option(BUILD_HTFEM_TESTING "Build testing targets" ON)
 endif ()
 
-if (BUILD_TESTING)
+if (BUILD_HTFEM_TESTING)
     set(google_disable_pthreads ON)
     # include(CMakeLists-GTest.txt)
     configure_file(CMakeListsGTest.txt.in ${CMAKE_BINARY_DIR}/googletest-download/CMakeLists.txt)
@@ -81,7 +78,7 @@ set_target_properties(${target_name} PROPERTIES LINKER_LANGUAGE CXX)
 
 target_link_libraries( ${target_name} PRIVATE KeffCavity)
 
-if (BUILD_TESTING)
+if (BUILD_HTFEM_TESTING)
     #include_directories( src )
     include_directories(include)
 
