@@ -50,15 +50,15 @@ TEST_F(TestEquivalentFrameCavity1, TestSingleFrameCavity)
     }
 
     auto & solidMaterial = MaterialPool::Instance().createSolidMaterial(
-                                                                   "Material 1",
-                                                                   2050,                     // density
-                                                                   0.22,                     // porosity
-                                                                   850,                      // specific heat capacity (dry)
-                                                                   15,                       // diffusion resistance factor (this is mi value)
-                                                                   {{0.0, 1.8}, {180, 1.8}}, // thermal conductivity as function of water content
-                                                                   {{0, 0}, {180, 2e-6}},    // liquid transportation curve
-                                                                   {{0, 0}, {1, 180}},       // Sorption curve
-                                                                   0.9);
+      "Material 1",
+      2050,                       // density
+      0.22,                       // porosity
+      850,                        // specific heat capacity (dry)
+      15,                         // diffusion resistance factor (this is mi value)
+      {{0.0, 1.8}, {180, 1.8}},   // thermal conductivity as function of water content
+      {{0, 0}, {180, 2e-6}},      // liquid transportation curve
+      {{0, 0}, {1, 180}},         // Sorption curve
+      0.9);
 
     auto & frameCavity = MaterialPool::Instance().createGas("Frame Cavity 1");
 

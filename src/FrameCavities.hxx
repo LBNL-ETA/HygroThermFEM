@@ -133,14 +133,26 @@ namespace HygroThermFEM
     class EquivalentFrameCavities
     {
     public:
-        explicit EquivalentFrameCavities(const ElementsLinear2D & m_Elements);
+        //! Construction of frame cavities.
+        //!
+        //! \param elements: All elements from the domain.
+        explicit EquivalentFrameCavities(const ElementsLinear2D & elements);
 
+        //! Returns rectrangular frame cavity
+        //!
+        //! \param frameCavityName Frame cavity name for which geometry will be returned.
+        //! \return Equivalent rectangular frame cavity
         RectangularizedCavity getCavity(const std::string & frameCavityName) const;
 
     private:
+
+        //! Function to return boundary nodes for given frame cavity
+        //!
+        //! \param frameCavityName Frame cavity name for which boundary nodes will be returned
+        //! \return Nodes that form frame cavity boundary
         const std::vector<size_t> & boundaryNodes(const std::string & frameCavityName) const;
 
-        //! Helper function used in algorithm to determine frame cavity boundaries
+        //! Helper class used in algorithm to determine frame cavity boundaries
         class line
         {
         public:
@@ -163,14 +175,20 @@ namespace HygroThermFEM
             size_t n2;
         };
 
-        //! Function to perform calculation of equivalent frame cavities over entire domain.
+        //! Function to perform calculation of equivalent frame cavities over the entire domain.
         void calculateEquivalentFrameCavities();
 
         //! Calculate edges of frame cavity with lines in no specific order
+        //!
+        //! \param elNodes All elements with nodes that form single frame cavity.
+        //! \return Set of lines that form edge of frame cavity. Lines are not sorted
         static std::set<line> getEdges(const std::vector<std::vector<size_t>> & elNodes);
 
         //! Calculate nodes in ordered way. These nodes are boundary of the frame cavity. One frame
         //! cavity is processed at the time.
+        //!
+        //! \param allEdges Set of unordered lines that form frame cavity
+        //! \return Sorted vector of nodes that form frame cavity boundary
         static std::vector<size_t> edgeNodesOrdered(std::set<line> & allEdges);
 
         const ElementsLinear2D & m_Elements;
