@@ -96,6 +96,12 @@ namespace HygroThermFEM
         //! \return Value of water content.
         virtual double waterContent(const INode2D & node, WaterContent waterContent) const = 0;
 
+        //! \brief Some materials will require update of thermal conductivity within iterations.
+        //! This virtual function requires update in every material type.
+        //!
+        //! \param thermalConductivity New value for thermal conductivity.
+        virtual void updateThermalConductivity(double thermalConductivity) = 0;
+
         friend bool operator<(const IMaterial & lhs, const IMaterial & rhs);
         friend bool operator>(const IMaterial & lhs, const IMaterial & rhs);
         friend bool operator<=(const IMaterial & lhs, const IMaterial & rhs);
@@ -139,15 +145,14 @@ namespace HygroThermFEM
     public:
         SolidMaterial() = delete;
 
-        //! Water content for given node
-        double waterContent(const INode2D & node,   //!< Node for which water content is required.
-                            WaterContent waterContent   //!< Water content property (total water,
-                                                        //!< liquid, vapor or ice).
-                            ) const override;
+        //! \brief Water content in given node.
+        //!
+        //! \param node Node for which water content is required.
+        //! \param waterContent Water content property (total, liquid, vapor or ice).
+        //! \return Value of water content.
+        double waterContent(const INode2D & node, WaterContent waterContent) const override;
 
-        /// Materials will be stored in set which require operator >.
-
-        void updateThermalConductivity(double thermalConductivity);
+        void updateThermalConductivity(double thermalConductivity) override;
 
     private:
         //! Returns total water content in given node.
@@ -211,6 +216,6 @@ namespace HygroThermFEM
                                                         //!< liquid, vapor or ice).
                             ) const override;
 
-        void updateThermalConductivity(double thermalConductivity);
+        void updateThermalConductivity(double thermalConductivity) override;
     };
 }   // namespace HygroThermFEM

@@ -6,6 +6,12 @@ set(KeffCavity_INCLUDE_DIRS "${CommonIncludeDir}/include")
 
 include_directories(${KeffCavity_INCLUDE_DIRS})
 
+# Need to include gases from Windows-CalcEngine
+set(CommonIncludeDir "${CMAKE_BINARY_DIR}/Windows-CalcEngine-src/src")
+set(WinCalcEngine_INCLUDE_DIRS "${CommonIncludeDir}/Gases/include")
+
+include_directories(${WinCalcEngine_INCLUDE_DIRS})
+
 # Download and create KeffCavity Engine library
 configure_file(CMakeLists-KeffCavity.txt.in ${CMAKE_BINARY_DIR}/KeffCavity-download/CMakeLists.txt)
 execute_process(COMMAND ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}" .

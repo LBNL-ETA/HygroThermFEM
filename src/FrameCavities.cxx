@@ -5,28 +5,6 @@
 namespace HygroThermFEM
 {
     ///////////////////////////////////////////////////////////////////////////////
-    ///  FrameCavity
-    ///////////////////////////////////////////////////////////////////////////////
-
-    FrameCavity::FrameCavity(const double effectiveConductivity,
-                             const double horizontalDimension,
-                             const double verticalDimension,
-                             const double nusseltNumber,
-                             const HygroThermFEM::FrameCavityScreenHeatFlow heatFlowDirection,
-                             const double emissivity1,
-                             const double temperature1,
-                             const double emissivity2,
-                             const double temperature2) :
-        m_EffectiveConductivity(effectiveConductivity),
-        m_HorizontalDimension(horizontalDimension),
-        m_VerticalDimension(verticalDimension),
-        m_NusseltNumber(nusseltNumber),
-        m_HeatFlowDirection(heatFlowDirection),
-        m_Side1{temperature1, emissivity1},
-        m_Side2{temperature2, emissivity2}
-    {}
-
-    ///////////////////////////////////////////////////////////////////////////////
     ///  FrameCavityBoundaries
     ///////////////////////////////////////////////////////////////////////////////
 
@@ -116,12 +94,17 @@ namespace HygroThermFEM
         return m_BoundaryNodes.at(frameCavityName);
     }
 
-    RectangularizedCavity
+    EquivalentFrameCavity
       EquivalentFrameCavities::getCavity(const std::string & frameCavityName) const
     {
         const auto bNodes = boundaryNodes(frameCavityName);
-        RectangularizedCavity cavity(bNodes);
+        EquivalentFrameCavity cavity(bNodes);
         return cavity;
+    }
+
+    double EquivalentFrameCavities::thermalConductivity(const std::string & frameCavityName) const
+    {
+        return 0;
     }
 
     EquivalentFrameCavities::line::line(const size_t n1, const size_t n2) : n1(n1), n2(n2)
@@ -161,14 +144,14 @@ namespace HygroThermFEM
         return !(*this < rhs);
     }
 
-    RectangularizedCavity::RectangularizedCavity(const std::vector<size_t> & nodes) :
+    EquivalentFrameCavity::EquivalentFrameCavity(const std::vector<size_t> & nodes) :
         m_Segments(buildSegments(nodes)),
         m_Area(area()),
         m_Size(calcSize(m_Area))
     {}
 
-    std::vector<RectangularizedCavity::Segment>
-      RectangularizedCavity::buildSegments(const std::vector<size_t> & nodes)
+    std::vector<EquivalentFrameCavity::Segment>
+      EquivalentFrameCavity::buildSegments(const std::vector<size_t> & nodes)
     {
         std::vector<Segment> segments;
         for(size_t i = 0u; i < nodes.size(); ++i)
@@ -188,7 +171,7 @@ namespace HygroThermFEM
         return segments;
     }
 
-    std::string RectangularizedCavity::findCommonMaterial(const Node2D & node1,
+    std::string EquivalentFrameCavity::findCommonMaterial(const Node2D & node1,
                                                           const Node2D & node2) const
     {
         std::string name;
@@ -210,7 +193,7 @@ namespace HygroThermFEM
         return name;
     }
 
-    double RectangularizedCavity::area() const
+    double EquivalentFrameCavity::area() const
     {
         double area{0};
         for(const auto & segment : m_Segments)
@@ -220,7 +203,7 @@ namespace HygroThermFEM
         return 0.5 * area;
     }
 
-    RectangularizedCavity::Size RectangularizedCavity::calcSize(const double area) const
+    EquivalentFrameCavity::Size EquivalentFrameCavity::calcSize(const double area) const
     {
         double maxX = m_Segments[0].firstNode().X();
         double minX = m_Segments[0].firstNode().X();
@@ -245,17 +228,17 @@ namespace HygroThermFEM
         return {L, H};
     }
 
-    double RectangularizedCavity::L() const
+    double EquivalentFrameCavity::L() const
     {
         return m_Size.L;
     }
 
-    double RectangularizedCavity::H() const
+    double EquivalentFrameCavity::H() const
     {
         return m_Size.H;
     }
 
-    RectangularizedCavity::Segment::Segment(const Node2D & node1,
+    EquivalentFrameCavity::Segment::Segment(const Node2D & node1,
                                             const Node2D & node2,
                                             double emissivity) :
         node1(node1),
@@ -266,11 +249,12 @@ namespace HygroThermFEM
         m_Side(calcSide(node1, node2))
     {}
 
-    RectangularizedCavity::Side RectangularizedCavity::Segment::calcSide(const Node2D & n1,
+    EquivalentFrameCavity::Side EquivalentFrameCavity::Segment::calcSide(const Node2D & n1,
                                                                          const Node2D & n2) const
     {
         const auto PI = 4 * std::atan(1);
-        const auto angle = n1.X() != n2.X() ? std::atan(n2.Y() - n1.Y() / (n2.X() - n1.X())) : PI / 2;
+        const auto angle =
+          n1.X() != n2.X() ? std::atan(n2.Y() - n1.Y() / (n2.X() - n1.X())) : PI / 2;
         Side aSide{Side::Left};
         const auto sectorAngle{PI / 4};
         if(angle >= sectorAngle && angle < 3 * sectorAngle)
@@ -292,39 +276,34 @@ namespace HygroThermFEM
         return aSide;
     }
 
-    double RectangularizedCavity::Segment::emissivity() const
+    double EquivalentFrameCavity::Segment::emissivity() const
     {
         return m_Emissivity;
     }
 
-    double RectangularizedCavity::Segment::node1Temperature() const
-    {
-        return node1.property(Variable::temperature);
-    }
-
-    double RectangularizedCavity::Segment::node2Temperature() const
-    {
-        return node2.property(Variable::temperature);
-    }
-
-    double RectangularizedCavity::Segment::length() const
+    double EquivalentFrameCavity::Segment::length() const
     {
         return m_Length;
     }
 
-    double RectangularizedCavity::Segment::averageTemperature() const
+    double EquivalentFrameCavity::Segment::averageTemperature() const
     {
         return 0.5
                * (node1.property(Variable::temperature) + node2.property(Variable::temperature));
     }
 
-    double RectangularizedCavity::Segment::crossCalc() const
+    double EquivalentFrameCavity::Segment::crossCalc() const
     {
         return node1.X() * node2.Y() - node1.Y() * node2.X();
     }
 
-    const Node2D & RectangularizedCavity::Segment::firstNode() const
+    const Node2D & EquivalentFrameCavity::Segment::firstNode() const
     {
         return node1;
+    }
+
+    const EquivalentFrameCavity::Side & EquivalentFrameCavity::Segment::side() const
+    {
+        return m_Side;
     }
 }   // namespace HygroThermFEM
