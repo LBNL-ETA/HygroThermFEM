@@ -5,6 +5,7 @@
 #include <string>
 
 #include "Functions.hxx"
+#include "KeffCavity.hxx"
 
 namespace HygroThermFEM
 {
@@ -20,14 +21,11 @@ namespace HygroThermFEM
         Ice       //!< Water content in frozen state.
     };
 
-    //! \brief Used to describe different type of materials.
-    //!
-    //! Depending on material type, engine will perform different algorithms on how to calculate
-    //! equivalent material properties.
-    enum class MaterialType
+    //! \brief Standard used in thermal calculations of air pockets.
+    enum class CavityStandard
     {
-        Solid,
-        Gas
+        ISO15099,
+        CEN
     };
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -48,8 +46,7 @@ namespace HygroThermFEM
                   const std::vector<std::pair<double, double>> & thermalConductivity,
                   const std::vector<std::pair<double, double>> & liquidTransportationCurve,
                   const std::vector<std::pair<double, double>> & sorptionCurve,
-                  double emissivity,
-                  MaterialType material);
+                  double emissivity);
 
         //! Material's name.
         std::string name() const;
@@ -62,9 +59,6 @@ namespace HygroThermFEM
 
         //! Material's porosity.
         double porosity() const;
-
-        //! Returns type of material.
-        MaterialType materialType() const;
 
         //! Returns material emissivity.
         double emissivity() const;
@@ -127,7 +121,31 @@ namespace HygroThermFEM
         std::unique_ptr<TabularFunction> m_SorptionCurve;
 
         double m_Emissivity;
-        MaterialType m_MaterialType;
+    };
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+    // IGas
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+
+    //! Interface for gases
+    class IGas : public IMaterial
+    {
+    public:
+        IGas(const std::string & name,
+             double density,
+             double porosity,
+             double heatCapacity,
+             double diffusionResistanceFactor,
+             const std::vector<std::pair<double, double>> & thermalConductivity,
+             const std::vector<std::pair<double, double>> & liquidTransportationCurve,
+             const std::vector<std::pair<double, double>> & sorptionCurve,
+             double emissivity,
+             CavityStandard m_CavityStandard);
+
+        CavityStandard standard() const;
+
+    private:
+        CavityStandard m_CavityStandard;
     };
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -201,14 +219,14 @@ namespace HygroThermFEM
     // Gas
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
-    class Gas : public IMaterial
+    class Gas : public IGas
     {
         friend class MaterialPool;
 
     public:
         Gas() = delete;
 
-        Gas(const std::string & name);
+        Gas(const std::string &name, CavityStandard cavityStandard = CavityStandard::ISO15099);
 
         //! Water content for given node
         double waterContent(const INode2D & node,   //!< Node for which water content is required.

@@ -11,12 +11,12 @@ namespace HygroThermFEM
     EquivalentFrameCavities::EquivalentFrameCavities(const ElementsLinear2D & m_Elements) :
         m_Elements(m_Elements)
     {
-        calculateEquivalentFrameCavities();
+        extractEquivalentFrameCavities();
     }
 
-    void EquivalentFrameCavities::calculateEquivalentFrameCavities()
+    void EquivalentFrameCavities::extractEquivalentFrameCavities()
     {
-        auto frameCavities = MaterialPool::Instance().getMaterials(MaterialType::Gas);
+        auto frameCavities = MaterialPool::Instance().getGases();
 
         for(const auto & frameCavity : frameCavities)
         {
@@ -146,9 +146,15 @@ namespace HygroThermFEM
 
     EquivalentFrameCavity::EquivalentFrameCavity(const std::vector<size_t> & nodes) :
         m_Segments(buildSegments(nodes)),
+        m_SideSegments(groupSegmentSides(m_Segments)),
+        m_Side{
+          {Side::Top, {0, 0}}, {Side::Bottom, {0, 0}}, {Side::Left, {0, 0}}, {Side::Right, {0, 0}}},
         m_Area(area()),
         m_Size(calcSize(m_Area))
-    {}
+    {
+        calcSideEmissivities();
+        updateSideTemperatures();
+    }
 
     std::vector<EquivalentFrameCavity::Segment>
       EquivalentFrameCavity::buildSegments(const std::vector<size_t> & nodes)
@@ -161,7 +167,7 @@ namespace HygroThermFEM
             const auto & node2 = NodePool::Instance().getNode(nodes[i]);
             auto emissivity{0.0};
             const auto materialName = findCommonMaterial(node1, node2);
-            if(materialName != "")
+            if(!materialName.empty())
             {
                 const auto & material = MaterialPool::Instance().material(materialName);
                 emissivity = material.emissivity();
@@ -175,8 +181,8 @@ namespace HygroThermFEM
                                                           const Node2D & node2) const
     {
         std::string name;
-        auto node1Materials = node1.getMaterialNames(MaterialType::Solid);
-        auto node2Materials = node2.getMaterialNames(MaterialType::Solid);
+        auto node1Materials = node1.getSolidMaterialNames();
+        auto node2Materials = node2.getSolidMaterialNames();
 
         for(const auto & mat1 : node1Materials)
         {
@@ -238,6 +244,72 @@ namespace HygroThermFEM
         return m_Size.H;
     }
 
+    std::map<EquivalentFrameCavity::Side, std::vector<EquivalentFrameCavity::Segment>>
+      EquivalentFrameCavity::groupSegmentSides(
+        const std::vector<EquivalentFrameCavity::Segment> & segments)
+    {
+        std::map<Side, std::vector<Segment>> result{{Side::Top, std::vector<Segment>()},
+                                                    {Side::Bottom, std::vector<Segment>()},
+                                                    {Side::Left, std::vector<Segment>()},
+                                                    {Side::Right, std::vector<Segment>()}};
+        for(const auto & segment : segments)
+        {
+            result.at(segment.side()).push_back(segment);
+        }
+        return result;
+    }
+
+    void EquivalentFrameCavity::calcSideEmissivities()
+    {
+        std::map<Side, double> length{
+          {Side::Top, 0}, {Side::Bottom, 0}, {Side::Left, 0}, {Side::Right, 0}};
+        std::map<Side, double> emissLength{
+          {Side::Top, 0}, {Side::Bottom, 0}, {Side::Left, 0}, {Side::Right, 0}};
+        for(const auto & side : m_SideSegments)
+        {
+            const auto aSide = side.first;
+            for(const auto & segment : side.second)
+            {
+                length.at(aSide) += segment.length();
+                emissLength.at(aSide) += segment.length() * segment.emissivity();
+            }
+        }
+
+        // TODO: Standard enumerator won't work. Fix this later.
+        for(auto side : {Side::Top, Side::Bottom, Side::Left, Side::Right})
+        {
+            if(length.at(side) != 0)
+            {
+                m_Side.at(side).emissivity = emissLength.at(side) / length.at(side);
+            }
+        }
+    }
+
+    void EquivalentFrameCavity::updateSideTemperatures() {
+        std::map<Side, double> length{
+                {Side::Top, 0}, {Side::Bottom, 0}, {Side::Left, 0}, {Side::Right, 0}};
+        std::map<Side, double> temperatureLength{
+                {Side::Top, 0}, {Side::Bottom, 0}, {Side::Left, 0}, {Side::Right, 0}};
+        for(const auto & side : m_SideSegments)
+        {
+            const auto aSide = side.first;
+            for(const auto & segment : side.second)
+            {
+                length.at(aSide) += segment.length();
+                temperatureLength.at(aSide) += segment.length() * segment.emissivity();
+            }
+        }
+
+        // TODO: Standard enumerator won't work. Fix this later.
+        for(auto side : {Side::Top, Side::Bottom, Side::Left, Side::Right})
+        {
+            if(length.at(side) != 0)
+            {
+                m_Side.at(side).temperature = temperatureLength.at(side) / length.at(side);
+            }
+        }
+    }
+
     EquivalentFrameCavity::Segment::Segment(const Node2D & node1,
                                             const Node2D & node2,
                                             double emissivity) :
@@ -253,23 +325,24 @@ namespace HygroThermFEM
                                                                          const Node2D & n2) const
     {
         const auto PI = 4 * std::atan(1);
-        const auto angle =
-          n1.X() != n2.X() ? std::atan(n2.Y() - n1.Y() / (n2.X() - n1.X())) : PI / 2;
+        const auto angle = std::atan2((n2.Y() - n1.Y()), (n2.X() - n1.X()));
         Side aSide{Side::Left};
         const auto sectorAngle{PI / 4};
-        if(angle >= sectorAngle && angle < 3 * sectorAngle)
-        {
-            aSide = Side::Left;
-        }
-        else if(angle >= 3 * sectorAngle && angle < 5 * sectorAngle)
+        // TODO: This is processing for counter clock wise. Need mechanism that will catch clockwise
+        // direction as well
+        if(angle < sectorAngle && angle > -sectorAngle)
         {
             aSide = Side::Bottom;
         }
-        else if(angle >= 5 * sectorAngle && angle < 7 * sectorAngle)
+        else if(angle >= sectorAngle && angle < 3 * sectorAngle)
         {
             aSide = Side::Right;
         }
-        else if((angle < sectorAngle && angle >= 7 * sectorAngle))
+        else if(angle < -sectorAngle && angle > -3 * sectorAngle)
+        {
+            aSide = Side::Left;
+        }
+        else if((angle > 3 * sectorAngle || angle <= -3 * sectorAngle))
         {
             aSide = Side::Top;
         }
@@ -286,7 +359,7 @@ namespace HygroThermFEM
         return m_Length;
     }
 
-    double EquivalentFrameCavity::Segment::averageTemperature() const
+    double EquivalentFrameCavity::Segment::temperature() const
     {
         return 0.5
                * (node1.property(Variable::temperature) + node2.property(Variable::temperature));
@@ -306,4 +379,9 @@ namespace HygroThermFEM
     {
         return m_Side;
     }
+
+    EquivalentFrameCavity::SideProperties::SideProperties(double emissivity, double temperature) :
+        emissivity(emissivity),
+        temperature(temperature)
+    {}
 }   // namespace HygroThermFEM

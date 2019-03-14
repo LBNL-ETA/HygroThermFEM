@@ -23,6 +23,8 @@ namespace HygroThermFEM
 
         double area() const;
 
+        void updateSideTemperatures();
+
     private:
         //! \brief Local enumerator used to assign segment to certain side of rectangular frame
         //! cavity.
@@ -34,13 +36,29 @@ namespace HygroThermFEM
             Right
         };
 
+        //! \brief Simple structure to hold size of equivalent frame cavity.
+        //! L is cavity width
+        //! H is cavity height
         struct Size
         {
             double L;
             double H;
         };
 
-        //! \brief Local class segment that keeps basic properties for recangular cavity
+        //! \brief Structure to hold side equivalent emissivities and temperatures.
+        //!
+        //! Equivalent emissivity of sides will not change during the execution, while equivalent
+        //! temperatures will. This is why it is important that algorithm will calculate
+        //! emissivities only once.
+        struct SideProperties
+        {
+            SideProperties(double emissivity, double temperature);
+
+            double emissivity{0};
+            double temperature{0};
+        };
+
+        //! \brief Local class segment that keeps basic properties for rectangular cavity
         //! calculations.
         class Segment
         {
@@ -54,7 +72,7 @@ namespace HygroThermFEM
             double length() const;
 
             //! Segment's average temperature
-            double averageTemperature() const;
+            double temperature() const;
 
             const Node2D & firstNode() const;
 
@@ -65,6 +83,11 @@ namespace HygroThermFEM
             const Side & side() const;
 
         private:
+            //! Calculates frame cavity side to which segment belongs to.
+            //!
+            //! \param node1 Segment's first node
+            //! \param node2 Segment's second node
+            //! \return Side to which segment belongs to.
             Side calcSide(const Node2D & node1, const Node2D & node2) const;
 
             const Node2D & node1;
@@ -81,7 +104,20 @@ namespace HygroThermFEM
 
         EquivalentFrameCavity::Size calcSize(double area) const;
 
+        //! Group segments at four sides of cavity. This is used in rectangularization algorithm.
+        std::map<Side, std::vector<Segment>>
+          groupSegmentSides(const std::vector<Segment> & segments);
+
+        void calcSideEmissivities();
+
         const std::vector<Segment> m_Segments;
+
+        //! Map that keeps segments grouped by sides. This is needed for constant temperatures
+        //! recalculation.
+        const std::map<Side, std::vector<Segment>> m_SideSegments;
+
+        //! Structure to store every side and its properties.
+        std::map<Side, SideProperties> m_Side;
         const double m_Area;
         const Size m_Size;
     };
@@ -142,7 +178,7 @@ namespace HygroThermFEM
         };
 
         //! Function to perform calculation of equivalent frame cavities over the entire domain.
-        void calculateEquivalentFrameCavities();
+        void extractEquivalentFrameCavities();
 
         //! Calculate edges of frame cavity with lines in no specific order
         //!

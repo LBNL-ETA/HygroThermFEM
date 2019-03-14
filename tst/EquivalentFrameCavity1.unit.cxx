@@ -60,7 +60,8 @@ TEST_F(TestEquivalentFrameCavity1, TestSingleFrameCavity)
       {{0, 0}, {1, 180}},         // Sorption curve
       0.9);
 
-    auto & frameCavity = MaterialPool::Instance().createGas("Frame Cavity 1");
+    auto & frameCavity =
+      MaterialPool::Instance().createGas("Frame Cavity 1", HygroThermFEM::CavityStandard::ISO15099);
 
     // Elements that will contain frame cavity
     std::set<size_t> frameCavityElement{6, 7, 10};
