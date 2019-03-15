@@ -130,7 +130,7 @@ namespace HygroThermFEM
                                         //!< material to current node.
         ) override;
 
-        std::vector<std::string> getMaterialNames(const MaterialType materialType) const;
+        std::vector<std::string> getSolidMaterialNames() const;
 
         //! Returns back property of state variable. Variable can be from basic state (temperature,
         //! humidity or pressure) or water content

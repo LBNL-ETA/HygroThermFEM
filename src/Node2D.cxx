@@ -160,15 +160,12 @@ namespace HygroThermFEM
         m_Ice = calcWaterContent(WaterContent::Ice);
     }
 
-    std::vector<std::string> Node2D::getMaterialNames(const MaterialType materialType) const
+    std::vector<std::string> Node2D::getSolidMaterialNames() const
     {
         std::vector<std::string> names;
         for(const auto & material : m_Materials)
         {
-            if(material.second.get().materialType() == materialType)
-            {
-                names.push_back(material.second.get().name());
-            }
+            names.push_back(material.second.get().name());
         }
         return names;
     }

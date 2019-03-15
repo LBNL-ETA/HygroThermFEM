@@ -7,7 +7,6 @@
 #include "FEMMath.hxx"
 #include "BoundaryCondition2D.hxx"
 #include "VectorOperators.hxx"
-#include <iostream>
 
 using FenestrationCommon::CLinearSolver;
 
@@ -154,6 +153,8 @@ namespace HygroThermFEM
                             <= (ConvergenceError * RelaxParameter);
 
                 stopIterations = numOfIterations > (MaxIterations / RelaxParameter);
+
+                postProcess(solution);
             }
         }
 
@@ -185,7 +186,7 @@ namespace HygroThermFEM
         return m_Elements.flux();
     }
 
-    void IDomain::postProcess(std::vector<double> &) const
+    void IDomain::postProcess(std::vector<double> &)
     {
         // Default post processing is to do nothing. Inherited classes should add
         // some functionality if necessary.
@@ -249,8 +250,17 @@ namespace HygroThermFEM
           fem::make_unique<ElementThermalLinear2D>(index1, index2, index3, index4, materialName));
     }
 
+    void ThermalDomain::postProcess(std::vector<double> & solution) {
+        IDomain::postProcess(solution);
+        if (frameCavities == nullptr)
+        {
+            frameCavities = std::unique_ptr<EquivalentFrameCavities>(new EquivalentFrameCavities(m_Elements));
+        }
+        frameCavities->update();
+    }
+
     ThermalDomain::ThermalDomain(bool automaticUpdatePreviousTimestep) :
-        IDomain(BaseVariable::temperature, automaticUpdatePreviousTimestep)
+        IDomain(BaseVariable::temperature, automaticUpdatePreviousTimestep), frameCavities(nullptr)
     {}
 
     void MoistureDomain::createElement(const size_t index1,
@@ -295,7 +305,7 @@ namespace HygroThermFEM
         IDomain(BaseVariable::humidity, automaticUpdatePreviousTimestep)
     {}
 
-    void MoistureDomain::postProcess(std::vector<double> & solution) const
+    void MoistureDomain::postProcess(std::vector<double> & solution)
     {
         IDomain::postProcess(solution);
         for(auto & val : solution)
