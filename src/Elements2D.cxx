@@ -39,7 +39,7 @@ namespace HygroThermFEM
         {
             auto indexes = aElement->nodeIndexes();
             auto capacitance = aElement->capacitanceMatrices();
-            auto capTest = capacitance.toVector();
+            //auto capTest = capacitance.toVector();
             for(size_t i = 0; i < numOfQuadrilateralNodes; ++i)
             {
                 for(size_t j = 0; j < numOfQuadrilateralNodes; ++j)

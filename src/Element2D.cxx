@@ -197,9 +197,9 @@ namespace HygroThermFEM
         }
     }
 
-    FenestrationCommon::SquareMatrix IElementLinear2D::DDuMatrices() const
+    SquareMatrix IElementLinear2D::DDuMatrices() const
     {
-        FenestrationCommon::SquareMatrix result{numOfQuadrilateralNodes};
+        SquareMatrix result{numOfQuadrilateralNodes};
         for(const auto & cond : m_DDuFunctions)
         {
             const auto values = cond->values(m_Nodes);
@@ -209,9 +209,9 @@ namespace HygroThermFEM
         return result;
     }
 
-    FenestrationCommon::SquareMatrix IElementLinear2D::DpDuMatrices()
+    SquareMatrix IElementLinear2D::DpDuMatrices()
     {
-        FenestrationCommon::SquareMatrix result{numOfQuadrilateralNodes};
+        SquareMatrix result{numOfQuadrilateralNodes};
 
         /// Integration matrix must be created every time because independent
         /// variables changed as well.
