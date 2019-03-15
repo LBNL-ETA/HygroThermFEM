@@ -23,7 +23,7 @@ namespace HygroThermFEM
                               double emissivity = 0.9);
 
         const IGas & createGas(const std::string & name,
-                               const CavityStandard cavityStandard = CavityStandard::ISO15099);
+                               CavityStandard cavityStandard = CavityStandard::ISO15099);
 
         const IMaterial & material(const std::string & name) const;
 

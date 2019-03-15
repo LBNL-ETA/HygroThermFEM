@@ -1,6 +1,7 @@
 #include "FrameCavities.hxx"
 #include "MaterialPool.hxx"
 #include "NodePool.hxx"
+#include "Common.hxx"
 
 namespace HygroThermFEM
 {
@@ -194,7 +195,7 @@ namespace HygroThermFEM
             }
         }
 
-        // TODO: Standard enumerator won't work. Fix this later.
+        // TODO: Standard enumerator won't work. Need to fix this.
         for(auto side : {Side::Top, Side::Bottom, Side::Left, Side::Right})
         {
             if(length.at(side) != 0)
@@ -216,7 +217,7 @@ namespace HygroThermFEM
             for(const auto & segment : side.second)
             {
                 length.at(aSide) += segment.length();
-                temperatureLength.at(aSide) += segment.length() * segment.emissivity();
+                temperatureLength.at(aSide) += segment.length() * toKelvin(segment.temperature());
             }
         }
 

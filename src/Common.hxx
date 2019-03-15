@@ -6,6 +6,13 @@ namespace HygroThermFEM
 {
     const double ConvergenceError = 1e-5;
     const size_t MaxIterations = 100;
+    //! \brief Conversion of temperature from Celsius to Kelvin
+    //!
+    //! \param temperature Input temperature in degrees Celsius
+    inline double toKelvin(const double temperature)
+    {
+        return temperature + 273.15;
+    }
 
 }   // namespace HygroThermFEM
 

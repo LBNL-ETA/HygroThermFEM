@@ -130,7 +130,7 @@ namespace HygroThermFEM
     class IGas : public IMaterial
     {
     public:
-        IGas(const std::string & name,
+        IGas(const std::string & cs,
              double density,
              double porosity,
              double heatCapacity,

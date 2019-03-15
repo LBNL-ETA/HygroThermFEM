@@ -252,15 +252,15 @@ namespace HygroThermFEM
 
     Gas::Gas(const std::string & name, CavityStandard cavityStandard) :
         IGas(name,
-             0.0,                        // Density
-             1.0,                        // Porosity
-             0.0,                        // Heat Capacity
-             2,                          // Diffusion resistance factor
-             {{0.0, 1.8}, {1.0, 1.8}},   // Thermal conductivity
-             {{0.0, 0.0}, {1.0, 1.0}},   // Liquid transportation curve
-             {{0.0, 0.0}, {1.0, 1.0}},   // Sorption curve
-             0.0,                        // emissivity
-             cavityStandard)             // Standard used for cavity calculations
+             0.0,                          // Density
+             1.0,                          // Porosity
+             0.0,                          // Heat Capacity
+             2,                            // Diffusion resistance factor
+             {{0.0, 0.05}, {1.0, 0.05}},   // Thermal conductivity
+             {{0.0, 0.0}, {1.0, 1.0}},     // Liquid transportation curve
+             {{0.0, 0.0}, {1.0, 1.0}},     // Sorption curve
+             0.0,                          // emissivity
+             cavityStandard)               // Standard used for cavity calculations
 
     {}
 }   // namespace HygroThermFEM

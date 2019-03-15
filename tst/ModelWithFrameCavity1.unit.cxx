@@ -7,10 +7,8 @@
 using HygroThermFEM::NodePool;
 using HygroThermFEM::MaterialPool;
 using HygroThermFEM::State;
-using HygroThermFEM::ElementsLinear2D;
-using HygroThermFEM::ElementThermalLinear2D;
 
-class TestEquivalentFrameCavity1 : public testing::Test
+class TestModelWithFrameCavity1 : public testing::Test
 {
 protected:
     void SetUp() override
@@ -25,7 +23,7 @@ protected:
 public:
 };
 
-TEST_F(TestEquivalentFrameCavity1, TestSingleFrameCavity)
+TEST_F(TestModelWithFrameCavity1, TestSingleFrameCavity)
 {
     SCOPED_TRACE("Begin Test: Model with single frame cavity.");
 
@@ -123,7 +121,7 @@ TEST_F(TestEquivalentFrameCavity1, TestSingleFrameCavity)
         solution.push_back(temperatures);
     }
 
-    const auto correctThermalConductivity{0.002943};
+    const auto correctThermalConductivity{0.098654};
     const auto thermalCond = frameCavity.thermalConductivity()[0].second;
     EXPECT_NEAR(correctThermalConductivity, thermalCond, 1e-6);
 }

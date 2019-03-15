@@ -11,7 +11,7 @@ using HygroThermFEM::ElementsLinear2D;
 using HygroThermFEM::ElementThermalLinear2D;
 
 
-class TestEquivalentFrameCavity2 : public testing::Test
+class TestModelWithFrameCavity2 : public testing::Test
 {
 protected:
     void SetUp() override
@@ -26,7 +26,7 @@ protected:
 public:
 };
 
-TEST_F(TestEquivalentFrameCavity2, TestDoubleFrameCavity)
+TEST_F(TestModelWithFrameCavity2, TestDoubleFrameCavity)
 {
     SCOPED_TRACE("Begin Test: Model with two frame cavities.");
 
@@ -132,11 +132,11 @@ TEST_F(TestEquivalentFrameCavity2, TestDoubleFrameCavity)
         solution.push_back(temperatures);
     }
 
-    const auto correctThermalConductivity1{0.002943};
+    const auto correctThermalConductivity1{0.163195};
     const auto thermalCond1 = frameCavity1.thermalConductivity()[0].second;
     EXPECT_NEAR(correctThermalConductivity1, thermalCond1, 1e-6);
 
-    const auto correctThermalConductivity2{0.025};
+    const auto correctThermalConductivity2{0.025013};
     const auto thermalCond2 = frameCavity2.thermalConductivity()[0].second;
     EXPECT_NEAR(correctThermalConductivity2, thermalCond2, 1e-6);
 }
