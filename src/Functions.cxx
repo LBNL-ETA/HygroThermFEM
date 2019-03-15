@@ -154,7 +154,7 @@ namespace HygroThermFEM
         return m_Curve.front().second;
     }
 
-    const std::vector<std::pair<double, double>> & TabularFunction::getCurve() const
+    std::vector<std::pair<double, double>> & TabularFunction::getCurve()
     {
         return m_Curve;
     }

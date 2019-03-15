@@ -343,7 +343,7 @@ namespace HygroThermFEM
         double minY() const;
 
         //! Returns tabular values as standard vector of pairs.
-        const std::vector<std::pair<double, double>> & getCurve() const;
+        std::vector<std::pair<double, double>> & getCurve();
 
     protected:
         std::vector<std::pair<double, double>> m_Curve;

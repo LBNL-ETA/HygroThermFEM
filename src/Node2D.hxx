@@ -125,10 +125,12 @@ namespace HygroThermFEM
         //! Assigning material to current node.
         void assignMaterial(
           const std::string &
-            t_Material,   //!< Material name. It must be assigned to MaterialPool first.
+            t_Material,   //!< SolidMaterial name. It must be assigned to MaterialPool first.
           double weightingCoefficient   //!< Weighting coefficient that represents influence of the
                                         //!< material to current node.
         ) override;
+
+        std::vector<std::string> getMaterialNames(const MaterialType materialType) const;
 
         //! Returns back property of state variable. Variable can be from basic state (temperature,
         //! humidity or pressure) or water content
@@ -167,7 +169,7 @@ namespace HygroThermFEM
 
         /// Node can belong to multiple materials. This will be used to calculate secondary
         /// properties based on primary properties (water content depends on humidity)
-        std::set<std::pair<double, std::reference_wrapper<const Material>>> m_Materials;
+        std::set<std::pair<double, std::reference_wrapper<const IMaterial>>> m_Materials;
 
         // Need to store water content because calculating it every time will slow down
         // program speed

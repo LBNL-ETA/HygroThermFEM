@@ -1,5 +1,6 @@
 #include <cmath>
 #include <iostream>
+#include <utility>
 
 #include "Material.hxx"
 #include "State.hxx"
@@ -7,22 +8,124 @@
 
 namespace HygroThermFEM
 {
-    Material::Material(const std::string & Name,
-                       const double Density,
-                       const double Porosity,
-                       const double HeatCapacity,
-                       const double DiffusionResistanceFactor,
-                       const std::vector<std::pair<double, double>> & ThermalConductivity,
-                       const std::vector<std::pair<double, double>> & LiquidTransportCurve,
-                       const std::vector<std::pair<double, double>> & SorptionCurve) :
-        m_Name(Name),
-        m_Density(Density),
-        m_Porosity(Porosity),
-        m_HeatCapacity(HeatCapacity),
-        m_DiffusionResistanceFactor(DiffusionResistanceFactor),
-        m_ThermalConductivity(new TabularFunction(ThermalConductivity, Variable::water)),
-        m_LiquidTransportCoefficient(new LiquidTransportationCurve(LiquidTransportCurve)),
-        m_SorptionCurve(new TabularFunction(SorptionCurve, Variable::humidity))
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+    // IMaterial
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+    IMaterial::IMaterial(std::string cs,
+                         const double density,
+                         const double porosity,
+                         const double heatCapacity,
+                         const double diffusionResistanceFactor,
+                         const std::vector<std::pair<double, double>> & thermalConductivity,
+                         const std::vector<std::pair<double, double>> & liquidTransportationCurve,
+                         const std::vector<std::pair<double, double>> & sorptionCurve,
+                         const double emissivity,
+                         const MaterialType material) :
+        m_Name(std::move(cs)),
+        m_Density(density),
+        m_Porosity(porosity),
+        m_HeatCapacity(heatCapacity),
+        m_DiffusionResistanceFactor(diffusionResistanceFactor),
+        m_ThermalConductivity(new TabularFunction(thermalConductivity, Variable::water)),
+        m_LiquidTransportCoefficient(new LiquidTransportationCurve(liquidTransportationCurve)),
+        m_SorptionCurve(new TabularFunction(sorptionCurve, Variable::humidity)),
+        m_Emissivity(emissivity),
+        m_MaterialType(material)
+    {}
+
+    double IMaterial::density() const
+    {
+        return m_Density;
+    }
+
+    double IMaterial::heatCapacity() const
+    {
+        return m_HeatCapacity;
+    }
+
+    double IMaterial::porosity() const
+    {
+        return m_Porosity;
+    }
+
+    double IMaterial::diffusionResistanceFactor() const
+    {
+        return m_DiffusionResistanceFactor;
+    }
+
+    const std::vector<std::pair<double, double>> & IMaterial::thermalConductivity() const
+    {
+        return m_ThermalConductivity->getCurve();
+    }
+
+    const std::vector<std::pair<double, double>> & IMaterial::liquidTransportationCurve() const
+    {
+        return m_LiquidTransportCoefficient->getCurve();
+    }
+
+    const std::vector<std::pair<double, double>> & IMaterial::sorptionCurve() const
+    {
+        return m_SorptionCurve->getCurve();
+    }
+
+    std::string IMaterial::name() const
+    {
+        return m_Name;
+    }
+
+    MaterialType IMaterial::materialType() const
+    {
+        return m_MaterialType;
+    }
+
+    double IMaterial::emissivity() const
+    {
+        return m_Emissivity;
+    }
+
+    bool operator<(const IMaterial & lhs, const IMaterial & rhs)
+    {
+        return lhs.m_Name < rhs.m_Name;
+    }
+
+    bool operator>(const IMaterial & lhs, const IMaterial & rhs)
+    {
+        return rhs < lhs;
+    }
+
+    bool operator<=(const IMaterial & lhs, const IMaterial & rhs)
+    {
+        return !(rhs < lhs);
+    }
+
+    bool operator>=(const IMaterial & lhs, const IMaterial & rhs)
+    {
+        return !(lhs < rhs);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+    // SolidMaterial
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+    SolidMaterial::SolidMaterial(
+      const std::string & name,
+      const double density,
+      const double porosity,
+      const double heatCapacity,
+      const double diffusionResistanceFactor,
+      const std::vector<std::pair<double, double>> & thermalConductivity,
+      const std::vector<std::pair<double, double>> & liquidTransportCurve,
+      const std::vector<std::pair<double, double>> & sorptionCurve,
+      const double emissivity) :
+        IMaterial(name,
+                  density,
+                  porosity,
+                  heatCapacity,
+                  diffusionResistanceFactor,
+                  thermalConductivity,
+                  liquidTransportCurve,
+                  sorptionCurve,
+                  emissivity,
+                  MaterialType::Solid)
     {
         try
         {
@@ -45,63 +148,14 @@ namespace HygroThermFEM
         }
     }
 
-    bool operator<(const Material & lhs, const Material & rhs)
+    double SolidMaterial::saturationConcentration(const INode2D & node)
     {
-        return lhs.m_Name < rhs.m_Name;
-    }
-
-    bool operator>(const Material & lhs, const Material & rhs)
-    {
-        return rhs < lhs;
-    }
-
-    bool operator<=(const Material & lhs, const Material & rhs)
-    {
-        return !(rhs < lhs);
-    }
-
-    bool operator>=(const Material & lhs, const Material & rhs)
-    {
-        return !(lhs < rhs);
-    }
-
-    double Material::density() const
-    {
-        return m_Density;
-    }
-
-    double Material::heatCapacity() const
-    {
-        return m_HeatCapacity;
-    }
-
-    double Material::porosity() const
-    {
-        return m_Porosity;
-    }
-
-    double Material::diffusionResistanceFactor() const
-    {
-        return m_DiffusionResistanceFactor;
-    }
-
-    const std::vector<std::pair<double, double>> & Material::thermalConductivity() const
-    {
-        return m_ThermalConductivity->getCurve();
-    }
-
-    const std::vector<std::pair<double, double>> & Material::liquidTransportationCurve() const
-    {
-        return m_LiquidTransportCoefficient->getCurve();
-    }
-
-    double Material::saturationConcentration(const INode2D &node) {
         const auto temperature = node.property(Variable::temperature);
 
         return saturationConcentrationAtTemperature(temperature);
     }
 
-    double Material::waterContent(const INode2D & node, WaterContent wContent) const
+    double SolidMaterial::waterContent(const INode2D & node, WaterContent wContent) const
     {
         std::map<WaterContent, double> results;
         results[WaterContent::Water] = waterContent(node);
@@ -112,46 +166,74 @@ namespace HygroThermFEM
         return results.at(wContent);
     }
 
-    double Material::waterContent(const INode2D & node) const
+    double SolidMaterial::waterContent(const INode2D & node) const
     {
         return m_SorptionCurve->value(node);
     }
 
-    double Material::vaporContent(const INode2D & node) const
+    double SolidMaterial::vaporContent(const INode2D & node) const
     {
-        return saturationConcentration(node) * airPorosity(node) * node.property(Variable::humidity);
+        return saturationConcentration(node) * airPorosity(node)
+               * node.property(Variable::humidity);
     }
 
-    double Material::liquidWaterContent(const INode2D & node) const
+    double SolidMaterial::liquidWaterContent(const INode2D & node) const
     {
         return node.property(Variable::liquidPercent) * (waterContent(node) - vaporContent(node));
     }
 
-    double Material::iceContent(const INode2D & node) const
+    double SolidMaterial::iceContent(const INode2D & node) const
     {
         return (1 - node.property(Variable::liquidPercent))
                * (waterContent(node) - vaporContent(node));
     }
 
-    const std::vector<std::pair<double, double>> & Material::sorptionCurve() const
-    {
-        return m_SorptionCurve->getCurve();
-    }
-
-    std::string Material::name() const
-    {
-        return m_Name;
-    }
-
-    double Material::liquidPorosity(const INode2D & node) const
+    double SolidMaterial::liquidPorosity(const INode2D & node) const
     {
         const auto waterContent = m_SorptionCurve->value(node);
         const auto maxWaterContent = m_SorptionCurve->maxY();
         return waterContent / maxWaterContent * m_Porosity;
     }
 
-    double Material::airPorosity(const INode2D & node) const
+    double SolidMaterial::airPorosity(const INode2D & node) const
     {
         return m_Porosity - liquidPorosity(node);
     }
+
+    void SolidMaterial::updateThermalConductivity(double)
+    {
+        // No thermal conductivity update for solid materials
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+    // Gas
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+
+    double Gas::waterContent(const INode2D & , WaterContent) const
+    {
+        return 0;
+    }
+
+    void Gas::updateThermalConductivity(double thermalConductivity)
+    {
+        const auto minX = m_ThermalConductivity->minX();
+        const auto maxX = m_ThermalConductivity->maxX();
+        auto & curve = m_ThermalConductivity->getCurve();
+        curve.clear();
+        curve.emplace_back(minX, thermalConductivity);
+        curve.emplace_back(maxX, thermalConductivity);
+    }
+
+    Gas::Gas(const std::string & name) :
+        IMaterial(name,
+                  0.0,            // Density
+                  1.0,            // Porosity
+                  0.0,            // Heat Capacity
+                  2,              // Diffusion resistance factor
+                  {{0.0, 1.8}},   // Thermal conductivity
+                  {{0.0, 0.0}},   // Liquid transportation curve
+                  {{0.0, 0.0}},   // Sorption curve
+                  0.0,            // emissivity
+                  MaterialType::Gas)
+    {}
 }   // namespace HygroThermFEM

@@ -3,7 +3,7 @@
 #include "HygroThermFEM2D.hxx"
 
 using HygroThermFEM::MaterialPool;
-using HygroThermFEM::Material;
+using HygroThermFEM::SolidMaterial;
 using HygroThermFEM::Variable;
 using HygroThermFEM::State;
 using HygroThermFEM::INode2D;

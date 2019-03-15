@@ -23,8 +23,8 @@ namespace HygroThermFEM
         virtual ~IConvectiveCoefficient() = default;
         IConvectiveCoefficient(const IConvectiveCoefficient & other) = default;
         IConvectiveCoefficient(IConvectiveCoefficient && other) = default;
-        IConvectiveCoefficient & operator=(const IConvectiveCoefficient & other) = default;
-        IConvectiveCoefficient & operator=(IConvectiveCoefficient && other) = default;
+        IConvectiveCoefficient & operator=(const IConvectiveCoefficient & other) = delete;
+        IConvectiveCoefficient & operator=(IConvectiveCoefficient && other) = delete;
         virtual std::vector<double> convectiveCoefficients() const = 0;
         std::vector<double> betaConv() const;
 
@@ -241,7 +241,7 @@ namespace HygroThermFEM
 
         double m_AirHumidity;
         double m_AirTemperature;
-        const Material & m_Material;
+        const IMaterial & m_Material;
         std::unique_ptr<IConvectiveCoefficient> m_ConvectiveCoeffCalc;
     };
 

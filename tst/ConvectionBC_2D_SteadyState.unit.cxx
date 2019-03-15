@@ -32,32 +32,33 @@ TEST_F(ConvectionBC_2D_SteadyState, TestExample_1)
     NodePool::Instance().createNode(5, 0, 5);
     NodePool::Instance().createNode(6, 0, 0);
 
-    auto & material = MaterialPool::Instance().createMaterial(
-      "Test Material",
-      2050,                       /// Density
-      0.00,                       /// Porosity
-      850,                        /// Specific Heat Capacity (dry)
-      15E-6,                      /// Diffusion Resistance Factor
-      {{0.0, 1.0}, {180, 1.0}},   /// Thermal Conductivity (as function of water content)
-      {{0, 0},   /// Liquid Transportation Coefficient (as function of water content)
-       {27, 1E-8},
-       {45, 1.1E-8},
-       {90, 2E-8},
-       {126, 3.5E-8},
-       {144, 5E-8},
-       {162, 1E-7},
-       {171, 2E-7},
-       {180, 7E-7}},
-      {{0, 0},   /// Moisture Storage Function (Water content as function of relative humidity)
-       {0.5, 5.3},
-       {0.65, 8.4},
-       {0.8, 12},
-       {0.93, 17},
-       {0.95, 25},
-       {0.99, 63},
-       {0.995, 83},
-       {0.999, 120},
-       {1, 180}});
+    auto & material = MaterialPool::Instance().createSolidMaterial(
+                                                              "Test Material",
+                                                              2050,  /// Density
+                                                              0.00,  /// Porosity
+                                                              850,   /// Specific Heat Capacity (dry)
+                                                              15E-6, /// Diffusion Resistance Factor
+                                                              {{0.0, 1.0},
+                                                              {180, 1.0}}, /// Thermal Conductivity (as function of water content)
+                                                              {{0,   0},   /// Liquid Transportation Coefficient (as function of water content)
+                                                              {27,  1E-8},
+                                                              {45,  1.1E-8},
+                                                              {90,  2E-8},
+                                                              {126, 3.5E-8},
+                                                              {144, 5E-8},
+                                                              {162, 1E-7},
+                                                              {171, 2E-7},
+                                                              {180, 7E-7}},
+                                                              {{0,     0}, /// Moisture Storage Function (Water content as function of relative humidity)
+                                                              {0.5,   5.3},
+                                                              {0.65,  8.4},
+                                                              {0.8,   12},
+                                                              {0.93,  17},
+                                                              {0.95,  25},
+                                                              {0.99,  63},
+                                                              {0.995, 83},
+                                                              {0.999, 120},
+                                                              {1,     180}});
 
     HygroThermFEM::ThermalDomain domain;
 

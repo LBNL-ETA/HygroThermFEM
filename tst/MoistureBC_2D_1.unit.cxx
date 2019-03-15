@@ -41,7 +41,7 @@ TEST_F(MoistureBC_2D_1, TestExample_1)
         NodePool::Instance().createNode(nodeIndex, val, 0.05, state);
     }
 
-    auto & material = MaterialPool::Instance().createMaterial(
+    auto & material = MaterialPool::Instance().createSolidMaterial(
       "Cottaer Sandstone",
       2050,                       // density
       0.22,                       // porosity
@@ -178,7 +178,7 @@ TEST_F(MoistureBC_2D_1, TestExample_1)
 
     for(auto i = 0u; i < waterContentSolution.size(); ++i)
     {
-        for (auto j = 0u; j < waterContentSolution[i].size(); ++j)
+        for(auto j = 0u; j < waterContentSolution[i].size(); ++j)
         {
             EXPECT_NEAR(correctWaterContentSolution[i][j], waterContentSolution[i][j], 1e-6);
             EXPECT_NEAR(correctFluxSolution[i][j].x, fluxSolution[i][j].x, 1e-12);

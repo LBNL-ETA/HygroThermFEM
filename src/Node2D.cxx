@@ -35,7 +35,8 @@ namespace HygroThermFEM
     Node2D::Node2D(const std::size_t t_NodeNumber,
                    const double t_x,
                    const double t_y,
-                   const State & t_State) : INode2D(),
+                   const State & t_State) :
+        INode2D(),
         m_NodeNumber(t_NodeNumber),
         m_x(t_x),
         m_y(t_y),
@@ -141,8 +142,9 @@ namespace HygroThermFEM
         double sum = 0.0;
         double weighting = 0;
         // Node can end up in several different elements and elements can have different materials.
-        // This part of code will check influence (weighting) of different materials on current node.
-        // In this way, program will estimate water content of node containing different materials
+        // This part of code will check influence (weighting) of different materials on current
+        // node. In this way, program will estimate water content of node containing different
+        // materials
         for(auto & val : m_Materials)
         {
             sum += val.second.get().waterContent(*this, content) * val.first;
@@ -156,6 +158,19 @@ namespace HygroThermFEM
         m_Liquid = calcWaterContent(WaterContent::Liquid);
         m_Vapor = calcWaterContent(WaterContent::Vapor);
         m_Ice = calcWaterContent(WaterContent::Ice);
+    }
+
+    std::vector<std::string> Node2D::getMaterialNames(const MaterialType materialType) const
+    {
+        std::vector<std::string> names;
+        for(const auto & material : m_Materials)
+        {
+            if(material.second.get().materialType() == materialType)
+            {
+                names.push_back(material.second.get().name());
+            }
+        }
+        return names;
     }
 
     ////////////////////////////////////////////////////////////////////////////

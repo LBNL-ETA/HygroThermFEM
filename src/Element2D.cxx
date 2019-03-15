@@ -314,7 +314,7 @@ namespace HygroThermFEM
         return m_Global2D.nodeIndexes();
     }
 
-    const Material & IElementLinear2D::getMaterial() const
+    const IMaterial & IElementLinear2D::getMaterial() const
     {
         return m_Material;
     }
@@ -475,7 +475,7 @@ namespace HygroThermFEM
         //////////////////////////////////////////////////////////////////////
 
         //////////////////////////////////////////////////////////////////////
-        /// Material conductance for flux calculations
+        /// SolidMaterial conductance for flux calculations
         //////////////////////////////////////////////////////////////////////
         TabularFunction matCond(m_Material.thermalConductivity(), Variable::water);
         CondFlux(matCond);

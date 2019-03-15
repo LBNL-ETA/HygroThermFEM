@@ -257,11 +257,11 @@ namespace HygroThermFEM
     /// IMoistureBC
     /////////////////////////////////////////////////////
 
-    IMoistureBC::IMoistureBC(size_t index1,
-                             size_t index2,
+    IMoistureBC::IMoistureBC(const size_t index1,
+                             const size_t index2,
                              const std::string & materialName,
-                             double t_AirHumidity,
-                             double t_AirTemperature,
+                             const double t_AirHumidity,
+                             const double t_AirTemperature,
                              std::unique_ptr<IConvectiveCoefficient> model) :
         IBCLinear2D(index1, index2),
         m_AirHumidity(t_AirHumidity),

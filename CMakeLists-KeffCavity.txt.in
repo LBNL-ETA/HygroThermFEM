@@ -1,0 +1,19 @@
+# find_package(Threads REQUIRED)
+include(ExternalProject)
+
+ExternalProject_Add(KeffCavity
+    GIT_REPOSITORY https://vidanovic@bitbucket.org/vidanovic/keffcavity.git
+    #GIT_TAG "3.3.5"
+    GIT_TAG "master"
+    
+    UPDATE_COMMAND ""
+    PATCH_COMMAND ""
+  	
+    SOURCE_DIR "${CMAKE_BINARY_DIR}/KeffCavity-src"
+    BINARY_DIR "${CMAKE_BINARY_DIR}/KeffCavity-build"
+  	
+    CONFIGURE_COMMAND ""
+    BUILD_COMMAND ""
+    TEST_COMMAND ""
+    INSTALL_COMMAND ""
+)

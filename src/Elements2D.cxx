@@ -185,5 +185,10 @@ namespace HygroThermFEM
         return result;
     }
 
+    const std::vector<std::unique_ptr<IElementLinear2D>> & ElementsLinear2D::elements() const
+    {
+        return m_Elements;
+    }
+
 
 }   // namespace HygroThermFEM

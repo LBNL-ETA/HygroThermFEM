@@ -51,7 +51,7 @@ namespace HygroThermFEM
           size_t index2,                     //!< Node 2 index
           size_t index3,                     //!< Node 3 index
           size_t index4,                     //!< Node 4 index
-          const std::string & materialName   //!< Material that will be assigned to the element
+          const std::string & materialName   //!< SolidMaterial that will be assigned to the element
           ) = 0;
 
     protected:
@@ -151,7 +151,7 @@ namespace HygroThermFEM
                                    size_t index2,                     //!< Node 2 index
                                    size_t index3,                     //!< Node 3 index
                                    size_t index4,                     //!< Node 4 index
-                                   const std::string & materialName   //!< Material name
+                                   const std::string & materialName   //!< SolidMaterial name
                                    ) override;
     };
 
@@ -180,7 +180,7 @@ namespace HygroThermFEM
                                    size_t index2,                     //!< Node 2 index
                                    size_t index3,                     //!< Node 3 index
                                    size_t index4,                     //!< Node 4 index
-                                   const std::string & materialName   //!< Material name
+                                   const std::string & materialName   //!< SolidMaterial name
                                    ) override;
 
     protected:

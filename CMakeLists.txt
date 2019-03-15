@@ -22,16 +22,19 @@ execute_process(COMMAND ${CMAKE_COMMAND} --build .
 
 include_directories(${CMAKE_BINARY_DIR}/eigen-src)
 
+# Include KeffCavity
+include(CMakeLists-KeffCavity.txt)
+
 # google test will not be created by this project if this is not main project. Main project is expected to handle google test.
 get_directory_property(hasParent PARENT_DIRECTORY)
 
 if (hasParent)
-    set(BUILD_TESTING OFF)
+    set(BUILD_HTFEM_TESTING OFF)
 else ()
-    option(BUILD_TESTING "Build testing targets" ON)
+    option(BUILD_HTFEM_TESTING "Build testing targets" ON)
 endif ()
 
-if (BUILD_TESTING)
+if (BUILD_HTFEM_TESTING)
     set(google_disable_pthreads ON)
     # include(CMakeLists-GTest.txt)
     configure_file(CMakeListsGTest.txt.in ${CMAKE_BINARY_DIR}/googletest-download/CMakeLists.txt)
@@ -73,7 +76,9 @@ add_library(${target_name} STATIC ${SOURCES})
 
 set_target_properties(${target_name} PROPERTIES LINKER_LANGUAGE CXX)
 
-if (BUILD_TESTING)
+target_link_libraries( ${target_name} PRIVATE KeffCavity)
+
+if (BUILD_HTFEM_TESTING)
     #include_directories( src )
     include_directories(include)
 
