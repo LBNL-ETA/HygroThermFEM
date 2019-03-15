@@ -1,10 +1,14 @@
 #pragma once
 
+#include <memory>
+
 #include "Elements2D.hxx"
 #include "BoundaryConditions2D.hxx"
+#include "FrameCavities.hxx"
 
 namespace HygroThermFEM
 {
+
     //! \brief Class to hold solution from single timestep.
     struct SingleSolution
     {
@@ -82,7 +86,7 @@ namespace HygroThermFEM
         //! moisture domain where humidity cannot go over 1.0 or lower than one.
         //! With certain set of boundary conditions and long enough time-step,
         //! solution can achieve such state and post processing should prevent it.
-        virtual void postProcess(std::vector<double> & solution) const;
+        virtual void postProcess(std::vector<double> & solution);
 
         std::pair<std::vector<double>, bool> transientTimestep(
           const std::vector<double> &
@@ -147,12 +151,18 @@ namespace HygroThermFEM
         );
 
         //! Creates and adds element into domain.
-        virtual void createElement(size_t index1,                     //!< Node 1 index
-                                   size_t index2,                     //!< Node 2 index
-                                   size_t index3,                     //!< Node 3 index
-                                   size_t index4,                     //!< Node 4 index
-                                   const std::string & materialName   //!< SolidMaterial name
-                                   ) override;
+        void createElement(size_t index1,                     //!< Node 1 index
+                           size_t index2,                     //!< Node 2 index
+                           size_t index3,                     //!< Node 3 index
+                           size_t index4,                     //!< Node 4 index
+                           const std::string & materialName   //!< SolidMaterial name
+                           ) override;
+
+    protected:
+        //! Storage for frame cavities recalculation
+        std::unique_ptr<EquivalentFrameCavities> frameCavities;
+
+        void postProcess(std::vector<double> & solution) override;
     };
 
     //! \brief Domain class for solving humidity distribution.
@@ -184,7 +194,7 @@ namespace HygroThermFEM
                                    ) override;
 
     protected:
-        void postProcess(std::vector<double> & solution) const override;
+        void postProcess(std::vector<double> & solution) override;
     };
 
 }   // namespace HygroThermFEM

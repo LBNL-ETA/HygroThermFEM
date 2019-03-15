@@ -67,7 +67,7 @@ TEST_F(TestEquivalentFrameCavity1, TestSingleFrameCavity)
     std::set<size_t> frameCavityElement{6, 7, 10};
 
     // Create elements grid
-    ElementsLinear2D elements;
+    HygroThermFEM::ThermalDomain domain;
     size_t elementNumber{0u};
     for(auto ix = 1u; ix < gridX.size(); ++ix)
     {
@@ -79,28 +79,51 @@ TEST_F(TestEquivalentFrameCavity1, TestSingleFrameCavity)
                 const auto node2 = ix * gridX.size() + iy - gridX.size() + 1u;
                 const auto node3 = ix * gridX.size() + (iy + 1u);
                 const auto node4 = ix * gridX.size() + iy;
+                std::string materialName;
                 if(frameCavityElement.find(elementNumber) != frameCavityElement.end())
                 {
-                    elements.assignElement(std::unique_ptr<ElementThermalLinear2D>(
-                      new ElementThermalLinear2D(node1, node2, node3, node4, frameCavity.name())));
+                    materialName = frameCavity.name();
                 }
                 else
                 {
-                    elements.assignElement(
-                      std::unique_ptr<ElementThermalLinear2D>(new ElementThermalLinear2D(
-                        node1, node2, node3, node4, solidMaterial.name())));
+                    materialName = solidMaterial.name();
                 }
+                domain.createElement(node1, node2, node3, node4, materialName);
             }
         }
     }
-    HygroThermFEM::EquivalentFrameCavities eqFrameCav(elements);
-    const auto cavity = eqFrameCav.getCavity(frameCavity.name());
 
-    const auto area = cavity.area();
-    const auto L = cavity.L();
-    const auto H = cavity.H();
+    // Create Boundary Conditions
+    const auto tAir = 0.0;
+    const auto hc = 30.0;
 
-    EXPECT_NEAR(area, 0.0015, 1e-6);
-    EXPECT_NEAR(L, 0.017321, 1e-6);
-    EXPECT_NEAR(H, 0.086603, 1e-6);
+    // Build boundary condition nodes on left edge
+    std::vector<size_t> bcnodes;
+    for(size_t i = 0u; i < gridY.size(); ++i)
+    {
+        bcnodes.push_back(i * gridX.size() + 1);
+    }
+
+    // Now build boundary condition on left edge of domain rectangle
+    for(size_t i = 1u; i < bcnodes.size(); ++i)
+    {
+        domain.createConvectionBCFixedHc(bcnodes[i - 1u], bcnodes[i], tAir, hc);
+    }
+
+    // Now perform transient calculation in order to make frame cavity update over the simulation
+    const auto dTime = 360;
+    const auto nSteps = 10;
+
+    auto temperatures = NodePool::Instance().properties(HygroThermFEM::Variable::temperature);
+    std::vector<std::vector<double>> solution;
+
+    for(unsigned i = 0; i < nSteps; ++i)
+    {
+        temperatures = domain.transient(temperatures, dTime).solution;
+        solution.push_back(temperatures);
+    }
+
+    const auto correctThermalConductivity{0.002943};
+    const auto thermalCond = frameCavity.thermalConductivity()[0].second;
+    EXPECT_NEAR(correctThermalConductivity, thermalCond, 1e-6);
 }

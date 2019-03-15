@@ -19,7 +19,8 @@ namespace HygroThermFEM
                          const std::vector<std::pair<double, double>> & thermalConductivity,
                          const std::vector<std::pair<double, double>> & liquidTransportationCurve,
                          const std::vector<std::pair<double, double>> & sorptionCurve,
-                         const double emissivity) :
+                         const double emissivity,
+                         const bool isLinear) :
         m_Name(std::move(cs)),
         m_Density(density),
         m_Porosity(porosity),
@@ -28,7 +29,8 @@ namespace HygroThermFEM
         m_ThermalConductivity(new TabularFunction(thermalConductivity, Variable::water)),
         m_LiquidTransportCoefficient(new LiquidTransportationCurve(liquidTransportationCurve)),
         m_SorptionCurve(new TabularFunction(sorptionCurve, Variable::humidity)),
-        m_Emissivity(emissivity)
+        m_Emissivity(emissivity),
+        m_Linear(isLinear)
     {}
 
     double IMaterial::density() const
@@ -49,6 +51,11 @@ namespace HygroThermFEM
     double IMaterial::diffusionResistanceFactor() const
     {
         return m_DiffusionResistanceFactor;
+    }
+
+    bool IMaterial::isLinear() const
+    {
+        return m_Linear;
     }
 
     const std::vector<std::pair<double, double>> & IMaterial::thermalConductivity() const
@@ -118,7 +125,8 @@ namespace HygroThermFEM
                   thermalConductivity,
                   liquidTransportationCurve,
                   sorptionCurve,
-                  emissivity),
+                  emissivity,
+                  false),   // Gases introduce nonlinearty into domain
         m_CavityStandard(cavityStandard)
     {}
 
@@ -223,11 +231,6 @@ namespace HygroThermFEM
         return m_Porosity - liquidPorosity(node);
     }
 
-    void SolidMaterial::updateThermalConductivity(double)
-    {
-        // No thermal conductivity update for solid materials
-    }
-
     ///////////////////////////////////////////////////////////////////////////////////////////////
     // Gas
     ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -249,15 +252,15 @@ namespace HygroThermFEM
 
     Gas::Gas(const std::string & name, CavityStandard cavityStandard) :
         IGas(name,
-             0.0,              // Density
-             1.0,              // Porosity
-             0.0,              // Heat Capacity
-             2,                // Diffusion resistance factor
-             {{0.0, 1.8}},     // Thermal conductivity
-             {{0.0, 0.0}},     // Liquid transportation curve
-             {{0.0, 0.0}},     // Sorption curve
-             0.0,              // emissivity
-             cavityStandard)   // Standard used for cavity calculations
+             0.0,                        // Density
+             1.0,                        // Porosity
+             0.0,                        // Heat Capacity
+             2,                          // Diffusion resistance factor
+             {{0.0, 1.8}, {1.0, 1.8}},   // Thermal conductivity
+             {{0.0, 0.0}, {1.0, 1.0}},   // Liquid transportation curve
+             {{0.0, 0.0}, {1.0, 1.0}},   // Sorption curve
+             0.0,                        // emissivity
+             cavityStandard)             // Standard used for cavity calculations
 
     {}
 }   // namespace HygroThermFEM

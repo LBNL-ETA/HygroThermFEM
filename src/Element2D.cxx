@@ -175,10 +175,8 @@ namespace HygroThermFEM
                    NodePool::Instance().getNode(index4)},
         m_QLECapacitance2D{m_Global2D},
         m_DDuIntegrator{m_Global2D},
-        m_Linear{isLinear}
+        m_Linear{isLinear && m_Material.isLinear()}
     {
-        const auto matName = m_Material.name();
-
         /// Evaluating material influence in every node (This is important to know when
         /// calculating water content).
         while(!m_Nodes.last())
@@ -194,7 +192,7 @@ namespace HygroThermFEM
               angleBetweenNodes(node1, node2, node3) / Constants::PI;
             /// Node will have possibility to calculate certain properties that will be
             /// material dependent.
-            node1.assignMaterial(matName, weightingCoefficient);
+            node1.assignMaterial(materialName, weightingCoefficient);
             m_Nodes.moveToNext();
         }
     }

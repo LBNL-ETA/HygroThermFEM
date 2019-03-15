@@ -27,6 +27,8 @@ namespace HygroThermFEM
 
         const IMaterial & material(const std::string & name) const;
 
+        IGas & gas(const std::string & name) const;
+
         void clear();
 
         //! Returns all material names

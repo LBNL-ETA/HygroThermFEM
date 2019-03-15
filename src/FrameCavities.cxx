@@ -5,155 +5,61 @@
 namespace HygroThermFEM
 {
     ///////////////////////////////////////////////////////////////////////////////
-    ///  FrameCavityBoundaries
+    ///  EquivalentFrameCavity
     ///////////////////////////////////////////////////////////////////////////////
 
-    EquivalentFrameCavities::EquivalentFrameCavities(const ElementsLinear2D & m_Elements) :
-        m_Elements(m_Elements)
-    {
-        extractEquivalentFrameCavities();
-    }
-
-    void EquivalentFrameCavities::extractEquivalentFrameCavities()
-    {
-        auto frameCavities = MaterialPool::Instance().getGases();
-
-        for(const auto & frameCavity : frameCavities)
-        {
-            std::vector<std::vector<size_t>> elementNodes;
-            for(const auto & element : m_Elements.elements())
-            {
-                if(element->getMaterial().name() == frameCavity)
-                {
-                    elementNodes.push_back(element->nodeIndexes());
-                }
-            }
-            auto edges = getEdges(elementNodes);
-            m_BoundaryNodes[frameCavity] = edgeNodesOrdered(edges);
-        }
-    }
-
-    std::set<EquivalentFrameCavities::line>
-      EquivalentFrameCavities::getEdges(const std::vector<std::vector<size_t>> & elNodes)
-    {
-        std::map<std::set<size_t>, size_t> edges;
-        std::set<line> allEdges;
-
-        for(auto & n : elNodes)
-        {
-            for(size_t i = 0u; i < n.size(); ++i)
-            {
-                const auto index1 = n[i];
-                auto index2 = n[0u];
-                if(i != n.size() - 1)
-                {
-                    index2 = n[i + 1u];
-                }
-                std::set<size_t> edge({index1, index2});
-                if(edges.find(edge) != edges.end())
-                {
-                    edges[edge]++;
-                    allEdges.erase(line(index1, index2));
-                    allEdges.erase(line(index2, index1));
-                }
-                else
-                {
-                    edges[edge] = 1u;
-                    allEdges.insert(line(index1, index2));
-                }
-            }
-        }
-
-        return allEdges;
-    }
-
-    std::vector<size_t> EquivalentFrameCavities::edgeNodesOrdered(std::set<line> & allEdges)
-    {
-        std::vector<size_t> boundaryLine;
-
-        line first = *allEdges.begin();
-        boundaryLine.push_back(first.getN1());
-        allEdges.erase(first);
-
-        while(!allEdges.empty())
-        {
-            auto second = std::find_if(allEdges.begin(), allEdges.end(), [&first](const line & l) {
-                return first.getN2() == l.getN1();
-            });
-            first = *second;
-            boundaryLine.push_back(first.getN1());
-            allEdges.erase(first);
-        }
-
-        return boundaryLine;
-    }
-
-    const std::vector<size_t> &
-      EquivalentFrameCavities::boundaryNodes(const std::string & frameCavityName) const
-    {
-        return m_BoundaryNodes.at(frameCavityName);
-    }
-
-    EquivalentFrameCavity
-      EquivalentFrameCavities::getCavity(const std::string & frameCavityName) const
-    {
-        const auto bNodes = boundaryNodes(frameCavityName);
-        EquivalentFrameCavity cavity(bNodes);
-        return cavity;
-    }
-
-    double EquivalentFrameCavities::thermalConductivity(const std::string & frameCavityName) const
-    {
-        return 0;
-    }
-
-    EquivalentFrameCavities::line::line(const size_t n1, const size_t n2) : n1(n1), n2(n2)
-    {}
-
-    size_t EquivalentFrameCavities::line::getN1() const
-    {
-        return n1;
-    }
-
-    size_t EquivalentFrameCavities::line::getN2() const
-    {
-        return n2;
-    }
-
-    bool EquivalentFrameCavities::line::operator<(const line & rhs) const
-    {
-        if(n1 < rhs.n1)
-            return true;
-        if(rhs.n1 < n1)
-            return false;
-        return n2 < rhs.n2;
-    }
-
-    bool EquivalentFrameCavities::line::operator>(const line & rhs) const
-    {
-        return rhs < *this;
-    }
-
-    bool EquivalentFrameCavities::line::operator<=(const line & rhs) const
-    {
-        return !(rhs < *this);
-    }
-
-    bool EquivalentFrameCavities::line::operator>=(const line & rhs) const
-    {
-        return !(*this < rhs);
-    }
-
-    EquivalentFrameCavity::EquivalentFrameCavity(const std::vector<size_t> & nodes) :
+    EquivalentFrameCavity::EquivalentFrameCavity(const std::vector<size_t> & nodes, IGas & gas) :
         m_Segments(buildSegments(nodes)),
         m_SideSegments(groupSegmentSides(m_Segments)),
         m_Side{
           {Side::Top, {0, 0}}, {Side::Bottom, {0, 0}}, {Side::Left, {0, 0}}, {Side::Right, {0, 0}}},
-        m_Area(area()),
-        m_Size(calcSize(m_Area))
+        m_Area(calcArea()),
+        m_Size(calcSize(m_Area)),
+        m_Gas(gas)
     {
         calcSideEmissivities();
         updateSideTemperatures();
+    }
+
+    void EquivalentFrameCavity::update()
+    {
+        updateSideTemperatures();
+        const auto hfDirection = heatFlowDirection();
+        const auto side1 = getSide1(hfDirection);
+        const auto side2 = getSide2(hfDirection);
+        const auto standard = m_Gas.standard();
+        const auto radCalc{KeffCavity::RadiationCalculation::Yes};
+        auto thermalConductivity{0.0};
+        switch(standard)
+        {
+            case CavityStandard::ISO15099:
+            {
+                const auto jambHeight = 1;
+                const auto pressure = 101325;
+                const GravityVector g{0, -1, 0};
+                KeffCavity::CavityISO10599 cavity(hfDirection,
+                                                  m_Size.L,
+                                                  m_Size.H,
+                                                  jambHeight,
+                                                  side1,
+                                                  side2,
+                                                  pressure,
+                                                  g,
+                                                  radCalc,
+                                                  Gases::CGas());
+                thermalConductivity = cavity.effectiveConductivity();
+                break;
+            }
+            case CavityStandard::CEN:
+            {
+                KeffCavity::CavityCEN cavity(
+                  hfDirection, m_Size.L, m_Size.H, m_Area, side1, side2, radCalc);
+                thermalConductivity = cavity.effectiveConductivity();
+                break;
+            }
+            default:;
+        }
+        m_Gas.updateThermalConductivity(thermalConductivity);
     }
 
     std::vector<EquivalentFrameCavity::Segment>
@@ -177,8 +83,32 @@ namespace HygroThermFEM
         return segments;
     }
 
+    KeffCavity::CavitySide EquivalentFrameCavity::getSide1(KeffCavity::ScreenFlow screenFlow)
+    {
+        std::map<KeffCavity::ScreenFlow, Side> flowMap{
+          {KeffCavity::ScreenFlow::Left, Side::Right},
+          {KeffCavity::ScreenFlow::Right, Side::Left},
+          {KeffCavity::ScreenFlow::Up, Side::Bottom},
+          {KeffCavity::ScreenFlow::Down, Side::Top},
+        };
+
+        return m_Side.at(flowMap.at(screenFlow));
+    }
+
+    KeffCavity::CavitySide EquivalentFrameCavity::getSide2(KeffCavity::ScreenFlow screenFlow)
+    {
+        std::map<KeffCavity::ScreenFlow, Side> flowMap{
+          {KeffCavity::ScreenFlow::Left, Side::Left},
+          {KeffCavity::ScreenFlow::Right, Side::Right},
+          {KeffCavity::ScreenFlow::Up, Side::Top},
+          {KeffCavity::ScreenFlow::Down, Side::Bottom},
+        };
+
+        return m_Side.at(flowMap.at(screenFlow));
+    }
+
     std::string EquivalentFrameCavity::findCommonMaterial(const Node2D & node1,
-                                                          const Node2D & node2) const
+                                                          const Node2D & node2)
     {
         std::string name;
         auto node1Materials = node1.getSolidMaterialNames();
@@ -199,7 +129,7 @@ namespace HygroThermFEM
         return name;
     }
 
-    double EquivalentFrameCavity::area() const
+    double EquivalentFrameCavity::calcArea() const
     {
         double area{0};
         for(const auto & segment : m_Segments)
@@ -234,19 +164,8 @@ namespace HygroThermFEM
         return {L, H};
     }
 
-    double EquivalentFrameCavity::L() const
-    {
-        return m_Size.L;
-    }
-
-    double EquivalentFrameCavity::H() const
-    {
-        return m_Size.H;
-    }
-
     std::map<EquivalentFrameCavity::Side, std::vector<EquivalentFrameCavity::Segment>>
-      EquivalentFrameCavity::groupSegmentSides(
-        const std::vector<EquivalentFrameCavity::Segment> & segments)
+      EquivalentFrameCavity::groupSegmentSides(const std::vector<Segment> & segments)
     {
         std::map<Side, std::vector<Segment>> result{{Side::Top, std::vector<Segment>()},
                                                     {Side::Bottom, std::vector<Segment>()},
@@ -285,11 +204,12 @@ namespace HygroThermFEM
         }
     }
 
-    void EquivalentFrameCavity::updateSideTemperatures() {
+    void EquivalentFrameCavity::updateSideTemperatures()
+    {
         std::map<Side, double> length{
-                {Side::Top, 0}, {Side::Bottom, 0}, {Side::Left, 0}, {Side::Right, 0}};
+          {Side::Top, 0}, {Side::Bottom, 0}, {Side::Left, 0}, {Side::Right, 0}};
         std::map<Side, double> temperatureLength{
-                {Side::Top, 0}, {Side::Bottom, 0}, {Side::Left, 0}, {Side::Right, 0}};
+          {Side::Top, 0}, {Side::Bottom, 0}, {Side::Left, 0}, {Side::Right, 0}};
         for(const auto & side : m_SideSegments)
         {
             const auto aSide = side.first;
@@ -308,6 +228,32 @@ namespace HygroThermFEM
                 m_Side.at(side).temperature = temperatureLength.at(side) / length.at(side);
             }
         }
+    }
+
+    KeffCavity::ScreenFlow EquivalentFrameCavity::heatFlowDirection() const
+    {
+        const auto leftTemp = m_Side.at(Side::Left).temperature;
+        const auto rightTemp = m_Side.at(Side::Right).temperature;
+        const auto topTemp = m_Side.at(Side::Top).temperature;
+        const auto bottomTemp = m_Side.at(Side::Bottom).temperature;
+        KeffCavity::ScreenFlow result{KeffCavity::ScreenFlow::Right};
+        if(std::abs(topTemp - bottomTemp) > std::abs(leftTemp - rightTemp))
+        {
+            if(topTemp > bottomTemp)
+            {
+                result = KeffCavity::ScreenFlow::Down;
+            }
+            else
+            {
+                result = KeffCavity::ScreenFlow::Up;
+            }
+        }
+        if(rightTemp > leftTemp)
+        {
+            result = KeffCavity::ScreenFlow::Left;
+        }
+
+        return result;
     }
 
     EquivalentFrameCavity::Segment::Segment(const Node2D & node1,
@@ -380,8 +326,133 @@ namespace HygroThermFEM
         return m_Side;
     }
 
-    EquivalentFrameCavity::SideProperties::SideProperties(double emissivity, double temperature) :
-        emissivity(emissivity),
-        temperature(temperature)
+    ///////////////////////////////////////////////////////////////////////////////
+    ///  EquivalentFrameCavities
+    ///////////////////////////////////////////////////////////////////////////////
+
+    EquivalentFrameCavities::EquivalentFrameCavities(const ElementsLinear2D & m_Elements) :
+        m_Elements(m_Elements)
+    {
+        createEquivalentFrameCavities();
+    }
+
+    void EquivalentFrameCavities::createEquivalentFrameCavities()
+    {
+        auto frameCavities = MaterialPool::Instance().getGases();
+
+        for(const auto & frameCavity : frameCavities)
+        {
+            std::vector<std::vector<size_t>> elementNodes;
+            for(const auto & element : m_Elements.elements())
+            {
+                if(element->getMaterial().name() == frameCavity)
+                {
+                    elementNodes.push_back(element->nodeIndexes());
+                }
+            }
+            auto edges = getEdges(elementNodes);
+            auto & gas = MaterialPool::Instance().gas(frameCavity);
+            m_Cavities.emplace_back(edgeNodesOrdered(edges), gas);
+        }
+    }
+
+    std::set<EquivalentFrameCavities::line>
+      EquivalentFrameCavities::getEdges(const std::vector<std::vector<size_t>> & elNodes)
+    {
+        std::map<std::set<size_t>, size_t> edges;
+        std::set<line> allEdges;
+
+        for(auto & n : elNodes)
+        {
+            for(size_t i = 0u; i < n.size(); ++i)
+            {
+                const auto index1 = n[i];
+                auto index2 = n[0u];
+                if(i != n.size() - 1)
+                {
+                    index2 = n[i + 1u];
+                }
+                std::set<size_t> edge({index1, index2});
+                if(edges.find(edge) != edges.end())
+                {
+                    edges[edge]++;
+                    allEdges.erase(line(index1, index2));
+                    allEdges.erase(line(index2, index1));
+                }
+                else
+                {
+                    edges[edge] = 1u;
+                    allEdges.insert(line(index1, index2));
+                }
+            }
+        }
+
+        return allEdges;
+    }
+
+    std::vector<size_t> EquivalentFrameCavities::edgeNodesOrdered(std::set<line> & allEdges)
+    {
+        std::vector<size_t> boundaryLine;
+
+        line first = *allEdges.begin();
+        boundaryLine.push_back(first.getN1());
+        allEdges.erase(first);
+
+        while(!allEdges.empty())
+        {
+            auto second = std::find_if(allEdges.begin(), allEdges.end(), [&first](const line & l) {
+                return first.getN2() == l.getN1();
+            });
+            first = *second;
+            boundaryLine.push_back(first.getN1());
+            allEdges.erase(first);
+        }
+
+        return boundaryLine;
+    }
+
+    void EquivalentFrameCavities::update()
+    {
+        for(auto & cavity : m_Cavities)
+        {
+            cavity.update();
+        }
+    }
+
+    EquivalentFrameCavities::line::line(const size_t n1, const size_t n2) : n1(n1), n2(n2)
     {}
+
+    size_t EquivalentFrameCavities::line::getN1() const
+    {
+        return n1;
+    }
+
+    size_t EquivalentFrameCavities::line::getN2() const
+    {
+        return n2;
+    }
+
+    bool EquivalentFrameCavities::line::operator<(const line & rhs) const
+    {
+        if(n1 < rhs.n1)
+            return true;
+        if(rhs.n1 < n1)
+            return false;
+        return n2 < rhs.n2;
+    }
+
+    bool EquivalentFrameCavities::line::operator>(const line & rhs) const
+    {
+        return rhs < *this;
+    }
+
+    bool EquivalentFrameCavities::line::operator<=(const line & rhs) const
+    {
+        return !(rhs < *this);
+    }
+
+    bool EquivalentFrameCavities::line::operator>=(const line & rhs) const
+    {
+        return !(*this < rhs);
+    }
 }   // namespace HygroThermFEM

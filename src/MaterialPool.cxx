@@ -11,6 +11,7 @@ namespace HygroThermFEM
     void MaterialPool::clear()
     {
         m_Materials.clear();
+        m_Gases.clear();
     }
 
     const IMaterial & MaterialPool::createSolidMaterial(
@@ -53,6 +54,11 @@ namespace HygroThermFEM
             return *m_Gases.at(name);
         }
         return *m_Materials.at(name);
+    }
+
+    IGas & MaterialPool::gas(const std::string & name) const 
+    {
+        return *m_Gases.at(name);
     }
 
     std::vector<std::string> MaterialPool::getMaterials() const

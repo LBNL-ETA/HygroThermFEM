@@ -16,14 +16,11 @@ namespace HygroThermFEM
     class EquivalentFrameCavity
     {
     public:
-        explicit EquivalentFrameCavity(const std::vector<size_t> & nodes);
+        explicit EquivalentFrameCavity(const std::vector<size_t> & nodes, IGas & gas);
 
-        double L() const;
-        double H() const;
-
-        double area() const;
-
-        void updateSideTemperatures();
+        //! Public function that update frame cavity with new data, calculates new thermal
+        //! conductivity and update gas with new thermal conductivity
+        void update();
 
     private:
         //! \brief Local enumerator used to assign segment to certain side of rectangular frame
@@ -45,18 +42,6 @@ namespace HygroThermFEM
             double H;
         };
 
-        //! \brief Structure to hold side equivalent emissivities and temperatures.
-        //!
-        //! Equivalent emissivity of sides will not change during the execution, while equivalent
-        //! temperatures will. This is why it is important that algorithm will calculate
-        //! emissivities only once.
-        struct SideProperties
-        {
-            SideProperties(double emissivity, double temperature);
-
-            double emissivity{0};
-            double temperature{0};
-        };
 
         //! \brief Local class segment that keeps basic properties for rectangular cavity
         //! calculations.
@@ -98,17 +83,34 @@ namespace HygroThermFEM
             const Side m_Side;
         };
 
-        std::string findCommonMaterial(const Node2D & node1, const Node2D & node2) const;
+        //! Gets side (temperature and emissivity) based on screen flow direction
+        KeffCavity::CavitySide getSide1(KeffCavity::ScreenFlow screenFlow);
 
-        std::vector<Segment> buildSegments(const std::vector<size_t> & nodes);
+        //! Gets side (temperature and emissivity) based on screen flow direction
+        KeffCavity::CavitySide getSide2(KeffCavity::ScreenFlow screenFlow);
 
-        EquivalentFrameCavity::Size calcSize(double area) const;
+        //! Calculates frame cavity area out of segments
+        double calcArea() const;
+
+        static std::string findCommonMaterial(const Node2D & node1, const Node2D & node2);
+
+        static std::vector<Segment> buildSegments(const std::vector<size_t> & nodes);
+
+        Size calcSize(double area) const;
 
         //! Group segments at four sides of cavity. This is used in rectangularization algorithm.
-        std::map<Side, std::vector<Segment>>
+        static std::map<Side, std::vector<Segment>>
           groupSegmentSides(const std::vector<Segment> & segments);
 
         void calcSideEmissivities();
+
+        //! Update temperatures for each side of cavity
+        void updateSideTemperatures();
+
+        //! \brief Calculates screen heat flow direction.
+        KeffCavity::ScreenFlow heatFlowDirection() const;
+
+
 
         const std::vector<Segment> m_Segments;
 
@@ -117,9 +119,10 @@ namespace HygroThermFEM
         const std::map<Side, std::vector<Segment>> m_SideSegments;
 
         //! Structure to store every side and its properties.
-        std::map<Side, SideProperties> m_Side;
+        std::map<Side, KeffCavity::CavitySide> m_Side;
         const double m_Area;
         const Size m_Size;
+        IGas & m_Gas;
     };
 
     ///////////////////////////////////////////////////////////////////////////////
@@ -135,25 +138,10 @@ namespace HygroThermFEM
         //! \param elements: All elements from the domain.
         explicit EquivalentFrameCavities(const ElementsLinear2D & elements);
 
-        //! Returns rectrangular frame cavity
-        //!
-        //! \param frameCavityName Frame cavity name for which geometry will be returned.
-        //! \return Equivalent rectangular frame cavity
-        EquivalentFrameCavity getCavity(const std::string & frameCavityName) const;
-
-        //! \brief Calculation of eqivalent thermal conductivity.
-        //!
-        //! \param frameCavityName Frame cavity name for which thermal conductivity will be
-        //! calculated. \return Equivalent thermal conductivity value.
-        double thermalConductivity(const std::string & frameCavityName) const;
+        //! \brief Updates frame cavities with new temperatures.
+        void update();
 
     private:
-        //! Function to return boundary nodes for given frame cavity
-        //!
-        //! \param frameCavityName Frame cavity name for which boundary nodes will be returned
-        //! \return Nodes that form frame cavity boundary
-        const std::vector<size_t> & boundaryNodes(const std::string & frameCavityName) const;
-
         //! Helper class used in algorithm to determine frame cavity boundaries
         class line
         {
@@ -178,7 +166,7 @@ namespace HygroThermFEM
         };
 
         //! Function to perform calculation of equivalent frame cavities over the entire domain.
-        void extractEquivalentFrameCavities();
+        void createEquivalentFrameCavities();
 
         //! Calculate edges of frame cavity with lines in no specific order
         //!
@@ -197,6 +185,7 @@ namespace HygroThermFEM
 
         //! Keeps boundary nodes for every frame cavity in the domain.
         std::map<std::string, std::vector<size_t>> m_BoundaryNodes;
+        std::vector<EquivalentFrameCavity> m_Cavities;
     };
 
 }   // namespace HygroThermFEM

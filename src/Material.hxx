@@ -46,7 +46,8 @@ namespace HygroThermFEM
                   const std::vector<std::pair<double, double>> & thermalConductivity,
                   const std::vector<std::pair<double, double>> & liquidTransportationCurve,
                   const std::vector<std::pair<double, double>> & sorptionCurve,
-                  double emissivity);
+                  double emissivity,
+                  bool isLinear = true);
 
         //! Material's name.
         std::string name() const;
@@ -65,6 +66,9 @@ namespace HygroThermFEM
 
         //! Material's diffusion resistance factor.
         double diffusionResistanceFactor() const;
+
+        //! Material can require nonlinear iterations.
+        bool isLinear() const;
 
         //! Thermal conductivity table (x-water content [kg/m3], y-thermal conductivity[W/(mK)])
         const std::vector<std::pair<double, double>> & thermalConductivity() const;
@@ -89,12 +93,6 @@ namespace HygroThermFEM
         //! \param waterContent Water content property (total, liquid, vapor or ice).
         //! \return Value of water content.
         virtual double waterContent(const INode2D & node, WaterContent waterContent) const = 0;
-
-        //! \brief Some materials will require update of thermal conductivity within iterations.
-        //! This virtual function requires update in every material type.
-        //!
-        //! \param thermalConductivity New value for thermal conductivity.
-        virtual void updateThermalConductivity(double thermalConductivity) = 0;
 
         friend bool operator<(const IMaterial & lhs, const IMaterial & rhs);
         friend bool operator>(const IMaterial & lhs, const IMaterial & rhs);
@@ -121,6 +119,7 @@ namespace HygroThermFEM
         std::unique_ptr<TabularFunction> m_SorptionCurve;
 
         double m_Emissivity;
+        const bool m_Linear;
     };
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -141,6 +140,12 @@ namespace HygroThermFEM
              const std::vector<std::pair<double, double>> & sorptionCurve,
              double emissivity,
              CavityStandard m_CavityStandard);
+
+        //! \brief Some materials will require update of thermal conductivity within iterations.
+        //! This virtual function requires update in every material type.
+        //!
+        //! \param thermalConductivity New value for thermal conductivity.
+        virtual void updateThermalConductivity(double thermalConductivity) = 0;
 
         CavityStandard standard() const;
 
@@ -169,8 +174,6 @@ namespace HygroThermFEM
         //! \param waterContent Water content property (total, liquid, vapor or ice).
         //! \return Value of water content.
         double waterContent(const INode2D & node, WaterContent waterContent) const override;
-
-        void updateThermalConductivity(double thermalConductivity) override;
 
     private:
         //! Returns total water content in given node.
@@ -226,7 +229,7 @@ namespace HygroThermFEM
     public:
         Gas() = delete;
 
-        Gas(const std::string &name, CavityStandard cavityStandard = CavityStandard::ISO15099);
+        Gas(const std::string & name, CavityStandard cavityStandard = CavityStandard::ISO15099);
 
         //! Water content for given node
         double waterContent(const INode2D & node,   //!< Node for which water content is required.
