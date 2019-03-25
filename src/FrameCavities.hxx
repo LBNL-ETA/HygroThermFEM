@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Elements2D.hxx"
-#include "KeffCavity.hxx"
+#include <KeffCavity.hxx>
 
 namespace HygroThermFEM
 {
