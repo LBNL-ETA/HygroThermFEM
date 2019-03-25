@@ -76,7 +76,7 @@ add_library(${target_name} STATIC ${SOURCES})
 
 set_target_properties(${target_name} PROPERTIES LINKER_LANGUAGE CXX)
 
-target_link_libraries( ${target_name} PRIVATE KeffCavity)
+target_link_libraries( ${target_name} PUBLIC KeffCavity)
 
 if (BUILD_HTFEM_TESTING)
     #include_directories( src )
