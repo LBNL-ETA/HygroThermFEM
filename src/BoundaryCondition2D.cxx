@@ -117,11 +117,12 @@ namespace HygroThermFEM
             const double T = m_Nodes[j].property(Variable::temperature);
             const double humidity = m_Nodes[j].property(Variable::humidity);
             vaporLeak[j] = (m_AirHumidity * saturationConcentrationAtTemperature(m_AirTemperature)
-                      - humidity * saturationConcentrationAtTemperature(T))
-                     * heatOfEvaporation(T);
+                            - humidity * saturationConcentrationAtTemperature(T))
+                           * heatOfEvaporation(T);
         }
         const auto vaporFluxEnergy = vaporLeak * m_ConvectiveCoeffCalc->betaConv();
-        const auto convectionFluxEnergy = m_ConvectiveCoeffCalc->convectiveCoefficients() * m_AirTemperature;
+        const auto convectionFluxEnergy =
+          m_ConvectiveCoeffCalc->convectiveCoefficients() * m_AirTemperature;
 
         const auto rightHandSide = convectionFluxEnergy + vaporFluxEnergy;
 
@@ -236,8 +237,9 @@ namespace HygroThermFEM
         for(std::size_t j = 0; j < numOfBCNodes; ++j)
         {
             const double T = toKelvin(m_Nodes[j].property(Variable::temperature));
-            result[j] = (std::pow(toKelvin(m_RadiationTemperature), 4) - std::pow(T, 4))
-                        * Constants::STEFANBOLTZMANN * m_Emissivity;
+            const double Trad = toKelvin(m_RadiationTemperature);
+            result[j] =
+              (T + Trad) * (Trad * Trad + T * T) * Constants::STEFANBOLTZMANN * m_Emissivity;
         }
         return result;
     }
