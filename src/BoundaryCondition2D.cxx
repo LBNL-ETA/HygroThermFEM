@@ -226,7 +226,7 @@ namespace HygroThermFEM
                                                const double t_Emissivity,
                                                const double t_RadiationTemperature) :
         IBCLinear2D(index1, index2, false),
-        m_RadiationTemperature{t_RadiationTemperature},
+        m_RadiationTemperature{HygroThermFEM::toKelvin(t_RadiationTemperature)},
         m_Emissivity{t_Emissivity}
     {}
 

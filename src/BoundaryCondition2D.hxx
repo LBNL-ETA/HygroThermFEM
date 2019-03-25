@@ -194,7 +194,7 @@ namespace HygroThermFEM
           size_t index1,                  //!< Node 1 index
           size_t index2,                  //!< Node 2 index
           double t_Emissivity,            //!< Boundary condition surface emissivity at both nodes.
-          double t_RadiationTemperature   //!< Outside radiation temperature.
+          double t_RadiationTemperature   //!< Outside radiation temperature in celsius.
         );
 
         //! Function that calculates right hand side vector.
