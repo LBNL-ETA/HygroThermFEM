@@ -3,8 +3,6 @@
 #include "Elements2D.hxx"
 #include "NodePool.hxx"
 
-using FenestrationCommon::SquareMatrix;
-
 namespace HygroThermFEM
 {
     SquareMatrix ElementsLinear2D::conductanceMatrix()
@@ -66,9 +64,9 @@ namespace HygroThermFEM
         return M;
     }
 
-    FenestrationCommon::SquareMatrix ElementsLinear2D::getMassMatrix(const double DTime)
+    SquareMatrix ElementsLinear2D::getMassMatrix(const double DTime)
     {
-        FenestrationCommon::SquareMatrix Capacitance{NodePool::Instance().maxIndex()};
+        SquareMatrix Capacitance{NodePool::Instance().maxIndex()};
 
         // now integrate element matrices into global matrix
         for(auto & aElement : m_Elements)

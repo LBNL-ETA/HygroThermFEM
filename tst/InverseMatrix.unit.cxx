@@ -3,7 +3,7 @@
 
 #include "HygroThermFEM2D.hxx"
 
-using FenestrationCommon::SquareMatrix;
+using HygroThermFEM::SquareMatrix;
 
 class TestInverseMatrix : public testing::Test
 {

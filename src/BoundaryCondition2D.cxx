@@ -130,7 +130,7 @@ namespace HygroThermFEM
         return m_PsiVector * rightHandSide;
     }
 
-    FenestrationCommon::SquareMatrix IConvectionBC::H_Matrix() const
+    SquareMatrix IConvectionBC::H_Matrix() const
     {
         return m_PsiPsiMatrix.mmultRows(m_ConvectiveCoeffCalc->convectiveCoefficients());
     }
@@ -212,10 +212,10 @@ namespace HygroThermFEM
         return result;
     }
 
-    FenestrationCommon::SquareMatrix FluxBC::H_Matrix() const
+    SquareMatrix FluxBC::H_Matrix() const
     {
         // Flux boundary conditions do not have H matrix (It is zero)
-        return FenestrationCommon::SquareMatrix(4);
+        return SquareMatrix(4);
     }
 
     ////////////////////////////////////////////////////////
@@ -249,7 +249,7 @@ namespace HygroThermFEM
         return m_PsiVector * HRadiative() * m_RadiationTemperature;
     }
 
-    FenestrationCommon::SquareMatrix BlackBodyRadiationBC::H_Matrix() const
+    SquareMatrix BlackBodyRadiationBC::H_Matrix() const
     {
         return m_PsiPsiMatrix.mmultRows(HRadiative());
     }
@@ -278,7 +278,7 @@ namespace HygroThermFEM
         return m_PsiVector * gconv;
     }
 
-    FenestrationCommon::SquareMatrix IMoistureBC::H_Matrix() const
+    SquareMatrix IMoistureBC::H_Matrix() const
     {
         std::vector<double> concentration(numOfBCNodes, 0);
         for(std::size_t j = 0; j < numOfBCNodes; ++j)

@@ -8,7 +8,7 @@
 #include <Eigen/SparseCore>
 #pragma warning(pop)
 
-namespace FenestrationCommon
+namespace HygroThermFEM
 {
     //! \brief It is build to serve purposes for finite elements.
     //!
@@ -113,4 +113,4 @@ namespace FenestrationCommon
         // Eigen::MatrixXd m_Matrix;
     };
 
-}   // namespace FenestrationCommon
+}   // namespace HygroThermFEM

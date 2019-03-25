@@ -8,8 +8,6 @@
 #include "QuadrilateralLocal2D.hxx"
 #include "VectorOperators.hxx"
 
-using FenestrationCommon::SquareMatrix;
-
 namespace HygroThermFEM
 {
     //////////////////////////////////////////////////////////////////////////////
@@ -238,9 +236,9 @@ namespace HygroThermFEM
         return result;
     }
 
-    FenestrationCommon::SquareMatrix IElementLinear2D::capacitanceMatrices() const
+    SquareMatrix IElementLinear2D::capacitanceMatrices() const
     {
-        FenestrationCommon::SquareMatrix result{numOfQuadrilateralNodes};
+        SquareMatrix result{numOfQuadrilateralNodes};
         for(const auto & cap : m_CapacitanceFunctions)
         {
             const auto values = cap->values(m_Nodes);
@@ -351,7 +349,7 @@ namespace HygroThermFEM
     {
         std::vector<double> result(numOfQuadrilateralNodes, 0);
 
-        /// FenestrationCommon::SquareMatrix M{numOfQuadrilateralNodes};
+        /// SquareMatrix M{numOfQuadrilateralNodes};
         for(const auto & item : m_Matrix_x_Vector)
         {
             /// Calculate functions base on node properties

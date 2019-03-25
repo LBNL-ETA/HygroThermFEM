@@ -14,7 +14,7 @@ namespace HygroThermFEM
         explicit ElementsLinear2D() = default;
 
         //! Conductance matrix calculated for the entire domain.
-        FenestrationCommon::SquareMatrix conductanceMatrix();
+        SquareMatrix conductanceMatrix();
 
         //! Creates lumped mass matrix that includes time derivative
         //!
@@ -26,7 +26,7 @@ namespace HygroThermFEM
         //!
         //! \param DTime Timestep value for which matrix will be evaluated.
         //! \return Mass matrix values.
-        FenestrationCommon::SquareMatrix getMassMatrix(double DTime);
+        SquareMatrix getMassMatrix(double DTime);
 
         //! Right hand side vector of the domain.
         std::vector<double> RVector() const;

@@ -9,8 +9,8 @@
 #include <Eigen/SparseCore>
 #pragma warning(pop)
 
-using FenestrationCommon::SquareMatrix;
-using FenestrationCommon::CLinearSolver;
+using HygroThermFEM::SquareMatrix;
+using HygroThermFEM::CLinearSolver;
 
 class TestLinearSolver4 : public testing::Test
 {

@@ -1,3 +1,4 @@
+#include <cmath>
 #include "SquareMatrix.hxx"
 
 #pragma warning(push, 0)
@@ -5,7 +6,7 @@
 #include <Eigen/SparseLU>
 #pragma warning(pop)
 
-namespace FenestrationCommon
+namespace HygroThermFEM
 {
     SquareMatrix::SquareMatrix(const std::size_t size) : m_size(size), m_Matrix(size, size)
     {}
@@ -213,13 +214,15 @@ namespace FenestrationCommon
 
     std::vector<std::vector<double>> SquareMatrix::toVector() const
     {
-		std::vector<std::vector<double>> result(m_size, std::vector<double>(m_size));
-		for ( size_t i = 0u; i < m_size; ++i ) {
-			for ( size_t j = 0u; j < m_size; ++j ) {
-				result[i][j] = m_Matrix.coeff(i, j);
-			}
-		}
+        std::vector<std::vector<double>> result(m_size, std::vector<double>(m_size));
+        for(size_t i = 0u; i < m_size; ++i)
+        {
+            for(size_t j = 0u; j < m_size; ++j)
+            {
+                result[i][j] = m_Matrix.coeff(i, j);
+            }
+        }
         return result;
     }
 
-}   // namespace FenestrationCommon
+}   // namespace HygroThermFEM

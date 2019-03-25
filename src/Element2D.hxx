@@ -29,7 +29,7 @@ namespace HygroThermFEM
         IQLEIntegrator2D(const QuadrilateralLinearGlobal2D & t_Element);
 
         //! Integrate matrix over all points of integration
-        virtual FenestrationCommon::SquareMatrix
+        virtual SquareMatrix
           integrate(const std::vector<double> &
                       t_Values   //!< Nodal values for which integration will be performed
                     ) const final;
@@ -38,7 +38,7 @@ namespace HygroThermFEM
         //! Helper function that integrates matrix in given integration point. Integration is
         //! identical with no matter what integration matrix looks like.
         virtual void calculateMatrixInIntegrationPoint(
-          FenestrationCommon::SquareMatrix &
+          SquareMatrix &
             matrix,   //!< Matrix that integration results will be added to
           const std::vector<double> &
             t_Values,   //!< Nodal values for which integration will be performed
@@ -49,7 +49,7 @@ namespace HygroThermFEM
 
         //! This matrix will hold different forms of shape functions operations. This will mainly
         //! depend on what integrator will be used to integrate matrices.
-        std::vector<FenestrationCommon::SquareMatrix> m_IntegrationMatrix;
+        std::vector<SquareMatrix> m_IntegrationMatrix;
     };
 
     //////////////////////////////////////////////////////////////////////////////
@@ -152,13 +152,13 @@ namespace HygroThermFEM
         );
 
         //! Integrates all matrices that are part of K * (D/Dx(Du/Dx) + D/Dy(Du/Dy)) equation.
-        FenestrationCommon::SquareMatrix DDuMatrices() const;
+        SquareMatrix DDuMatrices() const;
 
         //! Integrates all matrices that are part of K * ((Dp/Dx)(Du/Dx) + (Dp/Dy)(Du/Dy)) equation.
-        FenestrationCommon::SquareMatrix DpDuMatrices();
+        SquareMatrix DpDuMatrices();
 
         //! Integrates all matrices that are part of K * Du/Dt equation.
-        FenestrationCommon::SquareMatrix capacitanceMatrices() const;
+        SquareMatrix capacitanceMatrices() const;
 
         //! Integrates right hand-side vector.
         std::vector<double> rightSideVector() const;

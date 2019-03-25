@@ -92,7 +92,7 @@ namespace HygroThermFEM
         std::vector<double> R_Vector() const override;
 
         //! Function that calculates matrix.
-        FenestrationCommon::SquareMatrix H_Matrix() const override;
+        SquareMatrix H_Matrix() const override;
 
     protected:
         const double m_AirTemperature;
@@ -172,7 +172,7 @@ namespace HygroThermFEM
         std::vector<double> R_Vector() const override;
 
         //! Function that calculates matrix.
-        FenestrationCommon::SquareMatrix H_Matrix() const override;
+        SquareMatrix H_Matrix() const override;
 
     private:
         double m_Flux;
@@ -201,7 +201,7 @@ namespace HygroThermFEM
         std::vector<double> R_Vector() const override;
 
         //! Function that calculates matrix.
-        FenestrationCommon::SquareMatrix H_Matrix() const override;
+        SquareMatrix H_Matrix() const override;
 
     private:
         //! Radiative convective coefficient that needs to be calculated based on current
@@ -235,7 +235,7 @@ namespace HygroThermFEM
         std::vector<double> R_Vector() const override;
 
         //! Function that calculates matrix.
-        FenestrationCommon::SquareMatrix H_Matrix() const override;
+        SquareMatrix H_Matrix() const override;
 
     protected:
 

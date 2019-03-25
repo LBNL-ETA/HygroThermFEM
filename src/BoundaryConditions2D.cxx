@@ -1,8 +1,6 @@
 #include "BoundaryConditions2D.hxx"
 #include "NodePool.hxx"
 
-using FenestrationCommon::SquareMatrix;
-
 namespace HygroThermFEM
 {
     /// BoundaryConditions2D::BoundaryConditions2D(
@@ -53,8 +51,8 @@ namespace HygroThermFEM
         return m_Linear;
     }
 
-    /// FenestrationCommon::SquareMatrix< double > BoundaryConditions2D::DHMatrix()
-    /// const { 	FenestrationCommon::SquareMatrix< double > HDMatrix{
+    /// SquareMatrix< double > BoundaryConditions2D::DHMatrix()
+    /// const { 	SquareMatrix< double > HDMatrix{
     /// NodePool::Instance().maxIndex() }; 	for ( const auto & aBc : m_BCs ) { const auto & bc =
     /// aBc.get(); 		auto indexes = bc.getNodeIndexes(); 		auto matDH =
     /// bc.D_HMatrix(); 		for ( size_t i = 0; i < numOfBCNodes; ++i ) {

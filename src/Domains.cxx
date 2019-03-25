@@ -8,11 +8,9 @@
 #include "BoundaryCondition2D.hxx"
 #include "VectorOperators.hxx"
 
-using FenestrationCommon::CLinearSolver;
-
 namespace HygroThermFEM
 {
-    FenestrationCommon::SquareMatrix IDomain::steadyStateLeftHandSide()
+    SquareMatrix IDomain::steadyStateLeftHandSide()
     {
         auto condMat = m_Elements.conductanceMatrix();
         const auto h = m_BCs.HMatrix();
@@ -26,7 +24,7 @@ namespace HygroThermFEM
         return m_BCs.RVector();
     }
 
-    FenestrationCommon::SquareMatrix IDomain::transientM_K_H_Matrix(const double t_DTime)
+    SquareMatrix IDomain::transientM_K_H_Matrix(const double t_DTime)
     {
         const auto M = m_Elements.getLumpedMass(t_DTime);
         auto M_K_H = m_Elements.conductanceMatrix();

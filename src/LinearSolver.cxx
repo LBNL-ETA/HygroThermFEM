@@ -1,20 +1,16 @@
-#include <stdexcept>
 #include <cassert>
 #include <cmath>
 
 #pragma warning(push, 0)
 #include <Eigen/Sparse>
 #include <Eigen/Cholesky>
-#pragma warning(pop) 
+#pragma warning(pop)
 
 #include "LinearSolver.hxx"
 
-using FenestrationCommon::SquareMatrix;
-
-namespace FenestrationCommon
+namespace HygroThermFEM
 {
-    std::vector<double>
-      CLinearSolver::checkSingularity(SquareMatrix & t_MatrixA) const
+    std::vector<double> CLinearSolver::checkSingularity(SquareMatrix & t_MatrixA) const
     {
         const auto size = t_MatrixA.size();
         std::vector<double> vv;
@@ -40,8 +36,8 @@ namespace FenestrationCommon
         return vv;
     }
 
-    std::vector<double> CLinearSolver::solveEigen( const SquareMatrix & t_MatrixA,
-												   const std::vector< double > & t_VectorB )
+    std::vector<double> CLinearSolver::solveEigen(const SquareMatrix & t_MatrixA,
+                                                  const std::vector<double> & t_VectorB)
     {
         using Matrix = Eigen::SparseMatrix<double>;
         using Vector = Eigen::VectorXd;
@@ -69,4 +65,4 @@ namespace FenestrationCommon
         return solution;
     }
 
-}   // namespace FenestrationCommon
+}   // namespace HygroThermFEM

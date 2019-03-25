@@ -47,7 +47,7 @@ namespace HygroThermFEM
 
         //! Virtual function that will calculate matrix from the boundary condition.
         //! Any inherited boundary condition must define its own matrix calculations.
-        virtual FenestrationCommon::SquareMatrix H_Matrix() const = 0;
+        virtual SquareMatrix H_Matrix() const = 0;
 
         //! Shows if boundary condition is linear or not.
         bool isLinear() const;
@@ -66,7 +66,7 @@ namespace HygroThermFEM
 
         //! Matrix that is base for all boundary conditions. It needs to be modified for
         //! coefficients and that will depend on type of boundary conditions
-        FenestrationCommon::SquareMatrix m_PsiPsiMatrix;
+        SquareMatrix m_PsiPsiMatrix;
 
         //! Vector that is base for all boundary conditions (it depends on psi functions).
         //! It needs to be modified for coefficients and that will depend on type of boundary

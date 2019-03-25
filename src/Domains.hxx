@@ -67,13 +67,13 @@ namespace HygroThermFEM
                               bool updatePreviousValues = true);
 
         //! Forms left hand side matrix in steady state solution.
-        FenestrationCommon::SquareMatrix steadyStateLeftHandSide();
+        SquareMatrix steadyStateLeftHandSide();
 
         //! Form right hand side vector in stead state solution.
         std::vector<double> steadyStateRightHandSide() const;
 
         //! Forms mass, conductance and H (from boundary condition) matrices.
-        FenestrationCommon::SquareMatrix transientM_K_H_Matrix(double t_DTime);
+        SquareMatrix transientM_K_H_Matrix(double t_DTime);
 
         //! This function retrieves M*U+R vector (where U is state variable)
         std::vector<double> transientMT_R_Vector(const std::vector<double> & t_PreviousSolution,

@@ -24,7 +24,7 @@ namespace HygroThermFEM
         BoundaryConditions2D(const BoundaryConditions2D & other) = delete;
 
         //! Assembled H matrix from all boundary conditions.
-        FenestrationCommon::SquareMatrix HMatrix() const;
+        SquareMatrix HMatrix() const;
 
         //! Assembled R vector from all boundary conditions.
         std::vector<double> RVector() const;

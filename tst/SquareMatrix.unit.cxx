@@ -4,7 +4,7 @@
 
 #include "HygroThermFEM2D.hxx"
 
-using FenestrationCommon::SquareMatrix;
+using HygroThermFEM::SquareMatrix;
 
 class SquareMatrixTest : public testing::Test {
 

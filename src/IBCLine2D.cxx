@@ -6,8 +6,6 @@
 #include "Elements2D.hxx"
 #include "NodePool.hxx"
 
-using FenestrationCommon::SquareMatrix;
-
 namespace HygroThermFEM
 {
     IBCLinear2D::IBCLinear2D(const size_t index1, const size_t index2, const bool t_Linear) :

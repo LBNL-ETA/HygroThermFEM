@@ -3,8 +3,8 @@
 
 #include "HygroThermFEM2D.hxx"
 
-using FenestrationCommon::SquareMatrix;
-using FenestrationCommon::CLinearSolver;
+using HygroThermFEM::SquareMatrix;
+using HygroThermFEM::CLinearSolver;
 
 class TestLinearSolver1 : public testing::Test {
 private:
