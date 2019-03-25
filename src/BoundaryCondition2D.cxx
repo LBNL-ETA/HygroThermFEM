@@ -226,7 +226,7 @@ namespace HygroThermFEM
                                                const double t_Emissivity,
                                                const double t_RadiationTemperature) :
         IBCLinear2D(index1, index2, false),
-        m_RadiationTemperature{HygroThermFEM::toKelvin(t_RadiationTemperature)},
+        m_RadiationTemperature{t_RadiationTemperature},
         m_Emissivity{t_Emissivity}
     {}
 
@@ -235,9 +235,8 @@ namespace HygroThermFEM
         std::vector<double> result(numOfBCNodes, 0);
         for(std::size_t j = 0; j < numOfBCNodes; ++j)
         {
-            const double T = m_Nodes[j].property(Variable::temperature);
-            result[j] = (T + m_RadiationTemperature)
-                        * (std::pow(T, 2) + std::pow(m_RadiationTemperature, 2))
+            const double T = toKelvin(m_Nodes[j].property(Variable::temperature));
+            result[j] = (std::pow(toKelvin(m_RadiationTemperature), 4) - std::pow(T, 4))
                         * Constants::STEFANBOLTZMANN * m_Emissivity;
         }
         return result;
