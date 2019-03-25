@@ -9,6 +9,13 @@ set(CMAKE_PROJECT_VERSION_PATCH "0")
 
 project(${target_name} CXX)
 
+option(BUILD_FOR_PROFILING OFF)
+
+if(BUILD_FOR_PROFILING)
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O0")
+  set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -O0")
+endif()
+
 include(cmake/ProjectMacros.cmake)
 include(cmake/internal_utils.cmake)
 include(cmake/CompilerFlags.cmake)
