@@ -35,15 +35,6 @@ namespace HygroThermFEM
                     ) const final;
 
     protected:
-        //! Helper function that integrates matrix in given integration point. Integration is
-        //! identical with no matter what integration matrix looks like.
-        virtual void calculateMatrixInIntegrationPoint(
-          SquareMatrix &
-            matrix,   //!< Matrix that integration results will be added to
-          const std::vector<double> &
-            t_Values,   //!< Nodal values for which integration will be performed
-          std::size_t t_IntegrationPointIndex   //!< Integration point
-          ) const final;
 
         const QuadrilateralLinearGlobal2D & m_Global2D;
 

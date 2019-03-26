@@ -22,36 +22,23 @@ namespace HygroThermFEM
     {
         const auto count = IntegrationPoints2D::Instance().count2D();
 
-        SquareMatrix aMatrix(numOfQuadrilateralNodes);
+        // SquareMatrix aMatrix(numOfQuadrilateralNodes);
 
+        std::vector<std::vector<double>> aMatrix{4, std::vector<double>(4, 0)};
         for(auto integrationPoint = 0u; integrationPoint < count; ++integrationPoint)
         {
-            // Passing reference to matrix is faster then returning matrix from function
-            // just because new matrix needs to be created and assigned. This was causing
-            // some 40% slowdown.
-            calculateMatrixInIntegrationPoint(aMatrix, t_Values, integrationPoint);
-        }
+            auto & intPointMatrix = m_IntegrationMatrix[integrationPoint];
 
-        return aMatrix;
-    }
-
-    void IQLEIntegrator2D::calculateMatrixInIntegrationPoint(
-      SquareMatrix & matrix,
-      const std::vector<double> & t_Values,
-      const std::size_t t_IntegrationPointIndex) const
-    {
-        assert(t_Values.size() == 4);
-        assert(matrix.size() == 4);
-
-        auto & intPointMatrix = m_IntegrationMatrix[t_IntegrationPointIndex];
-
-        for(size_t i = 0; i < t_Values.size(); ++i)
-        {
-            for(size_t j = 0; j < t_Values.size(); ++j)
+            for(size_t i = 0; i < t_Values.size(); ++i)
             {
-                matrix(i, j) += intPointMatrix(i, j) * 0.5 * (t_Values[i] + t_Values[j]);
+                for(size_t j = 0; j < t_Values.size(); ++j)
+                {
+                    aMatrix[i][j] += intPointMatrix(i, j) * 0.5 * (t_Values[i] + t_Values[j]);
+                }
             }
         }
+
+        return SquareMatrix{aMatrix};
     }
 
     //////////////////////////////////////////////////////////////////////////////
@@ -112,14 +99,18 @@ namespace HygroThermFEM
                 gammaY += DPsiDy[k] * t_Values[k];
             }
 
+            std::vector<std::vector<double>> matrix{numOfIntegrationPoints,
+                                                    std::vector<double>(numOfIntegrationPoints, 0)};
+
             for(auto i = 0u; i < numOfIntegrationPoints; ++i)
             {
                 for(auto j = 0u; j < numOfIntegrationPoints; ++j)
                 {
-                    m_IntegrationMatrix[integrationPoint](i, j) =
+                    matrix[i][j] =
                       det * (DPsiDx[i] * psi[j] * gammaX + DPsiDy[i] * psi[j] * gammaY);
                 }
             }
+            m_IntegrationMatrix[integrationPoint] = SquareMatrix{matrix};
         }
     }
 
@@ -435,10 +426,10 @@ namespace HygroThermFEM
         //////////////////////////////////////////////////////////////////////
         const auto delta = Constant(2.5E-5 / m_Material.diffusionResistanceFactor());
         auto h = HeatOfEvaporation() * delta;
-        //Constant c(1);
+        // Constant c(1);
 
         multiplies(h, Variable::vapor);
-        //multiplies(c, Variable::temperature);
+        // multiplies(c, Variable::temperature);
 
         //////////////////////////////////////////////////////////////////////
         ///  Conversion from liquid to gas (air part)
@@ -446,7 +437,7 @@ namespace HygroThermFEM
 
         /// TODO: Add this later when air pressure equation is added
         // auto waterVaporPressure = SaturationFunction() * StateValue(Variable::humidity);
-        
+
         //////////////////////////////////////////////////////////////////////
         ///  Conduction from liquid
         //////////////////////////////////////////////////////////////////////
@@ -456,7 +447,7 @@ namespace HygroThermFEM
         const LiquidTransportationCurve Dl(m_Material.liquidTransportationCurve());
         auto cd = Dl * sorptionDerivative * Constants::Cp_Water;
         DpDu(cd, humidity);
-        
+
         //////////////////////////////////////////////////////////////////////
         ///  Conduction from vapor
         //////////////////////////////////////////////////////////////////////
