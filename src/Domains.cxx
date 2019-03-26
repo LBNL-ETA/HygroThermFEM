@@ -238,6 +238,15 @@ namespace HygroThermFEM
           index1, index2, t_Emissivity, t_RadiationTemperature));
     }
 
+    void ThermalDomain::createSimplifiedRadiationBC(const size_t index1,
+                                                    const size_t index2,
+                                                    const double t_RadiationCoefficient,
+                                                    const double t_RadiationTemperature)
+    {
+        m_BCs.assignBC(fem::make_unique<SimplifiedRadiationBC>(
+          index1, index2, t_RadiationCoefficient, t_RadiationTemperature));
+    }
+
     void ThermalDomain::createElement(const size_t index1,
                                       const size_t index2,
                                       const size_t index3,
@@ -248,17 +257,20 @@ namespace HygroThermFEM
           fem::make_unique<ElementThermalLinear2D>(index1, index2, index3, index4, materialName));
     }
 
-    void ThermalDomain::postProcess(std::vector<double> & solution) {
+    void ThermalDomain::postProcess(std::vector<double> & solution)
+    {
         IDomain::postProcess(solution);
-        if (frameCavities == nullptr)
+        if(frameCavities == nullptr)
         {
-            frameCavities = std::unique_ptr<EquivalentFrameCavities>(new EquivalentFrameCavities(m_Elements));
+            frameCavities =
+              std::unique_ptr<EquivalentFrameCavities>(new EquivalentFrameCavities(m_Elements));
         }
         frameCavities->update();
     }
 
     ThermalDomain::ThermalDomain(bool automaticUpdatePreviousTimestep) :
-        IDomain(BaseVariable::temperature, automaticUpdatePreviousTimestep), frameCavities(nullptr)
+        IDomain(BaseVariable::temperature, automaticUpdatePreviousTimestep),
+        frameCavities(nullptr)
     {}
 
     void MoistureDomain::createElement(const size_t index1,

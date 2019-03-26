@@ -254,6 +254,29 @@ namespace HygroThermFEM
         return m_PsiPsiMatrix.mmultRows(HRadiative());
     }
 
+    ////////////////////////////////////////////////////////
+    /// SimplifiedRadiationBC
+    ////////////////////////////////////////////////////////
+
+    SimplifiedRadiationBC::SimplifiedRadiationBC(const size_t index1,
+                                                 const size_t index2,
+                                                 const double m_RadiationTemperature,
+                                                 const double m_RadiationCoefficient) :
+        IBCLinear2D(index1, index2),
+        m_RadiationTemperature(m_RadiationTemperature),
+        m_RadiationCoefficient(m_RadiationCoefficient)
+    {}
+
+    std::vector<double> SimplifiedRadiationBC::R_Vector() const
+    {
+        return m_PsiVector * m_RadiationCoefficient * m_RadiationTemperature;
+    }
+
+    SquareMatrix SimplifiedRadiationBC::H_Matrix() const
+    {
+        return m_PsiPsiMatrix * m_RadiationCoefficient;
+    }
+
     /////////////////////////////////////////////////////
     /// IMoistureBC
     /////////////////////////////////////////////////////

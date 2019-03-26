@@ -212,6 +212,26 @@ namespace HygroThermFEM
         double m_Emissivity;
     };
 
+    ///////////////////////////////////////////////////////
+    /// SimplifiedRadiationBC
+    ///////////////////////////////////////////////////////
+    class SimplifiedRadiationBC : public IBCLinear2D
+    {
+    public:
+        SimplifiedRadiationBC(size_t index1,
+                              size_t index2,
+                              double m_RadiationTemperature,
+                              double m_RadiationCoefficient);
+
+        std::vector<double> R_Vector() const override;
+
+        SquareMatrix H_Matrix() const override;
+
+    private:
+        double m_RadiationTemperature;
+        double m_RadiationCoefficient;
+    };
+
     /////////////////////////////////////////////////////
     /// MoistureBC
     /////////////////////////////////////////////////////
@@ -238,7 +258,6 @@ namespace HygroThermFEM
         SquareMatrix H_Matrix() const override;
 
     protected:
-
         double m_AirHumidity;
         double m_AirTemperature;
         const IMaterial & m_Material;
@@ -258,7 +277,6 @@ namespace HygroThermFEM
                              const std::string & materialName,
                              double t_AirHumidity,
                              double t_AirTemperature);
-
     };
 
     /////////////////////////////////////////////////////

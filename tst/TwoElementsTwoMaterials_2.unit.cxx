@@ -102,7 +102,7 @@ TEST_F(TwoElementsTwoMaterials_2, NodeInTwoMaterials)
                                                                {0.95, 118},
                                                                {1,    150}});
 
-    MultiDomain domain;
+    MultiDomain domain(false, false);
 
     domain.createElement(1, 1, 2, 3, material1.name());
     domain.createElement(2, 4, 5, 3, material2.name());
