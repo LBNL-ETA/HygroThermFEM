@@ -26,7 +26,7 @@ namespace HygroThermFEM
     class MultiDomain
     {
     public:
-        MultiDomain();
+        MultiDomain(bool performThermal = true, bool performMoisture = true);
 
         /// Calculates next timestep value from current values
         Solution transient(std::vector<double> & temperature,
@@ -71,6 +71,8 @@ namespace HygroThermFEM
 
         ThermalDomain m_ThermalDomain;
         MoistureDomain m_MoistureDomain;
+        bool m_PerformThermal;
+        bool m_PerformMoisture;
     };
 
 }   // namespace HygroThermFEM

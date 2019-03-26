@@ -9,7 +9,9 @@ namespace HygroThermFEM
 {
     // passing false to subdomains means that previous timestep values will not be automatically
     // updated. This mean that multidomain must update its values once solution converged.
-    MultiDomain::MultiDomain() : m_ThermalDomain(false), m_MoistureDomain(false)
+    MultiDomain::MultiDomain(const bool performThermal, const bool performMoisture) :
+        m_PerformThermal(performThermal),
+        m_PerformMoisture(performMoisture)
     {}
 
     Solution MultiDomain::transient(std::vector<double> & temperature,
@@ -44,23 +46,44 @@ namespace HygroThermFEM
                     dTimeMoisture = dTimeThermal;
                 }
 
-                m_ThermalDomain.updateNodeValues(
-                  humiditySolution.solution, BaseVariable::humidity, false);
-                temperatureSolution = m_ThermalDomain.transient(temperature, dTimeThermal);
-                temperatureError = normError(temperatureSolution.solution, currentTemperature);
-                dTimeThermal = temperatureSolution.dTime;
+                if(m_PerformThermal)
+                {
+                    m_ThermalDomain.updateNodeValues(
+                      humiditySolution.solution, BaseVariable::humidity, false);
+                    temperatureSolution = m_ThermalDomain.transient(temperature, dTimeThermal);
+                    temperatureError = normError(temperatureSolution.solution, currentTemperature);
+                    dTimeThermal = temperatureSolution.dTime;
+                }
+                else
+                {
+                    temperatureError = 0.0;
+                }
 
-                m_MoistureDomain.updateNodeValues(
-                  temperatureSolution.solution, BaseVariable::temperature, false);
-                humiditySolution = m_MoistureDomain.transient(humidity, dTimeMoisture);
-                humidityError = normError(humiditySolution.solution, currentHumidity);
-                dTimeMoisture = humiditySolution.dTime;
-                dTime = dTimeThermal;
+                if(m_PerformMoisture)
+                {
+                    m_MoistureDomain.updateNodeValues(
+                      temperatureSolution.solution, BaseVariable::temperature, false);
+                    humiditySolution = m_MoistureDomain.transient(humidity, dTimeMoisture);
+                    humidityError = normError(humiditySolution.solution, currentHumidity);
+                    dTimeMoisture = humiditySolution.dTime;
+                    dTime = dTimeThermal;
+                }
+                else
+                {
+                    humidityError = 0.0;
+                }
 
             } while(dTimeThermal != dTimeMoisture);
 
-            currentHumidity = humiditySolution.solution;
-            currentTemperature = temperatureSolution.solution;
+            if(m_PerformThermal)
+            {
+                currentTemperature = temperatureSolution.solution;
+            }
+
+            if(m_PerformMoisture)
+            {
+                currentHumidity = humiditySolution.solution;
+            }
         }
 
         m_ThermalDomain.updateNodeValues(currentTemperature, BaseVariable::temperature, true);
