@@ -8,7 +8,6 @@
 
 namespace HygroThermFEM
 {
-
     //! \brief Class to hold solution from single timestep.
     struct SingleSolution
     {
@@ -157,6 +156,11 @@ namespace HygroThermFEM
                            size_t index4,                     //!< Node 4 index
                            const std::string & materialName   //!< SolidMaterial name
                            ) override;
+
+        void createSimplifiedRadiationBC(size_t index1,
+                                         size_t index2,
+                                         double t_RadiationCoefficient,
+                                         double t_RadiationTemperature);
 
     protected:
         //! Storage for frame cavities recalculation
