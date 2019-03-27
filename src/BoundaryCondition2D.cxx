@@ -112,8 +112,7 @@ namespace HygroThermFEM
 
     std::vector<double> IConvectionBC::R_Vector() const
     {
-        auto rightHandSide =
-          m_ConvectiveCoeffCalc->convectiveCoefficients() * m_AirTemperature;
+        auto rightHandSide = m_ConvectiveCoeffCalc->convectiveCoefficients() * m_AirTemperature;
 
         if(m_SimulateMoisture)
         {
@@ -124,9 +123,9 @@ namespace HygroThermFEM
                 const double T = m_Nodes[j].property(Variable::temperature);
                 const double humidity = m_Nodes[j].property(Variable::humidity);
                 vaporLeak[j] =
-                        (m_AirHumidity * saturationConcentrationAtTemperature(m_AirTemperature)
-                         - humidity * saturationConcentrationAtTemperature(T))
-                        * heatOfEvaporation(T);
+                  (m_AirHumidity * saturationConcentrationAtTemperature(m_AirTemperature)
+                   - humidity * saturationConcentrationAtTemperature(T))
+                  * heatOfEvaporation(T);
             }
             const auto vaporFluxEnergy = vaporLeak * m_ConvectiveCoeffCalc->betaConv();
             rightHandSide = rightHandSide + vaporFluxEnergy;
@@ -154,7 +153,8 @@ namespace HygroThermFEM
           index2,
           t_AirTemperature,
           ConvectionModelFactory::create(ConvectionModel::Fixed, m_Nodes, t_ConvectionCoefficient),
-          t_AirHumidity, t_CalculateMoisture)
+          t_AirHumidity,
+          t_CalculateMoisture)
     {}
 
     ////////////////////////////////////////////////////////
@@ -170,7 +170,8 @@ namespace HygroThermFEM
           index2,
           t_AirTemperature,
           ConvectionModelFactory::create(ConvectionModel::Variable, m_Nodes, t_AirTemperature),
-          t_AirHumidity, t_CalculateMoisture)
+          t_AirHumidity,
+          t_CalculateMoisture)
     {}
 
     ////////////////////////////////////////////////////////
@@ -265,13 +266,13 @@ namespace HygroThermFEM
     /// SimplifiedRadiationBC
     ////////////////////////////////////////////////////////
 
-    SimplifiedRadiationBC::SimplifiedRadiationBC(const size_t index1,
-                                                 const size_t index2,
-                                                 const double m_RadiationTemperature,
-                                                 const double m_RadiationCoefficient) :
+    SimplifiedRadiationBC::SimplifiedRadiationBC(size_t index1,
+                                                 size_t index2,
+                                                 double t_RadiationCoefficient,
+                                                 double t_RadiationTemperature) :
         IBCLinear2D(index1, index2),
-        m_RadiationTemperature(m_RadiationTemperature),
-        m_RadiationCoefficient(m_RadiationCoefficient)
+        m_RadiationCoefficient(t_RadiationCoefficient),
+        m_RadiationTemperature(t_RadiationTemperature)
     {}
 
     std::vector<double> SimplifiedRadiationBC::R_Vector() const

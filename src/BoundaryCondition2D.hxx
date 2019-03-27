@@ -100,7 +100,8 @@ namespace HygroThermFEM
         std::unique_ptr<IConvectiveCoefficient> m_ConvectiveCoeffCalc;
         const double m_AirHumidity;
 
-        //! If moisture is simulated then calculate energy from moisture flux. Otherwise, don't do it.
+        //! If moisture is simulated then calculate energy from moisture flux. Otherwise, don't do
+        //! it.
         bool m_SimulateMoisture;
     };
 
@@ -226,16 +227,16 @@ namespace HygroThermFEM
     public:
         SimplifiedRadiationBC(size_t index1,
                               size_t index2,
-                              double m_RadiationTemperature,
-                              double m_RadiationCoefficient);
+                              double t_RadiationCoefficient,
+                              double t_RadiationTemperature);
 
         std::vector<double> R_Vector() const override;
 
         SquareMatrix H_Matrix() const override;
 
     private:
-        double m_RadiationTemperature;
         double m_RadiationCoefficient;
+        double m_RadiationTemperature;
     };
 
     /////////////////////////////////////////////////////
