@@ -101,31 +101,36 @@ namespace HygroThermFEM
                                  size_t index2,
                                  const double t_AirTemperature,
                                  std::unique_ptr<IConvectiveCoefficient> convModel,
-                                 const double t_AirHumidity) :
+                                 const double t_AirHumidity,
+                                 const bool t_SimulateMoisture) :
         IBCLinear2D(index1, index2),
         m_AirTemperature(t_AirTemperature),
         m_ConvectiveCoeffCalc(std::move(convModel)),
-        m_AirHumidity(t_AirHumidity)
+        m_AirHumidity(t_AirHumidity),
+        m_SimulateMoisture(t_SimulateMoisture)
     {}
 
     std::vector<double> IConvectionBC::R_Vector() const
     {
-        // Vapor leaking part is added here
-        std::vector<double> vaporLeak(numOfBCNodes, 0);
-        for(std::size_t j = 0; j < numOfBCNodes; ++j)
-        {
-            const double T = m_Nodes[j].property(Variable::temperature);
-            const double humidity = m_Nodes[j].property(Variable::humidity);
-            vaporLeak[j] = (m_AirHumidity * saturationConcentrationAtTemperature(m_AirTemperature)
-                            - humidity * saturationConcentrationAtTemperature(T))
-                           * heatOfEvaporation(T);
-        }
-        const auto vaporFluxEnergy = vaporLeak * m_ConvectiveCoeffCalc->betaConv();
-        const auto convectionFluxEnergy =
+        auto rightHandSide =
           m_ConvectiveCoeffCalc->convectiveCoefficients() * m_AirTemperature;
 
-        const auto rightHandSide = convectionFluxEnergy + vaporFluxEnergy;
-
+        if(m_SimulateMoisture)
+        {
+            // Vapor leaking part is added here
+            std::vector<double> vaporLeak(numOfBCNodes, 0);
+            for(std::size_t j = 0; j < numOfBCNodes; ++j)
+            {
+                const double T = m_Nodes[j].property(Variable::temperature);
+                const double humidity = m_Nodes[j].property(Variable::humidity);
+                vaporLeak[j] =
+                        (m_AirHumidity * saturationConcentrationAtTemperature(m_AirTemperature)
+                         - humidity * saturationConcentrationAtTemperature(T))
+                        * heatOfEvaporation(T);
+            }
+            const auto vaporFluxEnergy = vaporLeak * m_ConvectiveCoeffCalc->betaConv();
+            rightHandSide = rightHandSide + vaporFluxEnergy;
+        }
 
         return m_PsiVector * rightHandSide;
     }
@@ -142,13 +147,14 @@ namespace HygroThermFEM
                                                size_t index2,
                                                double t_AirTemperature,
                                                const double t_ConvectionCoefficient,
-                                               const double t_AirHumidity) :
+                                               const double t_AirHumidity,
+                                               const bool t_CalculateMoisture) :
         IConvectionBC(
           index1,
           index2,
           t_AirTemperature,
           ConvectionModelFactory::create(ConvectionModel::Fixed, m_Nodes, t_ConvectionCoefficient),
-          t_AirHumidity)
+          t_AirHumidity, t_CalculateMoisture)
     {}
 
     ////////////////////////////////////////////////////////
@@ -157,13 +163,14 @@ namespace HygroThermFEM
     VariableConvectionBC::VariableConvectionBC(size_t index1,
                                                size_t index2,
                                                double t_AirTemperature,
-                                               double t_AirHumidity) :
+                                               double t_AirHumidity,
+                                               const bool t_CalculateMoisture) :
         IConvectionBC(
           index1,
           index2,
           t_AirTemperature,
           ConvectionModelFactory::create(ConvectionModel::Variable, m_Nodes, t_AirTemperature),
-          t_AirHumidity)
+          t_AirHumidity, t_CalculateMoisture)
     {}
 
     ////////////////////////////////////////////////////////

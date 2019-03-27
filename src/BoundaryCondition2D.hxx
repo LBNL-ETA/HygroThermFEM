@@ -86,7 +86,8 @@ namespace HygroThermFEM
                       size_t index2,
                       double t_AirTemperature,
                       std::unique_ptr<IConvectiveCoefficient>,
-                      double t_AirHumidity = 0);
+                      double t_AirHumidity = 0,
+                      bool t_SimulateMoisture = true);
 
         //! Function that calculates right hand side vector.
         std::vector<double> R_Vector() const override;
@@ -98,6 +99,9 @@ namespace HygroThermFEM
         const double m_AirTemperature;
         std::unique_ptr<IConvectiveCoefficient> m_ConvectiveCoeffCalc;
         const double m_AirHumidity;
+
+        //! If moisture is simulated then calculate energy from moisture flux. Otherwise, don't do it.
+        bool m_SimulateMoisture;
     };
 
     ////////////////////////////////////////////////////////
@@ -110,7 +114,8 @@ namespace HygroThermFEM
                              size_t index2,
                              double t_AirTemperature,
                              double t_ConvectionCoefficient,
-                             double t_AirHumidity = 0);
+                             double t_AirHumidity = 0,
+                             bool t_CalculateMoisture = true);
     };
 
     ////////////////////////////////////////////////////////
@@ -122,7 +127,8 @@ namespace HygroThermFEM
         VariableConvectionBC(size_t index1,
                              size_t index2,
                              double t_AirTemperature,
-                             double t_AirHumidity);
+                             double t_AirHumidity,
+                             bool t_CalculateMoisture = true);
     };
 
     ////////////////////////////////////////////////////////

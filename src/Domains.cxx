@@ -190,23 +190,29 @@ namespace HygroThermFEM
         // some functionality if necessary.
     }
 
-    void ThermalDomain::createConvectionBCFixedHc(size_t index1,
-                                                  size_t index2,
-                                                  double t_AirTemperature,
-                                                  double t_ConvectionCoefficient,
-                                                  double t_AirHumidity)
+    void ThermalDomain::createConvectionBCFixedHc(const size_t index1,
+                                                  const size_t index2,
+                                                  const double t_AirTemperature,
+                                                  const double t_ConvectionCoefficient,
+                                                  const double t_AirHumidity,
+                                                  const bool t_CalculateMoisture)
     {
-        m_BCs.assignBC(fem::make_unique<ConstantConvectionBC>(
-          index1, index2, t_AirTemperature, t_ConvectionCoefficient, t_AirHumidity));
+        m_BCs.assignBC(fem::make_unique<ConstantConvectionBC>(index1,
+                                                              index2,
+                                                              t_AirTemperature,
+                                                              t_ConvectionCoefficient,
+                                                              t_AirHumidity,
+                                                              t_CalculateMoisture));
     }
 
-    void ThermalDomain::createConvectionBCVariableHc(size_t index1,
-                                                     size_t index2,
-                                                     double t_AirTemperature,
-                                                     double t_AirHumidity)
+    void ThermalDomain::createConvectionBCVariableHc(const size_t index1,
+                                                     const size_t index2,
+                                                     const double t_AirTemperature,
+                                                     const double t_AirHumidity,
+                                                     const bool t_CalculateMoisture)
     {
-        m_BCs.assignBC(
-          fem::make_unique<VariableConvectionBC>(index1, index2, t_AirTemperature, t_AirHumidity));
+        m_BCs.assignBC(fem::make_unique<VariableConvectionBC>(
+          index1, index2, t_AirTemperature, t_AirHumidity, t_CalculateMoisture));
     }
 
     void ThermalDomain::createTemperatureBC(const size_t index1,

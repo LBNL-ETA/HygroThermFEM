@@ -125,7 +125,7 @@ namespace HygroThermFEM
                                               const double t_Humidity)
     {
         m_ThermalDomain.createConvectionBCFixedHc(
-          index1, index2, t_AirTemperature, t_ConvectionCoefficient, t_Humidity);
+          index1, index2, t_AirTemperature, t_ConvectionCoefficient, t_Humidity, m_PerformMoisture);
 
         m_MoistureDomain.createMoistureBCFixedHc(
           index1, index2, t_AirTemperature, t_ConvectionCoefficient, t_Humidity);
@@ -136,7 +136,7 @@ namespace HygroThermFEM
                                                  const double t_AirTemperature,
                                                  const double t_Humidity)
     {
-        m_ThermalDomain.createConvectionBCVariableHc(index1, index2, t_AirTemperature, t_Humidity);
+        m_ThermalDomain.createConvectionBCVariableHc(index1, index2, t_AirTemperature, t_Humidity, m_PerformMoisture);
 
         m_MoistureDomain.createMoistureBCVariableHc(index1, index2, t_Humidity, t_AirTemperature);
     }

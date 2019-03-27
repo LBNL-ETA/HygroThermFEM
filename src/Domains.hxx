@@ -115,13 +115,15 @@ namespace HygroThermFEM
                                        size_t index2,
                                        double t_AirTemperature,
                                        double t_ConvectionCoefficient,
-                                       double t_AirHumidity = 0);
+                                       double t_AirHumidity = 0,
+                                       bool t_CalculateMoisture = true);
 
         //! Creation of convection boundary condition
         void createConvectionBCVariableHc(size_t index1,             //!< Node 1 index
                                           size_t index2,             //!< Node 2 index
                                           double t_AirTemperature,   //!< Outside air temperature
-                                          double t_AirHumidity);
+                                          double t_AirHumidity,
+                                          bool t_CalculateMoisture = true);
 
         //! Creation of temperature boundary condition
         void createTemperatureBC(size_t index1,    //!< Node 1 index
