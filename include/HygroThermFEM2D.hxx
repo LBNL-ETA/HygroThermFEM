@@ -23,3 +23,4 @@
 #include "../src/MultiDomain.hxx"
 #include "../src/Common.hxx"
 #include "../src/FrameCavities.hxx"
+#include "../src/SimulationProperties.hxx"
