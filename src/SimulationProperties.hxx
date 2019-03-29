@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstddef>
+
 namespace HygroThermFEM
 {
     class SimulationProperties
@@ -9,11 +11,11 @@ namespace HygroThermFEM
 
         void setIterationParameters(double t_RelaxationParameter,
                                     double t_ErrorTolerance,
-                                    size_t t_MaxNumberOfIterations);
+                                    std::size_t t_MaxNumberOfIterations);
 
         double relaxationParamter() const;
         double errorTolerance() const;
-        size_t maxNumberOfIterations() const;
+        std::size_t maxNumberOfIterations() const;
 
     private:
         SimulationProperties();
