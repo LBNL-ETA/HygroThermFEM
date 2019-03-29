@@ -7,6 +7,7 @@
 #include "FEMMath.hxx"
 #include "BoundaryCondition2D.hxx"
 #include "VectorOperators.hxx"
+#include "SimulationProperties.hxx"
 
 namespace HygroThermFEM
 {
@@ -76,7 +77,10 @@ namespace HygroThermFEM
       IDomain::transientTimestep(const std::vector<double> & currentStateValues,
                                  const double t_DTime)
     {
-        const auto RelaxParameter = 1.0;
+        const auto RelaxParameter = SimulationProperties::Instance().relaxationParamter();
+        const auto ConvergenceError = SimulationProperties::Instance().errorTolerance();
+        const auto MaxIterations = SimulationProperties::Instance().maxNumberOfIterations();
+
         auto A = transientM_K_H_Matrix(t_DTime);
 
         // This is just for debugging purposes.
@@ -106,30 +110,6 @@ namespace HygroThermFEM
                 const double previousNorm = currentNorm;
                 auto temp = A * solution;
                 temp = B - temp;
-
-                /*
-                auto testA = A.toVector();
-
-                std::cout.precision(18);
-                std::cout << std::endl << "------------------------------------------";
-                std::cout << std::endl;
-                for(const auto & row : testA) {
-                    for(const auto & val : row) {
-                        std::cout << val << ",";
-                    }
-                    std::cout << std::endl;
-                }
-
-                std::cout << std::endl << std::endl;
-                std::cout << std::endl << "------------------------------------------" << std::endl;
-
-                for(const auto & val: B) {
-                    std::cout << val << std::endl;
-                }
-
-                std::cout << std::endl;
-                std::cout << std::endl << "------------------------------------------";
-                */
 
                 auto dU = CLinearSolver::solveEigen(A, temp);
 

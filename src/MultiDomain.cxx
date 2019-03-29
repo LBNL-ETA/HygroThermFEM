@@ -4,6 +4,7 @@
 #include "Common.hxx"
 #include "FEMMath.hxx"
 #include "NodePool.hxx"
+#include "SimulationProperties.hxx"
 
 namespace HygroThermFEM
 {
@@ -18,6 +19,7 @@ namespace HygroThermFEM
                                     std::vector<double> & humidity,
                                     const double t_DTime)
     {
+        const auto ConvergenceError = SimulationProperties::Instance().errorTolerance();
         auto temperatureError = std::numeric_limits<double>::max();
         auto humidityError = std::numeric_limits<double>::max();
         auto currentTemperature = temperature;
