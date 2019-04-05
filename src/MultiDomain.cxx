@@ -25,13 +25,13 @@ namespace HygroThermFEM
         auto currentTemperature = temperature;
         auto currentHumidity = humidity;
         double dTime = t_DTime;
+        SingleSolution temperatureSolution{temperature, t_DTime};
+        SingleSolution humiditySolution{humidity, t_DTime};
 
         while(temperatureError > ConvergenceError || humidityError > ConvergenceError)
         {
             double dTimeThermal = t_DTime;
             double dTimeMoisture = t_DTime;
-            SingleSolution temperatureSolution{temperature, t_DTime};
-            SingleSolution humiditySolution{humidity, t_DTime};
 
             do   // Loop that performs adaptive timestep in case of convergence failure.
             {
@@ -68,7 +68,6 @@ namespace HygroThermFEM
                     humiditySolution = m_MoistureDomain.transient(humidity, dTimeMoisture);
                     humidityError = normError(humiditySolution.solution, currentHumidity);
                     dTimeMoisture = humiditySolution.dTime;
-                    dTime = dTimeThermal;
                 }
                 else
                 {
@@ -80,11 +79,13 @@ namespace HygroThermFEM
             if(m_PerformThermal)
             {
                 currentTemperature = temperatureSolution.solution;
+                dTime = dTimeThermal;
             }
 
             if(m_PerformMoisture)
             {
                 currentHumidity = humiditySolution.solution;
+                dTime = dTimeMoisture;
             }
         }
 
@@ -138,7 +139,8 @@ namespace HygroThermFEM
                                                  const double t_AirTemperature,
                                                  const double t_Humidity)
     {
-        m_ThermalDomain.createConvectionBCVariableHc(index1, index2, t_AirTemperature, t_Humidity, m_PerformMoisture);
+        m_ThermalDomain.createConvectionBCVariableHc(
+          index1, index2, t_AirTemperature, t_Humidity, m_PerformMoisture);
 
         m_MoistureDomain.createMoistureBCVariableHc(index1, index2, t_Humidity, t_AirTemperature);
     }
