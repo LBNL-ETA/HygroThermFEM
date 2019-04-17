@@ -124,10 +124,10 @@ TEST_F(MultiDomain_HighHumidity, TestExample_1)
         }
     }
 
-    std::vector<double> correctTemperatureError{0.000243182, 0.000331355};
-    std::vector<std::vector<double>> correctTemperatureSolution{
-            {0.6972741606,0.6972741606,2.287062536,2.287062536,6.994341495,6.994341495},
-            {1.881033139,1.881033139,4.596529081,4.596529081,9.928891833,9.928891833}};
+    const std::vector<double> correctTemperatureError{0.000243182, 0.000331355};
+    const std::vector<std::vector<double>> correctTemperatureSolution{
+      {0.6972741606, 0.6972741606, 2.287062536, 2.287062536, 6.994341495, 6.994341495},
+      {1.881033139, 1.881033139, 4.596529081, 4.596529081, 9.928891833, 9.928891833}};
 
     EXPECT_EQ(temperatureSolution.size(), correctTemperatureSolution.size());
 
