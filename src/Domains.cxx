@@ -58,19 +58,35 @@ namespace HygroThermFEM
     {
         std::vector<double> solution;
         bool converged{false};
+        size_t maxDivisions{3u};
+        size_t currentDivision{0u};
         double currentDTime{t_DTime};
-        while(!converged)
+        double totalTime{0};
+        auto stateVariables{currentStateValues};
+        // In case program failed to converge, it will cut down step to smaller one and will perform
+        // multiple consecutive simulations in order to achieve solution at requested timestep.
+        while(totalTime < t_DTime)
         {
-            const auto current = transientTimestep(currentStateValues, currentDTime);
+            const auto current = transientTimestep(stateVariables, currentDTime);
             solution = current.first;
             converged = current.second;
             if(!converged)
             {
-                currentDTime = currentDTime / 2.0;
+                currentDTime = currentDTime / 10;
+                ++currentDivision;
+                if(currentDivision > maxDivisions)
+                {
+                    throw std::runtime_error("Solution failed to converge.");
+                }
+            }
+            else
+            {
+                stateVariables = solution;
+                totalTime += currentDTime;
             }
         }
 
-        return {solution, currentDTime};
+        return {solution, t_DTime};
     }
 
     std::pair<std::vector<double>, bool>
@@ -82,9 +98,6 @@ namespace HygroThermFEM
         const auto MaxIterations = SimulationProperties::Instance().maxNumberOfIterations();
 
         auto A = transientM_K_H_Matrix(t_DTime);
-
-        // This is just for debugging purposes.
-        // auto testA = A.toVector();
 
         auto B = transientMT_R_Vector(currentStateValues, t_DTime);
 
@@ -115,6 +128,8 @@ namespace HygroThermFEM
 
                 solution = solution + dU * RelaxParameter;
 
+                postProcess(solution);
+
                 currentNorm = norm(solution);
 
                 ++numOfIterations;
@@ -127,12 +142,10 @@ namespace HygroThermFEM
                 // test = A.toVector();
                 B = transientMT_R_Vector(currentStateValues, t_DTime);
 
-                converged = (std::abs(previousNorm - currentNorm) / (currentNorm + 1e-6))
-                            <= (ConvergenceError * RelaxParameter);
+                converged =
+                  (std::abs(previousNorm - currentNorm) / (currentNorm + 1e-12)) <= ConvergenceError;
 
-                stopIterations = numOfIterations > (MaxIterations / RelaxParameter);
-
-                postProcess(solution);
+                stopIterations = numOfIterations > MaxIterations;
             }
         }
 
@@ -155,8 +168,7 @@ namespace HygroThermFEM
     }
 
     IDomain::IDomain(const BaseVariable property, bool automaticUpdateOfPreviousTimestep) :
-        m_Property(property),
-        m_AutomaticUpdatePreviousTimestep(automaticUpdateOfPreviousTimestep)
+        m_Property(property), m_AutomaticUpdatePreviousTimestep(automaticUpdateOfPreviousTimestep)
     {}
 
     std::vector<NodeFlux> IDomain::flux() const
@@ -255,8 +267,7 @@ namespace HygroThermFEM
     }
 
     ThermalDomain::ThermalDomain(bool automaticUpdatePreviousTimestep) :
-        IDomain(BaseVariable::temperature, automaticUpdatePreviousTimestep),
-        frameCavities(nullptr)
+        IDomain(BaseVariable::temperature, automaticUpdatePreviousTimestep), frameCavities(nullptr)
     {}
 
     void MoistureDomain::createElement(const size_t index1,

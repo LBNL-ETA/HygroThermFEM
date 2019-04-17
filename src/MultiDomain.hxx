@@ -12,7 +12,9 @@ namespace HygroThermFEM
                  const std::vector<double> & waterContent,
                  const std::vector<double> & liquidWaterContent,
                  const std::vector<double> & vaporContent,
-                 const std::vector<double> & iceContent);
+                 const std::vector<double> & iceContent,
+                 double temperatureError,
+                 double humidityError);
 
         double dTime;
         std::vector<double> temperature;
@@ -21,6 +23,8 @@ namespace HygroThermFEM
         std::vector<double> liquidWaterContent;
         std::vector<double> vaporContent;
         std::vector<double> iceContent;
+        double temperatureError;
+        double humidityError;
     };
 
     class MultiDomain
