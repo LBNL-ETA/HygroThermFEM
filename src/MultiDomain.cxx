@@ -37,11 +37,13 @@ namespace HygroThermFEM
         {
             if(m_PerformMoisture)
             {
-                while(humidityError > ConvergenceError)
+                size_t localIterCounter{0};
+                while(humidityError > ConvergenceError && localIterCounter <= MaxIterations)
                 {
                     humiditySolution = m_MoistureDomain.transient(humidity, dTime);
                     humidityError = normError(humiditySolution.solution, currentHumidity);
                     currentHumidity = humiditySolution.solution;
+                    ++localIterCounter;
                 }
             }
             else
@@ -51,11 +53,13 @@ namespace HygroThermFEM
 
             if(m_PerformThermal)
             {
-                while(temperatureError > ConvergenceError)
+                size_t localIterCounter{0};
+                while(temperatureError > ConvergenceError && localIterCounter <= MaxIterations)
                 {
                     temperatureSolution = m_ThermalDomain.transient(temperature, dTime);
                     temperatureError = normError(temperatureSolution.solution, currentTemperature);
                     currentTemperature = temperatureSolution.solution;
+                    ++localIterCounter;
                 }
             }
             else
