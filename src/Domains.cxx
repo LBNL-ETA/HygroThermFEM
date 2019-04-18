@@ -108,6 +108,7 @@ namespace HygroThermFEM
         if(isLinear())
         {
             solution = CLinearSolver::solveEigen(A, B);
+            postProcess(solution);
             converged = true;
         }
         else
@@ -142,8 +143,8 @@ namespace HygroThermFEM
                 // test = A.toVector();
                 B = transientMT_R_Vector(currentStateValues, t_DTime);
 
-                converged =
-                  (std::abs(previousNorm - currentNorm) / (currentNorm + 1e-12)) <= ConvergenceError;
+                converged = (std::abs(previousNorm - currentNorm) / (currentNorm + 1e-12))
+                            <= ConvergenceError;
 
                 stopIterations = numOfIterations > MaxIterations;
             }
@@ -258,6 +259,17 @@ namespace HygroThermFEM
     void ThermalDomain::postProcess(std::vector<double> & solution)
     {
         IDomain::postProcess(solution);
+        for(auto & val : solution)
+        {
+            if(val < Constants::ABSOLUTEZERO)
+            {
+                val = Constants::ABSOLUTEZERO + 1e-6;
+            }
+            if (val > 1000)
+            {
+                val = 1000;
+            }
+        }
         if(frameCavities == nullptr)
         {
             frameCavities =
