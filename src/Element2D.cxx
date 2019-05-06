@@ -485,6 +485,8 @@ namespace HygroThermFEM
         Constant delta(2.5E-5 / m_Material.diffusionResistanceFactor());
         auto conductance = delta * SaturationFunction();
 
+        // Note that diffusion equation is partial derivative that gets split into two derivative
+        // terms which then get into system as DDU and DpDu parts.
         DDu(conductance);
 
         DpDu(delta, SaturationFunction());
