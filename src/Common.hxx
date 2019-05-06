@@ -18,6 +18,7 @@ namespace Constants
 {
     static const double PI = atan(1) * 4;
     static const double STEFANBOLTZMANN = 5.6697E-8;
+    static const double ABSOLUTEZERO = -273.15;
 
     // Need to handle phase change through steep function. Melting is happening
     // between IcePoint and FreezingPoint

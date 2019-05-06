@@ -141,6 +141,7 @@ namespace HygroThermFEM
     {
         double sum = 0.0;
         double weighting = 0;
+        double result = 0;
         // Node can end up in several different elements and elements can have different materials.
         // This part of code will check influence (weighting) of different materials on current
         // node. In this way, program will estimate water content of node containing different
@@ -150,7 +151,11 @@ namespace HygroThermFEM
             sum += val.second.get().waterContent(*this, content) * val.first;
             weighting += val.first;
         }
-        return sum / weighting;
+        if (weighting != 0)
+        {
+            result = sum / weighting;
+        }
+        return result;
     }
 
     void Node2D::updateWaterContent()
