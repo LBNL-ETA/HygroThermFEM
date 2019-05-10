@@ -1,5 +1,21 @@
 include(CMakeParseArguments)
 
+# Add google tests macro
+macro(ADD_UNIT_TESTS executable test)  
+  foreach ( source ${ARGN} )
+    string(REGEX MATCH .*cpp|.*cxx|.*cc source "${source}")
+    if(source)      
+      file(READ "${source}" contents)
+      string(REGEX MATCHALL "TEST_?F?\\(([A-Za-z_0-9 ,]+)\\)" found_tests ${contents})
+      foreach(hit ${found_tests})
+        string(REGEX REPLACE ".*\\(( )*([A-Za-z_0-9]+)( )*,( )*([A-Za-z_0-9]+)( )*\\).*" "\\2.\\5" test_name ${hit})
+        add_test(NAME ${test_name}
+                 COMMAND "${executable}" "--gtest_filter=${test_name}")
+      endforeach(hit)
+    endif()
+  endforeach()
+endmacro()
+
 # Install files from a remote url
 # TYPE can be either "FILES" or "PROGRAMS"
 # Use the appropriate TYPE to get the proper permissions on the installed file
@@ -61,62 +77,45 @@ function(install_remote_plist SOURCE DESTINATION APP_NAME)
   ")
 endfunction()
 
-# Add google tests macro
-macro(ADD_GOOGLE_TESTS executable)
-    foreach (source ${ARGN})
-        string(REGEX MATCH .*cpp|.*cc source "${source}")
-        if (source)
-            file(READ "${source}" contents)
-            string(REGEX MATCHALL "TEST_?F?\\(([A-Za-z_0-9 ,]+)\\)" found_tests ${contents})
-            foreach (hit ${found_tests})
-                string(REGEX REPLACE ".*\\(( )*([A-Za-z_0-9]+)( )*,( )*([A-Za-z_0-9]+)( )*\\).*" "\\2.\\5" test_name ${hit})
-                add_test(NAME ${test_name}
-                        COMMAND "${executable}" "--gtest_filter=${test_name}")
-            endforeach (hit)
-        endif ()
-    endforeach ()
-endmacro()
-
 # Create source groups automatically based on file path
-macro(CREATE_SRC_GROUPS SRC)
-    foreach (F ${SRC})
-        string(REGEX MATCH "(^.*)([/\\].*$)" M ${F})
-        if (CMAKE_MATCH_1)
-            string(REGEX REPLACE "[/\\]" "\\\\" DIR ${CMAKE_MATCH_1})
-            source_group(${DIR} FILES ${F})
-        else ()
-            source_group(\\ FILES ${F})
-        endif ()
-    endforeach ()
+macro( CREATE_SRC_GROUPS SRC )
+  foreach( F ${SRC} )
+    string( REGEX MATCH "(^.*)([/\\].*$)" M ${F} )
+    if(CMAKE_MATCH_1)
+      string( REGEX REPLACE "[/\\]" "\\\\" DIR ${CMAKE_MATCH_1} )
+      source_group( ${DIR} FILES ${F} )
+    else()
+      source_group( \\ FILES ${F} )
+    endif()
+  endforeach()
 endmacro()
 
 # Create test targets
-macro(CREATE_TEST_TARGETS BASE_NAME SRC DEPENDENCIES)
-    if (BUILD_HTFEM_TESTING)
-        add_executable(${BASE_NAME}_tests ${SRC})
+macro( CREATE_TEST_TARGETS BASE_NAME SRC DEPENDENCIES )
 
-        if (ENABLE_GTEST_DEBUG_MODE)
-            set_target_properties(${BASE_NAME}_tests PROPERTIES COMPILE_DEFINITIONS ENABLE_GTEST_DEBUG_MODE)
-        endif ()
+  add_executable( ${BASE_NAME}_tests ${SRC} )
 
-        CREATE_SRC_GROUPS("${SRC}")
+  if( ENABLE_GTEST_DEBUG_MODE )
+    set_target_properties(${BASE_NAME}_tests PROPERTIES COMPILE_DEFINITIONS ENABLE_GTEST_DEBUG_MODE)
+  endif()
 
-        get_target_property(BASE_NAME_TYPE ${BASE_NAME} TYPE)
-        if ("${BASE_NAME_TYPE}" STREQUAL "EXECUTABLE")
-            # don't link base name
-            set(ALL_DEPENDENCIES ${DEPENDENCIES})
-        else ()
-            # also link base name
-            set(ALL_DEPENDENCIES ${BASE_NAME} ${DEPENDENCIES})
-        endif ()
+  CREATE_SRC_GROUPS( "${SRC}" )
 
-        target_link_libraries(${BASE_NAME}_tests
-                ${ALL_DEPENDENCIES}
-                gtest
-                )
+  get_target_property(BASE_NAME_TYPE ${BASE_NAME} TYPE)
+  if ("${BASE_NAME_TYPE}" STREQUAL "EXECUTABLE")
+    # don't link base name
+    set(ALL_DEPENDENCIES ${DEPENDENCIES} )
+  else()
+    # also link base name
+    set(ALL_DEPENDENCIES ${BASE_NAME} ${DEPENDENCIES} )
+  endif()
 
-        ADD_GOOGLE_TESTS(${BASE_NAME}_tests ${SRC})
-    endif ()
+  target_link_libraries( ${BASE_NAME}_tests
+    ${ALL_DEPENDENCIES}
+    gtest
+  )
+  
+  ADD_UNIT_TESTS( ${BASE_NAME}_tests ${SRC} )
 endmacro()
 
 # Named arguments 

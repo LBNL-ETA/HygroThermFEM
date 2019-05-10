@@ -41,31 +41,6 @@ else ()
     option(BUILD_HTFEM_TESTING "Build testing targets" ON)
 endif ()
 
-if (BUILD_HTFEM_TESTING)
-    set(google_disable_pthreads ON)
-    # include(CMakeLists-GTest.txt)
-    configure_file(CMakeListsGTest.txt.in ${CMAKE_BINARY_DIR}/googletest-download/CMakeLists.txt)
-    execute_process(COMMAND ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}" .
-            WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/googletest-download)
-    execute_process(COMMAND ${CMAKE_COMMAND} --build .
-            WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/googletest-download)
-
-    # Prevent GoogleTest from overriding our compiler/linker options
-    # when building with Visual Studio
-    set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-
-    # Add googletest directly to our build. This adds
-    # the following targets: gtest, gtest_main, gmock
-    # and gmock_main
-    add_subdirectory(${CMAKE_BINARY_DIR}/googletest-src
-            ${CMAKE_BINARY_DIR}/googletest-build)
-
-    # Now simply link your own targets against gtest, gmock,
-    # etc. as appropriate
-
-    include_directories(${CMAKE_BINARY_DIR}/googletest-src/include)
-endif ()
-
 # add_subdirectory( src )
 
 file(GLOB SOURCES_CXX "src/*.cxx")
@@ -86,13 +61,35 @@ set_target_properties(${target_name} PROPERTIES LINKER_LANGUAGE CXX)
 target_link_libraries( ${target_name} PUBLIC KeffCavity)
 
 if (BUILD_HTFEM_TESTING)
-    #include_directories( src )
     include_directories(include)
+    #set(google_disable_pthreads ON)
+    # include(CMakeLists-GTest.txt)
+    configure_file(CMakeListsGTest.txt.in ${CMAKE_BINARY_DIR}/googletest-download/CMakeLists.txt)
+    execute_process(COMMAND ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}" .
+            WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/googletest-download)
+    execute_process(COMMAND ${CMAKE_COMMAND} --build .
+            WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/googletest-download)
+
+    # Prevent GoogleTest from overriding our compiler/linker options
+    # when building with Visual Studio
+    #set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+
+    # Add googletest directly to our build. This adds
+    # the following targets: gtest, gtest_main, gmock
+    # and gmock_main
+    add_subdirectory(${CMAKE_BINARY_DIR}/googletest-src)
+    #add_subdirectory(GTest)
+    
+    include_directories(${CMAKE_BINARY_DIR}/googletest-src/googletest ${CMAKE_BINARY_DIR}/googletest-src/googletest/include)    
 
     file(GLOB all_test_src RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "tst/*.cxx")
     LIST(APPEND test_src ${all_test_src})
 
-    CREATE_TEST_TARGETS(${target_name} "${test_src}" "")
+    CREATE_TEST_TARGETS(${target_name} "${test_src}" ${target_name})
+    
+    #add_executable(${target_name}_test ${test_src})
+    
+    #target_link_libraries(${target_name}_test gtest ${target_name})
 endif ()
 
 config_compiler_and_linker()
