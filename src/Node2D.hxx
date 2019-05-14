@@ -155,8 +155,7 @@ namespace HygroThermFEM
 
         //! Performs water content calculations and store it locally (This speeds up engine
         //! calculation)
-        double calcWaterContent(WaterContent content   //!< Water content property
-        );
+        Water calcWaterContent();
 
         //! Update water content for every state (liquid, vapor and ice)
         void updateWaterContent();
@@ -171,11 +170,7 @@ namespace HygroThermFEM
         /// properties based on primary properties (water content depends on humidity)
         std::set<std::pair<double, std::reference_wrapper<const IMaterial>>> m_Materials;
 
-        // Need to store water content because calculating it every time will slow down
-        // program speed
-        double m_Liquid;
-        double m_Vapor;
-        double m_Ice;
+        Water m_Water;
     };
 
     ////////////////////////////////////////////////////////////////////////////
