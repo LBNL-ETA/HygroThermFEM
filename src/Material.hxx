@@ -109,6 +109,8 @@ namespace HygroThermFEM
         //! \return Value of water content.
         virtual Water waterContent(const INode2D & node) const = 0;
 
+        // Materials are stored in set that is used by other classes and that is why we need these
+        // operators
         friend bool operator<(const IMaterial & lhs, const IMaterial & rhs);
         friend bool operator>(const IMaterial & lhs, const IMaterial & rhs);
         friend bool operator<=(const IMaterial & lhs, const IMaterial & rhs);

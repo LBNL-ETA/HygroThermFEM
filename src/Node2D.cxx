@@ -139,7 +139,7 @@ namespace HygroThermFEM
         }
         if(weighting != 0)
         {
-            result = sum * (1 / weighting);
+            result = sum / weighting;
         }
         return result;
     }
