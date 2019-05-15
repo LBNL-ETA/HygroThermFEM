@@ -114,6 +114,7 @@ namespace HygroThermFEM
         else
         {
             solution = currentStateValues;
+            std::vector<double> normSolution{currentStateValues};
 
             auto currentNorm = norm(solution);
 
@@ -128,10 +129,12 @@ namespace HygroThermFEM
                 auto dU = CLinearSolver::solveEigen(A, temp);
 
                 solution = solution + dU * RelaxParameter;
+                normSolution = solution + dU;
 
                 postProcess(solution);
+                postProcess(normSolution);
 
-                currentNorm = norm(solution);
+                currentNorm = norm(normSolution);
 
                 ++numOfIterations;
 
