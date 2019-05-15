@@ -72,7 +72,7 @@ if (BUILD_HTFEM_TESTING)
 
     # Prevent GoogleTest from overriding our compiler/linker options
     # when building with Visual Studio
-    #set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+    set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 
     # Add googletest directly to our build. This adds
     # the following targets: gtest, gtest_main, gmock
@@ -93,7 +93,3 @@ if (BUILD_HTFEM_TESTING)
 endif ()
 
 config_compiler_and_linker()
-
-if (MSVC)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MTd")
-endif()
