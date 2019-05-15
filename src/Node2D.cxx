@@ -41,9 +41,7 @@ namespace HygroThermFEM
         m_x(t_x),
         m_y(t_y),
         m_State{{Timestep::Current, t_State}, {Timestep::Previous, t_State}},
-        m_Liquid(calcWaterContent(WaterContent::Liquid)),
-        m_Vapor(calcWaterContent(WaterContent::Vapor)),
-        m_Ice(calcWaterContent(WaterContent::Ice))
+        m_Water(calcWaterContent())
     {}
 
     double Node2D::property(const Variable property, const Timestep iteration) const
@@ -122,36 +120,24 @@ namespace HygroThermFEM
 
     double Node2D::waterContent(const WaterContent content) const
     {
-        switch(content)
-        {
-            case WaterContent::Liquid:
-                return m_Liquid;
-            case WaterContent::Vapor:
-                return m_Vapor;
-            case WaterContent::Ice:
-                return m_Ice;
-            case WaterContent::Water:
-                return m_Liquid + m_Vapor + m_Ice;
-        }
-
-        return 0;
+        return m_Water.content(content);
     }
 
-    double Node2D::calcWaterContent(const WaterContent content)
+    Water Node2D::calcWaterContent()
     {
-        double sum = 0.0;
+        Water sum;
         double weighting = 0;
-        double result = 0;
+        Water result;
         // Node can end up in several different elements and elements can have different materials.
         // This part of code will check influence (weighting) of different materials on current
         // node. In this way, program will estimate water content of node containing different
         // materials
         for(auto & val : m_Materials)
         {
-            sum += val.second.get().waterContent(*this, content) * val.first;
+            sum += val.second.get().waterContent(*this) * val.first;
             weighting += val.first;
         }
-        if (weighting != 0)
+        if(weighting != 0)
         {
             result = sum / weighting;
         }
@@ -160,9 +146,7 @@ namespace HygroThermFEM
 
     void Node2D::updateWaterContent()
     {
-        m_Liquid = calcWaterContent(WaterContent::Liquid);
-        m_Vapor = calcWaterContent(WaterContent::Vapor);
-        m_Ice = calcWaterContent(WaterContent::Ice);
+        m_Water = calcWaterContent();
     }
 
     std::vector<std::string> Node2D::getSolidMaterialNames() const
@@ -184,23 +168,17 @@ namespace HygroThermFEM
 
     INodes::INodes(Node2D & node1, Node2D & node2)
     {
-        m_Nodes.push_back(node1);
-        m_Nodes.push_back(node2);
+        m_Nodes.emplace_back(node1);
+        m_Nodes.emplace_back(node2);
     }
 
     INodes::INodes(Node2D & node1, Node2D & node2, Node2D & node3, Node2D & node4)
     {
-        m_Nodes.push_back(node1);
-        m_Nodes.push_back(node2);
-        m_Nodes.push_back(node3);
-        m_Nodes.push_back(node4);
+        m_Nodes.emplace_back(node1);
+        m_Nodes.emplace_back(node2);
+        m_Nodes.emplace_back(node3);
+        m_Nodes.emplace_back(node4);
     }
-
-    // Node2D & INodes::getNode(const std::size_t Index)
-    //{
-    //    assert(Index < m_Nodes.size());
-    //    return m_Nodes[Index];
-    //}
 
     std::vector<std::size_t> INodes::getNodeIndexes() const
     {

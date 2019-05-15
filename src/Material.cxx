@@ -186,18 +186,13 @@ namespace HygroThermFEM
         return saturationConcentrationAtTemperature(temperature);
     }
 
-    double SolidMaterial::waterContent(const INode2D & node, WaterContent wContent) const
+    Water SolidMaterial::waterContent(const INode2D & node) const
     {
-        std::map<WaterContent, double> results;
-        results[WaterContent::Water] = waterContent(node);
-        results[WaterContent::Vapor] = vaporContent(node);
-        results[WaterContent::Liquid] = liquidWaterContent(node);
-        results[WaterContent::Ice] = iceContent(node);
-
-        return results.at(wContent);
+        return {
+          totalWaterContent(node), liquidWaterContent(node), vaporContent(node), iceContent(node)};
     }
 
-    double SolidMaterial::waterContent(const INode2D & node) const
+    double SolidMaterial::totalWaterContent(const INode2D & node) const
     {
         return m_SorptionCurve->value(node);
     }
@@ -210,13 +205,14 @@ namespace HygroThermFEM
 
     double SolidMaterial::liquidWaterContent(const INode2D & node) const
     {
-        return node.property(Variable::liquidPercent) * (waterContent(node) - vaporContent(node));
+        return node.property(Variable::liquidPercent)
+               * (totalWaterContent(node) - vaporContent(node));
     }
 
     double SolidMaterial::iceContent(const INode2D & node) const
     {
         return (1 - node.property(Variable::liquidPercent))
-               * (waterContent(node) - vaporContent(node));
+               * (totalWaterContent(node) - vaporContent(node));
     }
 
     double SolidMaterial::liquidPorosity(const INode2D & node) const
@@ -235,9 +231,9 @@ namespace HygroThermFEM
     // Gas
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
-    double Gas::waterContent(const INode2D &, WaterContent) const
+    Water Gas::waterContent(const INode2D &) const
     {
-        return 0;
+        return {};
     }
 
     void Gas::updateThermalConductivity(double thermalConductivity)
@@ -263,4 +259,43 @@ namespace HygroThermFEM
              cavityStandard)               // Standard used for cavity calculations
 
     {}
+
+    Water::Water(double water, double liquid, double vapor, double ice) :
+        m_Content{{WaterContent::Water, water},
+                  {WaterContent::Liquid, liquid},
+                  {WaterContent::Vapor, vapor},
+                  {WaterContent::Ice, ice}}
+    {}
+
+    double Water::content(WaterContent content) const
+    {
+        return m_Content.at(content);
+    }
+
+    Water & Water::operator*(const double & other)
+    {
+        m_Content[WaterContent::Water] *= other;
+        m_Content[WaterContent::Liquid] *= other;
+        m_Content[WaterContent::Vapor] *= other;
+        m_Content[WaterContent::Ice] *= other;
+        return *this;
+    }
+
+    Water & Water::operator+=(const Water & other)
+    {
+        m_Content[WaterContent::Water] += other.content(WaterContent::Water);
+        m_Content[WaterContent::Liquid] += other.content(WaterContent::Liquid);
+        m_Content[WaterContent::Vapor] += other.content(WaterContent::Vapor);
+        m_Content[WaterContent::Ice] += other.content(WaterContent::Ice);
+        return *this;
+    }
+
+    Water & Water::operator/(const double & other)
+    {
+        m_Content[WaterContent::Water] /= other;
+        m_Content[WaterContent::Liquid] /= other;
+        m_Content[WaterContent::Vapor] /= other;
+        m_Content[WaterContent::Ice] /= other;
+        return *this;
+    }
 }   // namespace HygroThermFEM

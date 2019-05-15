@@ -108,10 +108,10 @@ TEST_F(MultiDomain_HighHumidity, TestExample_1)
         humidities = aSolution.humidity;
     }
 
-    const std::vector<double> correctHumidityError{1.96366e-06, 5.79985e-06};
+    const std::vector<double> correctHumidityError{2.364583e-09, 6.332173e-06};
     const std::vector<std::vector<double>> correctWaterContentSolution{
-      {121.9634253, 121.9634253, 122.096279, 122.096279, 122.2614671, 122.2614671},
-      {123.6963414, 123.6963414, 123.8029497, 123.8029497, 123.9355845, 123.9355845}};
+      {121.998513, 121.998513, 122.131266, 122.131266, 122.296330, 122.296330},
+      {123.731111, 123.731111, 123.837650, 123.837650, 123.970199, 123.970199}};
 
     EXPECT_EQ(waterContentSolution.size(), correctWaterContentSolution.size());
 
@@ -124,10 +124,10 @@ TEST_F(MultiDomain_HighHumidity, TestExample_1)
         }
     }
 
-    const std::vector<double> correctTemperatureError{0.000243182, 0.000331355};
+    const std::vector<double> correctTemperatureError{9.211632e-07, 0.000361};
     const std::vector<std::vector<double>> correctTemperatureSolution{
-      {0.6972741606, 0.6972741606, 2.287062536, 2.287062536, 6.994341495, 6.994341495},
-      {1.881033139, 1.881033139, 4.596529081, 4.596529081, 9.928891833, 9.928891833}};
+      {0.697103, 0.697103, 2.286699, 2.286699, 6.993745, 6.993745},
+      {1.880646, 1.880646, 4.595977, 4.595977, 9.928417, 9.928417}};
 
     EXPECT_EQ(temperatureSolution.size(), correctTemperatureSolution.size());
 

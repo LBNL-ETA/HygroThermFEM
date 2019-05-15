@@ -1,4 +1,5 @@
 #include <cmath>
+#include <limits>
 
 #include "MultiDomain.hxx"
 #include "Common.hxx"

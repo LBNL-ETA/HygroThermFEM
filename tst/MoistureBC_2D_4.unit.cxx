@@ -41,32 +41,31 @@ TEST_F(MoistureBC_2D_4, TestExample_1)
     }
 
     auto & material = MaterialPool::Instance().createSolidMaterial(
-                                                              "Cottaer Sandstone",
-                                                              2050, /// density
-                                                              0.22, /// porosity
-                                                              850,  /// specific heat capacity (dry)
-                                                              15,   /// diffusion resistance factor (this is mi value)
-                                                              {{0.0,   1.8},
-                                                              {180.0, 1.8}}, /// thermal conductivity (dry)
-                                                              {{0,   0},     /// liquid transportation coefficient
-                                                              {27,  1E-8},
-                                                              {45,  1.1E-8},
-                                                              {90,  2E-8},
-                                                              {126, 3.5E-8},
-                                                              {144, 5E-8},
-                                                              {162, 1E-7},
-                                                              {171, 2E-7},
-                                                              {180, 7E-7}},
-                                                              {{0,     0}, /// sorption curve
-                                                              {0.5,   5.3},
-                                                              {0.65,  8.4},
-                                                              {0.8,   12},
-                                                              {0.93,  17},
-                                                              {0.95,  25},
-                                                              {0.99,  63},
-                                                              {0.995, 83},
-                                                              {0.999, 120},
-                                                              {1,     180}});
+      "Cottaer Sandstone",
+      2050,                         /// density
+      0.22,                         /// porosity
+      850,                          /// specific heat capacity (dry)
+      15,                           /// diffusion resistance factor (this is mi value)
+      {{0.0, 1.8}, {180.0, 1.8}},   /// thermal conductivity (dry)
+      {{0, 0},                      /// liquid transportation coefficient
+       {27, 1E-8},
+       {45, 1.1E-8},
+       {90, 2E-8},
+       {126, 3.5E-8},
+       {144, 5E-8},
+       {162, 1E-7},
+       {171, 2E-7},
+       {180, 7E-7}},
+      {{0, 0},   /// sorption curve
+       {0.5, 5.3},
+       {0.65, 8.4},
+       {0.8, 12},
+       {0.93, 17},
+       {0.95, 25},
+       {0.99, 63},
+       {0.995, 83},
+       {0.999, 120},
+       {1, 180}});
 
     HygroThermFEM::MoistureDomain domain;
 
@@ -100,10 +99,10 @@ TEST_F(MoistureBC_2D_4, TestExample_1)
     }
 
     std::vector<std::vector<double>> correctSolution{
-      {0.0001637234385, 0.0001637234385, 0.03007253676, 0.03007253676, 4.26729182, 4.26729182},
-      {0.0005460292931, 0.0005460292931, 0.07038523215, 0.07038523215, 6.477109912, 6.477109912},
-      {0.001170173899, 0.001170173899, 0.1151882073, 0.1151882073, 7.977893234, 7.977893234},
-      {0.002045634832, 0.002045634832, 0.1619738519, 0.1619738519, 8.78043058, 8.78043058}};
+            {0.00016372,0.00016372,0.03007249,0.03007249,4.26728667,4.26728667},
+            {0.00054603,0.00054603,0.07038521,0.07038521,6.47711071,6.47711071},
+            {0.00117017,0.00117017,0.11518821,0.11518821,7.97789603,7.97789603},
+            {0.00204563,0.00204563,0.16197386,0.16197386,8.78043230,8.78043230}};
 
     EXPECT_EQ(solution.size(), correctSolution.size());
 

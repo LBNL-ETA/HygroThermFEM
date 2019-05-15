@@ -21,6 +21,21 @@ namespace HygroThermFEM
         Ice       //!< Water content in frozen state.
     };
 
+    class Water
+    {
+    public:
+        Water(double water = 0, double liquid = 0, double vapor = 0, double ice = 0);
+
+        Water & operator*(const double & other);
+        Water & operator+=(const Water & other);
+        Water & operator/(const double & other);
+
+        double content(WaterContent content) const;
+
+    private:
+        std::map<WaterContent, double> m_Content;
+    };
+
     //! \brief Standard used in thermal calculations of air pockets.
     enum class CavityStandard
     {
@@ -92,8 +107,10 @@ namespace HygroThermFEM
         //! \param node Node for which water content is required.
         //! \param waterContent Water content property (total, liquid, vapor or ice).
         //! \return Value of water content.
-        virtual double waterContent(const INode2D & node, WaterContent waterContent) const = 0;
+        virtual Water waterContent(const INode2D & node) const = 0;
 
+        // Materials are stored in set that is used by other classes and that is why we need these
+        // operators
         friend bool operator<(const IMaterial & lhs, const IMaterial & rhs);
         friend bool operator>(const IMaterial & lhs, const IMaterial & rhs);
         friend bool operator<=(const IMaterial & lhs, const IMaterial & rhs);
@@ -173,11 +190,11 @@ namespace HygroThermFEM
         //! \param node Node for which water content is required.
         //! \param waterContent Water content property (total, liquid, vapor or ice).
         //! \return Value of water content.
-        double waterContent(const INode2D & node, WaterContent waterContent) const override;
+        Water waterContent(const INode2D & node) const override;
 
     private:
         //! Returns total water content in given node.
-        double waterContent(const INode2D & node) const;
+        double totalWaterContent(const INode2D & node) const;
 
         //! Returns vapor content in given node.
         double vaporContent(const INode2D & node) const;
@@ -232,10 +249,8 @@ namespace HygroThermFEM
         Gas(const std::string & name, CavityStandard cavityStandard = CavityStandard::ISO15099);
 
         //! Water content for given node
-        double waterContent(const INode2D & node,   //!< Node for which water content is required.
-                            WaterContent waterContent   //!< Water content property (total water,
-                                                        //!< liquid, vapor or ice).
-                            ) const override;
+        //!< param node Node for which water content is required.
+        Water waterContent(const INode2D & node) const override;
 
         void updateThermalConductivity(double thermalConductivity) override;
     };
