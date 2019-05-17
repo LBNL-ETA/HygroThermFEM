@@ -1,3 +1,5 @@
+#pragma once
+
 #include "../src/Node2D.hxx"
 #include "../src/State.hxx"
 #include "../src/Material.hxx"

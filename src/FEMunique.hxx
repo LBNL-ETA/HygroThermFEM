@@ -1,5 +1,4 @@
-#ifndef WINDOWS_CALCENGINE_WCEUNIQUE_H
-#define WINDOWS_CALCENGINE_WCEUNIQUE_H
+#pragma once
 
 #include <memory>
 
@@ -15,5 +14,3 @@ namespace fem {
 	}
 
 }
-
-#endif //WINDOWS_CALCENGINE_WCEUNIQUE_H

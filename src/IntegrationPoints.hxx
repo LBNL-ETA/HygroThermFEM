@@ -1,5 +1,4 @@
-#ifndef INTEGRATIONPOINTS_H_6dd73986_7133_4177_bd33_fb194b97a09d
-#define INTEGRATIONPOINTS_H_6dd73986_7133_4177_bd33_fb194b97a09d
+#pragma once
 
 #include <vector>
 #include <memory>
@@ -163,5 +162,3 @@ namespace HygroThermFEM
 
 
 }   // namespace HygroThermFEM
-
-#endif
