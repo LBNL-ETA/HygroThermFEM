@@ -16,9 +16,9 @@ if(BUILD_FOR_PROFILING)
   set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -O0")
 endif()
 
-include(cmake/ProjectMacros.cmake)
-include(cmake/internal_utils.cmake)
-include(cmake/CompilerFlags.cmake)
+include(cmake/HTProjectMacros.cmake)
+include(cmake/HTinternal_utils.cmake)
+include(cmake/HTCompilerFlags.cmake)
 
 # Include Eigen
 configure_file(CMakeListsEigen.txt.in ${CMAKE_BINARY_DIR}/eigen-download/CMakeLists.txt)
