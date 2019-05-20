@@ -5,7 +5,7 @@
 using HygroThermFEM::NodePool;
 using HygroThermFEM::MaterialPool;
 
-class ConvectionBC_2D_SteadyState : public testing::Test
+class ConvectionBC_2D_SteadyStateThermalDomain : public testing::Test
 {
 protected:
     void SetUp() override
@@ -18,7 +18,7 @@ protected:
     }
 };
 
-TEST_F(ConvectionBC_2D_SteadyState, TestExample_1)
+TEST_F(ConvectionBC_2D_SteadyStateThermalDomain, TestExample_1)
 {
     SCOPED_TRACE("Begin Test: Two elementsCreator example with simple conduction.");
 
@@ -58,33 +58,30 @@ TEST_F(ConvectionBC_2D_SteadyState, TestExample_1)
        {0.999, 120},
        {1, 180}});
 
-    HygroThermFEM::MultiDomain domain;
+    HygroThermFEM::ThermalDomain domain;
 
     domain.createElement(3, 4, 2, 1, material.name());
     domain.createElement(6, 4, 3, 5, material.name());
 
     // Create Boundary Conditions
     const auto hc1 = 20.0;
-    const auto humidity1 = 0.0;
     const auto temperatureAir1 = -18.0;
 
     const auto hc2 = 2.4;
-    const auto humidity2 = 0.0;
     const auto temperatureAir2 = 21.0;
 
-    domain.createMoistureBCFixedHc(1, 2, temperatureAir1, hc1, humidity1);
-    domain.createMoistureBCFixedHc(6, 5, temperatureAir2, hc2, humidity2);
+    domain.createConvectionBCFixedHc(1, 2, temperatureAir1, hc1);
+    domain.createConvectionBCFixedHc(6, 5, temperatureAir2, hc2);
 
-    const auto solution = domain.steadyState();
-    auto temperature = solution.temperature;
+    auto solution = domain.steadyState();
 
-    std::vector<double> correctTemperature{
+    std::vector<double> correctSolution{
       -17.87392241, -17.87392241, 7.341594828, 7.341594828, 19.94935345, 19.94935345};
 
-    EXPECT_EQ(temperature.size(), correctTemperature.size());
+    EXPECT_EQ(solution.size(), correctSolution.size());
 
-    for(auto i = 0u; i < correctTemperature.size(); ++i)
+    for(auto i = 0u; i < correctSolution.size(); ++i)
     {
-        EXPECT_NEAR(temperature[i], correctTemperature[i], 1e-6);
+        EXPECT_NEAR(correctSolution[i], solution[i], 1e-6);
     }
 }

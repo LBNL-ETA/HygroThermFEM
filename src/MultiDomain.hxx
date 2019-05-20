@@ -37,6 +37,9 @@ namespace HygroThermFEM
                            std::vector<double> & humidity,
                            double t_DTime);
 
+        //! Calculates steady state solution for multiple domains.
+        Solution steadyState();
+
         static std::vector<double> property(Variable property);
 
         void createElement(size_t index1,
