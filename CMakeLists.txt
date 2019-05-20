@@ -85,11 +85,15 @@ if (BUILD_HTFEM_TESTING)
     file(GLOB all_test_src RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "tst/*.cxx")
     LIST(APPEND test_src ${all_test_src})
 
-    CREATE_TEST_TARGETS(${target_name} "${test_src}" ${target_name})
+    CREATE_TEST_TARGETS_HTFEM(${target_name} "${test_src}" ${target_name})
     
     #add_executable(${target_name}_test ${test_src})
     
     #target_link_libraries(${target_name}_test gtest ${target_name})
 endif ()
 
-config_compiler_and_linker()
+config_compiler_and_linker_HTFEM()
+
+if (MSVC)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHsc")
+endif()
