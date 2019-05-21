@@ -204,12 +204,12 @@ namespace HygroThermFEM
         /// variables changed as well.
 
         auto count = 0u;
-        m_QLEDpDuIntegrator2D.clear();
+        std::vector<QLEDpDuIntegrator2D> qleDpDuIntegrator2D;
         for(const auto & cond : m_DpDuFunctions)
         {
-            m_QLEDpDuIntegrator2D.emplace_back(m_Global2D);
+            qleDpDuIntegrator2D.emplace_back(m_Global2D);
             const auto aDerivatives = cond.derivativeValue->values(m_Nodes);
-            m_QLEDpDuIntegrator2D[count].setIndependentVariables(aDerivatives);
+            qleDpDuIntegrator2D[count].setIndependentVariables(aDerivatives);
             ++count;
         }
 
@@ -218,7 +218,7 @@ namespace HygroThermFEM
         for(const auto & cond : m_DpDuFunctions)
         {
             const auto values = cond.fixedValue->values(m_Nodes);
-            result += m_QLEDpDuIntegrator2D[count].integrate(values);
+            result += qleDpDuIntegrator2D[count].integrate(values);
             ++count;
         }
 
