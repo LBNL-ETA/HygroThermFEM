@@ -22,8 +22,6 @@ namespace HygroThermFEM
     {
         const auto count = IntegrationPoints2D::Instance().count2D();
 
-        // SquareMatrix aMatrix(numOfQuadrilateralNodes);
-
         std::vector<std::vector<double>> aMatrix{4, std::vector<double>(4, 0)};
         for(auto integrationPoint = 0u; integrationPoint < count; ++integrationPoint)
         {

@@ -134,6 +134,7 @@ namespace HygroThermFEM
                 humidityError = normError(humidity, previousHumidity);
                 previousHumidity = humidity;
                 m_ThermalDomain.updateNodeValues(humidity, BaseVariable::humidity);
+                m_MoistureDomain.updateNodeValues(humidity, BaseVariable::humidity);
             }
             else
             {
@@ -145,6 +146,7 @@ namespace HygroThermFEM
                 temperatureError = normError(temperature, previousTemperature);
                 previousTemperature = temperature;
                 m_MoistureDomain.updateNodeValues(temperature, BaseVariable::temperature);
+                m_ThermalDomain.updateNodeValues(temperature, BaseVariable::temperature);
             }
             else
             {
