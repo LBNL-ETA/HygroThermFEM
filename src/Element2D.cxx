@@ -22,9 +22,8 @@ namespace HygroThermFEM
     {
         const auto count = IntegrationPoints2D::Instance().count2D();
 
-        // SquareMatrix aMatrix(numOfQuadrilateralNodes);
-
-        std::vector<std::vector<double>> aMatrix{4, std::vector<double>(4, 0)};
+        std::vector<std::vector<double>> aMatrix{numOfQuadrilateralNodes,
+                                                 std::vector<double>(numOfQuadrilateralNodes, 0)};
         for(auto integrationPoint = 0u; integrationPoint < count; ++integrationPoint)
         {
             auto & intPointMatrix = m_IntegrationMatrix[integrationPoint];
@@ -69,7 +68,7 @@ namespace HygroThermFEM
     }
 
     //////////////////////////////////////////////////////////////////////////////
-    ///  QLEConductanceDerivative2D
+    ///  QLEDpDuIntegrator2D
     //////////////////////////////////////////////////////////////////////////////
 
     QLEDpDuIntegrator2D::QLEDpDuIntegrator2D(const QuadrilateralLinearGlobal2D & t_Element) :
@@ -206,12 +205,12 @@ namespace HygroThermFEM
         /// variables changed as well.
 
         auto count = 0u;
-        m_QLEDpDuIntegrator2D.clear();
+        std::vector<QLEDpDuIntegrator2D> qleDpDuIntegrator2D;
         for(const auto & cond : m_DpDuFunctions)
         {
-            m_QLEDpDuIntegrator2D.emplace_back(m_Global2D);
+            qleDpDuIntegrator2D.emplace_back(m_Global2D);
             const auto aDerivatives = cond.derivativeValue->values(m_Nodes);
-            m_QLEDpDuIntegrator2D[count].setIndependentVariables(aDerivatives);
+            qleDpDuIntegrator2D[count].setIndependentVariables(aDerivatives);
             ++count;
         }
 
@@ -220,7 +219,7 @@ namespace HygroThermFEM
         for(const auto & cond : m_DpDuFunctions)
         {
             const auto values = cond.fixedValue->values(m_Nodes);
-            result += m_QLEDpDuIntegrator2D[count].integrate(values);
+            result += qleDpDuIntegrator2D[count].integrate(values);
             ++count;
         }
 

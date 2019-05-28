@@ -14,8 +14,7 @@ namespace HygroThermFEM
 
     IConvectiveCoefficient::IConvectiveCoefficient(const INodes & nodes,
                                                    const double ambientVariable) :
-        m_Nodes(nodes),
-        m_AmbientVariable(ambientVariable)
+        m_Nodes(nodes), m_AmbientVariable(ambientVariable)
     {}
 
     std::vector<double> IConvectiveCoefficient::betaConv() const
@@ -114,8 +113,10 @@ namespace HygroThermFEM
     {
         auto rightHandSide = m_ConvectiveCoeffCalc->convectiveCoefficients() * m_AirTemperature;
 
-        if(m_SimulateMoisture)
-        {
+        // Moisture is dumping some energy into domain. However, it is possible that user
+        // choose not to simulate moisture in which case energy should not be included in simulation
+        //if(m_SimulateMoisture)
+        //{
             // Vapor leaking part is added here
             std::vector<double> vaporLeak(numOfBCNodes, 0);
             for(std::size_t j = 0; j < numOfBCNodes; ++j)
@@ -129,7 +130,7 @@ namespace HygroThermFEM
             }
             const auto vaporFluxEnergy = vaporLeak * m_ConvectiveCoeffCalc->betaConv();
             rightHandSide = rightHandSide + vaporFluxEnergy;
-        }
+        //}
 
         return m_PsiVector * rightHandSide;
     }
@@ -206,8 +207,7 @@ namespace HygroThermFEM
     ////////////////////////////////////////////////////////
 
     FluxBC::FluxBC(const size_t index1, const size_t index2, const double t_Flux) :
-        IBCLinear2D(index1, index2),
-        m_Flux(t_Flux)
+        IBCLinear2D(index1, index2), m_Flux(t_Flux)
     {}
 
     std::vector<double> FluxBC::R_Vector() const

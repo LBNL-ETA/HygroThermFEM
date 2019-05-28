@@ -453,9 +453,6 @@ namespace HygroThermFEM
         QLECapacitanceIntegrator2D m_QLECapacitance2D;
         QLEDDuIntegrator2D m_DDuIntegrator;
 
-        /// This one depends on independent variables and should be stored in vector
-        std::vector<QLEDpDuIntegrator2D> m_QLEDpDuIntegrator2D;
-
         const bool m_Linear;
     };
 
