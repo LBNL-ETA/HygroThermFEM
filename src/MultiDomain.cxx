@@ -245,8 +245,12 @@ namespace HygroThermFEM
     double MultiDomain::normError(const std::vector<double> & vec1,
                                   const std::vector<double> & vec2)
     {
-        const auto norm1 = norm(vec1);
+        auto norm1 = norm(vec1);
         const auto norm2 = norm(vec2);
+        if (norm1 == 0)
+        {
+            norm1 = 1e-10;
+        }
 
         return std::abs(norm1 - norm2) / norm1;
     }

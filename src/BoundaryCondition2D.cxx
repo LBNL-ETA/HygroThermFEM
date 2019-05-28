@@ -115,8 +115,8 @@ namespace HygroThermFEM
 
         // Moisture is dumping some energy into domain. However, it is possible that user
         // choose not to simulate moisture in which case energy should not be included in simulation
-        if(m_SimulateMoisture)
-        {
+        //if(m_SimulateMoisture)
+        //{
             // Vapor leaking part is added here
             std::vector<double> vaporLeak(numOfBCNodes, 0);
             for(std::size_t j = 0; j < numOfBCNodes; ++j)
@@ -130,7 +130,7 @@ namespace HygroThermFEM
             }
             const auto vaporFluxEnergy = vaporLeak * m_ConvectiveCoeffCalc->betaConv();
             rightHandSide = rightHandSide + vaporFluxEnergy;
-        }
+        //}
 
         return m_PsiVector * rightHandSide;
     }

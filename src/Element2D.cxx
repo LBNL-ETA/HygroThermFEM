@@ -22,7 +22,8 @@ namespace HygroThermFEM
     {
         const auto count = IntegrationPoints2D::Instance().count2D();
 
-        std::vector<std::vector<double>> aMatrix{4, std::vector<double>(4, 0)};
+        std::vector<std::vector<double>> aMatrix{numOfQuadrilateralNodes,
+                                                 std::vector<double>(numOfQuadrilateralNodes, 0)};
         for(auto integrationPoint = 0u; integrationPoint < count; ++integrationPoint)
         {
             auto & intPointMatrix = m_IntegrationMatrix[integrationPoint];
@@ -67,7 +68,7 @@ namespace HygroThermFEM
     }
 
     //////////////////////////////////////////////////////////////////////////////
-    ///  QLEConductanceDerivative2D
+    ///  QLEDpDuIntegrator2D
     //////////////////////////////////////////////////////////////////////////////
 
     QLEDpDuIntegrator2D::QLEDpDuIntegrator2D(const QuadrilateralLinearGlobal2D & t_Element) :
