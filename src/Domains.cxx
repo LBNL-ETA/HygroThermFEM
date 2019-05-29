@@ -50,7 +50,9 @@ namespace HygroThermFEM
     std::vector<double> IDomain::steadyState()
     {
         const auto B = steadyStateRightHandSide();
-        return CLinearSolver::solveEigen(steadyStateLeftHandSide(), B);
+        const auto A = steadyStateLeftHandSide();
+        //const auto test = A.toVector();
+        return CLinearSolver::solveEigen(A, B);
     }
 
     SingleSolution IDomain::transient(const std::vector<double> & currentStateValues,
@@ -143,7 +145,6 @@ namespace HygroThermFEM
                   solution, m_Property, m_AutomaticUpdatePreviousTimestep);
 
                 A = transientM_K_H_Matrix(t_DTime);
-                // test = A.toVector();
                 B = transientMT_R_Vector(currentStateValues, t_DTime);
 
                 converged = (std::abs(previousNorm - currentNorm) / (currentNorm + 1e-12))
