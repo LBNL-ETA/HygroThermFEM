@@ -106,7 +106,7 @@ namespace HygroThermFEM
                 for(auto j = 0u; j < numOfIntegrationPoints; ++j)
                 {
                     matrix[i][j] =
-                      det * (DPsiDx[i] * psi[j] * gammaX + DPsiDy[i] * psi[j] * gammaY);
+                      det * (psi[i] * DPsiDx[j] * gammaX + psi[i] * DPsiDy[j] * gammaY);
                 }
             }
             m_IntegrationMatrix[integrationPoint] = SquareMatrix{matrix};
@@ -425,10 +425,8 @@ namespace HygroThermFEM
         //////////////////////////////////////////////////////////////////////
         const auto delta = Constant(2.5E-5 / m_Material.diffusionResistanceFactor());
         auto h = HeatOfEvaporation() * delta;
-        // Constant c(1);
 
-        //multiplies(h, Variable::vapor);
-        // multiplies(c, Variable::temperature);
+        multiplies(h, Variable::vapor);
 
         //////////////////////////////////////////////////////////////////////
         ///  Conversion from liquid to gas (air part)

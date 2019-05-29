@@ -13,9 +13,9 @@ namespace HygroThermFEM
         {
             auto indexes = aElement->nodeIndexes();
             auto conductance = aElement->DDuMatrices();
-            //auto testConductance = conductance.toVector();
+            // auto testConductance = conductance.toVector();
             auto condDer = aElement->DpDuMatrices();
-            //auto testCondDer = condDer.toVector();
+            // auto testCondDer = condDer.toVector();
             for(size_t i = 0; i < numOfQuadrilateralNodes; ++i)
             {
                 for(size_t j = 0; j < numOfQuadrilateralNodes; ++j)
