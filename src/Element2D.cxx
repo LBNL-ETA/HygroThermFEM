@@ -427,7 +427,7 @@ namespace HygroThermFEM
         auto h = HeatOfEvaporation() * delta;
         // Constant c(1);
 
-        multiplies(h, Variable::vapor);
+        //multiplies(h, Variable::vapor);
         // multiplies(c, Variable::temperature);
 
         //////////////////////////////////////////////////////////////////////

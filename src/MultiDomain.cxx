@@ -153,7 +153,7 @@ namespace HygroThermFEM
                 temperatureError = 0;
             }
             ++currentIteration;
-        } while((temperatureError > ConvergenceError && humidityError > ConvergenceError)
+        } while(temperatureError > ConvergenceError || humidityError > ConvergenceError
                 || currentIteration > MaxIterations);
 
         NodePool::Instance().updateNodeValues(humidity, BaseVariable::humidity);
