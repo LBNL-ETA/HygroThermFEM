@@ -332,7 +332,7 @@ namespace HygroThermFEM
         std::vector<MatrixVector> m_Matrix_x_Vector;
 
         //! Calculates angle between two vectors made of (node1-node2) and (node1-node3)
-        double angleBetweenNodes(const Node2D & node1, const Node2D & node2, const Node2D & node3);
+        double angleBetweenNodes(const Node2D & node1, const Node2D & node2, const Node2D & node3) const;
 
 
         //! Circular vector connects first and last node so that program can easily iterate

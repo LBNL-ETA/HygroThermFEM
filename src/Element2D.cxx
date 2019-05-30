@@ -7,6 +7,7 @@
 #include "MaterialPool.hxx"
 #include "QuadrilateralLocal2D.hxx"
 #include "VectorOperators.hxx"
+#include "SimulationProperties.hxx"
 
 namespace HygroThermFEM
 {
@@ -319,7 +320,7 @@ namespace HygroThermFEM
 
     double IElementLinear2D::angleBetweenNodes(const Node2D & node1,
                                                const Node2D & node2,
-                                               const Node2D & node3)
+                                               const Node2D & node3) const
     {
         auto angle = std::abs(std::atan2(node3.Y() - node1.Y(), node3.X() - node1.X())
                               - std::atan2(node2.Y() - node1.Y(), node2.X() - node1.X()));
@@ -424,9 +425,12 @@ namespace HygroThermFEM
         ///  Conversion from liquid to gas (vapor part)
         //////////////////////////////////////////////////////////////////////
         const auto delta = Constant(2.5E-5 / m_Material.diffusionResistanceFactor());
-        auto h = HeatOfEvaporation() * delta;
+        if (!SimulationProperties::Instance().excludeHeatOfEvaporation())
+        {            
+            auto h = HeatOfEvaporation() * delta;
 
-        multiplies(h, Variable::vapor);
+            multiplies(h, Variable::vapor);
+        }
 
         //////////////////////////////////////////////////////////////////////
         ///  Conversion from liquid to gas (air part)
@@ -438,21 +442,26 @@ namespace HygroThermFEM
         //////////////////////////////////////////////////////////////////////
         ///  Conduction from liquid
         //////////////////////////////////////////////////////////////////////
-        auto humidity = StateValue(Variable::humidity);
-        const TabularDerivativeSmooth sorptionDerivative(m_Material.sorptionCurve(),
-                                                         Variable::humidity);
-        const LiquidTransportationCurve Dl(m_Material.liquidTransportationCurve());
-        auto cd = Dl * sorptionDerivative * Constants::Cp_Water;
-        DpDu(cd, humidity);
+        if (!SimulationProperties::Instance().excludeCapillaryConduction())
+        {
+            auto humidity = StateValue(Variable::humidity);
+            const TabularDerivativeSmooth sorptionDerivative(m_Material.sorptionCurve(),
+                Variable::humidity);
+            const LiquidTransportationCurve Dl(m_Material.liquidTransportationCurve());
+            auto cd = Dl * sorptionDerivative * Constants::Cp_Water;
+            DpDu(cd, humidity);
+        }
 
         //////////////////////////////////////////////////////////////////////
         ///  Conduction from vapor
         //////////////////////////////////////////////////////////////////////
+        if (!SimulationProperties::Instance().excludeVaporDiffusionConduction())
+        {
+            auto vapCond = delta * Constants::Cp_Vapor;
+            StateValue vaporContent(Variable::vapor);
 
-        auto vapCond = delta * Constants::Cp_Vapor;
-        StateValue vaporContent(Variable::vapor);
-
-        DpDu(vapCond, vaporContent);
+            DpDu(vapCond, vaporContent);
+        }
 
         //////////////////////////////////////////////////////////////////////
         ///  Conduction from airflow
@@ -491,11 +500,14 @@ namespace HygroThermFEM
         //////////////////////////////////////////////////////////////////////////////
         /// Water liquid transportation
         //////////////////////////////////////////////////////////////////////////////
-        auto sorptionDerivative1 =
-          TabularDerivativeSmooth(m_Material.sorptionCurve(), Variable::humidity);
-        auto WaterLiquidTransport =
-          LiquidTransportationCurve(m_Material.liquidTransportationCurve()) * sorptionDerivative1;
-        DDu(WaterLiquidTransport);
+        if (!SimulationProperties::Instance().excludeWaterLiquidTransportation())
+        {
+            auto sorptionDerivative1 =
+                TabularDerivativeSmooth(m_Material.sorptionCurve(), Variable::humidity);
+            auto WaterLiquidTransport =
+                LiquidTransportationCurve(m_Material.liquidTransportationCurve()) * sorptionDerivative1;
+            DDu(WaterLiquidTransport);
+        }
 
         //////////////////////////////////////////////////////////////////////////////
         /// Creating capacitance function
