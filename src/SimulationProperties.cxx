@@ -9,9 +9,9 @@ namespace HygroThermFEM
     }
 
     SimulationProperties::SimulationProperties() :
-        m_RelaxationParameter(1.0),
-        m_ErrorTolerance(1e-5),
-        m_MaxNumberOfIterations(50)
+        m_RelaxationParameter(defaultProperties.relaxationParameter),
+        m_ErrorTolerance(defaultProperties.errorTolerance),
+        m_MaxNumberOfIterations(defaultProperties.maxIterations)
     {}
 
     void SimulationProperties::setIterationParameters(const double t_RelaxationParameter,

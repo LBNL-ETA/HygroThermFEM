@@ -21,6 +21,13 @@ namespace HygroThermFEM
         SimulationProperties();
         ~SimulationProperties() = default;
 
+        struct DefaultProperties
+        {
+            double relaxationParameter{1};
+            double errorTolerance{1e-5};
+            double maxIterations{50};
+        } defaultProperties;
+
         double m_RelaxationParameter;
         double m_ErrorTolerance;
         size_t m_MaxNumberOfIterations;
