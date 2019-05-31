@@ -77,7 +77,7 @@ namespace HygroThermFEM
         //! \brief Keeps default parameters in single place
         struct DefaultProperties
         {
-            double relaxationParameter{1};
+            double relaxationParameter{1.0};
             double errorTolerance{1e-5};
             size_t maxIterations{50};
             bool excludeWaterLiquidTransportation{false};
