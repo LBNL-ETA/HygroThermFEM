@@ -13,6 +13,8 @@ namespace HygroThermFEM
                  const std::vector<double> & liquidWaterContent,
                  const std::vector<double> & vaporContent,
                  const std::vector<double> & iceContent,
+                 const std::vector<NodeFlux> & heatFlux,
+                 const std::vector<NodeFlux> & waterFlux,
                  double temperatureError,
                  double humidityError);
 
@@ -23,6 +25,8 @@ namespace HygroThermFEM
         std::vector<double> liquidWaterContent;
         std::vector<double> vaporContent;
         std::vector<double> iceContent;
+        std::vector<NodeFlux> heatFlux;
+        std::vector<NodeFlux> waterFlux;
         double temperatureError;
         double humidityError;
     };
