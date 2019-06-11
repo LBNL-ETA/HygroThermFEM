@@ -5,6 +5,7 @@
 #include "MaterialPool.hxx"
 #include "VectorOperators.hxx"
 #include "Common.hxx"
+#include "SimulationProperties.hxx"
 
 namespace HygroThermFEM
 {
@@ -113,9 +114,10 @@ namespace HygroThermFEM
     {
         auto rightHandSide = m_ConvectiveCoeffCalc->convectiveCoefficients() * m_AirTemperature;
 
+        const auto excludeHeatOfEvaporation = SimulationProperties::Instance().excludeHeatOfEvaporation();
         // Moisture is dumping some energy into domain. However, it is possible that user
         // choose not to simulate moisture in which case energy should not be included in simulation
-        if(m_SimulateMoisture)
+        if(m_SimulateMoisture && !excludeHeatOfEvaporation)
         {
             // Vapor leaking part is added here
             std::vector<double> vaporLeak(numOfBCNodes, 0);

@@ -59,7 +59,7 @@ TEST_F(SteadyState_2D_ExcludeLiquidTransport_1, TestExample_1)
       2050,                       /// Density
       0.18,                       /// Porosity
       850,                        /// Specific Heat Capacity (dry)
-      15E-6,                      /// Diffusion Resistance Factor
+      15,                         /// Diffusion Resistance Factor
       {{0.0, 1.0}, {180, 1.0}},   /// Thermal Conductivity (as function of water content)
       {{0, 0},   /// Liquid Transportation Coefficient (as function of water content)
        {27, 1E-8},
@@ -108,7 +108,7 @@ TEST_F(SteadyState_2D_ExcludeLiquidTransport_1, TestExample_1)
     const auto temperature = solution.temperature;
     const auto humidity = solution.humidity;
 
-    std::vector<double> correctTemperature{0, 0, 12.933203, 12.933203, 20, 20};
+    std::vector<double> correctTemperature{0, 0, 9.999995, 9.999995, 20, 20};
 
     EXPECT_EQ(temperature.size(), correctTemperature.size());
 
@@ -117,7 +117,7 @@ TEST_F(SteadyState_2D_ExcludeLiquidTransport_1, TestExample_1)
         EXPECT_NEAR(temperature[i], correctTemperature[i], 1e-6);
     }
 
-    std::vector<double> correctHumidity{0.8, 0.8, 0.395997, 0.395997, 0, 0};
+    std::vector<double> correctHumidity{0.8, 0.8, 0.438979, 0.438979, 0, 0};
 
     EXPECT_EQ(humidity.size(), correctHumidity.size());
 

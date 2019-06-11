@@ -104,6 +104,9 @@ namespace HygroThermFEM
         const auto vaporContent = NodePool::Instance().properties(Variable::vapor);
         const auto iceContent = NodePool::Instance().properties(Variable::ice);
 
+        const auto heatFlux = m_ThermalDomain.flux();
+        const auto waterFlux = m_MoistureDomain.flux();
+
         return Solution{dTime,
                         currentTemperature,
                         currentHumidity,
@@ -111,6 +114,8 @@ namespace HygroThermFEM
                         liquidContent,
                         vaporContent,
                         iceContent,
+                        heatFlux,
+                        waterFlux,
                         temperatureError,
                         humidityError};
     }
@@ -164,15 +169,20 @@ namespace HygroThermFEM
         const auto vaporContent = NodePool::Instance().properties(Variable::vapor);
         const auto iceContent = NodePool::Instance().properties(Variable::ice);
 
-        return Solution{ 0,
-            temperature,
-            humidity,
-            waterContent,
-            liquidContent,
-            vaporContent,
-            iceContent,
-            temperatureError,
-            humidityError };
+        const auto heatFlux = m_ThermalDomain.flux();
+        const auto waterFlux = m_MoistureDomain.flux();
+
+        return Solution{0,
+                        temperature,
+                        humidity,
+                        waterContent,
+                        liquidContent,
+                        vaporContent,
+                        iceContent,
+                        heatFlux,
+                        waterFlux,
+                        temperatureError,
+                        humidityError};
     }
 
     void MultiDomain::createElement(const size_t index1,
@@ -247,10 +257,10 @@ namespace HygroThermFEM
     {
         auto norm1 = norm(vec1);
         auto norm2 = norm(vec2);
-        if (norm1 == 0)
+        if(norm1 == 0)
         {
             norm1 = 1e-10;
-            if (norm2 == 0)
+            if(norm2 == 0)
             {
                 norm2 = norm1;
             }
@@ -271,6 +281,8 @@ namespace HygroThermFEM
                        const std::vector<double> & liquidWaterContent,
                        const std::vector<double> & vaporContent,
                        const std::vector<double> & iceContent,
+                       const std::vector<NodeFlux> & heatFlux,
+                       const std::vector<NodeFlux> & waterFlux,
                        const double temperatureError,
                        const double humidityError) :
         dTime(dtime),
@@ -280,6 +292,8 @@ namespace HygroThermFEM
         liquidWaterContent(liquidWaterContent),
         vaporContent(vaporContent),
         iceContent(iceContent),
+        heatFlux(heatFlux),
+        waterFlux(waterFlux),
         temperatureError(temperatureError),
         humidityError(humidityError)
     {}
