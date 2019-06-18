@@ -164,6 +164,7 @@ namespace HygroThermFEM
                    NodePool::Instance().getNode(index4)},
         m_QLECapacitance2D{m_Global2D},
         m_DDuIntegrator{m_Global2D},
+        m_QLEDpDuIntegrator2D{m_Global2D},
         m_Linear{isLinear && m_Material.isLinear()}
     {
         /// Evaluating material influence in every node (This is important to know when
@@ -206,11 +207,10 @@ namespace HygroThermFEM
         /// variables changed as well.
         for(const auto & cond : m_DpDuFunctions)
         {
-            QLEDpDuIntegrator2D qleDpDuIntegrator2D{m_Global2D};
             const auto aDerivatives = cond.derivativeValue->values(m_Nodes);
-            qleDpDuIntegrator2D.setIndependentVariables(aDerivatives);
+            m_QLEDpDuIntegrator2D.setIndependentVariables(aDerivatives);
             const auto values = cond.fixedValue->values(m_Nodes);
-            result += qleDpDuIntegrator2D.integrate(values);
+            result += m_QLEDpDuIntegrator2D.integrate(values);
         }
 
         return result;
