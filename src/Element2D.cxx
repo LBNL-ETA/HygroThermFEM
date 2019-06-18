@@ -204,24 +204,13 @@ namespace HygroThermFEM
 
         /// Integration matrix must be created every time because independent
         /// variables changed as well.
-
-        auto count = 0u;
-        std::vector<QLEDpDuIntegrator2D> qleDpDuIntegrator2D;
         for(const auto & cond : m_DpDuFunctions)
         {
-            qleDpDuIntegrator2D.emplace_back(m_Global2D);
+            QLEDpDuIntegrator2D qleDpDuIntegrator2D{m_Global2D};
             const auto aDerivatives = cond.derivativeValue->values(m_Nodes);
-            qleDpDuIntegrator2D[count].setIndependentVariables(aDerivatives);
-            ++count;
-        }
-
-        /// Now rest of integration is performed as usual
-        count = 0u;
-        for(const auto & cond : m_DpDuFunctions)
-        {
+            qleDpDuIntegrator2D.setIndependentVariables(aDerivatives);
             const auto values = cond.fixedValue->values(m_Nodes);
-            result += qleDpDuIntegrator2D[count].integrate(values);
-            ++count;
+            result += qleDpDuIntegrator2D.integrate(values);
         }
 
         return result;
@@ -357,8 +346,7 @@ namespace HygroThermFEM
 
     IElementLinear2D::MatrixVector::MatrixVector(iValue && matrixFunction,
                                                  const Variable propertyVector) :
-        MatrixFunction(std::move(matrixFunction)),
-        PropertyVector(propertyVector)
+        MatrixFunction(std::move(matrixFunction)), PropertyVector(propertyVector)
     {}
 
     //////////////////////////////////////////////////////////////////////////////
@@ -367,8 +355,7 @@ namespace HygroThermFEM
 
     IElementLinear2D::DerivativeFunction::DerivativeFunction(iValue fixedValue,
                                                              iValue derivativeValue) :
-        fixedValue(std::move(fixedValue)),
-        derivativeValue(std::move(derivativeValue))
+        fixedValue(std::move(fixedValue)), derivativeValue(std::move(derivativeValue))
     {}
 
     //////////////////////////////////////////////////////////////////////////////
@@ -425,8 +412,8 @@ namespace HygroThermFEM
         ///  Conversion from liquid to gas (vapor part)
         //////////////////////////////////////////////////////////////////////
         const auto delta = Constant(2.5E-5 / m_Material.diffusionResistanceFactor());
-        if (!SimulationProperties::Instance().excludeHeatOfEvaporation())
-        {            
+        if(!SimulationProperties::Instance().excludeHeatOfEvaporation())
+        {
             auto h = HeatOfEvaporation() * delta;
 
             multiplies(h, Variable::vapor);
@@ -442,11 +429,11 @@ namespace HygroThermFEM
         //////////////////////////////////////////////////////////////////////
         ///  Conduction from liquid
         //////////////////////////////////////////////////////////////////////
-        if (!SimulationProperties::Instance().excludeCapillaryConduction())
+        if(!SimulationProperties::Instance().excludeCapillaryConduction())
         {
             auto humidity = StateValue(Variable::humidity);
             const TabularDerivativeSmooth sorptionDerivative(m_Material.sorptionCurve(),
-                Variable::humidity);
+                                                             Variable::humidity);
             const LiquidTransportationCurve Dl(m_Material.liquidTransportationCurve());
             auto cd = Constant(-1) * Dl * sorptionDerivative * Constants::Cp_Water;
             DpDu(cd, humidity);
@@ -455,7 +442,7 @@ namespace HygroThermFEM
         //////////////////////////////////////////////////////////////////////
         ///  Conduction from vapor
         //////////////////////////////////////////////////////////////////////
-        if (!SimulationProperties::Instance().excludeVaporDiffusionConduction())
+        if(!SimulationProperties::Instance().excludeVaporDiffusionConduction())
         {
             auto vapCond = Constant(-1) * delta * Constants::Cp_Vapor;
             StateValue vaporContent(Variable::vapor);
@@ -500,12 +487,13 @@ namespace HygroThermFEM
         //////////////////////////////////////////////////////////////////////////////
         /// Water liquid transportation
         //////////////////////////////////////////////////////////////////////////////
-        if (!SimulationProperties::Instance().excludeWaterLiquidTransportation())
+        if(!SimulationProperties::Instance().excludeWaterLiquidTransportation())
         {
             auto sorptionDerivative1 =
-                TabularDerivativeSmooth(m_Material.sorptionCurve(), Variable::humidity);
+              TabularDerivativeSmooth(m_Material.sorptionCurve(), Variable::humidity);
             auto WaterLiquidTransport =
-                LiquidTransportationCurve(m_Material.liquidTransportationCurve()) * sorptionDerivative1;
+              LiquidTransportationCurve(m_Material.liquidTransportationCurve())
+              * sorptionDerivative1;
             DDu(WaterLiquidTransport);
         }
 
