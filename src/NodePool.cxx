@@ -2,6 +2,7 @@
 #include <algorithm>
 
 #include "NodePool.hxx"
+#include <execution>
 
 namespace HygroThermFEM
 {
@@ -49,12 +50,13 @@ namespace HygroThermFEM
                                     const BaseVariable t_property,
                                     bool updatePreviousTimestep)
     {
-        // TODO: Parallelize this
         assert(m_Nodes.size() == t_values.size());
-        for(std::size_t i = 0; i < t_values.size(); ++i)
-        {
-            m_Nodes[i].setStateProperty(t_property, t_values[i], updatePreviousTimestep);
-        }
+
+        std::for_each(
+          std::execution::par_unseq, std::begin(m_Nodes), std::end(m_Nodes), [&](auto && aNode) {
+              const auto nodeNumber = aNode.getNodeNumber() - 1;
+              aNode.setStateProperty(t_property, t_values[nodeNumber], updatePreviousTimestep);
+          });
     }
 
     void NodePool::clear()
