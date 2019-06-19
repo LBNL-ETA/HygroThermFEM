@@ -8,10 +8,7 @@ namespace HygroThermFEM
 {
     SquareMatrix ElementsLinear2D::conductanceMatrix()
     {
-        const auto numOfNodes{NodePool::Instance().maxIndex()};
-        std::vector<std::vector<double>> result{numOfNodes, std::vector<double>(numOfNodes, 0)};
-        // SquareMatrix result{NodePool::Instance().maxIndex()};
-        // now integrate element matrices into global matrix
+        SquareMatrix result{NodePool::Instance().maxIndex()};
 
         std::mutex mtx;
 
@@ -29,13 +26,13 @@ namespace HygroThermFEM
                           {
                               for(size_t j = 0; j < numOfQuadrilateralNodes; ++j)
                               {
-                                  result[indexes[i] - 1][indexes[j] - 1] +=
+                                  result(indexes[i] - 1, indexes[j] - 1) +=
                                     conductance(i, j) + condDer(i, j);
                               }
                           }
                           mtx.unlock();
                       });
-        return SquareMatrix{result};
+        return result;
     }
 
     std::vector<double> ElementsLinear2D::getLumpedMass(const double DTime)
@@ -83,25 +80,25 @@ namespace HygroThermFEM
 
     SquareMatrix ElementsLinear2D::getMassMatrix(const double DTime)
     {
-        const auto numOfNodes{NodePool::Instance().maxIndex()};
-        std::vector<std::vector<double>> Capacitance{numOfNodes,
-                                                     std::vector<double>(numOfNodes, 0)};
-        // SquareMatrix Capacitance{NodePool::Instance().maxIndex()};
+        SquareMatrix Capacitance{NodePool::Instance().maxIndex()};
 
+        std::mutex mtx;
         std::for_each(std::execution::par_unseq,
                       std::begin(m_Elements),
                       std::end(m_Elements),
                       [&](auto && aElement) {
                           auto indexes = aElement->nodeIndexes();
                           auto capacitance = aElement->capacitanceMatrices();
+                          mtx.lock();
                           for(size_t i = 0; i < numOfQuadrilateralNodes; ++i)
                           {
                               for(size_t j = 0; j < numOfQuadrilateralNodes; ++j)
                               {
-                                  Capacitance[indexes[i] - 1][indexes[j] - 1] +=
+                                  Capacitance(indexes[i] - 1, indexes[j] - 1) +=
                                     capacitance(i, j) / DTime;
                               }
                           }
+                          mtx.unlock();
                       });
 
         return SquareMatrix{Capacitance};
@@ -157,15 +154,23 @@ namespace HygroThermFEM
     std::vector<double> ElementsLinear2D::RVector() const
     {
         std::vector<double> result(NodePool::Instance().maxIndex(), 0);
-        for(const auto & element : m_Elements)
-        {
-            const auto indexes = element->nodeIndexes();
-            const auto vecR = element->rightSideVector();
-            for(size_t i = 0; i < numOfQuadrilateralNodes; ++i)
-            {
-                result[indexes[i] - 1] += vecR[i];
-            }
-        }
+
+        std::mutex mtx;
+
+        std::for_each(std::execution::par_unseq,
+                      std::begin(m_Elements),
+                      std::end(m_Elements),
+                      [&](auto && aElement) {
+                          const auto indexes = aElement->nodeIndexes();
+                          const auto vecR = aElement->rightSideVector();
+                          mtx.lock();
+                          for(size_t i = 0; i < numOfQuadrilateralNodes; ++i)
+                          {
+                              result[indexes[i] - 1] += vecR[i];
+                          }
+                          mtx.unlock();
+                      });
+
         return result;
     }
 
