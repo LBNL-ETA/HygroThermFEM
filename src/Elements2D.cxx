@@ -122,15 +122,22 @@ namespace HygroThermFEM
                                             const BaseVariable property,
                                             bool updatePreviousValue)
     {
-        for(auto & aElement : m_Elements)
-        {
-            for(auto i = 0u; i < numOfQuadrilateralNodes; ++i)
-            {
-                auto & node = aElement->getNode(i);
-                const auto index = node.getNodeNumber();
-                node.setStateProperty(property, values[index - 1], updatePreviousValue);
-            }
-        }
+        //std::mutex mtx;
+
+        std::for_each(//std::execution::par_unseq,
+                      std::begin(m_Elements),
+                      std::end(m_Elements),
+                      [&](auto && aElement) {
+                          for(auto i = 0u; i < numOfQuadrilateralNodes; ++i)
+                          {
+                              auto & node = aElement->getNode(i);
+                              const auto index = node.getNodeNumber();
+                              //mtx.lock();
+                              node.setStateProperty(
+                                property, values[index - 1], updatePreviousValue);
+                              //mtx.unlock();
+                          }
+                      });
     }
 
     IElementLinear2D * ElementsLinear2D::findElement(const size_t index1, const size_t index2)
@@ -181,16 +188,21 @@ namespace HygroThermFEM
         std::vector<std::vector<NodeFlux>> fluxes(NodePool::Instance().maxIndex(),
                                                   std::vector<NodeFlux>());
 
-        // First pickup all fluxes from elements
-        for(const auto & element : m_Elements)
-        {
-            const auto indexes = element->nodeIndexes();
-            const auto flux = element->flux();
-            for(size_t i = 0; i < numOfQuadrilateralNodes; ++i)
-            {
-                fluxes[indexes[i] - 1].push_back(flux[i]);
-            }
-        }
+        std::mutex mtx;
+
+        std::for_each(std::execution::par_unseq,
+                      std::begin(m_Elements),
+                      std::end(m_Elements),
+                      [&](auto && aElement) {
+                          const auto indexes = aElement->nodeIndexes();
+                          const auto flux = aElement->flux();
+                          mtx.lock();
+                          for(size_t i = 0; i < numOfQuadrilateralNodes; ++i)
+                          {
+                              fluxes[indexes[i] - 1].push_back(flux[i]);
+                          }
+                          mtx.unlock();
+                      });
 
         // Now need to average them
         for(size_t j = 0; j < fluxes.size(); ++j)
