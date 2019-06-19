@@ -451,8 +451,6 @@ namespace HygroThermFEM
 
         QuadrilateralLinearGlobal2D m_Global2D;
         QLECapacitanceIntegrator2D m_QLECapacitance2D;
-        QLEDDuIntegrator2D m_DDuIntegrator;
-        QLEDpDuIntegrator2D m_QLEDpDuIntegrator2D;
 
         const bool m_Linear;
     };

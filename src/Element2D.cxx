@@ -163,8 +163,6 @@ namespace HygroThermFEM
                    NodePool::Instance().getNode(index3),
                    NodePool::Instance().getNode(index4)},
         m_QLECapacitance2D{m_Global2D},
-        m_DDuIntegrator{m_Global2D},
-        m_QLEDpDuIntegrator2D{m_Global2D},
         m_Linear{isLinear && m_Material.isLinear()}
     {
         /// Evaluating material influence in every node (This is important to know when
@@ -190,10 +188,12 @@ namespace HygroThermFEM
     SquareMatrix IElementLinear2D::DDuMatrices() const
     {
         SquareMatrix result{numOfQuadrilateralNodes};
+
+        const QLEDDuIntegrator2D DDuIntegrator{m_Global2D};
         for(const auto & cond : m_DDuFunctions)
         {
             const auto values = cond->values(m_Nodes);
-            result += m_DDuIntegrator.integrate(values);
+            result += DDuIntegrator.integrate(values);
         }
 
         return result;
@@ -205,12 +205,14 @@ namespace HygroThermFEM
 
         /// Integration matrix must be created every time because independent
         /// variables changed as well.
+
+        QLEDpDuIntegrator2D qleDpDuIntegrator2D{m_Global2D};
         for(const auto & cond : m_DpDuFunctions)
         {
             const auto aDerivatives = cond.derivativeValue->values(m_Nodes);
-            m_QLEDpDuIntegrator2D.setIndependentVariables(aDerivatives);
+            qleDpDuIntegrator2D.setIndependentVariables(aDerivatives);
             const auto values = cond.fixedValue->values(m_Nodes);
-            result += m_QLEDpDuIntegrator2D.integrate(values);
+            result += qleDpDuIntegrator2D.integrate(values);
         }
 
         return result;
@@ -329,13 +331,15 @@ namespace HygroThermFEM
     {
         std::vector<double> result(numOfQuadrilateralNodes, 0);
 
+        const QLEDDuIntegrator2D DDuIntegrator{m_Global2D};
+
         /// SquareMatrix M{numOfQuadrilateralNodes};
         for(const auto & item : m_Matrix_x_Vector)
         {
             /// Calculate functions base on node properties
             const auto values = item.MatrixFunction->values(m_Nodes);
             /// And then integrate them
-            auto M = m_DDuIntegrator.integrate(values);
+            auto M = DDuIntegrator.integrate(values);
             auto B = m_Nodes.properties(item.PropertyVector);
 
             result = result + M * B;

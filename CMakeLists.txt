@@ -9,6 +9,8 @@ set(CMAKE_PROJECT_VERSION_PATCH "0")
 
 project(${target_name} CXX)
 
+set(CMAKE_CXX_STANDARD 17)
+
 option(BUILD_FOR_PROFILING OFF)
 
 if(BUILD_FOR_PROFILING)
@@ -47,8 +49,6 @@ file(GLOB SOURCES_CXX "src/*.cxx")
 file(GLOB SOURCES_HXX "src/*.hxx")
 file(GLOB INCLUDE_HXX "include/*.hxx")
 list(APPEND SOURCES ${SOURCES_HXX} ${INCLUDE_HXX} ${SOURCES_CXX})
-
-set(CMAKE_CXX_STANDARD 11)
 
 if (MSVC)
     add_definitions("/wd4996")

@@ -1,4 +1,5 @@
 #include <numeric>
+#include <execution>
 
 #include "Elements2D.hxx"
 #include "NodePool.hxx"
@@ -7,24 +8,34 @@ namespace HygroThermFEM
 {
     SquareMatrix ElementsLinear2D::conductanceMatrix()
     {
-        SquareMatrix result{NodePool::Instance().maxIndex()};
+        const auto numOfNodes{NodePool::Instance().maxIndex()};
+        std::vector<std::vector<double>> result{numOfNodes, std::vector<double>(numOfNodes, 0)};
+        // SquareMatrix result{NodePool::Instance().maxIndex()};
         // now integrate element matrices into global matrix
-        for(auto & aElement : m_Elements)
-        {
-            auto indexes = aElement->nodeIndexes();
-            auto conductance = aElement->DDuMatrices();
-            //auto testConductance = conductance.toVector();
-            auto condDer = aElement->DpDuMatrices();
-            //auto testCondDer = condDer.toVector();
-            for(size_t i = 0; i < numOfQuadrilateralNodes; ++i)
-            {
-                for(size_t j = 0; j < numOfQuadrilateralNodes; ++j)
-                {
-                    result(indexes[i] - 1, indexes[j] - 1) += (conductance(i, j) + condDer(i, j));
-                }
-            }
-        }
-        return result;
+
+        std::mutex mtx;
+
+        std::for_each(std::execution::par_unseq,
+                      std::begin(m_Elements),
+                      std::end(m_Elements),
+                      [&](auto && aElement) {
+                          auto indexes = aElement->nodeIndexes();
+                          auto conductance = aElement->DDuMatrices();
+                          // auto testConductance = conductance.toVector();
+                          auto condDer = aElement->DpDuMatrices();
+                          // auto testCondDer = condDer.toVector();
+                          mtx.lock();
+                          for(size_t i = 0; i < numOfQuadrilateralNodes; ++i)
+                          {
+                              for(size_t j = 0; j < numOfQuadrilateralNodes; ++j)
+                              {
+                                  result[indexes[i] - 1][indexes[j] - 1] +=
+                                    conductance(i, j) + condDer(i, j);
+                              }
+                          }
+                          mtx.unlock();
+                      });
+        return SquareMatrix{result};
     }
 
     std::vector<double> ElementsLinear2D::getLumpedMass(const double DTime)
@@ -37,7 +48,7 @@ namespace HygroThermFEM
         {
             auto indexes = aElement->nodeIndexes();
             auto capacitance = aElement->capacitanceMatrices();
-            //auto capTest = capacitance.toVector();
+            // auto capTest = capacitance.toVector();
             for(size_t i = 0; i < numOfQuadrilateralNodes; ++i)
             {
                 for(size_t j = 0; j < numOfQuadrilateralNodes; ++j)
