@@ -83,23 +83,28 @@ namespace HygroThermFEM
 
     SquareMatrix ElementsLinear2D::getMassMatrix(const double DTime)
     {
-        SquareMatrix Capacitance{NodePool::Instance().maxIndex()};
+        const auto numOfNodes{NodePool::Instance().maxIndex()};
+        std::vector<std::vector<double>> Capacitance{numOfNodes,
+                                                     std::vector<double>(numOfNodes, 0)};
+        // SquareMatrix Capacitance{NodePool::Instance().maxIndex()};
 
-        // now integrate element matrices into global matrix
-        for(auto & aElement : m_Elements)
-        {
-            auto indexes = aElement->nodeIndexes();
-            auto capacitance = aElement->capacitanceMatrices();
-            for(size_t i = 0; i < numOfQuadrilateralNodes; ++i)
-            {
-                for(size_t j = 0; j < numOfQuadrilateralNodes; ++j)
-                {
-                    Capacitance(indexes[i] - 1, indexes[j] - 1) += capacitance(i, j) / DTime;
-                }
-            }
-        }
+        std::for_each(std::execution::par_unseq,
+                      std::begin(m_Elements),
+                      std::end(m_Elements),
+                      [&](auto && aElement) {
+                          auto indexes = aElement->nodeIndexes();
+                          auto capacitance = aElement->capacitanceMatrices();
+                          for(size_t i = 0; i < numOfQuadrilateralNodes; ++i)
+                          {
+                              for(size_t j = 0; j < numOfQuadrilateralNodes; ++j)
+                              {
+                                  Capacitance[indexes[i] - 1][indexes[j] - 1] +=
+                                    capacitance(i, j) / DTime;
+                              }
+                          }
+                      });
 
-        return Capacitance;
+        return SquareMatrix{Capacitance};
     }
 
     bool ElementsLinear2D::isLinear() const
