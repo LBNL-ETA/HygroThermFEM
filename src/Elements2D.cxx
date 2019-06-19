@@ -118,13 +118,6 @@ namespace HygroThermFEM
         return isLinear;
     }
 
-    void ElementsLinear2D::updateNodeValues(const std::vector<double> & values,
-                                            const BaseVariable property,
-                                            bool updatePreviousTimestep)
-    {
-        NodePool::Instance().updateNodeValues(values, property, updatePreviousTimestep);
-    }
-
     IElementLinear2D * ElementsLinear2D::findElement(const size_t index1, const size_t index2)
     {
         IElementLinear2D * el = nullptr;
