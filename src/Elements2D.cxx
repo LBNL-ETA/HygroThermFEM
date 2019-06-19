@@ -40,23 +40,29 @@ namespace HygroThermFEM
 
     std::vector<double> ElementsLinear2D::getLumpedMass(const double DTime)
     {
-        std::vector<std::vector<double>> Capacitance(
-          NodePool::Instance().maxIndex(), std::vector<double>(NodePool::Instance().maxIndex(), 0));
+        const auto numOfNodes{NodePool::Instance().maxIndex()};
+        std::vector<std::vector<double>> Capacitance(numOfNodes,
+                                                     std::vector<double>(numOfNodes, 0));
 
-        // now integrate element matrices into global matrix
-        for(auto & aElement : m_Elements)
-        {
-            auto indexes = aElement->nodeIndexes();
-            auto capacitance = aElement->capacitanceMatrices();
-            // auto capTest = capacitance.toVector();
-            for(size_t i = 0; i < numOfQuadrilateralNodes; ++i)
-            {
-                for(size_t j = 0; j < numOfQuadrilateralNodes; ++j)
-                {
-                    Capacitance[indexes[i] - 1][indexes[j] - 1] += capacitance(i, j);
-                }
-            }
-        }
+        std::mutex mtx;
+
+        std::for_each(std::execution::par_unseq,
+                      std::begin(m_Elements),
+                      std::end(m_Elements),
+                      [&](auto && aElement) {
+                          auto indexes = aElement->nodeIndexes();
+                          auto capacitance = aElement->capacitanceMatrices();
+                          // auto capTest = capacitance.toVector();
+                          mtx.lock();
+                          for(size_t i = 0; i < numOfQuadrilateralNodes; ++i)
+                          {
+                              for(size_t j = 0; j < numOfQuadrilateralNodes; ++j)
+                              {
+                                  Capacitance[indexes[i] - 1][indexes[j] - 1] += capacitance(i, j);
+                              }
+                          }
+                          mtx.unlock();
+                      });
 
         const auto size = Capacitance.size();
 
