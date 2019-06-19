@@ -120,24 +120,9 @@ namespace HygroThermFEM
 
     void ElementsLinear2D::updateNodeValues(const std::vector<double> & values,
                                             const BaseVariable property,
-                                            bool updatePreviousValue)
+                                            bool updatePreviousTimestep)
     {
-        //std::mutex mtx;
-
-        std::for_each(//std::execution::par_unseq,
-                      std::begin(m_Elements),
-                      std::end(m_Elements),
-                      [&](auto && aElement) {
-                          for(auto i = 0u; i < numOfQuadrilateralNodes; ++i)
-                          {
-                              auto & node = aElement->getNode(i);
-                              const auto index = node.getNodeNumber();
-                              //mtx.lock();
-                              node.setStateProperty(
-                                property, values[index - 1], updatePreviousValue);
-                              //mtx.unlock();
-                          }
-                      });
+        NodePool::Instance().updateNodeValues(values, property, updatePreviousTimestep);
     }
 
     IElementLinear2D * ElementsLinear2D::findElement(const size_t index1, const size_t index2)

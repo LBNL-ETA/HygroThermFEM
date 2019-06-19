@@ -96,8 +96,8 @@ namespace HygroThermFEM
         m_MoistureDomain.updateNodeValues(currentTemperature, BaseVariable::temperature, true);
         m_MoistureDomain.updateNodeValues(currentHumidity, BaseVariable::humidity, true);
 
-        NodePool::Instance().updateNodeValues(currentHumidity, BaseVariable::humidity);
-        NodePool::Instance().updateNodeValues(currentTemperature, BaseVariable::temperature);
+        NodePool::Instance().updateNodeValues(currentHumidity, BaseVariable::humidity, true);
+        NodePool::Instance().updateNodeValues(currentTemperature, BaseVariable::temperature, true);
 
         const auto waterContent = NodePool::Instance().properties(Variable::water);
         const auto liquidContent = NodePool::Instance().properties(Variable::liquid);
@@ -161,8 +161,8 @@ namespace HygroThermFEM
         } while(temperatureError > ConvergenceError || humidityError > ConvergenceError
                 || currentIteration > MaxIterations);
 
-        NodePool::Instance().updateNodeValues(humidity, BaseVariable::humidity);
-        NodePool::Instance().updateNodeValues(temperature, BaseVariable::temperature);
+        NodePool::Instance().updateNodeValues(humidity, BaseVariable::humidity, true);
+        NodePool::Instance().updateNodeValues(temperature, BaseVariable::temperature, true);
 
         const auto waterContent = NodePool::Instance().properties(Variable::water);
         const auto liquidContent = NodePool::Instance().properties(Variable::liquid);

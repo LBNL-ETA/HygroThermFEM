@@ -40,17 +40,20 @@ namespace HygroThermFEM
         std::vector<double> aVector;
         for(Node2D & aNode : m_Nodes)
         {
-            aVector.push_back( aNode.property( t_Property ));
+            aVector.push_back(aNode.property(t_Property));
         }
         return aVector;
     }
 
-    void NodePool::updateNodeValues(const std::vector<double> & t_values, const BaseVariable t_property)
+    void NodePool::updateNodeValues(const std::vector<double> & t_values,
+                                    const BaseVariable t_property,
+                                    bool updatePreviousTimestep)
     {
+        // TODO: Parallelize this
         assert(m_Nodes.size() == t_values.size());
         for(std::size_t i = 0; i < t_values.size(); ++i)
         {
-			m_Nodes[ i ].setStateProperty( t_property, t_values[ i ] );
+            m_Nodes[i].setStateProperty(t_property, t_values[i], updatePreviousTimestep);
         }
     }
 
