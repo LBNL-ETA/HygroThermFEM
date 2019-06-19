@@ -114,7 +114,8 @@ namespace HygroThermFEM
     {
         auto rightHandSide = m_ConvectiveCoeffCalc->convectiveCoefficients() * m_AirTemperature;
 
-        const auto excludeHeatOfEvaporation = SimulationProperties::Instance().excludeHeatOfEvaporation();
+        const auto excludeHeatOfEvaporation =
+          SimulationProperties::Instance().excludeHeatOfEvaporation();
         // Moisture is dumping some energy into domain. However, it is possible that user
         // choose not to simulate moisture in which case energy should not be included in simulation
         if(m_SimulateMoisture && !excludeHeatOfEvaporation)
@@ -215,10 +216,9 @@ namespace HygroThermFEM
     std::vector<double> FluxBC::R_Vector() const
     {
         std::vector<double> result(m_PsiVector.size(), 0);
-        std::transform(m_PsiVector.begin(),
-                       m_PsiVector.end(),
-                       result.begin(),
-                       std::bind1st(std::multiplies<double>(), m_Flux));
+        std::transform(m_PsiVector.begin(), m_PsiVector.end(), result.begin(), [&](auto && data) {
+            return data * m_Flux;
+        });
         return result;
     }
 

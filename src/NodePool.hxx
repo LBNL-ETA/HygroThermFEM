@@ -36,10 +36,14 @@ namespace HygroThermFEM
           );
 
         //! Update all node values for given state property.
-        void updateNodeValues(
-          const std::vector<double> & t_values,   //!< Vector of new values for given BaseVariable.
-          BaseVariable t_property   //!< BaseVariable for which new values will be applied to.
-        );
+        //!
+        //! @param t_values Vector of new values for given BaseVariable property.
+        //! @param t_property Property for which new values will be applied to
+        //! @param updatePreviousTimestep Indicates if old value should be stored as previous
+        //! timestep value.
+        void updateNodeValues(const std::vector<double> & t_values,
+                              BaseVariable t_property,
+                              bool updatePreviousTimestep = false);
 
         //! Delete all nodes from NodePool.
         void clear();

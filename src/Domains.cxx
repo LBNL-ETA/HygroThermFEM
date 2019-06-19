@@ -8,6 +8,7 @@
 #include "BoundaryCondition2D.hxx"
 #include "VectorOperators.hxx"
 #include "SimulationProperties.hxx"
+#include "NodePool.hxx"
 
 namespace HygroThermFEM
 {
@@ -51,7 +52,7 @@ namespace HygroThermFEM
     {
         const auto B = steadyStateRightHandSide();
         const auto A = steadyStateLeftHandSide();
-        //const auto test = A.toVector();
+        // const auto test = A.toVector();
         return CLinearSolver::solveEigen(A, B);
     }
 
@@ -140,8 +141,7 @@ namespace HygroThermFEM
 
                 ++numOfIterations;
 
-                m_BCs.updateNodeValues(solution, m_Property, m_AutomaticUpdatePreviousTimestep);
-                m_Elements.updateNodeValues(
+                NodePool::Instance().updateNodeValues(
                   solution, m_Property, m_AutomaticUpdatePreviousTimestep);
 
                 A = transientM_K_H_Matrix(t_DTime);
@@ -154,7 +154,8 @@ namespace HygroThermFEM
             }
         }
 
-        m_Elements.updateNodeValues(solution, m_Property, m_AutomaticUpdatePreviousTimestep);
+        NodePool::Instance().updateNodeValues(
+          solution, m_Property, m_AutomaticUpdatePreviousTimestep);
 
         return std::make_pair(solution, converged);
     }
@@ -162,14 +163,6 @@ namespace HygroThermFEM
     bool IDomain::isLinear() const
     {
         return m_BCs.isLinear() && m_Elements.isLinear();
-    }
-
-    void IDomain::updateNodeValues(const std::vector<double> & values,
-                                   const BaseVariable property,
-                                   bool updatePreviousValues)
-    {
-        m_BCs.updateNodeValues(values, property, updatePreviousValues);
-        m_Elements.updateNodeValues(values, property, updatePreviousValues);
     }
 
     IDomain::IDomain(const BaseVariable property, bool automaticUpdateOfPreviousTimestep) :
@@ -269,7 +262,7 @@ namespace HygroThermFEM
             {
                 val = Constants::ABSOLUTEZERO + 1e-6;
             }
-            if (val > 1000)
+            if(val > 1000)
             {
                 val = 1000;
             }

@@ -89,7 +89,7 @@ namespace HygroThermFEM
     {
         std::vector<T> result(first.size(), 0);
         std::transform(
-          first.begin(), first.end(), result.begin(), std::bind1st(std::multiplies<T>(), second));
+          first.begin(), first.end(), result.begin(), [&](auto && data) { return data * second; });
 
         return result;
     }

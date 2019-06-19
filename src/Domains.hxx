@@ -60,11 +60,6 @@ namespace HygroThermFEM
     protected:
         friend class MultiDomain;
 
-        //! Helper class that will update property at nodes from new timestep values.
-        void updateNodeValues(const std::vector<double> & values,
-                              BaseVariable property,
-                              bool updatePreviousValues = true);
-
         //! Forms left hand side matrix in steady state solution.
         SquareMatrix steadyStateLeftHandSide();
 
