@@ -51,35 +51,6 @@ namespace HygroThermFEM
         return m_Linear;
     }
 
-    /// SquareMatrix< double > BoundaryConditions2D::DHMatrix()
-    /// const { 	SquareMatrix< double > HDMatrix{
-    /// NodePool::Instance().maxIndex() }; 	for ( const auto & aBc : m_BCs ) { const auto & bc =
-    /// aBc.get(); 		auto indexes = bc.getNodeIndexes(); 		auto matDH =
-    /// bc.D_HMatrix(); 		for ( size_t i = 0; i < numOfBCNodes; ++i ) {
-    /// for ( size_t j
-    /// = 0; j < numOfBCNodes; ++j ) { 				HDMatrix[ indexes[ i ] - 1 ][
-    /// indexes[ j ] - 1 ] += matDH[ i ][ j ];
-    /// 			}
-    /// 		}
-    /// 	}
-    /// 	return HDMatrix;
-    /// }
-
-    void BoundaryConditions2D::updateNodeValues(const std::vector<double> & values,
-                                                const BaseVariable property,
-                                                bool updatePreviousValue)
-    {
-        for(auto & aBc : m_BCs)
-        {
-            for(auto i = 0u; i < numOfBCNodes; ++i)
-            {
-                auto & node = aBc->getNode(i);
-                const auto index = node.getNodeNumber();
-                node.setStateProperty(property, values[index - 1], updatePreviousValue);
-            }
-        }
-    }
-
     BoundaryConditions2D::BoundaryConditions2D() : m_Linear(true)
     {}
 

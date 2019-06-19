@@ -37,18 +37,6 @@ namespace HygroThermFEM
         //! Flag that shows if domain can be solved as linear.
         bool isLinear() const;
 
-        //! Update values at nodes for given property
-        //!
-        //! \param values New values that nodes will be updated with.
-        //! \param property Property that given values are referring to.
-        //! \param updatePreviousValue Indicates whether or not previous timestep values should be
-        //! updated. When updating node values in iterations this should be set to false since new
-        //! values refer only to new values in current iteration, while when updating final values,
-        //! this should be set to true in order to update previous timestep values.
-        void updateNodeValues(const std::vector<double> & values,
-                              BaseVariable property,
-                              bool updatePreviousValue = true);
-
         //! \brief Returns the element with given nodes. Note that one two elements can contain same
         //! edge, however, that edge will have have nodes in different order and becuase of that
         //! node order passed to this function is important.
