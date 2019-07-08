@@ -5,6 +5,7 @@
 #include "Elements2D.hxx"
 #include "BoundaryConditions2D.hxx"
 #include "FrameCavities.hxx"
+#include "BoundaryConditionCoefficients.hxx"
 
 namespace HygroThermFEM
 {
@@ -108,9 +109,7 @@ namespace HygroThermFEM
         //! Creation of convection boundary condition
         void createConvectionBCFixedHc(size_t index1,
                                        size_t index2,
-                                       double t_AirTemperature,
-                                       double t_ConvectionCoefficient,
-                                       double t_AirHumidity = 0,
+                                       const FixedBCHCCoefficients & fixedBCHCCoefficients,
                                        bool t_CalculateMoisture = true);
 
         //! Creation of convection boundary condition
@@ -182,9 +181,7 @@ namespace HygroThermFEM
         //! Creates moisture boundary condition with fixed film coefficient
         void createMoistureBCFixedHc(size_t index1,
                                      size_t index2,
-                                     double t_AirTemperature,
-                                     double t_ConvectiveFilmCoefficient,
-                                     double t_AirHumidity);
+                                     const FixedBCHCCoefficients & fixedBchcCoefficients);
 
         //! Creates and adds element into domain.
         virtual void createElement(size_t index1,                     //!< Node 1 index

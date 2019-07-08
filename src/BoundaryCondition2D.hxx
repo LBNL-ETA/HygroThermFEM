@@ -2,6 +2,7 @@
 
 #include "IBCLine2D.hxx"
 #include "Material.hxx"
+#include "BoundaryConditionCoefficients.hxx"
 
 namespace HygroThermFEM
 {
@@ -113,9 +114,7 @@ namespace HygroThermFEM
     public:
         ConstantConvectionBC(size_t index1,
                              size_t index2,
-                             double t_AirTemperature,
-                             double t_ConvectionCoefficient,
-                             double t_AirHumidity = 0,
+                             const FixedBCHCCoefficients & fixedBCHCCoefficients,
                              bool t_CalculateMoisture = true);
     };
 
@@ -297,9 +296,7 @@ namespace HygroThermFEM
         MoistureBCFixedHc(size_t index1,
                           size_t index2,
                           const std::string & materialName,
-                          double t_AirHumidity,
-                          double t_AirTemperature,
-                          double m_ConvectiveCoefficient);
+                          const FixedBCHCCoefficients & fixedBchcCoefficients);
 
     private:
         const double m_ConvectiveCoefficient;

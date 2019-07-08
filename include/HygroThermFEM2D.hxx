@@ -26,3 +26,4 @@
 #include "../src/Common.hxx"
 #include "../src/FrameCavities.hxx"
 #include "../src/SimulationProperties.hxx"
+#include "../src/BoundaryConditionCoefficients.hxx"

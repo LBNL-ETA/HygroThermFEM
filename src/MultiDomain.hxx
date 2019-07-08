@@ -54,9 +54,7 @@ namespace HygroThermFEM
 
         void createMoistureBCFixedHc(size_t index1,
                                      size_t index2,
-                                     double t_AirTemperature,
-                                     double t_ConvectionCoefficient,
-                                     double t_Humidity);
+                                     const FixedBCHCCoefficients & fixedBchcCoefficients);
 
         void createMoistureBCVariableHc(size_t index1,
                                         size_t index2,

@@ -66,11 +66,15 @@ TEST_F(ConvectionBC_2D_Transient, TestExample_1)
     const auto hc1 = 2.4;
     const auto temperatureAir1 = 20.0;
 
+    const HygroThermFEM::FixedBCHCCoefficients bcCoeff1{temperatureAir1, hc1};
+
     const auto hc2 = 15.0;
     const auto temperatureAir2 = -18.0;
 
-    domain.createConvectionBCFixedHc(1, 2, temperatureAir1, hc1);
-    domain.createConvectionBCFixedHc(6, 5, temperatureAir2, hc2);
+    const HygroThermFEM::FixedBCHCCoefficients bcCoeff2{temperatureAir2, hc2};
+
+    domain.createConvectionBCFixedHc(1, 2, bcCoeff1);
+    domain.createConvectionBCFixedHc(6, 5, bcCoeff2);
 
     const auto dTime = 3600;
     const auto nSteps = 4;

@@ -80,12 +80,13 @@ TEST_F(MultiDomain_HighHumidity, TestExample_1)
     }
 
     // Create Boundary Conditions
-    const auto convectiveCoefficient = 10;
-    const auto ambientTemperature = 20;
-    const auto ambientHumidity = 1.0;
+    const auto hc = 10.0;
+    const auto airTemperature = 20.0;
+    const auto airHumidity = 1.0;
 
-    domain.createMoistureBCFixedHc(
-      5, 6, ambientTemperature, convectiveCoefficient, ambientHumidity);
+    const HygroThermFEM::FixedBCHCCoefficients bcCoeff{airTemperature, hc, airHumidity};
+
+    domain.createMoistureBCFixedHc(5, 6, bcCoeff);
 
     const auto dTime = 3600;
     const auto nSteps = 2;

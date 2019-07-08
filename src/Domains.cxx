@@ -180,19 +180,14 @@ namespace HygroThermFEM
         // some functionality if necessary.
     }
 
-    void ThermalDomain::createConvectionBCFixedHc(const size_t index1,
-                                                  const size_t index2,
-                                                  const double t_AirTemperature,
-                                                  const double t_ConvectionCoefficient,
-                                                  const double t_AirHumidity,
-                                                  const bool t_CalculateMoisture)
+    void
+      ThermalDomain::createConvectionBCFixedHc(const size_t index1,
+                                               const size_t index2,
+                                               const FixedBCHCCoefficients & fixedBCHCCoefficients,
+                                               const bool t_CalculateMoisture)
     {
-        m_BCs.assignBC(fem::make_unique<ConstantConvectionBC>(index1,
-                                                              index2,
-                                                              t_AirTemperature,
-                                                              t_ConvectionCoefficient,
-                                                              t_AirHumidity,
-                                                              t_CalculateMoisture));
+        m_BCs.assignBC(fem::make_unique<ConstantConvectionBC>(
+          index1, index2, fixedBCHCCoefficients, t_CalculateMoisture));
     }
 
     void ThermalDomain::createConvectionBCVariableHc(const size_t index1,
@@ -300,21 +295,13 @@ namespace HygroThermFEM
           index1, index2, Material.name(), t_AirHumidity, t_AirTemperature));
     }
 
-    void MoistureDomain::createMoistureBCFixedHc(const size_t index1,
-                                                 const size_t index2,
-                                                 const double t_AirTemperature,
-                                                 const double t_ConvectiveFilmCoefficient,
-                                                 const double t_AirHumidity)
+    void MoistureDomain::createMoistureBCFixedHc(
+      const size_t index1, const size_t index2, const FixedBCHCCoefficients & fixedBchcCoefficients)
     {
         /// Need to pull material for current moisture boundary condition
         auto & Material = m_Elements.findElement(index1, index2)->getMaterial();
-        m_BCs.assignBC(
-          fem::make_unique<HygroThermFEM::MoistureBCFixedHc>(index1,
-                                                             index2,
-                                                             Material.name(),
-                                                             t_AirHumidity,
-                                                             t_AirTemperature,
-                                                             t_ConvectiveFilmCoefficient));
+        m_BCs.assignBC(fem::make_unique<HygroThermFEM::MoistureBCFixedHc>(
+          index1, index2, Material.name(), fixedBchcCoefficients));
     }
 
     MoistureDomain::MoistureDomain(bool automaticUpdatePreviousTimestep) :

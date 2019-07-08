@@ -95,6 +95,8 @@ TEST_F(TestModelWithFrameCavity1, TestSingleFrameCavity)
     const auto tAir = 0.0;
     const auto hc = 30.0;
 
+    const HygroThermFEM::FixedBCHCCoefficients bcCoeff{tAir, hc};
+
     // Build boundary condition nodes on left edge
     std::vector<size_t> bcnodes;
     for(size_t i = 0u; i < gridY.size(); ++i)
@@ -105,7 +107,7 @@ TEST_F(TestModelWithFrameCavity1, TestSingleFrameCavity)
     // Now build boundary condition on left edge of domain rectangle
     for(size_t i = 1u; i < bcnodes.size(); ++i)
     {
-        domain.createConvectionBCFixedHc(bcnodes[i - 1u], bcnodes[i], tAir, hc);
+        domain.createConvectionBCFixedHc(bcnodes[i - 1u], bcnodes[i], bcCoeff);
     }
 
     // Now perform transient calculation in order to make frame cavity update over the simulation

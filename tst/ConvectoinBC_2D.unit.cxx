@@ -33,12 +33,16 @@ TEST_F(TestBoundaryConditions2D_test1, TestIntegrationPoints)
     auto const hc1 = 20.0;
     auto const Tair1 = 255.15;
 
+    const HygroThermFEM::FixedBCHCCoefficients bcCoeff1{Tair1, hc1};
+
     auto const hc2 = 2.4;
     auto const Tair2 = 294.15;
 
+    const HygroThermFEM::FixedBCHCCoefficients bcCoeff2{Tair2, hc2};
+
     HygroThermFEM::BoundaryConditions2D BCs;
-    BCs.assignBC(fem::make_unique<HygroThermFEM::ConstantConvectionBC>(1, 2, Tair1, hc1));
-    BCs.assignBC(fem::make_unique<HygroThermFEM::ConstantConvectionBC>(6, 5, Tair2, hc2));
+    BCs.assignBC(fem::make_unique<HygroThermFEM::ConstantConvectionBC>(1, 2, bcCoeff1));
+    BCs.assignBC(fem::make_unique<HygroThermFEM::ConstantConvectionBC>(6, 5, bcCoeff2));
 
     auto H = BCs.HMatrix();
 

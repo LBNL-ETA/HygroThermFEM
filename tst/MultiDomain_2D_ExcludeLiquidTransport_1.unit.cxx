@@ -101,8 +101,10 @@ TEST_F(MultiDomain_2D_ExcludeLiquidTransport_1, TestExample_1)
     const auto airTemperature = 10.0;
     const auto humidity = 0.0;
 
-    domain.createMoistureBCFixedHc(1, 2, airTemperature, hc, humidity);
-    domain.createMoistureBCFixedHc(5, 6, airTemperature, hc, humidity);
+    const HygroThermFEM::FixedBCHCCoefficients bcCoeff{airTemperature, hc, humidity};
+
+    domain.createMoistureBCFixedHc(1, 2, bcCoeff);
+    domain.createMoistureBCFixedHc(5, 6, bcCoeff);
 
     const auto dTime = 3600;
     const auto nSteps = 24;
