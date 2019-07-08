@@ -6,20 +6,24 @@ namespace HygroThermFEM
     //! coefficients case
     struct FixedBCHCCoefficients
     {
-        FixedBCHCCoefficients(const double airTemperature, const double convectionCoefficient) :
-            AirTemperature(airTemperature), ConvectionCoefficient(convectionCoefficient)
-        {}
+        FixedBCHCCoefficients(double airTemperature, double convectionCoefficient);
 
-        FixedBCHCCoefficients(const double airTemperature,
-                              const double convectionCoefficient,
-                              const double airHumidity) :
-            AirTemperature(airTemperature),
-            ConvectionCoefficient(convectionCoefficient),
-            AirHumidity(airHumidity)
-        {}
+        FixedBCHCCoefficients(double airTemperature,
+                              double convectionCoefficient,
+                              double airHumidity);
 
         double AirTemperature{0};
         double ConvectionCoefficient{0};
+        double AirHumidity{0};
+    };
+
+    //! \brief Structure to keep boundary condition coefficients for variable heat transfer
+    //! coefficients case
+    struct VariableBCHCCoefficients
+    {
+        VariableBCHCCoefficients(double airTemperature, double airHumidity);
+
+        double AirTemperature{0};
         double AirHumidity{0};
     };
 }   // namespace HygroThermFEM

@@ -80,10 +80,12 @@ TEST_F(MoistureBC_2D_4, TestExample_1)
     }
 
     // Create Boundary Conditions
-    const auto ambientTemperature = 20;
+    const auto ambientTemperature = 20.0;
     const auto ambientHumidity = 0.2;
 
-    domain.createMoistureBCVariableHc(5, 6, ambientHumidity, ambientTemperature);
+    const HygroThermFEM::VariableBCHCCoefficients bcCoeff{ ambientTemperature, ambientHumidity };
+
+    domain.createMoistureBCVariableHc(5, 6, bcCoeff);
 
     const auto dTime = 36000;
     const auto nSteps = 4;

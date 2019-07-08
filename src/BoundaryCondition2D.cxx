@@ -165,16 +165,15 @@ namespace HygroThermFEM
     ////////////////////////////////////////////////////////
     VariableConvectionBC::VariableConvectionBC(size_t index1,
                                                size_t index2,
-                                               double t_AirTemperature,
-                                               double t_AirHumidity,
+                                               const VariableBCHCCoefficients & varHCCoeff,
                                                const bool t_CalculateMoisture) :
-        IConvectionBC(
-          index1,
-          index2,
-          t_AirTemperature,
-          ConvectionModelFactory::create(ConvectionModel::Variable, m_Nodes, t_AirTemperature),
-          t_AirHumidity,
-          t_CalculateMoisture)
+        IConvectionBC(index1,
+                      index2,
+                      varHCCoeff.AirTemperature,
+                      ConvectionModelFactory::create(
+                        ConvectionModel::Variable, m_Nodes, varHCCoeff.AirTemperature),
+                      varHCCoeff.AirHumidity,
+                      t_CalculateMoisture)
     {}
 
     ////////////////////////////////////////////////////////
@@ -329,15 +328,14 @@ namespace HygroThermFEM
     MoistureBCVariableHc::MoistureBCVariableHc(size_t index1,
                                                size_t index2,
                                                const std::string & materialName,
-                                               double t_AirHumidity,
-                                               double t_AirTemperature) :
-        IMoistureBC(
-          index1,
-          index2,
-          materialName,
-          t_AirHumidity,
-          t_AirTemperature,
-          ConvectionModelFactory::create(ConvectionModel::Variable, m_Nodes, t_AirTemperature))
+                                               const VariableBCHCCoefficients & varHCCoeff) :
+        IMoistureBC(index1,
+                    index2,
+                    materialName,
+                    varHCCoeff.AirHumidity,
+                    varHCCoeff.AirTemperature,
+                    ConvectionModelFactory::create(
+                      ConvectionModel::Variable, m_Nodes, varHCCoeff.AirTemperature))
     {}
 
 

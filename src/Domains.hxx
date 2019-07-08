@@ -113,10 +113,9 @@ namespace HygroThermFEM
                                        bool t_CalculateMoisture = true);
 
         //! Creation of convection boundary condition
-        void createConvectionBCVariableHc(size_t index1,             //!< Node 1 index
-                                          size_t index2,             //!< Node 2 index
-                                          double t_AirTemperature,   //!< Outside air temperature
-                                          double t_AirHumidity,
+        void createConvectionBCVariableHc(size_t index1,   //!< Node 1 index
+                                          size_t index2,   //!< Node 2 index
+                                          const VariableBCHCCoefficients & varHCCoeff,
                                           bool t_CalculateMoisture = true);
 
         //! Creation of temperature boundary condition
@@ -175,8 +174,7 @@ namespace HygroThermFEM
         //! Creates moisture boundary condition that will calculate convection film coefficient.
         void createMoistureBCVariableHc(size_t index1,
                                         size_t index2,
-                                        double t_AirHumidity,
-                                        double t_AirTemperature);
+                                        const VariableBCHCCoefficients & varHCCoeff);
 
         //! Creates moisture boundary condition with fixed film coefficient
         void createMoistureBCFixedHc(size_t index1,

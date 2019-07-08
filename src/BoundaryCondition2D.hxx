@@ -126,8 +126,7 @@ namespace HygroThermFEM
     public:
         VariableConvectionBC(size_t index1,
                              size_t index2,
-                             double t_AirTemperature,
-                             double t_AirHumidity,
+                             const VariableBCHCCoefficients & varHCCoeff,
                              bool t_CalculateMoisture = true);
     };
 
@@ -281,8 +280,7 @@ namespace HygroThermFEM
         MoistureBCVariableHc(size_t index1,
                              size_t index2,
                              const std::string & materialName,
-                             double t_AirHumidity,
-                             double t_AirTemperature);
+                             const VariableBCHCCoefficients & varHCCoeff);
     };
 
     /////////////////////////////////////////////////////

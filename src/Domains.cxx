@@ -192,12 +192,11 @@ namespace HygroThermFEM
 
     void ThermalDomain::createConvectionBCVariableHc(const size_t index1,
                                                      const size_t index2,
-                                                     const double t_AirTemperature,
-                                                     const double t_AirHumidity,
+                                                     const VariableBCHCCoefficients & varHCCoeff,
                                                      const bool t_CalculateMoisture)
     {
         m_BCs.assignBC(fem::make_unique<VariableConvectionBC>(
-          index1, index2, t_AirTemperature, t_AirHumidity, t_CalculateMoisture));
+          index1, index2, varHCCoeff, t_CalculateMoisture));
     }
 
     void ThermalDomain::createTemperatureBC(const size_t index1,
@@ -286,13 +285,12 @@ namespace HygroThermFEM
 
     void MoistureDomain::createMoistureBCVariableHc(const size_t index1,
                                                     const size_t index2,
-                                                    const double t_AirHumidity,
-                                                    const double t_AirTemperature)
+                                                    const VariableBCHCCoefficients & varHCCoeff)
     {
         /// Need to pull material for current moisture boundary condition
         auto & Material = m_Elements.findElement(index1, index2)->getMaterial();
-        m_BCs.assignBC(fem::make_unique<HygroThermFEM::MoistureBCVariableHc>(
-          index1, index2, Material.name(), t_AirHumidity, t_AirTemperature));
+        m_BCs.assignBC(fem::make_unique<MoistureBCVariableHc>(
+          index1, index2, Material.name(), varHCCoeff));
     }
 
     void MoistureDomain::createMoistureBCFixedHc(
@@ -300,7 +298,7 @@ namespace HygroThermFEM
     {
         /// Need to pull material for current moisture boundary condition
         auto & Material = m_Elements.findElement(index1, index2)->getMaterial();
-        m_BCs.assignBC(fem::make_unique<HygroThermFEM::MoistureBCFixedHc>(
+        m_BCs.assignBC(fem::make_unique<MoistureBCFixedHc>(
           index1, index2, Material.name(), fixedBchcCoefficients));
     }
 

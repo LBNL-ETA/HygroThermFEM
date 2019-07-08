@@ -205,13 +205,11 @@ namespace HygroThermFEM
 
     void MultiDomain::createMoistureBCVariableHc(const size_t index1,
                                                  const size_t index2,
-                                                 const double t_AirTemperature,
-                                                 const double t_Humidity)
+                                                 const VariableBCHCCoefficients & varHCCoeff)
     {
-        m_ThermalDomain.createConvectionBCVariableHc(
-          index1, index2, t_AirTemperature, t_Humidity, m_PerformMoisture);
+        m_ThermalDomain.createConvectionBCVariableHc(index1, index2, varHCCoeff, m_PerformMoisture);
 
-        m_MoistureDomain.createMoistureBCVariableHc(index1, index2, t_Humidity, t_AirTemperature);
+        m_MoistureDomain.createMoistureBCVariableHc(index1, index2, varHCCoeff);
     }
 
     void MultiDomain::createTemperatureBC(const size_t index1,
