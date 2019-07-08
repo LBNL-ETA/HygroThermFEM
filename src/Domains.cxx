@@ -195,8 +195,8 @@ namespace HygroThermFEM
                                                      const VariableBCHCCoefficients & varHCCoeff,
                                                      const bool t_CalculateMoisture)
     {
-        m_BCs.assignBC(fem::make_unique<VariableConvectionBC>(
-          index1, index2, varHCCoeff, t_CalculateMoisture));
+        m_BCs.assignBC(
+          fem::make_unique<VariableConvectionBC>(index1, index2, varHCCoeff, t_CalculateMoisture));
     }
 
     void ThermalDomain::createTemperatureBC(const size_t index1,
@@ -228,13 +228,13 @@ namespace HygroThermFEM
           index1, index2, t_Emissivity, t_RadiationTemperature));
     }
 
-    void ThermalDomain::createSimplifiedRadiationBC(const size_t index1,
-                                                    const size_t index2,
-                                                    const double t_RadiationCoefficient,
-                                                    const double t_RadiationTemperature)
+    void ThermalDomain::createSimplifiedRadiationBC(
+      const size_t index1,
+      const size_t index2,
+      const LinearizedRadiationBCCoefficients & linearRadBC)
     {
         m_BCs.assignBC(fem::make_unique<SimplifiedRadiationBC>(
-          index1, index2, t_RadiationCoefficient, t_RadiationTemperature));
+          index1, index2, linearRadBC));
     }
 
     void ThermalDomain::createElement(const size_t index1,
@@ -289,8 +289,8 @@ namespace HygroThermFEM
     {
         /// Need to pull material for current moisture boundary condition
         auto & Material = m_Elements.findElement(index1, index2)->getMaterial();
-        m_BCs.assignBC(fem::make_unique<MoistureBCVariableHc>(
-          index1, index2, Material.name(), varHCCoeff));
+        m_BCs.assignBC(
+          fem::make_unique<MoistureBCVariableHc>(index1, index2, Material.name(), varHCCoeff));
     }
 
     void MoistureDomain::createMoistureBCFixedHc(

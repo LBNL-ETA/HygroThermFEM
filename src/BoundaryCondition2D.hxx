@@ -225,8 +225,7 @@ namespace HygroThermFEM
     public:
         SimplifiedRadiationBC(size_t index1,
                               size_t index2,
-                              double t_RadiationCoefficient,
-                              double t_RadiationTemperature);
+                              const LinearizedRadiationBCCoefficients & linearRadBC);
 
         std::vector<double> R_Vector() const override;
 

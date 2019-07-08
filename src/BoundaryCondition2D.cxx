@@ -266,13 +266,11 @@ namespace HygroThermFEM
     /// SimplifiedRadiationBC
     ////////////////////////////////////////////////////////
 
-    SimplifiedRadiationBC::SimplifiedRadiationBC(size_t index1,
-                                                 size_t index2,
-                                                 double t_RadiationCoefficient,
-                                                 double t_RadiationTemperature) :
+    SimplifiedRadiationBC::SimplifiedRadiationBC(
+      size_t index1, size_t index2, const LinearizedRadiationBCCoefficients & linearRadBC) :
         IBCLinear2D(index1, index2),
-        m_RadiationCoefficient(t_RadiationCoefficient),
-        m_RadiationTemperature(t_RadiationTemperature)
+        m_RadiationCoefficient(linearRadBC.RadiationCoefficient),
+        m_RadiationTemperature(linearRadBC.RadiationTemperature)
     {}
 
     std::vector<double> SimplifiedRadiationBC::R_Vector() const

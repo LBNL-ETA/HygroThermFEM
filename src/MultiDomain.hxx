@@ -71,8 +71,7 @@ namespace HygroThermFEM
 
         void createSimplifiedRadiationBC(size_t index1,
                                          size_t index2,
-                                         double t_RadiationCoefficient,
-                                         double t_RadiationTemperature);
+                                         const LinearizedRadiationBCCoefficients & linearRadBC);
 
     private:
         static double normError(const std::vector<double> & vec1, const std::vector<double> & vec2);

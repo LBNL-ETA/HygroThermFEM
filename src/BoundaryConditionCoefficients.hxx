@@ -2,6 +2,10 @@
 
 namespace HygroThermFEM
 {
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+    // FixedBCHCCoefficients
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+
     //! \brief Structure to keep boundary condition coefficients for fixed heat transfer
     //! coefficients case
     struct FixedBCHCCoefficients
@@ -17,6 +21,10 @@ namespace HygroThermFEM
         double AirHumidity{0};
     };
 
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+    // VariableBCHCCoefficients
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+
     //! \brief Structure to keep boundary condition coefficients for variable heat transfer
     //! coefficients case
     struct VariableBCHCCoefficients
@@ -25,5 +33,17 @@ namespace HygroThermFEM
 
         double AirTemperature{0};
         double AirHumidity{0};
+    };
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+    // VariableBCHCCoefficients
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+
+    struct LinearizedRadiationBCCoefficients
+    {
+        LinearizedRadiationBCCoefficients(double radiationCoefficient, double radiationTemperature);
+
+        double RadiationCoefficient{0};
+        double RadiationTemperature{0};
     };
 }   // namespace HygroThermFEM
