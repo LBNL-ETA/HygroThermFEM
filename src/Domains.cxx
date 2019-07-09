@@ -190,6 +190,14 @@ namespace HygroThermFEM
           index1, index2, fixedBCHCCoefficients, t_CalculateMoisture));
     }
 
+    void ThermalDomain::createConvectionBCFixedHc(size_t index1,
+        size_t index2,
+        const std::vector<FixedBCHCCoefficients> & fixedBCHCCoefficients,
+        bool calculateMoisture)
+    {
+        //TODO: Assigne multi timestep BCs here
+    }
+
     void ThermalDomain::createConvectionBCVariableHc(const size_t index1,
                                                      const size_t index2,
                                                      const VariableBCHCCoefficients & varHCCoeff,

@@ -203,6 +203,13 @@ namespace HygroThermFEM
         m_MoistureDomain.createMoistureBCFixedHc(index1, index2, fixedBchcCoefficients);
     }
 
+    void MultiDomain::createMoistureBCFixedHc(size_t index1,
+        size_t index2,
+        const std::vector<FixedBCHCCoefficients> & fixedBchcCoefficients)
+    {
+        //TODO: Need to call both domains to update boundary conditions
+    }
+
     void MultiDomain::createMoistureBCVariableHc(const size_t index1,
                                                  const size_t index2,
                                                  const VariableBCHCCoefficients & varHCCoeff)

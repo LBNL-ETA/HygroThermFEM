@@ -46,15 +46,38 @@ namespace HygroThermFEM
 
         static std::vector<double> property(Variable property);
 
+        //! \brief Creates element with material reference
+        //! @param index1 Node 1 index
+        //! @param index2 Node 2 index
+        //! @param index3 Node 3 index
+        //! @param index4 Node 4 index
+        //! @param materialName Material name assigned to the element
         void createElement(size_t index1,
                            size_t index2,
                            size_t index3,
                            size_t index4,
                            const std::string & materialName);
 
+        //! \brief Creates boundary condition with coefficients that are identical during the entire
+        //! transient simulation or in steady-state calculations
+        //! @param index1 Node 1 index
+        //! @param index2 Node 2 index
+        //! @param fixedBchcCoefficients Structure with values that are used in fixed convection
+        //! coefficient boundary condition calculations
         void createMoistureBCFixedHc(size_t index1,
                                      size_t index2,
                                      const FixedBCHCCoefficients & fixedBchcCoefficients);
+
+        //! \brief Creates set of boundary condition coefficients that are used during transient
+        //! simulation
+        //! @param index1 Node 1 index
+        //! @param index2 Node 2 index
+        //! @param fixedBchcCoefficients Structure with values that are used in fixed convection
+        //! coefficient boundary condition calculations 
+        void
+          createMoistureBCFixedHc(size_t index1,
+                                  size_t index2,
+                                  const std::vector<FixedBCHCCoefficients> & fixedBchcCoefficients);
 
         void createMoistureBCVariableHc(size_t index1,
                                         size_t index2,
