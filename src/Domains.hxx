@@ -39,12 +39,15 @@ namespace HygroThermFEM
         //! Calculates steady state for given data
         std::vector<double> steadyState();
 
-        //! Calculates next timestep values from current (initial) values
-        SingleSolution transient(
-          const std::vector<double> &
-            currentStateValues,   //!< Current values of state variable or initial condition
-          double t_DTime          //!< Timestep in transient solution
-        );
+        //! \brief Calculates next timestep values from current (initial) values
+        //! @param currentStateValues Current values of state variable or initial condition
+        //! @param t_DTime Timestep in transient solution
+        //! @param timestepIndex Index for current timestep. Used in variable boundary conditions
+        //! case. It is defaulted to zero in case of non-variable boundary condition calculations
+        //! are requested.
+        SingleSolution transient(const std::vector<double> & currentStateValues,
+                                 double t_DTime,
+                                 size_t timestepIndex = 0);
 
         //! Returns flux in x and y direction
         std::vector<NodeFlux> flux() const;
@@ -67,12 +70,20 @@ namespace HygroThermFEM
         //! Form right hand side vector in stead state solution.
         std::vector<double> steadyStateRightHandSide() const;
 
-        //! Forms mass, conductance and H (from boundary condition) matrices.
-        SquareMatrix transientM_K_H_Matrix(double t_DTime);
+        //! \brief Forms mass, conductance and H (from boundary condition) matrices.
+        //! @param t_DTime Time between two timestep for which calculates are being performed
+        //! @param timestepIndex Timestep index used in case of variable timestep input boundary
+        //! conditions.
+        SquareMatrix transientM_K_H_Matrix(double t_DTime, size_t timestepIndex);
 
-        //! This function retrieves M*U+R vector (where U is state variable)
+        //! \brief This function retrieves M*U+R vector (where U is state variable)
+        //! @param t_PreviousSolution Solution from previous timestep
+        //! @param t_DTime Time between two timestep for which calculates are being performed
+        //! @param timestepIndex Timestep index used in case of variable timestep input boundary
+        //! conditions.
         std::vector<double> transientMT_R_Vector(const std::vector<double> & t_PreviousSolution,
-                                                 double t_DTime);
+                                                 double t_DTime,
+                                                 size_t timestepIndex);
 
         //! Returns if domain problem is linear.
         bool isLinear() const;
@@ -83,11 +94,15 @@ namespace HygroThermFEM
         //! solution can achieve such state and post processing should prevent it.
         virtual void postProcess(std::vector<double> & solution);
 
+        //! \brief Calling timestep calculations
+        //! @param currentStateValues Current state values from previous timestep
+        //! @param t_DTime Time different for between timesteps
+        //! @param timestepIndex Current timestep index used in variable boundary conditions
         std::pair<std::vector<double>, bool> transientTimestep(
           const std::vector<double> &
             currentStateValues,   //!< Current values of state variable or initial condition
-          double t_DTime          //!< Timestep in transient solution
-        );
+          double t_DTime,         //!< Timestep in transient solution
+          size_t timestepIndex);
 
         BaseVariable m_Property;
         ElementsLinear2D m_Elements;
@@ -224,10 +239,10 @@ namespace HygroThermFEM
         //! @param index2 Node 2 index
         //! @param fixedBchcCoefficients structure to hold fixed convection coefficient boundary
         //! conditions for every timestep
-        void createMoistureBCFixedHc(size_t index1,
-                                     size_t index2,
-                                     const std::vector<FixedBCHCCoefficients> &
-                                     fixedBchcCoefficients);
+        void
+          createMoistureBCFixedHc(size_t index1,
+                                  size_t index2,
+                                  const std::vector<FixedBCHCCoefficients> & fixedBchcCoefficients);
 
         //! \brief Creates and adds element into domain.
         //! @param index1 Node 1 index

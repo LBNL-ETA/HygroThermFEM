@@ -26,22 +26,22 @@ namespace HygroThermFEM
         return m_BCs.RVector();
     }
 
-    SquareMatrix IDomain::transientM_K_H_Matrix(const double t_DTime)
+    SquareMatrix IDomain::transientM_K_H_Matrix(const double t_DTime, const size_t timestepIndex)
     {
         const auto M = m_Elements.getLumpedMass(t_DTime);
         auto M_K_H = m_Elements.conductanceMatrix();
         M_K_H = M_K_H.addDiagonal(M);
-        M_K_H += m_BCs.HMatrix();
+        M_K_H += m_BCs.HMatrix(timestepIndex);
 
         return M_K_H;
     }
 
     std::vector<double>
       IDomain::transientMT_R_Vector(const std::vector<double> & t_PreviousSolution,
-                                    const double t_DTime)
+                                    const double t_DTime, const size_t timestepIndex)
     {
         const std::vector<double> M{m_Elements.getLumpedMass(t_DTime)};
-        const auto R = m_BCs.RVector() + m_Elements.RVector();
+        const auto R = m_BCs.RVector(timestepIndex) + m_Elements.RVector();
 
         auto B = t_PreviousSolution * M + R;
 
@@ -57,7 +57,7 @@ namespace HygroThermFEM
     }
 
     SingleSolution IDomain::transient(const std::vector<double> & currentStateValues,
-                                      const double t_DTime)
+                                      const double t_DTime, const size_t timestepIndex)
     {
         std::vector<double> solution;
         bool converged{false};
@@ -70,7 +70,7 @@ namespace HygroThermFEM
         // multiple consecutive simulations in order to achieve solution at requested timestep.
         while(totalTime < t_DTime)
         {
-            const auto current = transientTimestep(stateVariables, currentDTime);
+            const auto current = transientTimestep(stateVariables, currentDTime, timestepIndex);
             solution = current.first;
             converged = current.second;
             if(!converged)
@@ -94,15 +94,15 @@ namespace HygroThermFEM
 
     std::pair<std::vector<double>, bool>
       IDomain::transientTimestep(const std::vector<double> & currentStateValues,
-                                 const double t_DTime)
+                                 const double t_DTime, const size_t timestepIndex)
     {
         const auto RelaxParameter = SimulationProperties::Instance().relaxationParamter();
         const auto ConvergenceError = SimulationProperties::Instance().errorTolerance();
         const auto MaxIterations = SimulationProperties::Instance().maxNumberOfIterations();
 
-        auto A = transientM_K_H_Matrix(t_DTime);
+        auto A = transientM_K_H_Matrix(t_DTime, timestepIndex);
 
-        auto B = transientMT_R_Vector(currentStateValues, t_DTime);
+        auto B = transientMT_R_Vector(currentStateValues, t_DTime, timestepIndex);
 
         std::vector<double> solution;
         bool converged{false};
@@ -144,8 +144,8 @@ namespace HygroThermFEM
                 NodePool::Instance().updateNodeValues(
                   solution, m_Property, m_AutomaticUpdatePreviousTimestep);
 
-                A = transientM_K_H_Matrix(t_DTime);
-                B = transientMT_R_Vector(currentStateValues, t_DTime);
+                A = transientM_K_H_Matrix(t_DTime, timestepIndex);
+                B = transientMT_R_Vector(currentStateValues, t_DTime, timestepIndex);
 
                 converged = (std::abs(previousNorm - currentNorm) / (currentNorm + 1e-12))
                             <= ConvergenceError;

@@ -36,10 +36,15 @@ namespace HygroThermFEM
     public:
         MultiDomain(bool performThermal = true, bool performMoisture = true);
 
-        /// Calculates next timestep value from current values
+        //! \brief Calculates next timestep value from current values
+        //! @param temperature vector of nodal temperatures from previous timestep
+        //! @param humidity vector of nodal humidity from previous timestep
+        //! @param t_DTime time between two timestep
+        //! @param timestepIndex current timestep index used in variable boundary conditions case
         Solution transient(std::vector<double> & temperature,
                            std::vector<double> & humidity,
-                           double t_DTime);
+                           double t_DTime,
+                           size_t timestepIndex = 0);
 
         //! Calculates steady state solution for multiple domains.
         Solution steadyState();

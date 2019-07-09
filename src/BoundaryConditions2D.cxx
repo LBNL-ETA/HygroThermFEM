@@ -11,7 +11,7 @@ namespace HygroThermFEM
     /// 	}
     /// }
 
-    SquareMatrix BoundaryConditions2D::HMatrix() const
+    SquareMatrix BoundaryConditions2D::HMatrix(const size_t timestepIndex) const
     {
         std::vector<std::vector<double>> result{
           NodePool::Instance().maxIndex(), std::vector<double>(NodePool::Instance().maxIndex(), 0)};
@@ -28,11 +28,29 @@ namespace HygroThermFEM
             }
         }
 
-        //TODO: Get matrices from vector
+        //for(size_t i = 0u; i < m_TransientBCs.size(); ++i)
+        for(const auto & bc : m_TransientBCs)
+        {
+            //const auto & bc = m_TransientBCs[i];
+            if(bc.size() < timestepIndex)
+            {
+                throw std::runtime_error("Number of boundary conditions provided is less then "
+                                         "number of timesteps requested.");
+            }
+            auto indexes = bc[timestepIndex]->getNodeIndexes();
+            auto matH = bc[timestepIndex]->H_Matrix();
+            for (size_t i = 0; i < 2; ++i)
+            {
+                for (size_t j = 0; j < 2; ++j)
+                {
+                    result[indexes[i] - 1][indexes[j] - 1] += matH(i, j);
+                }
+            }
+        }
         return SquareMatrix{result};
     }
 
-    std::vector<double> BoundaryConditions2D::RVector() const
+    std::vector<double> BoundaryConditions2D::RVector(const size_t timestepIndex) const
     {
         std::vector<double> result(NodePool::Instance().maxIndex(), 0);
         // Create full size matrices
@@ -46,7 +64,20 @@ namespace HygroThermFEM
             }
         }
 
-        //TODO: Get vectors from timestep
+        for (const auto & bc : m_TransientBCs)
+        {
+            if (bc.size() < timestepIndex)
+            {
+                throw std::runtime_error("Number of boundary conditions provided is less then "
+                    "number of timesteps requested.");
+            }
+            auto indexes = bc[timestepIndex]->getNodeIndexes();
+            auto vecR = bc[timestepIndex]->R_Vector();
+            for (size_t i = 0; i < 2; ++i)
+            {
+                result[indexes[i] - 1] += vecR[i];
+            }
+        }
         return result;
     }
 

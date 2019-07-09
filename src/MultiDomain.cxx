@@ -17,7 +17,8 @@ namespace HygroThermFEM
 
     Solution MultiDomain::transient(std::vector<double> & temperature,
                                     std::vector<double> & humidity,
-                                    const double t_DTime)
+                                    const double t_DTime,
+                                    size_t timestepIndex)
     {
         const auto ConvergenceError = SimulationProperties::Instance().errorTolerance();
         auto temperatureError{std::numeric_limits<double>::max()};
@@ -41,7 +42,7 @@ namespace HygroThermFEM
                 size_t localIterCounter{0};
                 while(humidityError > ConvergenceError && localIterCounter <= MaxIterations)
                 {
-                    humiditySolution = m_MoistureDomain.transient(humidity, dTime);
+                    humiditySolution = m_MoistureDomain.transient(humidity, dTime, timestepIndex);
                     humidityError = normError(humiditySolution.solution, currentHumidity);
                     currentHumidity = humiditySolution.solution;
                     ++localIterCounter;
@@ -57,7 +58,7 @@ namespace HygroThermFEM
                 size_t localIterCounter{0};
                 while(temperatureError > ConvergenceError && localIterCounter <= MaxIterations)
                 {
-                    temperatureSolution = m_ThermalDomain.transient(temperature, dTime);
+                    temperatureSolution = m_ThermalDomain.transient(temperature, dTime, timestepIndex);
                     temperatureError = normError(temperatureSolution.solution, currentTemperature);
                     currentTemperature = temperatureSolution.solution;
                     ++localIterCounter;
@@ -72,7 +73,7 @@ namespace HygroThermFEM
             {
                 NodePool::Instance().updateNodeValues(
                   temperatureSolution.solution, BaseVariable::temperature, false);
-                humiditySolution = m_MoistureDomain.transient(humidity, dTime);
+                humiditySolution = m_MoistureDomain.transient(humidity, dTime, timestepIndex);
                 humidityError = normError(humiditySolution.solution, currentHumidity);
                 currentHumidity = humiditySolution.solution;
             }
@@ -81,7 +82,7 @@ namespace HygroThermFEM
             {
                 NodePool::Instance().updateNodeValues(
                   humiditySolution.solution, BaseVariable::humidity, false);
-                temperatureSolution = m_ThermalDomain.transient(temperature, dTime);
+                temperatureSolution = m_ThermalDomain.transient(temperature, dTime, timestepIndex);
                 temperatureError = normError(temperatureSolution.solution, currentTemperature);
                 currentTemperature = temperatureSolution.solution;
             }

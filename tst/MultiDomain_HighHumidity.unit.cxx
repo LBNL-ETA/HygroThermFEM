@@ -97,16 +97,18 @@ TEST_F(MultiDomain_HighHumidity, TestExample_1)
     std::vector<double> temperatureError;
     std::vector<std::vector<double>> waterContentSolution;
     std::vector<double> humidityError;
+    size_t timestepIndex{0};
 
     for(auto i = 0; i < nSteps; ++i)
     {
-        auto aSolution = domain.transient(temperatures, humidities, dTime);
+        auto aSolution = domain.transient(temperatures, humidities, dTime, timestepIndex);
         temperatureSolution.push_back(aSolution.temperature);
         temperatureError.push_back(aSolution.temperatureError);
         waterContentSolution.push_back(aSolution.waterContent);
         humidityError.push_back(aSolution.humidityError);
         temperatures = aSolution.temperature;
         humidities = aSolution.humidity;
+        ++timestepIndex;
     }
 
     const std::vector<double> correctHumidityError{2.360245e-09, 5.885973e-06};

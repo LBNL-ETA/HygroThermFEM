@@ -84,11 +84,9 @@ namespace HygroThermFEM
         switch(model)
         {
             case ConvectionModel::Fixed:
-                return std::unique_ptr<FixedConvectionCoefficient>(
-                  new FixedConvectionCoefficient(nodes, ambientVariable));
+                return std::make_unique<FixedConvectionCoefficient>(nodes, ambientVariable);
             case ConvectionModel::Variable:
-                return std::unique_ptr<VariableConvectionCoefficient>(
-                  new VariableConvectionCoefficient(nodes, ambientVariable));
+                return std::make_unique<VariableConvectionCoefficient>(nodes, ambientVariable);
         }
         return nullptr;
     }
