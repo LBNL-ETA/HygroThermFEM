@@ -294,9 +294,6 @@ namespace HygroThermFEM
                           size_t index2,
                           const std::string & materialName,
                           const FixedBCHCCoefficients & fixedBchcCoefficients);
-
-    private:
-        const double m_ConvectiveCoefficient;
     };
 
 }   // namespace HygroThermFEM

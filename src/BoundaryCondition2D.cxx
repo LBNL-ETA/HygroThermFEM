@@ -349,7 +349,6 @@ namespace HygroThermFEM
                     fixedBchcCoefficients.AirTemperature,
                     ConvectionModelFactory::create(ConvectionModel::Fixed,
                                                    m_Nodes,
-                                                   fixedBchcCoefficients.ConvectionCoefficient)),
-        m_ConvectiveCoefficient(fixedBchcCoefficients.ConvectionCoefficient)
+                                                   fixedBchcCoefficients.ConvectionCoefficient))
     {}
 }   // namespace HygroThermFEM

@@ -4,7 +4,6 @@
 #include <vector>
 
 #include "SquareMatrix.hxx"
-#include "State.hxx"
 #include "IBCLine2D.hxx"
 
 namespace HygroThermFEM
@@ -40,11 +39,13 @@ namespace HygroThermFEM
         bool isLinear() const;
 
         //! Assigns new steady-state or single transient boundary condition to the pool
+        //! @param bc single boundary condition used for steady-state or transient
         void assignBC(std::unique_ptr<IBCLinear2D> && bc);
 
-        //! Assignes new transient boundary condition for next timestep. Timestep index is not
+        //! Assigns new transient boundary condition for next timestep. Timestep index is not
         //! traced. When simulation starts, it is simple requirement that number of boundary
         //! condition must match number of timesteps.
+        //! @param bc multiple timestep boundary conditions (different values for each timestep)
         void assignTimestepBCs(std::vector<std::unique_ptr<IBCLinear2D>> && bc);
 
     protected:
