@@ -69,6 +69,6 @@ namespace HygroThermFEM
         std::for_each(
           bc.begin(), bc.end(), [&](const auto & aBC) { m_Linear = m_Linear && aBC->isLinear(); });
 
-        m_TransientBCs.push_back(bc);
+        m_TransientBCs.push_back(std::move(bc));
     }
 }   // namespace HygroThermFEM
