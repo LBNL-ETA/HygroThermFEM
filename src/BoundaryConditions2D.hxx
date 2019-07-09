@@ -13,6 +13,8 @@ namespace HygroThermFEM
     //!
     //! Beside simple container that will hold all kinds of boundary conditions, responsibility of
     //! this class is to create assembled vector and matrix for all boundary conditions.
+    //! Boundary conditions can also be inserted for transient case where each timestep will have
+    //! specific boundary condition.
     class BoundaryConditions2D
     {
     public:
@@ -33,11 +35,21 @@ namespace HygroThermFEM
         //! equations should be applied.
         bool isLinear() const;
 
-        //! Assign new boundary condition to the pool
+        //! Assigns new steady-state or single transient boundary condition to the pool
         void assignBC(std::unique_ptr<IBCLinear2D> && bc);
 
+        //! Assignes new transient boundary condition for next timestep. Timestep index is not
+        //! traced. When simulation starts, it is simple requirement that number of boundary
+        //! condition must match number of timesteps.
+        void assignTimestepBCs(std::vector<std::unique_ptr<IBCLinear2D>> && bc);
+
     protected:
+        // Boundary Conditions used either for steady-state or transient cases.
         std::vector<std::unique_ptr<IBCLinear2D>> m_BCs;
+
+        // Boundary conditions that are used only in transient cases where inside vector means
+        // different boundary condition for every timestep.
+        std::vector<std::vector<std::unique_ptr<IBCLinear2D>>> m_TransientBCs;
         bool m_Linear;
     };
 

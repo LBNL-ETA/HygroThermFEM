@@ -122,7 +122,7 @@ namespace HygroThermFEM
         //! @param index2 Node 2 index
         //! @param fixedBCHCCoefficients structure to hold fixed convection coefficients boundary
         //! conditions for transient simulations
-        //! @param t_CalculateMoisture Flag on whether or not to calculate moisture
+        //! @param calculateMoisture Flag on whether or not to calculate moisture
         void createConvectionBCFixedHc(
           size_t index1,
           size_t index2,
@@ -218,6 +218,16 @@ namespace HygroThermFEM
         void createMoistureBCFixedHc(size_t index1,
                                      size_t index2,
                                      const FixedBCHCCoefficients & fixedBchcCoefficients);
+
+        //! \brief Creation of convection boundary condition
+        //! @param index1 Node 1 index
+        //! @param index2 Node 2 index
+        //! @param fixedBchcCoefficients structure to hold fixed convection coefficient boundary
+        //! conditions for every timestep
+        void createMoistureBCFixedHc(size_t index1,
+                                     size_t index2,
+                                     const std::vector<FixedBCHCCoefficients> &
+                                     fixedBchcCoefficients);
 
         //! \brief Creates and adds element into domain.
         //! @param index1 Node 1 index

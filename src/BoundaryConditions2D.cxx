@@ -27,6 +27,8 @@ namespace HygroThermFEM
                 }
             }
         }
+
+        //TODO: Get matrices from vector
         return SquareMatrix{result};
     }
 
@@ -43,6 +45,8 @@ namespace HygroThermFEM
                 result[indexes[i] - 1] += vecR[i];
             }
         }
+
+        //TODO: Get vectors from timestep
         return result;
     }
 
@@ -60,4 +64,11 @@ namespace HygroThermFEM
         m_BCs.push_back(std::move(bc));
     }
 
+    void BoundaryConditions2D::assignTimestepBCs(std::vector<std::unique_ptr<IBCLinear2D>> && bc)
+    {
+        std::for_each(
+          bc.begin(), bc.end(), [&](const auto & aBC) { m_Linear = m_Linear && aBC->isLinear(); });
+
+        m_TransientBCs.push_back(bc);
+    }
 }   // namespace HygroThermFEM
