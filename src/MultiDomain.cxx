@@ -20,12 +20,12 @@ namespace HygroThermFEM
                                     const double t_DTime,
                                     size_t timestepIndex)
     {
-        const auto ConvergenceError = SimulationProperties::Instance().errorTolerance();
+        const auto ConvergenceError{SimulationProperties::Instance().errorTolerance()};
         auto temperatureError{std::numeric_limits<double>::max()};
         auto humidityError{std::numeric_limits<double>::max()};
-        auto currentTemperature = temperature;
-        auto currentHumidity = humidity;
-        double dTime = t_DTime;
+        auto currentTemperature{temperature};
+        auto currentHumidity{humidity};
+        double dTime{t_DTime};
         SingleSolution temperatureSolution{temperature, t_DTime};
         SingleSolution humiditySolution{humidity, t_DTime};
 
@@ -58,7 +58,8 @@ namespace HygroThermFEM
                 size_t localIterCounter{0};
                 while(temperatureError > ConvergenceError && localIterCounter <= MaxIterations)
                 {
-                    temperatureSolution = m_ThermalDomain.transient(temperature, dTime, timestepIndex);
+                    temperatureSolution =
+                      m_ThermalDomain.transient(temperature, dTime, timestepIndex);
                     temperatureError = normError(temperatureSolution.solution, currentTemperature);
                     currentTemperature = temperatureSolution.solution;
                     ++localIterCounter;
