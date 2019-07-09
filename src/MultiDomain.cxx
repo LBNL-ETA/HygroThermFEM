@@ -1,5 +1,6 @@
 #include <cmath>
 #include <limits>
+#include <utility>
 
 #include "MultiDomain.hxx"
 #include "Common.hxx"
@@ -279,25 +280,25 @@ namespace HygroThermFEM
     }
 
     Solution::Solution(const double dtime,
-                       const std::vector<double> & temperature,
-                       const std::vector<double> & humidity,
-                       const std::vector<double> & waterContent,
-                       const std::vector<double> & liquidWaterContent,
-                       const std::vector<double> & vaporContent,
-                       const std::vector<double> & iceContent,
-                       const std::vector<NodeFlux> & heatFlux,
-                       const std::vector<NodeFlux> & waterFlux,
+                       std::vector<double> temperature,
+                       std::vector<double> humidity,
+                       std::vector<double> waterContent,
+                       std::vector<double> liquidWaterContent,
+                       std::vector<double> vaporContent,
+                       std::vector<double> iceContent,
+                       std::vector<NodeFlux> heatFlux,
+                       std::vector<NodeFlux> waterFlux,
                        const double temperatureError,
                        const double humidityError) :
         dTime(dtime),
-        temperature(temperature),
-        humidity(humidity),
-        waterContent(waterContent),
-        liquidWaterContent(liquidWaterContent),
-        vaporContent(vaporContent),
-        iceContent(iceContent),
-        heatFlux(heatFlux),
-        waterFlux(waterFlux),
+        temperature(std::move(temperature)),
+        humidity(std::move(humidity)),
+        waterContent(std::move(waterContent)),
+        liquidWaterContent(std::move(liquidWaterContent)),
+        vaporContent(std::move(vaporContent)),
+        iceContent(std::move(iceContent)),
+        heatFlux(std::move(heatFlux)),
+        waterFlux(std::move(waterFlux)),
         temperatureError(temperatureError),
         humidityError(humidityError)
     {}
