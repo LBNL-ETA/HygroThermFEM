@@ -84,9 +84,25 @@ namespace HygroThermFEM
                                   size_t index2,
                                   const std::vector<FixedBCHCCoefficients> & fixedBchcCoefficients);
 
+        //! \brief Creates boundary condition with coefficients that are identical during the entire
+        //! transient simulation or in steady-state calculations
+        //! @param index1 Node 1 index
+        //! @param index2 Node 2 index
+        //! @param varHCCoeff Structure with values that are used in variable convection
+        //! coefficient boundary condition calculations
         void createMoistureBCVariableHc(size_t index1,
                                         size_t index2,
                                         const VariableBCHCCoefficients & varHCCoeff);
+
+        //! \brief Creates set of boundary condition coefficients that are used during transient
+        //! simulation
+        //! @param index1 Node 1 index
+        //! @param index2 Node 2 index
+        //! @param varHCCoeff Structure with values that are used in variable convection
+        //! coefficient boundary condition calculations 
+        void createMoistureBCVariableHc(size_t index1,
+            size_t index2,
+            const std::vector<VariableBCHCCoefficients> & varHCCoeff);
 
         void createTemperatureBC(size_t index1, size_t index2, double t_Temp1, double t_Temp2);
 
