@@ -216,17 +216,26 @@ namespace HygroThermFEM
         //! @param index2 Node 2 index
         //! @param radCoeffs Radiation coefficients for every timestep
         void createBlackBodyRadiationBC(
-            size_t index1,
-            size_t index2,
-            const std::vector<BlackBodyRadiationBCCoefficients> & radCoeffs);
+          size_t index1,
+          size_t index2,
+          const std::vector<BlackBodyRadiationBCCoefficients> & radCoeffs);
 
         //! \brief Creation of linearized radiation boundary condition
         //! @param index1 Node 1 index
         //! @param index2 Node 2 index
         //! @param linearRadBC Structure that holds coefficients for linearized radiation
-        void createSimplifiedRadiationBC(size_t index1,
+        void createLinearizedRadiationBC(size_t index1,
                                          size_t index2,
                                          const LinearizedRadiationBCCoefficients & linearRadBC);
+
+        //! \brief Creation of linearized radiation boundary condition
+        //! @param index1 Node 1 index
+        //! @param index2 Node 2 index
+        //! @param linearRadBC Linarized radiation boundary condition at every timestep
+        void createLinearizedRadiationBC(
+          size_t index1,
+          size_t index2,
+          const std::vector<LinearizedRadiationBCCoefficients> & linearRadBC);
 
         //! \brief Creates and adds element into domain.
         //! @param index1 Node 1 index

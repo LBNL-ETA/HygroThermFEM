@@ -292,12 +292,24 @@ namespace HygroThermFEM
         m_BCs.assignTimestepBCs(std::move(timestepBCs));
     }
 
-    void ThermalDomain::createSimplifiedRadiationBC(
+    void ThermalDomain::createLinearizedRadiationBC(
       const size_t index1,
       const size_t index2,
       const LinearizedRadiationBCCoefficients & linearRadBC)
     {
-        m_BCs.assignBC(fem::make_unique<SimplifiedRadiationBC>(index1, index2, linearRadBC));
+        m_BCs.assignBC(fem::make_unique<LinearizedRadiationBC>(index1, index2, linearRadBC));
+    }
+
+    void ThermalDomain::createLinearizedRadiationBC(
+      size_t index1,
+      size_t index2,
+      const std::vector<LinearizedRadiationBCCoefficients> & linearRadBC)
+    {
+        std::vector<std::unique_ptr<IBCLinear2D>> timestepBCs;
+        std::for_each(linearRadBC.begin(), linearRadBC.end(), [&](const auto & bc) {
+            timestepBCs.push_back(std::make_unique<LinearizedRadiationBC>(index1, index2, bc));
+        });
+        m_BCs.assignTimestepBCs(std::move(timestepBCs));
     }
 
     void ThermalDomain::createElement(const size_t index1,

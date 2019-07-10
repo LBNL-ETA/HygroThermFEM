@@ -6,7 +6,7 @@
 using HygroThermFEM::NodePool;
 using HygroThermFEM::MaterialPool;
 
-class MultiDomain_2D_BlackBody_MultiTimestepBC : public testing::Test
+class MultiDomain_2D_LinearizedRadiation_MultiTimestepBC : public testing::Test
 {
 protected:
     void SetUp() override
@@ -19,7 +19,7 @@ protected:
     }
 };
 
-TEST_F(MultiDomain_2D_BlackBody_MultiTimestepBC, TestExample_1)
+TEST_F(MultiDomain_2D_LinearizedRadiation_MultiTimestepBC, TestExample_1)
 {
     // Enter nodes. Arguments are: node number, x-coordinate, y-coordinate
 
@@ -83,18 +83,18 @@ TEST_F(MultiDomain_2D_BlackBody_MultiTimestepBC, TestExample_1)
     /// Create Boundary Conditions
 
     // Variable boundary conditions (temperature and humidity) over ten timesteps.
-    const std::vector<HygroThermFEM::BlackBodyRadiationBCCoefficients> bcBlackBody{{0.8, 20},
-                                                                                   {0.9, 19},
-                                                                                   {0.9, 18},
-                                                                                   {0.9, 17},
-                                                                                   {0.9, 16},
-                                                                                   {0.8, 15},
-                                                                                   {0.7, 16},
-                                                                                   {0.7, 17},
-                                                                                   {0.7, 18},
-                                                                                   {0.7, 19}};
+    const std::vector<HygroThermFEM::LinearizedRadiationBCCoefficients> linCoeff{{2.1, 20},
+                                                                                 {2.0, 19},
+                                                                                 {1.9, 18},
+                                                                                 {1.8, 17},
+                                                                                 {1.8, 16},
+                                                                                 {1.8, 15},
+                                                                                 {1.7, 16},
+                                                                                 {2.7, 17},
+                                                                                 {3.7, 18},
+                                                                                 {4.7, 19}};
 
-    domain.createBlackBodyRadiationBC(1, 2, bcBlackBody);
+    domain.createLinearizedRadiationBC(1, 2, linCoeff);
 
     const auto dTime = 3600;
     const auto nSteps = 10;
@@ -137,16 +137,16 @@ TEST_F(MultiDomain_2D_BlackBody_MultiTimestepBC, TestExample_1)
     }
 
     std::vector<std::vector<double>> correctTemperatureSolution{
-      {2.489003, 2.489003, 1.293774, 1.293774, 0.968299, 0.968299},
-      {4.120427, 4.120427, 2.720497, 2.720497, 2.279696, 2.279696},
-      {5.269488, 5.269488, 3.987812, 3.987812, 3.558101, 3.558101},
-      {6.181914, 6.181914, 5.072106, 5.072106, 4.691228, 4.691228},
-      {6.922008, 6.922008, 5.983873, 5.983873, 5.658682, 5.658682},
-      {7.397349, 7.397349, 6.676069, 6.676069, 6.420125, 6.420125},
-      {7.941282, 7.941282, 7.300253, 7.300253, 7.078839, 7.078839},
-      {8.591005, 8.591005, 7.942228, 7.942228, 7.725025, 7.725025},
-      {9.285293, 9.285293, 8.611945, 8.611945, 8.388823, 8.388823},
-      {10.009687, 10.009687, 9.30931, 9.30931, 9.077743, 9.077743}};
+      {1.333840, 1.333840, 0.693325, 0.693325, 0.518905, 0.518905},
+      {2.080571, 2.080571, 1.391602, 1.391602, 1.172058, 1.172058},
+      {2.633593, 2.633593, 2.008475, 2.008475, 1.798058, 1.798058},
+      {3.084483, 3.084483, 2.540265, 2.540265, 2.353548, 2.353548},
+      {3.500055, 3.500055, 3.014744, 3.014744, 2.848407, 2.848407},
+      {3.869656, 3.869656, 3.437373, 3.437373, 3.289206, 3.289206},
+      {4.270165, 4.270165, 3.850880, 3.850880, 3.709580, 3.709580},
+      {5.094680, 5.094680, 4.478925, 4.478925, 4.285381, 4.285381},
+      {6.188544, 6.188544, 5.342270, 5.342270, 5.076388, 5.076388},
+      {7.489070, 7.489070, 6.423400, 6.423400, 6.084532, 6.084532}};
 
     EXPECT_EQ(temperatureSolution.size(), correctTemperatureSolution.size());
 

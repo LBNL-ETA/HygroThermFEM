@@ -72,7 +72,7 @@ TEST_F(SimplifiedRadiationBC_2D_1, TestExample_1)
     const HygroThermFEM::LinearizedRadiationBCCoefficients linRad{radiationCoefficient,
                                                                   tRadiationTemperature};
 
-    domain.createSimplifiedRadiationBC(5, 6, linRad);
+    domain.createLinearizedRadiationBC(5, 6, linRad);
 
     const auto dTime = 3600;
     const auto nSteps = 4;

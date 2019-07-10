@@ -275,12 +275,20 @@ namespace HygroThermFEM
         m_ThermalDomain.createBlackBodyRadiationBC(index1, index2, radCoeffs);
     }
 
-    void MultiDomain::createSimplifiedRadiationBC(
+    void MultiDomain::createLinearizedRadiationBC(
       const size_t index1,
       const size_t index2,
       const LinearizedRadiationBCCoefficients & linearRadBC)
     {
-        m_ThermalDomain.createSimplifiedRadiationBC(index1, index2, linearRadBC);
+        m_ThermalDomain.createLinearizedRadiationBC(index1, index2, linearRadBC);
+    }
+
+    void MultiDomain::createLinearizedRadiationBC(
+      size_t index1,
+      size_t index2,
+      const std::vector<LinearizedRadiationBCCoefficients> & linearRadBC)
+    {
+        m_ThermalDomain.createLinearizedRadiationBC(index1, index2, linearRadBC);
     }
 
     double MultiDomain::normError(const std::vector<double> & vec1,

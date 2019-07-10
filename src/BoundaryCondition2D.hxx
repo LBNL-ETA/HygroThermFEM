@@ -220,10 +220,10 @@ namespace HygroThermFEM
     ///////////////////////////////////////////////////////
     /// SimplifiedRadiationBC
     ///////////////////////////////////////////////////////
-    class SimplifiedRadiationBC : public IBCLinear2D
+    class LinearizedRadiationBC : public IBCLinear2D
     {
     public:
-        SimplifiedRadiationBC(size_t index1,
+        LinearizedRadiationBC(size_t index1,
                               size_t index2,
                               const LinearizedRadiationBCCoefficients & linearRadBC);
 

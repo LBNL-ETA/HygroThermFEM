@@ -153,9 +153,24 @@ namespace HygroThermFEM
           size_t index2,
           const std::vector<BlackBodyRadiationBCCoefficients> & radCoeffs);
 
-        void createSimplifiedRadiationBC(size_t index1,
+        //! \brief Sets radiation boundary condition that is fixed during entire transient
+        //! simulation or set for steady-state case
+        //! @param index1 Node 1 index
+        //! @param index2 Node 2 index
+        //! @param radCoeffs Radiation coefficients for entire transient simulation or steady-state
+        void createLinearizedRadiationBC(size_t index1,
                                          size_t index2,
                                          const LinearizedRadiationBCCoefficients & linearRadBC);
+
+        //! \brief Sets radiation boundary condition that is fixed during entire transient
+        //! simulation or set for steady-state case
+        //! @param index1 Node 1 index
+        //! @param index2 Node 2 index
+        //! @param radCoeffs Radiation coefficients for every timestep
+        void createLinearizedRadiationBC(
+          size_t index1,
+          size_t index2,
+          const std::vector<LinearizedRadiationBCCoefficients> & linearRadBC);
 
     private:
         static double normError(const std::vector<double> & vec1, const std::vector<double> & vec2);
