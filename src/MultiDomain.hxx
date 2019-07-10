@@ -106,7 +106,17 @@ namespace HygroThermFEM
 
         void createTemperatureBC(size_t index1, size_t index2, double t_Temp1, double t_Temp2);
 
-        void createTemperatureBC(size_t index1, size_t index2, double t_Temp);
+        //! \brief Sets fixed temperature boundary conditions
+        //! @param index1 Node 1 index
+        //! @param index2 Node 2 index
+        //! @param temp Temperature value that will be set at the nodes
+        void createTemperatureBC(size_t index1, size_t index2, double temp);
+
+        //! \brief Sets fixed temperature boundary conditions at every timestep
+        //! @param index1 Node 1 index
+        //! @param index2 Node 2 index
+        //! @param temp Temperature values at every timestep that will be set at the nodes
+        void createTemperatureBC(size_t index1, size_t index2, std::vector<double> temp);
 
         void createBlackBodyRadiationBC(size_t index1,
                                         size_t index2,

@@ -178,6 +178,12 @@ namespace HygroThermFEM
         //! @param t_Temp Constant temperature in both nodes
         void createTemperatureBC(size_t index1, size_t index2, double t_Temp);
 
+        //! \brief Creation of temperature boundary condition
+        //! @param index1 Node 1 index
+        //! @param index2 Node 2 index
+        //! @param t_Temp Constant temperature at each timestep in both nodes
+        void createTemperatureBC(size_t index1, size_t index2, std::vector<double> t_Temp);
+
         //! \brief Creation of flux boundary condition
         //! @param index1 Node 1 index
         //! @param index2 Node 2 index

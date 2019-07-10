@@ -225,8 +225,8 @@ namespace HygroThermFEM
     {
         std::vector<std::unique_ptr<IBCLinear2D>> timestepBCs;
         std::for_each(varHCCoeff.begin(), varHCCoeff.end(), [&](const auto & bc) {
-            timestepBCs.push_back(std::make_unique<VariableConvectionBC>(
-              index1, index2, bc, t_CalculateMoisture));
+            timestepBCs.push_back(
+              std::make_unique<VariableConvectionBC>(index1, index2, bc, t_CalculateMoisture));
         });
         m_BCs.assignTimestepBCs(std::move(timestepBCs));
     }
@@ -244,6 +244,15 @@ namespace HygroThermFEM
                                             const double t_Temp)
     {
         m_BCs.assignBC(fem::make_unique<TemperatureBC>(index1, index2, t_Temp));
+    }
+
+    void ThermalDomain::createTemperatureBC(size_t index1, size_t index2, std::vector<double> temp)
+    {
+        std::vector<std::unique_ptr<IBCLinear2D>> timestepBCs;
+        std::for_each(temp.begin(), temp.end(), [&](const auto & temperature) {
+            timestepBCs.push_back(std::make_unique<TemperatureBC>(index1, index2, temperature));
+        });
+        m_BCs.assignTimestepBCs(std::move(timestepBCs));
     }
 
     void ThermalDomain::createFluxBC(const size_t index1, const size_t index2, const double t_Flux)
@@ -323,16 +332,14 @@ namespace HygroThermFEM
           fem::make_unique<MoistureBCVariableHc>(index1, index2, Material.name(), varHCCoeff));
     }
 
-    void MoistureDomain::createMoistureBCVariableHc(size_t index1,
-        size_t index2,
-        const std::vector<VariableBCHCCoefficients> & varCoeff)
+    void MoistureDomain::createMoistureBCVariableHc(
+      size_t index1, size_t index2, const std::vector<VariableBCHCCoefficients> & varCoeff)
     {
         std::vector<std::unique_ptr<IBCLinear2D>> timestepBCs;
         auto & Material = m_Elements.findElement(index1, index2)->getMaterial();
-        std::for_each(
-            varCoeff.begin(), varCoeff.end(), [&](const auto & bc) {
+        std::for_each(varCoeff.begin(), varCoeff.end(), [&](const auto & bc) {
             timestepBCs.push_back(
-                std::make_unique<MoistureBCVariableHc>(index1, index2, Material.name(), bc));
+              std::make_unique<MoistureBCVariableHc>(index1, index2, Material.name(), bc));
         });
         m_BCs.assignTimestepBCs(std::move(timestepBCs));
     }

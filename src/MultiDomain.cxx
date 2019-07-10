@@ -249,6 +249,11 @@ namespace HygroThermFEM
         m_ThermalDomain.createTemperatureBC(index1, index2, t_Temp);
     }
 
+    void MultiDomain::createTemperatureBC(size_t index1, size_t index2, std::vector<double> temp)
+    {
+        m_ThermalDomain.createTemperatureBC(index1, index2, temp);
+    }
+
     void MultiDomain::createBlackBodyRadiationBC(const size_t index1,
                                                  const size_t index2,
                                                  const double t_Emissivity,
