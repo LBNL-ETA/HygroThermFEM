@@ -281,6 +281,17 @@ namespace HygroThermFEM
           index1, index2, t_Emissivity, t_RadiationTemperature));
     }
 
+    void ThermalDomain::createBlackBodyRadiationBC(
+      size_t index1, size_t index2, const std::vector<BlackBodyRadiationBCCoefficients> & radCoeffs)
+    {
+        std::vector<std::unique_ptr<IBCLinear2D>> timestepBCs;
+        std::for_each(radCoeffs.begin(), radCoeffs.end(), [&](const auto & bc) {
+            timestepBCs.push_back(std::make_unique<BlackBodyRadiationBC>(
+              index1, index2, bc.Emissivity, bc.Temperature));
+        });
+        m_BCs.assignTimestepBCs(std::move(timestepBCs));
+    }
+
     void ThermalDomain::createSimplifiedRadiationBC(
       const size_t index1,
       const size_t index2,

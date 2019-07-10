@@ -38,11 +38,20 @@ namespace HygroThermFEM
     {}
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
-    // VariableBCHCCoefficients
+    // LinearizedRadiationBCCoefficients
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
     LinearizedRadiationBCCoefficients::LinearizedRadiationBCCoefficients(
       const double radiationCoefficient, const double radiationTemperature) :
         RadiationCoefficient(radiationCoefficient), RadiationTemperature(radiationTemperature)
+    {}
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+    // BlackBodyRadiationBCCoefficients
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+
+    BlackBodyRadiationBCCoefficients::BlackBodyRadiationBCCoefficients(const double emissivity,
+                                                     const double temperature) :
+        Emissivity(emissivity), Temperature(temperature)
     {}
 }   // namespace HygroThermFEM

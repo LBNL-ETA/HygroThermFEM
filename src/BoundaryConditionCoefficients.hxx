@@ -48,7 +48,7 @@ namespace HygroThermFEM
     };
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
-    // VariableBCHCCoefficients
+    // LinearizedRadiationBCCoefficients
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
     struct LinearizedRadiationBCCoefficients
@@ -58,4 +58,17 @@ namespace HygroThermFEM
         double RadiationCoefficient{0};
         double RadiationTemperature{0};
     };
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+    // BlackBodyRadiationBCCoefficients
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+
+    struct BlackBodyRadiationBCCoefficients
+    {
+        BlackBodyRadiationBCCoefficients(double emissivity, double temperature);
+
+        double Emissivity{0.0};
+        double Temperature{0.0};
+    };
+
 }   // namespace HygroThermFEM

@@ -132,10 +132,26 @@ namespace HygroThermFEM
         //! @param temp Temperature values at every timestep that will be set at the nodes
         void createTemperatureBC(size_t index1, size_t index2, std::vector<double> temp);
 
+        //! \brief Sets radiation boundary condition that is fixed during entire transient
+        //! simulation or set for steady-state case
+        //! @param index1 Node 1 index
+        //! @param index2 Node 2 index
+        //! @param t_Emissivity Surface emissivity
+        //! @param t_RadiationTemperature Environment radiation temperature
         void createBlackBodyRadiationBC(size_t index1,
                                         size_t index2,
                                         double t_Emissivity,
                                         double t_RadiationTemperature);
+
+        //! \brief Sets radiation boundary condition that is fixed during entire transient
+        //! simulation or set for steady-state case
+        //! @param index1 Node 1 index
+        //! @param index2 Node 2 index
+        //! @param radCoeffs Radiation coefficients for every timestep
+        void createBlackBodyRadiationBC(
+          size_t index1,
+          size_t index2,
+          const std::vector<BlackBodyRadiationBCCoefficients> & radCoeffs);
 
         void createSimplifiedRadiationBC(size_t index1,
                                          size_t index2,

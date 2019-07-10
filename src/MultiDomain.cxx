@@ -225,9 +225,8 @@ namespace HygroThermFEM
         m_MoistureDomain.createMoistureBCVariableHc(index1, index2, varHCCoeff);
     }
 
-    void MultiDomain::createMoistureBCVariableHc(size_t index1,
-        size_t index2,
-        const std::vector<VariableBCHCCoefficients> & varHCCoeff)
+    void MultiDomain::createMoistureBCVariableHc(
+      size_t index1, size_t index2, const std::vector<VariableBCHCCoefficients> & varHCCoeff)
     {
         m_ThermalDomain.createConvectionBCVariableHc(index1, index2, varHCCoeff, m_PerformMoisture);
 
@@ -243,8 +242,8 @@ namespace HygroThermFEM
     }
 
     void MultiDomain::createTemperatureBC(size_t index1,
-        size_t index2,
-        const std::vector<ConstantBCTemperatures> & temp)
+                                          size_t index2,
+                                          const std::vector<ConstantBCTemperatures> & temp)
     {
         m_ThermalDomain.createTemperatureBC(index1, index2, temp);
     }
@@ -268,6 +267,12 @@ namespace HygroThermFEM
     {
         m_ThermalDomain.createBlackBodyRadiationBC(
           index1, index2, t_Emissivity, t_RadiationTemperature);
+    }
+
+    void MultiDomain::createBlackBodyRadiationBC(
+      size_t index1, size_t index2, const std::vector<BlackBodyRadiationBCCoefficients> & radCoeffs)
+    {
+        m_ThermalDomain.createBlackBodyRadiationBC(index1, index2, radCoeffs);
     }
 
     void MultiDomain::createSimplifiedRadiationBC(
