@@ -239,6 +239,18 @@ namespace HygroThermFEM
         m_BCs.assignBC(std::make_unique<TemperatureBC>(index1, index2, t_Temp1, t_Temp2));
     }
 
+    void ThermalDomain::createTemperatureBC(size_t index1,
+                                            size_t index2,
+                                            const std::vector<ConstantBCTemperatures> & temp)
+    {
+        std::vector<std::unique_ptr<IBCLinear2D>> timestepBCs;
+        std::for_each(temp.begin(), temp.end(), [&](const auto & bc) {
+            timestepBCs.push_back(
+              std::make_unique<TemperatureBC>(index1, index2, bc.Temperature1, bc.Temperature2));
+        });
+        m_BCs.assignTimestepBCs(std::move(timestepBCs));
+    }
+
     void ThermalDomain::createTemperatureBC(const size_t index1,
                                             const size_t index2,
                                             const double t_Temp)

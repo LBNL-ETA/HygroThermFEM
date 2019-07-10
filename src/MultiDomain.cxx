@@ -242,6 +242,13 @@ namespace HygroThermFEM
         m_ThermalDomain.createTemperatureBC(index1, index2, t_Temp1, t_Temp2);
     }
 
+    void MultiDomain::createTemperatureBC(size_t index1,
+        size_t index2,
+        const std::vector<ConstantBCTemperatures> & temp)
+    {
+        m_ThermalDomain.createTemperatureBC(index1, index2, temp);
+    }
+
     void MultiDomain::createTemperatureBC(const size_t index1,
                                           const size_t index2,
                                           const double t_Temp)

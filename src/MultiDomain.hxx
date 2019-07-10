@@ -78,7 +78,7 @@ namespace HygroThermFEM
         //! @param index1 Node 1 index
         //! @param index2 Node 2 index
         //! @param fixedBchcCoefficients Structure with values that are used in fixed convection
-        //! coefficient boundary condition calculations 
+        //! coefficient boundary condition calculations
         void
           createMoistureBCFixedHc(size_t index1,
                                   size_t index2,
@@ -99,12 +99,26 @@ namespace HygroThermFEM
         //! @param index1 Node 1 index
         //! @param index2 Node 2 index
         //! @param varHCCoeff Structure with values that are used in variable convection
-        //! coefficient boundary condition calculations 
+        //! coefficient boundary condition calculations
         void createMoistureBCVariableHc(size_t index1,
-            size_t index2,
-            const std::vector<VariableBCHCCoefficients> & varHCCoeff);
+                                        size_t index2,
+                                        const std::vector<VariableBCHCCoefficients> & varHCCoeff);
 
-        void createTemperatureBC(size_t index1, size_t index2, double t_Temp1, double t_Temp2);
+        //! \brief Sets fixed temperature boundary conditions
+        //! @param index1 Node 1 index
+        //! @param index2 Node 2 index
+        //! @param temp1 Temperature value that will be set at the node 1
+        //! @param temp2 Temperature value that will be set at the node 2
+        void createTemperatureBC(size_t index1, size_t index2, double temp1, double temp2);
+
+        //! \brief Sets fixed temperature boundary conditions
+        //! @param index1 Node 1 index
+        //! @param index2 Node 2 index
+        //! @param temp Set of node temperatures for every given timstep (each node can have
+        //! different temperature).
+        void createTemperatureBC(size_t index1,
+                                 size_t index2,
+                                 const std::vector<ConstantBCTemperatures> & temp);
 
         //! \brief Sets fixed temperature boundary conditions
         //! @param index1 Node 1 index
