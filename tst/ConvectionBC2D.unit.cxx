@@ -29,7 +29,9 @@ TEST_F(TestConvectionBC2D, TestIntegrationPoints)
     const auto hc = 20.0;
     const auto tAir = 255.15;
 
-    auto aBc = HygroThermFEM::ConstantConvectionBC(1, 2, tAir, hc);
+    const HygroThermFEM::FixedBCHCCoefficients bcCoeff{tAir, hc};
+
+    auto aBc = HygroThermFEM::ConstantConvectionBC(1, 2, bcCoeff);
 
     auto h = aBc.H_Matrix();
 

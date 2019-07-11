@@ -2,6 +2,7 @@
 
 #include "IBCLine2D.hxx"
 #include "Material.hxx"
+#include "BoundaryConditionCoefficients.hxx"
 
 namespace HygroThermFEM
 {
@@ -113,9 +114,7 @@ namespace HygroThermFEM
     public:
         ConstantConvectionBC(size_t index1,
                              size_t index2,
-                             double t_AirTemperature,
-                             double t_ConvectionCoefficient,
-                             double t_AirHumidity = 0,
+                             const FixedBCHCCoefficients & fixedBCHCCoefficients,
                              bool t_CalculateMoisture = true);
     };
 
@@ -127,8 +126,7 @@ namespace HygroThermFEM
     public:
         VariableConvectionBC(size_t index1,
                              size_t index2,
-                             double t_AirTemperature,
-                             double t_AirHumidity,
+                             const VariableBCHCCoefficients & varHCCoeff,
                              bool t_CalculateMoisture = true);
     };
 
@@ -222,13 +220,12 @@ namespace HygroThermFEM
     ///////////////////////////////////////////////////////
     /// SimplifiedRadiationBC
     ///////////////////////////////////////////////////////
-    class SimplifiedRadiationBC : public IBCLinear2D
+    class LinearizedRadiationBC : public IBCLinear2D
     {
     public:
-        SimplifiedRadiationBC(size_t index1,
+        LinearizedRadiationBC(size_t index1,
                               size_t index2,
-                              double t_RadiationCoefficient,
-                              double t_RadiationTemperature);
+                              const LinearizedRadiationBCCoefficients & linearRadBC);
 
         std::vector<double> R_Vector() const override;
 
@@ -282,8 +279,7 @@ namespace HygroThermFEM
         MoistureBCVariableHc(size_t index1,
                              size_t index2,
                              const std::string & materialName,
-                             double t_AirHumidity,
-                             double t_AirTemperature);
+                             const VariableBCHCCoefficients & varHCCoeff);
     };
 
     /////////////////////////////////////////////////////
@@ -297,12 +293,7 @@ namespace HygroThermFEM
         MoistureBCFixedHc(size_t index1,
                           size_t index2,
                           const std::string & materialName,
-                          double t_AirHumidity,
-                          double t_AirTemperature,
-                          double m_ConvectiveCoefficient);
-
-    private:
-        const double m_ConvectiveCoefficient;
+                          const FixedBCHCCoefficients & fixedBchcCoefficients);
     };
 
 }   // namespace HygroThermFEM

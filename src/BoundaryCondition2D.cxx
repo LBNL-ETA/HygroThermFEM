@@ -84,11 +84,9 @@ namespace HygroThermFEM
         switch(model)
         {
             case ConvectionModel::Fixed:
-                return std::unique_ptr<FixedConvectionCoefficient>(
-                  new FixedConvectionCoefficient(nodes, ambientVariable));
+                return std::make_unique<FixedConvectionCoefficient>(nodes, ambientVariable);
             case ConvectionModel::Variable:
-                return std::unique_ptr<VariableConvectionCoefficient>(
-                  new VariableConvectionCoefficient(nodes, ambientVariable));
+                return std::make_unique<VariableConvectionCoefficient>(nodes, ambientVariable);
         }
         return nullptr;
     }
@@ -148,17 +146,16 @@ namespace HygroThermFEM
     ////////////////////////////////////////////////////////
     ConstantConvectionBC::ConstantConvectionBC(size_t index1,
                                                size_t index2,
-                                               double t_AirTemperature,
-                                               const double t_ConvectionCoefficient,
-                                               const double t_AirHumidity,
+                                               const FixedBCHCCoefficients & fixedBCHCCoefficients,
                                                const bool t_CalculateMoisture) :
-        IConvectionBC(
-          index1,
-          index2,
-          t_AirTemperature,
-          ConvectionModelFactory::create(ConvectionModel::Fixed, m_Nodes, t_ConvectionCoefficient),
-          t_AirHumidity,
-          t_CalculateMoisture)
+        IConvectionBC(index1,
+                      index2,
+                      fixedBCHCCoefficients.AirTemperature,
+                      ConvectionModelFactory::create(ConvectionModel::Fixed,
+                                                     m_Nodes,
+                                                     fixedBCHCCoefficients.ConvectionCoefficient),
+                      fixedBCHCCoefficients.AirHumidity,
+                      t_CalculateMoisture)
     {}
 
     ////////////////////////////////////////////////////////
@@ -166,16 +163,15 @@ namespace HygroThermFEM
     ////////////////////////////////////////////////////////
     VariableConvectionBC::VariableConvectionBC(size_t index1,
                                                size_t index2,
-                                               double t_AirTemperature,
-                                               double t_AirHumidity,
+                                               const VariableBCHCCoefficients & varHCCoeff,
                                                const bool t_CalculateMoisture) :
-        IConvectionBC(
-          index1,
-          index2,
-          t_AirTemperature,
-          ConvectionModelFactory::create(ConvectionModel::Variable, m_Nodes, t_AirTemperature),
-          t_AirHumidity,
-          t_CalculateMoisture)
+        IConvectionBC(index1,
+                      index2,
+                      varHCCoeff.AirTemperature,
+                      ConvectionModelFactory::create(
+                        ConvectionModel::Variable, m_Nodes, varHCCoeff.AirTemperature),
+                      varHCCoeff.AirHumidity,
+                      t_CalculateMoisture)
     {}
 
     ////////////////////////////////////////////////////////
@@ -185,7 +181,7 @@ namespace HygroThermFEM
     TemperatureBC::TemperatureBC(const size_t index1,
                                  const size_t index2,
                                  const double t_NodeTemperatures) :
-        ConstantConvectionBC(index1, index2, t_NodeTemperatures, 1e18)
+        ConstantConvectionBC(index1, index2, {t_NodeTemperatures, 1e18})
     {
         auto & node1 = NodePool::Instance().getNode(index1);
         auto & node2 = NodePool::Instance().getNode(index2);
@@ -197,7 +193,7 @@ namespace HygroThermFEM
                                  const size_t index2,
                                  const double t_Temp1,
                                  const double t_Temp2) :
-        ConstantConvectionBC(index1, index2, (t_Temp1 + t_Temp2) / 2, 1e18)
+        ConstantConvectionBC(index1, index2, {(t_Temp1 + t_Temp2) / 2, 1e18})
     {
         auto & node1 = NodePool::Instance().getNode(index1);
         auto & node2 = NodePool::Instance().getNode(index2);
@@ -268,21 +264,19 @@ namespace HygroThermFEM
     /// SimplifiedRadiationBC
     ////////////////////////////////////////////////////////
 
-    SimplifiedRadiationBC::SimplifiedRadiationBC(size_t index1,
-                                                 size_t index2,
-                                                 double t_RadiationCoefficient,
-                                                 double t_RadiationTemperature) :
+    LinearizedRadiationBC::LinearizedRadiationBC(
+      size_t index1, size_t index2, const LinearizedRadiationBCCoefficients & linearRadBC) :
         IBCLinear2D(index1, index2),
-        m_RadiationCoefficient(t_RadiationCoefficient),
-        m_RadiationTemperature(t_RadiationTemperature)
+        m_RadiationCoefficient(linearRadBC.RadiationCoefficient),
+        m_RadiationTemperature(linearRadBC.RadiationTemperature)
     {}
 
-    std::vector<double> SimplifiedRadiationBC::R_Vector() const
+    std::vector<double> LinearizedRadiationBC::R_Vector() const
     {
         return m_PsiVector * m_RadiationCoefficient * m_RadiationTemperature;
     }
 
-    SquareMatrix SimplifiedRadiationBC::H_Matrix() const
+    SquareMatrix LinearizedRadiationBC::H_Matrix() const
     {
         return m_PsiPsiMatrix * m_RadiationCoefficient;
     }
@@ -330,15 +324,14 @@ namespace HygroThermFEM
     MoistureBCVariableHc::MoistureBCVariableHc(size_t index1,
                                                size_t index2,
                                                const std::string & materialName,
-                                               double t_AirHumidity,
-                                               double t_AirTemperature) :
-        IMoistureBC(
-          index1,
-          index2,
-          materialName,
-          t_AirHumidity,
-          t_AirTemperature,
-          ConvectionModelFactory::create(ConvectionModel::Variable, m_Nodes, t_AirTemperature))
+                                               const VariableBCHCCoefficients & varHCCoeff) :
+        IMoistureBC(index1,
+                    index2,
+                    materialName,
+                    varHCCoeff.AirHumidity,
+                    varHCCoeff.AirTemperature,
+                    ConvectionModelFactory::create(
+                      ConvectionModel::Variable, m_Nodes, varHCCoeff.AirTemperature))
     {}
 
 
@@ -348,16 +341,14 @@ namespace HygroThermFEM
     MoistureBCFixedHc::MoistureBCFixedHc(size_t index1,
                                          size_t index2,
                                          const std::string & materialName,
-                                         double t_AirHumidity,
-                                         double t_AirTemperature,
-                                         double convectiveCoefficient) :
-        IMoistureBC(
-          index1,
-          index2,
-          materialName,
-          t_AirHumidity,
-          t_AirTemperature,
-          ConvectionModelFactory::create(ConvectionModel::Fixed, m_Nodes, convectiveCoefficient)),
-        m_ConvectiveCoefficient(convectiveCoefficient)
+                                         const FixedBCHCCoefficients & fixedBchcCoefficients) :
+        IMoistureBC(index1,
+                    index2,
+                    materialName,
+                    fixedBchcCoefficients.AirHumidity,
+                    fixedBchcCoefficients.AirTemperature,
+                    ConvectionModelFactory::create(ConvectionModel::Fixed,
+                                                   m_Nodes,
+                                                   fixedBchcCoefficients.ConvectionCoefficient))
     {}
 }   // namespace HygroThermFEM

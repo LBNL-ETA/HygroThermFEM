@@ -1,5 +1,6 @@
 #include <cmath>
 #include <limits>
+#include <utility>
 
 #include "MultiDomain.hxx"
 #include "Common.hxx"
@@ -17,14 +18,15 @@ namespace HygroThermFEM
 
     Solution MultiDomain::transient(std::vector<double> & temperature,
                                     std::vector<double> & humidity,
-                                    const double t_DTime)
+                                    const double t_DTime,
+                                    size_t timestepIndex)
     {
-        const auto ConvergenceError = SimulationProperties::Instance().errorTolerance();
+        const auto ConvergenceError{SimulationProperties::Instance().errorTolerance()};
         auto temperatureError{std::numeric_limits<double>::max()};
         auto humidityError{std::numeric_limits<double>::max()};
-        auto currentTemperature = temperature;
-        auto currentHumidity = humidity;
-        double dTime = t_DTime;
+        auto currentTemperature{temperature};
+        auto currentHumidity{humidity};
+        double dTime{t_DTime};
         SingleSolution temperatureSolution{temperature, t_DTime};
         SingleSolution humiditySolution{humidity, t_DTime};
 
@@ -41,7 +43,7 @@ namespace HygroThermFEM
                 size_t localIterCounter{0};
                 while(humidityError > ConvergenceError && localIterCounter <= MaxIterations)
                 {
-                    humiditySolution = m_MoistureDomain.transient(humidity, dTime);
+                    humiditySolution = m_MoistureDomain.transient(humidity, dTime, timestepIndex);
                     humidityError = normError(humiditySolution.solution, currentHumidity);
                     currentHumidity = humiditySolution.solution;
                     ++localIterCounter;
@@ -57,7 +59,8 @@ namespace HygroThermFEM
                 size_t localIterCounter{0};
                 while(temperatureError > ConvergenceError && localIterCounter <= MaxIterations)
                 {
-                    temperatureSolution = m_ThermalDomain.transient(temperature, dTime);
+                    temperatureSolution =
+                      m_ThermalDomain.transient(temperature, dTime, timestepIndex);
                     temperatureError = normError(temperatureSolution.solution, currentTemperature);
                     currentTemperature = temperatureSolution.solution;
                     ++localIterCounter;
@@ -72,7 +75,7 @@ namespace HygroThermFEM
             {
                 NodePool::Instance().updateNodeValues(
                   temperatureSolution.solution, BaseVariable::temperature, false);
-                humiditySolution = m_MoistureDomain.transient(humidity, dTime);
+                humiditySolution = m_MoistureDomain.transient(humidity, dTime, timestepIndex);
                 humidityError = normError(humiditySolution.solution, currentHumidity);
                 currentHumidity = humiditySolution.solution;
             }
@@ -81,7 +84,7 @@ namespace HygroThermFEM
             {
                 NodePool::Instance().updateNodeValues(
                   humiditySolution.solution, BaseVariable::humidity, false);
-                temperatureSolution = m_ThermalDomain.transient(temperature, dTime);
+                temperatureSolution = m_ThermalDomain.transient(temperature, dTime, timestepIndex);
                 temperatureError = normError(temperatureSolution.solution, currentTemperature);
                 currentTemperature = temperatureSolution.solution;
             }
@@ -195,26 +198,39 @@ namespace HygroThermFEM
 
     void MultiDomain::createMoistureBCFixedHc(const size_t index1,
                                               const size_t index2,
-                                              const double t_AirTemperature,
-                                              const double t_ConvectionCoefficient,
-                                              const double t_Humidity)
+                                              const FixedBCHCCoefficients & fixedBchcCoefficients)
     {
         m_ThermalDomain.createConvectionBCFixedHc(
-          index1, index2, t_AirTemperature, t_ConvectionCoefficient, t_Humidity, m_PerformMoisture);
+          index1, index2, fixedBchcCoefficients, m_PerformMoisture);
 
-        m_MoistureDomain.createMoistureBCFixedHc(
-          index1, index2, t_AirTemperature, t_ConvectionCoefficient, t_Humidity);
+        m_MoistureDomain.createMoistureBCFixedHc(index1, index2, fixedBchcCoefficients);
+    }
+
+    void MultiDomain::createMoistureBCFixedHc(
+      size_t index1,
+      size_t index2,
+      const std::vector<FixedBCHCCoefficients> & fixedBchcCoefficients)
+    {
+        m_ThermalDomain.createConvectionBCFixedHc(
+          index1, index2, fixedBchcCoefficients, m_PerformMoisture);
+        m_MoistureDomain.createMoistureBCFixedHc(index1, index2, fixedBchcCoefficients);
     }
 
     void MultiDomain::createMoistureBCVariableHc(const size_t index1,
                                                  const size_t index2,
-                                                 const double t_AirTemperature,
-                                                 const double t_Humidity)
+                                                 const VariableBCHCCoefficients & varHCCoeff)
     {
-        m_ThermalDomain.createConvectionBCVariableHc(
-          index1, index2, t_AirTemperature, t_Humidity, m_PerformMoisture);
+        m_ThermalDomain.createConvectionBCVariableHc(index1, index2, varHCCoeff, m_PerformMoisture);
 
-        m_MoistureDomain.createMoistureBCVariableHc(index1, index2, t_Humidity, t_AirTemperature);
+        m_MoistureDomain.createMoistureBCVariableHc(index1, index2, varHCCoeff);
+    }
+
+    void MultiDomain::createMoistureBCVariableHc(
+      size_t index1, size_t index2, const std::vector<VariableBCHCCoefficients> & varHCCoeff)
+    {
+        m_ThermalDomain.createConvectionBCVariableHc(index1, index2, varHCCoeff, m_PerformMoisture);
+
+        m_MoistureDomain.createMoistureBCVariableHc(index1, index2, varHCCoeff);
     }
 
     void MultiDomain::createTemperatureBC(const size_t index1,
@@ -225,11 +241,23 @@ namespace HygroThermFEM
         m_ThermalDomain.createTemperatureBC(index1, index2, t_Temp1, t_Temp2);
     }
 
+    void MultiDomain::createTemperatureBC(size_t index1,
+                                          size_t index2,
+                                          const std::vector<ConstantBCTemperatures> & temp)
+    {
+        m_ThermalDomain.createTemperatureBC(index1, index2, temp);
+    }
+
     void MultiDomain::createTemperatureBC(const size_t index1,
                                           const size_t index2,
                                           const double t_Temp)
     {
         m_ThermalDomain.createTemperatureBC(index1, index2, t_Temp);
+    }
+
+    void MultiDomain::createTemperatureBC(size_t index1, size_t index2, std::vector<double> temp)
+    {
+        m_ThermalDomain.createTemperatureBC(index1, index2, temp);
     }
 
     void MultiDomain::createBlackBodyRadiationBC(const size_t index1,
@@ -241,13 +269,26 @@ namespace HygroThermFEM
           index1, index2, t_Emissivity, t_RadiationTemperature);
     }
 
-    void MultiDomain::createSimplifiedRadiationBC(const size_t index1,
-                                                  const size_t index2,
-                                                  const double t_RadiationCoefficient,
-                                                  const double t_RadiationTemperature)
+    void MultiDomain::createBlackBodyRadiationBC(
+      size_t index1, size_t index2, const std::vector<BlackBodyRadiationBCCoefficients> & radCoeffs)
     {
-        m_ThermalDomain.createSimplifiedRadiationBC(
-          index1, index2, t_RadiationCoefficient, t_RadiationTemperature);
+        m_ThermalDomain.createBlackBodyRadiationBC(index1, index2, radCoeffs);
+    }
+
+    void MultiDomain::createLinearizedRadiationBC(
+      const size_t index1,
+      const size_t index2,
+      const LinearizedRadiationBCCoefficients & linearRadBC)
+    {
+        m_ThermalDomain.createLinearizedRadiationBC(index1, index2, linearRadBC);
+    }
+
+    void MultiDomain::createLinearizedRadiationBC(
+      size_t index1,
+      size_t index2,
+      const std::vector<LinearizedRadiationBCCoefficients> & linearRadBC)
+    {
+        m_ThermalDomain.createLinearizedRadiationBC(index1, index2, linearRadBC);
     }
 
     double MultiDomain::normError(const std::vector<double> & vec1,
@@ -273,25 +314,25 @@ namespace HygroThermFEM
     }
 
     Solution::Solution(const double dtime,
-                       const std::vector<double> & temperature,
-                       const std::vector<double> & humidity,
-                       const std::vector<double> & waterContent,
-                       const std::vector<double> & liquidWaterContent,
-                       const std::vector<double> & vaporContent,
-                       const std::vector<double> & iceContent,
-                       const std::vector<NodeFlux> & heatFlux,
-                       const std::vector<NodeFlux> & waterFlux,
+                       std::vector<double> temperature,
+                       std::vector<double> humidity,
+                       std::vector<double> waterContent,
+                       std::vector<double> liquidWaterContent,
+                       std::vector<double> vaporContent,
+                       std::vector<double> iceContent,
+                       std::vector<NodeFlux> heatFlux,
+                       std::vector<NodeFlux> waterFlux,
                        const double temperatureError,
                        const double humidityError) :
         dTime(dtime),
-        temperature(temperature),
-        humidity(humidity),
-        waterContent(waterContent),
-        liquidWaterContent(liquidWaterContent),
-        vaporContent(vaporContent),
-        iceContent(iceContent),
-        heatFlux(heatFlux),
-        waterFlux(waterFlux),
+        temperature(std::move(temperature)),
+        humidity(std::move(humidity)),
+        waterContent(std::move(waterContent)),
+        liquidWaterContent(std::move(liquidWaterContent)),
+        vaporContent(std::move(vaporContent)),
+        iceContent(std::move(iceContent)),
+        heatFlux(std::move(heatFlux)),
+        waterFlux(std::move(waterFlux)),
         temperatureError(temperatureError),
         humidityError(humidityError)
     {}

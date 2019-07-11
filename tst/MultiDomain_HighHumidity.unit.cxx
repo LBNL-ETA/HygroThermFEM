@@ -80,12 +80,13 @@ TEST_F(MultiDomain_HighHumidity, TestExample_1)
     }
 
     // Create Boundary Conditions
-    const auto convectiveCoefficient = 10;
-    const auto ambientTemperature = 20;
-    const auto ambientHumidity = 1.0;
+    const auto hc = 10.0;
+    const auto airTemperature = 20.0;
+    const auto airHumidity = 1.0;
 
-    domain.createMoistureBCFixedHc(
-      5, 6, ambientTemperature, convectiveCoefficient, ambientHumidity);
+    const HygroThermFEM::FixedBCHCCoefficients bcCoeff{airTemperature, hc, airHumidity};
+
+    domain.createMoistureBCFixedHc(5, 6, bcCoeff);
 
     const auto dTime = 3600;
     const auto nSteps = 2;
@@ -96,16 +97,18 @@ TEST_F(MultiDomain_HighHumidity, TestExample_1)
     std::vector<double> temperatureError;
     std::vector<std::vector<double>> waterContentSolution;
     std::vector<double> humidityError;
+    size_t timestepIndex{0};
 
     for(auto i = 0; i < nSteps; ++i)
     {
-        auto aSolution = domain.transient(temperatures, humidities, dTime);
+        auto aSolution = domain.transient(temperatures, humidities, dTime, timestepIndex);
         temperatureSolution.push_back(aSolution.temperature);
         temperatureError.push_back(aSolution.temperatureError);
         waterContentSolution.push_back(aSolution.waterContent);
         humidityError.push_back(aSolution.humidityError);
         temperatures = aSolution.temperature;
         humidities = aSolution.humidity;
+        ++timestepIndex;
     }
 
     const std::vector<double> correctHumidityError{2.360245e-09, 5.885973e-06};

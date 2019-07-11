@@ -7,14 +7,14 @@ namespace HygroThermFEM
     struct Solution
     {
         Solution(double dtime,
-                 const std::vector<double> & temperature,
-                 const std::vector<double> & humidity,
-                 const std::vector<double> & waterContent,
-                 const std::vector<double> & liquidWaterContent,
-                 const std::vector<double> & vaporContent,
-                 const std::vector<double> & iceContent,
-                 const std::vector<NodeFlux> & heatFlux,
-                 const std::vector<NodeFlux> & waterFlux,
+                 std::vector<double> temperature,
+                 std::vector<double> humidity,
+                 std::vector<double> waterContent,
+                 std::vector<double> liquidWaterContent,
+                 std::vector<double> vaporContent,
+                 std::vector<double> iceContent,
+                 std::vector<NodeFlux> heatFlux,
+                 std::vector<NodeFlux> waterFlux,
                  double temperatureError,
                  double humidityError);
 
@@ -36,46 +36,141 @@ namespace HygroThermFEM
     public:
         MultiDomain(bool performThermal = true, bool performMoisture = true);
 
-        /// Calculates next timestep value from current values
+        //! \brief Calculates next timestep value from current values
+        //! @param temperature vector of nodal temperatures from previous timestep
+        //! @param humidity vector of nodal humidity from previous timestep
+        //! @param t_DTime time between two timestep
+        //! @param timestepIndex current timestep index used in variable boundary conditions case
         Solution transient(std::vector<double> & temperature,
                            std::vector<double> & humidity,
-                           double t_DTime);
+                           double t_DTime,
+                           size_t timestepIndex = 0);
 
         //! Calculates steady state solution for multiple domains.
         Solution steadyState();
 
         static std::vector<double> property(Variable property);
 
+        //! \brief Creates element with material reference
+        //! @param index1 Node 1 index
+        //! @param index2 Node 2 index
+        //! @param index3 Node 3 index
+        //! @param index4 Node 4 index
+        //! @param materialName Material name assigned to the element
         void createElement(size_t index1,
                            size_t index2,
                            size_t index3,
                            size_t index4,
                            const std::string & materialName);
 
+        //! \brief Creates boundary condition with coefficients that are identical during the entire
+        //! transient simulation or in steady-state calculations
+        //! @param index1 Node 1 index
+        //! @param index2 Node 2 index
+        //! @param fixedBchcCoefficients Structure with values that are used in fixed convection
+        //! coefficient boundary condition calculations
         void createMoistureBCFixedHc(size_t index1,
                                      size_t index2,
-                                     double t_AirTemperature,
-                                     double t_ConvectionCoefficient,
-                                     double t_Humidity);
+                                     const FixedBCHCCoefficients & fixedBchcCoefficients);
 
+        //! \brief Creates set of boundary condition coefficients that are used during transient
+        //! simulation
+        //! @param index1 Node 1 index
+        //! @param index2 Node 2 index
+        //! @param fixedBchcCoefficients Structure with values that are used in fixed convection
+        //! coefficient boundary condition calculations
+        void
+          createMoistureBCFixedHc(size_t index1,
+                                  size_t index2,
+                                  const std::vector<FixedBCHCCoefficients> & fixedBchcCoefficients);
+
+        //! \brief Creates boundary condition with coefficients that are identical during the entire
+        //! transient simulation or in steady-state calculations
+        //! @param index1 Node 1 index
+        //! @param index2 Node 2 index
+        //! @param varHCCoeff Structure with values that are used in variable convection
+        //! coefficient boundary condition calculations
         void createMoistureBCVariableHc(size_t index1,
                                         size_t index2,
-                                        double t_AirTemperature,
-                                        double t_Humidity);
+                                        const VariableBCHCCoefficients & varHCCoeff);
 
-        void createTemperatureBC(size_t index1, size_t index2, double t_Temp1, double t_Temp2);
+        //! \brief Creates set of boundary condition coefficients that are used during transient
+        //! simulation
+        //! @param index1 Node 1 index
+        //! @param index2 Node 2 index
+        //! @param varHCCoeff Structure with values that are used in variable convection
+        //! coefficient boundary condition calculations
+        void createMoistureBCVariableHc(size_t index1,
+                                        size_t index2,
+                                        const std::vector<VariableBCHCCoefficients> & varHCCoeff);
 
-        void createTemperatureBC(size_t index1, size_t index2, double t_Temp);
+        //! \brief Sets fixed temperature boundary conditions
+        //! @param index1 Node 1 index
+        //! @param index2 Node 2 index
+        //! @param temp1 Temperature value that will be set at the node 1
+        //! @param temp2 Temperature value that will be set at the node 2
+        void createTemperatureBC(size_t index1, size_t index2, double temp1, double temp2);
 
+        //! \brief Sets fixed temperature boundary conditions
+        //! @param index1 Node 1 index
+        //! @param index2 Node 2 index
+        //! @param temp Set of node temperatures for every given timstep (each node can have
+        //! different temperature).
+        void createTemperatureBC(size_t index1,
+                                 size_t index2,
+                                 const std::vector<ConstantBCTemperatures> & temp);
+
+        //! \brief Sets fixed temperature boundary conditions
+        //! @param index1 Node 1 index
+        //! @param index2 Node 2 index
+        //! @param temp Temperature value that will be set at the nodes
+        void createTemperatureBC(size_t index1, size_t index2, double temp);
+
+        //! \brief Sets fixed temperature boundary conditions at every timestep
+        //! @param index1 Node 1 index
+        //! @param index2 Node 2 index
+        //! @param temp Temperature values at every timestep that will be set at the nodes
+        void createTemperatureBC(size_t index1, size_t index2, std::vector<double> temp);
+
+        //! \brief Sets radiation boundary condition that is fixed during entire transient
+        //! simulation or set for steady-state case
+        //! @param index1 Node 1 index
+        //! @param index2 Node 2 index
+        //! @param t_Emissivity Surface emissivity
+        //! @param t_RadiationTemperature Environment radiation temperature
         void createBlackBodyRadiationBC(size_t index1,
                                         size_t index2,
                                         double t_Emissivity,
                                         double t_RadiationTemperature);
 
-        void createSimplifiedRadiationBC(size_t index1,
+        //! \brief Sets radiation boundary condition that is fixed during entire transient
+        //! simulation or set for steady-state case
+        //! @param index1 Node 1 index
+        //! @param index2 Node 2 index
+        //! @param radCoeffs Radiation coefficients for every timestep
+        void createBlackBodyRadiationBC(
+          size_t index1,
+          size_t index2,
+          const std::vector<BlackBodyRadiationBCCoefficients> & radCoeffs);
+
+        //! \brief Sets radiation boundary condition that is fixed during entire transient
+        //! simulation or set for steady-state case
+        //! @param index1 Node 1 index
+        //! @param index2 Node 2 index
+        //! @param radCoeffs Radiation coefficients for entire transient simulation or steady-state
+        void createLinearizedRadiationBC(size_t index1,
                                          size_t index2,
-                                         double t_RadiationCoefficient,
-                                         double t_RadiationTemperature);
+                                         const LinearizedRadiationBCCoefficients & linearRadBC);
+
+        //! \brief Sets radiation boundary condition that is fixed during entire transient
+        //! simulation or set for steady-state case
+        //! @param index1 Node 1 index
+        //! @param index2 Node 2 index
+        //! @param radCoeffs Radiation coefficients for every timestep
+        void createLinearizedRadiationBC(
+          size_t index1,
+          size_t index2,
+          const std::vector<LinearizedRadiationBCCoefficients> & linearRadBC);
 
     private:
         static double normError(const std::vector<double> & vec1, const std::vector<double> & vec2);

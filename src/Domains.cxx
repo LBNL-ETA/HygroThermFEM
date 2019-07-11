@@ -26,22 +26,23 @@ namespace HygroThermFEM
         return m_BCs.RVector();
     }
 
-    SquareMatrix IDomain::transientM_K_H_Matrix(const double t_DTime)
+    SquareMatrix IDomain::transientM_K_H_Matrix(const double t_DTime, const size_t timestepIndex)
     {
         const auto M = m_Elements.getLumpedMass(t_DTime);
         auto M_K_H = m_Elements.conductanceMatrix();
         M_K_H = M_K_H.addDiagonal(M);
-        M_K_H += m_BCs.HMatrix();
+        M_K_H += m_BCs.HMatrix(timestepIndex);
 
         return M_K_H;
     }
 
     std::vector<double>
       IDomain::transientMT_R_Vector(const std::vector<double> & t_PreviousSolution,
-                                    const double t_DTime)
+                                    const double t_DTime,
+                                    const size_t timestepIndex)
     {
         const std::vector<double> M{m_Elements.getLumpedMass(t_DTime)};
-        const auto R = m_BCs.RVector() + m_Elements.RVector();
+        const auto R = m_BCs.RVector(timestepIndex) + m_Elements.RVector();
 
         auto B = t_PreviousSolution * M + R;
 
@@ -57,7 +58,8 @@ namespace HygroThermFEM
     }
 
     SingleSolution IDomain::transient(const std::vector<double> & currentStateValues,
-                                      const double t_DTime)
+                                      const double t_DTime,
+                                      const size_t timestepIndex)
     {
         std::vector<double> solution;
         bool converged{false};
@@ -70,7 +72,7 @@ namespace HygroThermFEM
         // multiple consecutive simulations in order to achieve solution at requested timestep.
         while(totalTime < t_DTime)
         {
-            const auto current = transientTimestep(stateVariables, currentDTime);
+            const auto current = transientTimestep(stateVariables, currentDTime, timestepIndex);
             solution = current.first;
             converged = current.second;
             if(!converged)
@@ -94,15 +96,16 @@ namespace HygroThermFEM
 
     std::pair<std::vector<double>, bool>
       IDomain::transientTimestep(const std::vector<double> & currentStateValues,
-                                 const double t_DTime)
+                                 const double t_DTime,
+                                 const size_t timestepIndex)
     {
         const auto RelaxParameter = SimulationProperties::Instance().relaxationParamter();
         const auto ConvergenceError = SimulationProperties::Instance().errorTolerance();
         const auto MaxIterations = SimulationProperties::Instance().maxNumberOfIterations();
 
-        auto A = transientM_K_H_Matrix(t_DTime);
+        auto A = transientM_K_H_Matrix(t_DTime, timestepIndex);
 
-        auto B = transientMT_R_Vector(currentStateValues, t_DTime);
+        auto B = transientMT_R_Vector(currentStateValues, t_DTime, timestepIndex);
 
         std::vector<double> solution;
         bool converged{false};
@@ -144,8 +147,8 @@ namespace HygroThermFEM
                 NodePool::Instance().updateNodeValues(
                   solution, m_Property, m_AutomaticUpdatePreviousTimestep);
 
-                A = transientM_K_H_Matrix(t_DTime);
-                B = transientMT_R_Vector(currentStateValues, t_DTime);
+                A = transientM_K_H_Matrix(t_DTime, timestepIndex);
+                B = transientMT_R_Vector(currentStateValues, t_DTime, timestepIndex);
 
                 converged = (std::abs(previousNorm - currentNorm) / (currentNorm + 1e-12))
                             <= ConvergenceError;
@@ -180,29 +183,52 @@ namespace HygroThermFEM
         // some functionality if necessary.
     }
 
-    void ThermalDomain::createConvectionBCFixedHc(const size_t index1,
-                                                  const size_t index2,
-                                                  const double t_AirTemperature,
-                                                  const double t_ConvectionCoefficient,
-                                                  const double t_AirHumidity,
-                                                  const bool t_CalculateMoisture)
+    void
+      ThermalDomain::createConvectionBCFixedHc(const size_t index1,
+                                               const size_t index2,
+                                               const FixedBCHCCoefficients & fixedBCHCCoefficients,
+                                               const bool t_CalculateMoisture)
     {
-        m_BCs.assignBC(fem::make_unique<ConstantConvectionBC>(index1,
-                                                              index2,
-                                                              t_AirTemperature,
-                                                              t_ConvectionCoefficient,
-                                                              t_AirHumidity,
-                                                              t_CalculateMoisture));
+        m_BCs.assignBC(fem::make_unique<ConstantConvectionBC>(
+          index1, index2, fixedBCHCCoefficients, t_CalculateMoisture));
+    }
+
+    void ThermalDomain::createConvectionBCFixedHc(
+      size_t index1,
+      size_t index2,
+      const std::vector<FixedBCHCCoefficients> & fixedBCHCCoefficients,
+      bool calculateMoisture)
+    {
+        std::vector<std::unique_ptr<IBCLinear2D>> timestepBCs;
+        std::for_each(
+          fixedBCHCCoefficients.begin(), fixedBCHCCoefficients.end(), [&](const auto & bc) {
+              timestepBCs.push_back(
+                std::make_unique<ConstantConvectionBC>(index1, index2, bc, calculateMoisture));
+          });
+        m_BCs.assignTimestepBCs(std::move(timestepBCs));
     }
 
     void ThermalDomain::createConvectionBCVariableHc(const size_t index1,
                                                      const size_t index2,
-                                                     const double t_AirTemperature,
-                                                     const double t_AirHumidity,
+                                                     const VariableBCHCCoefficients & varHCCoeff,
                                                      const bool t_CalculateMoisture)
     {
-        m_BCs.assignBC(fem::make_unique<VariableConvectionBC>(
-          index1, index2, t_AirTemperature, t_AirHumidity, t_CalculateMoisture));
+        m_BCs.assignBC(
+          std::make_unique<VariableConvectionBC>(index1, index2, varHCCoeff, t_CalculateMoisture));
+    }
+
+    void ThermalDomain::createConvectionBCVariableHc(
+      size_t index1,
+      size_t index2,
+      const std::vector<VariableBCHCCoefficients> & varHCCoeff,
+      const bool t_CalculateMoisture)
+    {
+        std::vector<std::unique_ptr<IBCLinear2D>> timestepBCs;
+        std::for_each(varHCCoeff.begin(), varHCCoeff.end(), [&](const auto & bc) {
+            timestepBCs.push_back(
+              std::make_unique<VariableConvectionBC>(index1, index2, bc, t_CalculateMoisture));
+        });
+        m_BCs.assignTimestepBCs(std::move(timestepBCs));
     }
 
     void ThermalDomain::createTemperatureBC(const size_t index1,
@@ -210,7 +236,19 @@ namespace HygroThermFEM
                                             double t_Temp1,
                                             double t_Temp2)
     {
-        m_BCs.assignBC(fem::make_unique<TemperatureBC>(index1, index2, t_Temp1, t_Temp2));
+        m_BCs.assignBC(std::make_unique<TemperatureBC>(index1, index2, t_Temp1, t_Temp2));
+    }
+
+    void ThermalDomain::createTemperatureBC(size_t index1,
+                                            size_t index2,
+                                            const std::vector<ConstantBCTemperatures> & temp)
+    {
+        std::vector<std::unique_ptr<IBCLinear2D>> timestepBCs;
+        std::for_each(temp.begin(), temp.end(), [&](const auto & bc) {
+            timestepBCs.push_back(
+              std::make_unique<TemperatureBC>(index1, index2, bc.Temperature1, bc.Temperature2));
+        });
+        m_BCs.assignTimestepBCs(std::move(timestepBCs));
     }
 
     void ThermalDomain::createTemperatureBC(const size_t index1,
@@ -218,6 +256,15 @@ namespace HygroThermFEM
                                             const double t_Temp)
     {
         m_BCs.assignBC(fem::make_unique<TemperatureBC>(index1, index2, t_Temp));
+    }
+
+    void ThermalDomain::createTemperatureBC(size_t index1, size_t index2, std::vector<double> temp)
+    {
+        std::vector<std::unique_ptr<IBCLinear2D>> timestepBCs;
+        std::for_each(temp.begin(), temp.end(), [&](const auto & temperature) {
+            timestepBCs.push_back(std::make_unique<TemperatureBC>(index1, index2, temperature));
+        });
+        m_BCs.assignTimestepBCs(std::move(timestepBCs));
     }
 
     void ThermalDomain::createFluxBC(const size_t index1, const size_t index2, const double t_Flux)
@@ -234,13 +281,35 @@ namespace HygroThermFEM
           index1, index2, t_Emissivity, t_RadiationTemperature));
     }
 
-    void ThermalDomain::createSimplifiedRadiationBC(const size_t index1,
-                                                    const size_t index2,
-                                                    const double t_RadiationCoefficient,
-                                                    const double t_RadiationTemperature)
+    void ThermalDomain::createBlackBodyRadiationBC(
+      size_t index1, size_t index2, const std::vector<BlackBodyRadiationBCCoefficients> & radCoeffs)
     {
-        m_BCs.assignBC(fem::make_unique<SimplifiedRadiationBC>(
-          index1, index2, t_RadiationCoefficient, t_RadiationTemperature));
+        std::vector<std::unique_ptr<IBCLinear2D>> timestepBCs;
+        std::for_each(radCoeffs.begin(), radCoeffs.end(), [&](const auto & bc) {
+            timestepBCs.push_back(std::make_unique<BlackBodyRadiationBC>(
+              index1, index2, bc.Emissivity, bc.Temperature));
+        });
+        m_BCs.assignTimestepBCs(std::move(timestepBCs));
+    }
+
+    void ThermalDomain::createLinearizedRadiationBC(
+      const size_t index1,
+      const size_t index2,
+      const LinearizedRadiationBCCoefficients & linearRadBC)
+    {
+        m_BCs.assignBC(fem::make_unique<LinearizedRadiationBC>(index1, index2, linearRadBC));
+    }
+
+    void ThermalDomain::createLinearizedRadiationBC(
+      size_t index1,
+      size_t index2,
+      const std::vector<LinearizedRadiationBCCoefficients> & linearRadBC)
+    {
+        std::vector<std::unique_ptr<IBCLinear2D>> timestepBCs;
+        std::for_each(linearRadBC.begin(), linearRadBC.end(), [&](const auto & bc) {
+            timestepBCs.push_back(std::make_unique<LinearizedRadiationBC>(index1, index2, bc));
+        });
+        m_BCs.assignTimestepBCs(std::move(timestepBCs));
     }
 
     void ThermalDomain::createElement(const size_t index1,
@@ -269,8 +338,7 @@ namespace HygroThermFEM
         }
         if(frameCavities == nullptr)
         {
-            frameCavities =
-              std::unique_ptr<EquivalentFrameCavities>(new EquivalentFrameCavities(m_Elements));
+            frameCavities = std::make_unique<EquivalentFrameCavities>(m_Elements);
         }
         frameCavities->update();
     }
@@ -291,30 +359,48 @@ namespace HygroThermFEM
 
     void MoistureDomain::createMoistureBCVariableHc(const size_t index1,
                                                     const size_t index2,
-                                                    const double t_AirHumidity,
-                                                    const double t_AirTemperature)
-    {
-        /// Need to pull material for current moisture boundary condition
-        auto & Material = m_Elements.findElement(index1, index2)->getMaterial();
-        m_BCs.assignBC(fem::make_unique<HygroThermFEM::MoistureBCVariableHc>(
-          index1, index2, Material.name(), t_AirHumidity, t_AirTemperature));
-    }
-
-    void MoistureDomain::createMoistureBCFixedHc(const size_t index1,
-                                                 const size_t index2,
-                                                 const double t_AirTemperature,
-                                                 const double t_ConvectiveFilmCoefficient,
-                                                 const double t_AirHumidity)
+                                                    const VariableBCHCCoefficients & varHCCoeff)
     {
         /// Need to pull material for current moisture boundary condition
         auto & Material = m_Elements.findElement(index1, index2)->getMaterial();
         m_BCs.assignBC(
-          fem::make_unique<HygroThermFEM::MoistureBCFixedHc>(index1,
-                                                             index2,
-                                                             Material.name(),
-                                                             t_AirHumidity,
-                                                             t_AirTemperature,
-                                                             t_ConvectiveFilmCoefficient));
+          fem::make_unique<MoistureBCVariableHc>(index1, index2, Material.name(), varHCCoeff));
+    }
+
+    void MoistureDomain::createMoistureBCVariableHc(
+      size_t index1, size_t index2, const std::vector<VariableBCHCCoefficients> & varCoeff)
+    {
+        std::vector<std::unique_ptr<IBCLinear2D>> timestepBCs;
+        auto & Material = m_Elements.findElement(index1, index2)->getMaterial();
+        std::for_each(varCoeff.begin(), varCoeff.end(), [&](const auto & bc) {
+            timestepBCs.push_back(
+              std::make_unique<MoistureBCVariableHc>(index1, index2, Material.name(), bc));
+        });
+        m_BCs.assignTimestepBCs(std::move(timestepBCs));
+    }
+
+    void MoistureDomain::createMoistureBCFixedHc(
+      const size_t index1, const size_t index2, const FixedBCHCCoefficients & fixedBchcCoefficients)
+    {
+        /// Need to pull material for current moisture boundary condition
+        auto & Material = m_Elements.findElement(index1, index2)->getMaterial();
+        m_BCs.assignBC(std::make_unique<MoistureBCFixedHc>(
+          index1, index2, Material.name(), fixedBchcCoefficients));
+    }
+
+    void MoistureDomain::createMoistureBCFixedHc(
+      size_t index1,
+      size_t index2,
+      const std::vector<FixedBCHCCoefficients> & fixedBchcCoefficients)
+    {
+        std::vector<std::unique_ptr<IBCLinear2D>> timestepBCs;
+        auto & Material = m_Elements.findElement(index1, index2)->getMaterial();
+        std::for_each(
+          fixedBchcCoefficients.begin(), fixedBchcCoefficients.end(), [&](const auto & bc) {
+              timestepBCs.push_back(
+                std::make_unique<MoistureBCFixedHc>(index1, index2, Material.name(), bc));
+          });
+        m_BCs.assignTimestepBCs(std::move(timestepBCs));
     }
 
     MoistureDomain::MoistureDomain(bool automaticUpdatePreviousTimestep) :

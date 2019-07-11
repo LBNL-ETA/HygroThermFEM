@@ -25,7 +25,7 @@ namespace HygroThermFEM
     {
         std::vector<T> result(first.size(), 0);
         std::transform(
-          first.begin(), first.end(), result.begin(), std::bind1st(std::plus<T>(), second));
+          first.begin(), first.end(), result.begin(), std::bind(std::plus<T>(), second));
 
         return result;
     }
@@ -56,7 +56,7 @@ namespace HygroThermFEM
     {
         std::vector<T> result(first.size(), 0);
         std::transform(
-          first.begin(), first.end(), result.begin(), std::bind1st(std::minus<T>(), second));
+          first.begin(), first.end(), result.begin(), std::bind(std::minus<T>(), second));
 
         return result;
     }

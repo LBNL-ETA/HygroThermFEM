@@ -6,7 +6,7 @@
 using HygroThermFEM::NodePool;
 using HygroThermFEM::MaterialPool;
 
-class ConvectionBC_2D_Transient : public testing::Test
+class ConvectionBC_2D_Transient_MultiBC : public testing::Test
 {
 protected:
     void SetUp() override
@@ -19,7 +19,7 @@ protected:
     }
 };
 
-TEST_F(ConvectionBC_2D_Transient, TestExample_1)
+TEST_F(ConvectionBC_2D_Transient_MultiBC, TestExample_1)
 {
     SCOPED_TRACE("Begin Test: Three elements with simple convection BC.");
 
@@ -63,17 +63,18 @@ TEST_F(ConvectionBC_2D_Transient, TestExample_1)
     domain.createElement(6, 4, 3, 5, material.name());
 
     // Create Boundary Conditions
-    const auto hc1 = 2.4;
-    const auto temperatureAir1 = 20.0;
 
-    const HygroThermFEM::FixedBCHCCoefficients bcCoeff1{temperatureAir1, hc1};
+    // Here we create boundary conditions for every time-step
+    const std::vector<HygroThermFEM::FixedBCHCCoefficients> bcCoeffsTransient{
+      {20.0, 2.4}, {20.0, 2.2}, {20.0, 2.0}, {18.0, 1.5}};
+    //{20.0, 2.4}, {20.0, 2.2}, {20.0, 2.0}};
 
     const auto hc2 = 15.0;
     const auto temperatureAir2 = -18.0;
 
     const HygroThermFEM::FixedBCHCCoefficients bcCoeff2{temperatureAir2, hc2};
 
-    domain.createConvectionBCFixedHc(1, 2, bcCoeff1);
+    domain.createConvectionBCFixedHc(1, 2, bcCoeffsTransient);
     domain.createConvectionBCFixedHc(6, 5, bcCoeff2);
 
     const auto dTime = 3600;
@@ -82,19 +83,21 @@ TEST_F(ConvectionBC_2D_Transient, TestExample_1)
     auto temperatures = NodePool::Instance().properties(HygroThermFEM::Variable::temperature);
     std::vector<std::vector<double>> temperaturesSolution;
     std::vector<std::vector<HygroThermFEM::NodeFlux>> fluxSolution;
+    size_t timestepIndex{0};
 
     for(unsigned i = 0; i < nSteps; ++i)
     {
-        temperatures = domain.transient(temperatures, dTime).solution;
+        temperatures = domain.transient(temperatures, dTime, timestepIndex).solution;
         temperaturesSolution.push_back(temperatures);
         fluxSolution.push_back(domain.flux());
+        ++timestepIndex;
     }
 
     std::vector<std::vector<double>> correctTemperatureSolution{
       {1.132130505, 1.132130505, -0.656245111, -0.656245111, -5.621029352, -5.621029352},
-      {1.657776414, 1.657776414, -1.47222114, -1.47222114, -8.551769334, -8.551769334},
-      {1.788809043, 1.788809043, -2.264759626, -2.264759626, -10.15443472, -10.15443472},
-      {1.680631717, 1.680631717, -2.977820826, -2.977820826, -11.08768765, -11.08768765}};
+      {1.552647394, 1.552647394, -1.488060905, -1.488060905, -8.554988708, -8.554988708},
+      {1.502118281, 1.502118281, -2.319745532, -2.319745532, -10.16719396, -10.16719396},
+      {0.895825525, 0.895825525, -3.137113323, -3.137113323, -11.12633933, -11.12633933}};
 
     std::vector<std::vector<HygroThermFEM::NodeFlux>> correctFluxSolution{{{-17.88375616, 0},
                                                                            {-17.88375616, 0},
@@ -102,24 +105,24 @@ TEST_F(ConvectionBC_2D_Transient, TestExample_1)
                                                                            {-33.76579929, 0},
                                                                            {-49.64784241, 0},
                                                                            {-49.64784241, 0}},
-                                                                          {{-31.29997554, 0},
-                                                                           {-31.29997554, 0},
-                                                                           {-51.04772874, 0},
-                                                                           {-51.04772874, 0},
-                                                                           {-70.79548195, 0},
-                                                                           {-70.79548195, 0}},
-                                                                          {{-40.53568669, 0},
-                                                                           {-40.53568669, 0},
-                                                                           {-59.71621882, 0},
-                                                                           {-59.71621882, 0},
-                                                                           {-78.89675094, 0},
-                                                                           {-78.89675094, 0}},
-                                                                          {{-46.58452543, 0},
-                                                                           {-46.58452543, 0},
-                                                                           {-63.84159682, 0},
-                                                                           {-63.84159682, 0},
-                                                                           {-81.09866822, 0},
-                                                                           {-81.09866822, 0}}};
+                                                                          {{-30.40708298, 0},
+                                                                           {-30.40708298, 0},
+                                                                           {-50.53818051, 0},
+                                                                           {-50.53818051, 0},
+                                                                           {-70.66927803, 0},
+                                                                           {-70.66927803, 0}},
+                                                                          {{-38.21863813, 0},
+                                                                           {-38.21863813, 0},
+                                                                           {-58.34656121, 0},
+                                                                           {-58.34656121, 0},
+                                                                           {-78.47448429, 0},
+                                                                           {-78.47448429, 0}},
+                                                                          {{-40.32938848, 0},
+                                                                           {-40.32938848, 0},
+                                                                           {-60.11082427, 0},
+                                                                           {-60.11082427, 0},
+                                                                           {-79.89226005, 0},
+                                                                           {-79.89226005, 0}}};
 
     EXPECT_EQ(temperaturesSolution.size(), correctTemperatureSolution.size());
 

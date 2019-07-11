@@ -6,7 +6,7 @@
 using HygroThermFEM::NodePool;
 using HygroThermFEM::MaterialPool;
 
-class MultiDomain_2D_2 : public testing::Test
+class MultiDomain_2D_ConstantTemp_MultiTimestepBC : public testing::Test
 {
 protected:
     void SetUp() override
@@ -19,10 +19,8 @@ protected:
     }
 };
 
-TEST_F(MultiDomain_2D_2, TestExample_1)
+TEST_F(MultiDomain_2D_ConstantTemp_MultiTimestepBC, TestExample_1)
 {
-    SCOPED_TRACE("Begin Test: Simple two elements example with moisture and heat transfer.");
-
     // Enter nodes. Arguments are: node number, x-coordinate, y-coordinate
 
     std::vector<double> gridXCoordinates{0, 0.05, 0.1};
@@ -83,13 +81,11 @@ TEST_F(MultiDomain_2D_2, TestExample_1)
     }
 
     /// Create Boundary Conditions
-    const auto hc = 1.0;
-    const auto airTemperature = 20.0;
-    const auto humidity = 0.6;
 
-    const HygroThermFEM::FixedBCHCCoefficients bcCoeff{airTemperature, hc, humidity};
+    // Variable boundary conditions (temperature and humidity) over ten timesteps.
+    const std::vector<double> bcTemperatures{20, 19, 18, 17, 16, 15, 16, 17, 18, 19};
 
-    domain.createMoistureBCFixedHc(1, 2, bcCoeff);
+    domain.createTemperatureBC(1, 2, bcTemperatures);
 
     const auto dTime = 3600;
     const auto nSteps = 10;
@@ -98,27 +94,28 @@ TEST_F(MultiDomain_2D_2, TestExample_1)
     auto humidities = NodePool::Instance().properties(HygroThermFEM::Variable::humidity);
     std::vector<std::vector<double>> temperatureSolution;
     std::vector<std::vector<double>> waterContentSolution;
+    size_t timestepIndex{0u};
 
     for(auto i = 0; i < nSteps; ++i)
     {
-        auto aSolution = domain.transient(temperatures, humidities, dTime);
+        auto aSolution = domain.transient(temperatures, humidities, dTime, timestepIndex);
         temperatureSolution.push_back(aSolution.temperature);
         waterContentSolution.push_back(aSolution.waterContent);
         temperatures = aSolution.temperature;
         humidities = aSolution.humidity;
+        ++timestepIndex;
     }
 
-    std::vector<std::vector<double>> correctWaterContentSolution{
-      {1.089281, 1.089281, 0.001245, 0.001245, 2e-06, 2e-06},
-      {2.11223, 2.11223, 0.00378, 0.00378, 1.1e-05, 1.1e-05},
-      {3.000406, 3.000406, 0.007521, 0.007521, 3e-05, 3e-05},
-      {3.72435, 3.72435, 0.012294, 0.012294, 6.2e-05, 6.2e-05},
-      {4.336618, 4.336618, 0.018007, 0.018007, 0.00011, 0.00011},
-      {4.866186, 4.866186, 0.024596, 0.024596, 0.00018, 0.00018},
-      {5.36041, 5.36041, 0.032008, 0.032008, 0.000273, 0.000273},
-      {6.163777, 6.163777, 0.040202, 0.040202, 0.000395, 0.000395},
-      {6.88133, 6.88133, 0.049141, 0.049141, 0.000549, 0.000549},
-      {7.531928, 7.531928, 0.058814, 0.058814, 0.00074, 0.00074}};
+    std::vector<std::vector<double>> correctWaterContentSolution{{0, 0, 0, 0, 0, 0},
+                                                                 {0, 0, 0, 0, 0, 0},
+                                                                 {0, 0, 0, 0, 0, 0},
+                                                                 {0, 0, 0, 0, 0, 0},
+                                                                 {0, 0, 0, 0, 0, 0},
+                                                                 {0, 0, 0, 0, 0, 0},
+                                                                 {0, 0, 0, 0, 0, 0},
+                                                                 {0, 0, 0, 0, 0, 0},
+                                                                 {0, 0, 0, 0, 0, 0},
+                                                                 {0, 0, 0, 0, 0, 0}};
 
     EXPECT_EQ(waterContentSolution.size(), correctWaterContentSolution.size());
 
@@ -131,16 +128,16 @@ TEST_F(MultiDomain_2D_2, TestExample_1)
     }
 
     std::vector<std::vector<double>> correctTemperatureSolution{
-      {1.278961, 1.278961, 0.664541, 0.664541, 0.497362, 0.497362},
-      {2.103072, 2.103072, 1.389887, 1.389887, 1.165353, 1.165353},
-      {2.799476, 2.799476, 2.092455, 2.092455, 1.859221, 1.859221},
-      {3.443158, 3.443158, 2.763085, 2.763085, 2.535696, 2.535696},
-      {4.052248, 4.052248, 3.402328, 3.402328, 3.184303, 3.184303},
-      {4.631945, 4.631945, 4.011701, 4.011701, 3.803543, 3.803543},
-      {5.184333, 5.184333, 4.592612, 4.592612, 4.394094, 4.394094},
-      {5.710387, 5.710387, 5.146121, 5.146121, 4.956918, 4.956918},
-      {6.211405, 6.211405, 5.673432, 5.673432, 5.493160, 5.493160},
-      {6.688342, 6.688342, 6.175609, 6.175609, 6.003903, 6.003903}};
+      {20, 20, 10.395924, 10.395924, 7.7806210, 7.7806210},
+      {19, 19, 14.526299, 14.526299, 12.829288, 12.829288},
+      {18, 18, 16.110006, 16.110006, 15.284675, 15.284675},
+      {17, 17, 16.464697, 16.464697, 16.167839, 16.167839},
+      {16, 16, 16.184330, 16.184330, 16.180181, 16.180181},
+      {15, 15, 15.568177, 15.568177, 15.722139, 15.722139},
+      {16, 16, 15.812770, 15.812770, 15.789970, 15.789970},
+      {17, 17, 16.426906, 16.426906, 16.266672, 16.266672},
+      {18, 18, 17.223641, 17.223641, 16.982896, 16.982896},
+      {19, 19, 18.115504, 18.115504, 17.830574, 17.830574}};
 
     EXPECT_EQ(temperatureSolution.size(), correctTemperatureSolution.size());
 

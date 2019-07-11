@@ -93,13 +93,15 @@ TEST_F(SteadyState_2D_ExcludeVaporDiffusion_1, TestExample_1)
     const auto hc1 = 1e20;
     const auto humidity1 = 0.8;
     const auto temperatureAir1 = 0.0;
+    const HygroThermFEM::FixedBCHCCoefficients bcCoeff1{temperatureAir1, hc1, humidity1};
 
     const auto hc2 = 1e20;
     const auto humidity2 = 0.0;
     const auto temperatureAir2 = 20.0;
+    const HygroThermFEM::FixedBCHCCoefficients bcCoeff2{temperatureAir2, hc2, humidity2};
 
-    domain.createMoistureBCFixedHc(1, 2, temperatureAir1, hc1, humidity1);
-    domain.createMoistureBCFixedHc(6, 5, temperatureAir2, hc2, humidity2);
+    domain.createMoistureBCFixedHc(1, 2, bcCoeff1);
+    domain.createMoistureBCFixedHc(6, 5, bcCoeff2);
 
     const auto solution = domain.steadyState();
     const auto temperature = solution.temperature;

@@ -81,12 +81,14 @@ TEST_F(MoistureBC_2D_1, TestExample_1)
     }
 
     // Create Boundary Conditions
-    const auto airTemperature = 20;
+    const auto airTemperature = 20.0;
     const auto airHumidity = 0.0;
     const auto hc = 10.0;
 
-    domain.createMoistureBCFixedHc(1, 2, airTemperature, hc, airHumidity);
-    domain.createMoistureBCFixedHc(27, 28, airTemperature, hc, airHumidity);
+    const HygroThermFEM::FixedBCHCCoefficients bcCoeff{airTemperature, hc, airHumidity};
+
+    domain.createMoistureBCFixedHc(1, 2, bcCoeff);
+    domain.createMoistureBCFixedHc(27, 28, bcCoeff);
 
     const auto dTime = 3600;
     const auto nSteps = 24;

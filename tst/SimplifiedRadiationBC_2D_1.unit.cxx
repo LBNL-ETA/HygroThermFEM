@@ -67,9 +67,12 @@ TEST_F(SimplifiedRadiationBC_2D_1, TestExample_1)
 
     // Create Boundary Conditions
     const auto tRadiationTemperature = 20.0;
-    const auto radiationCoefficient = 4;
+    const auto radiationCoefficient = 4.0;
 
-    domain.createSimplifiedRadiationBC(5, 6, radiationCoefficient, tRadiationTemperature);
+    const HygroThermFEM::LinearizedRadiationBCCoefficients linRad{radiationCoefficient,
+                                                                  tRadiationTemperature};
+
+    domain.createLinearizedRadiationBC(5, 6, linRad);
 
     const auto dTime = 3600;
     const auto nSteps = 4;
@@ -84,10 +87,10 @@ TEST_F(SimplifiedRadiationBC_2D_1, TestExample_1)
     }
 
     std::vector<std::vector<double>> correctSolution = {
-            {0.408268,0.408268,0.957192,0.957192,2.196879,2.196879},
-            {1.065832,1.065832,1.949942,1.949942,3.393077,3.393077},
-            {1.833106,1.833106,2.864722,2.864722,4.302987,4.302987},
-            {2.633075,2.633075,3.708650,3.708650,5.097447,5.097447}};
+      {0.408268, 0.408268, 0.957192, 0.957192, 2.196879, 2.196879},
+      {1.065832, 1.065832, 1.949942, 1.949942, 3.393077, 3.393077},
+      {1.833106, 1.833106, 2.864722, 2.864722, 4.302987, 4.302987},
+      {2.633075, 2.633075, 3.708650, 3.708650, 5.097447, 5.097447}};
 
     EXPECT_EQ(solution.size(), correctSolution.size());
 
