@@ -49,6 +49,16 @@ namespace HygroThermFEM
         //! Calculates steady state solution for multiple domains.
         Solution steadyState();
 
+        //! \brief Sets if moisture simulation will be performed
+        //!
+        //! @param val if set to true, moisture simulation will be performed
+        void performMoistureSimulation(bool val);
+
+        //! \brief Sets if thermal simulation will be performed
+        //!
+        //! @param val if set to true, thermal simulation will be performed
+        void performThermalSimulation(bool val);
+
         static std::vector<double> property(Variable property);
 
         //! \brief Creates element with material reference

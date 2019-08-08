@@ -186,6 +186,16 @@ namespace HygroThermFEM
                         humidityError};
     }
 
+    void MultiDomain::performMoistureSimulation(const bool val)
+    {
+        m_PerformMoisture = val;
+    }
+
+    void MultiDomain::performThermalSimulation(const bool val)
+    {
+        m_PerformThermal = val;
+    }
+
     void MultiDomain::createElement(const size_t index1,
                                     const size_t index2,
                                     const size_t index3,
