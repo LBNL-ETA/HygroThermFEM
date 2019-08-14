@@ -1,5 +1,8 @@
 #include <numeric>
-#include <execution>
+
+#ifdef STL_MULTITHREADING
+#    include <execution>
+#endif
 
 #include "Elements2D.hxx"
 #include "NodePool.hxx"
@@ -9,6 +12,8 @@ namespace HygroThermFEM
     SquareMatrix ElementsLinear2D::conductanceMatrix()
     {
         SquareMatrix result{NodePool::Instance().maxIndex()};
+
+#ifdef STL_MULTITHREADING
 
         std::mutex mtx;
 
@@ -32,6 +37,24 @@ namespace HygroThermFEM
                           }
                           mtx.unlock();
                       });
+
+#else
+        for(const auto & element : m_Elements)
+        {
+            auto indexes = aElement->nodeIndexes();
+            auto conductance = aElement->DDuMatrices();
+            // auto testConductance = conductance.toVector();
+            auto condDer = aElement->DpDuMatrices();
+            for(size_t i = 0; i < numOfQuadrilateralNodes; ++i)
+            {
+                for(size_t j = 0; j < numOfQuadrilateralNodes; ++j)
+                {
+                    result(indexes[i] - 1, indexes[j] - 1) += conductance(i, j) + condDer(i, j);
+                }
+            }
+        }
+#endif
+
         return result;
     }
 
@@ -41,6 +64,7 @@ namespace HygroThermFEM
         std::vector<std::vector<double>> Capacitance(numOfNodes,
                                                      std::vector<double>(numOfNodes, 0));
 
+#ifdef STL_MULTITHREADING
         std::mutex mtx;
 
         std::for_each(std::execution::par_unseq,
@@ -60,6 +84,20 @@ namespace HygroThermFEM
                           }
                           mtx.unlock();
                       });
+#else
+        for(const auto & element : m_Elements)
+        {
+            auto indexes = aElement->nodeIndexes();
+            auto capacitance = aElement->capacitanceMatrices();
+            for(size_t i = 0; i < numOfQuadrilateralNodes; ++i)
+            {
+                for(size_t j = 0; j < numOfQuadrilateralNodes; ++j)
+                {
+                    Capacitance[indexes[i] - 1][indexes[j] - 1] += capacitance(i, j);
+                }
+            }
+        }
+#endif
 
         const auto size = Capacitance.size();
 
@@ -82,6 +120,8 @@ namespace HygroThermFEM
     {
         SquareMatrix Capacitance{NodePool::Instance().maxIndex()};
 
+#ifdef STL_MULTITHREADING
+
         std::mutex mtx;
         std::for_each(std::execution::par_unseq,
                       std::begin(m_Elements),
@@ -100,6 +140,22 @@ namespace HygroThermFEM
                           }
                           mtx.unlock();
                       });
+
+#else
+        for (const auto & element : m_Elements)
+        {
+            auto indexes = aElement->nodeIndexes();
+            auto capacitance = aElement->capacitanceMatrices();
+            for (size_t i = 0; i < numOfQuadrilateralNodes; ++i)
+            {
+                for (size_t j = 0; j < numOfQuadrilateralNodes; ++j)
+                {
+                    Capacitance(indexes[i] - 1, indexes[j] - 1) +=
+                        capacitance(i, j) / DTime;
+                }
+            }
+        }
+#endif
 
         return SquareMatrix{Capacitance};
     }
@@ -140,6 +196,8 @@ namespace HygroThermFEM
     {
         std::vector<double> result(NodePool::Instance().maxIndex(), 0);
 
+#ifdef STL_MULTITHREADING
+
         std::mutex mtx;
 
         std::for_each(std::execution::par_unseq,
@@ -156,6 +214,18 @@ namespace HygroThermFEM
                           mtx.unlock();
                       });
 
+#else
+        for (const auto & element : m_Elements)
+        {
+            const auto indexes = aElement->nodeIndexes();
+            const auto vecR = aElement->rightSideVector();
+            for (size_t i = 0; i < numOfQuadrilateralNodes; ++i)
+            {
+                result[indexes[i] - 1] += vecR[i];
+            }
+        }
+#endif
+
         return result;
     }
 
@@ -166,6 +236,7 @@ namespace HygroThermFEM
         std::vector<std::vector<NodeFlux>> fluxes(NodePool::Instance().maxIndex(),
                                                   std::vector<NodeFlux>());
 
+#ifdef STL_MULTITHREADING
         std::mutex mtx;
 
         std::for_each(std::execution::par_unseq,
@@ -181,6 +252,18 @@ namespace HygroThermFEM
                           }
                           mtx.unlock();
                       });
+
+#else
+        for (const auto & element : m_Elements)
+        {
+            const auto indexes = aElement->nodeIndexes();
+            const auto flux = aElement->flux();
+            for (size_t i = 0; i < numOfQuadrilateralNodes; ++i)
+            {
+                fluxes[indexes[i] - 1].push_back(flux[i]);
+            }
+        }
+#endif
 
         // Now need to average them
         for(size_t j = 0; j < fluxes.size(); ++j)
