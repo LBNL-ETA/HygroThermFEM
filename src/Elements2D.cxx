@@ -41,10 +41,10 @@ namespace HygroThermFEM
 #else
         for(const auto & element : m_Elements)
         {
-            auto indexes = aElement->nodeIndexes();
-            auto conductance = aElement->DDuMatrices();
+            auto indexes = element->nodeIndexes();
+            auto conductance = element->DDuMatrices();
             // auto testConductance = conductance.toVector();
-            auto condDer = aElement->DpDuMatrices();
+            auto condDer = element->DpDuMatrices();
             for(size_t i = 0; i < numOfQuadrilateralNodes; ++i)
             {
                 for(size_t j = 0; j < numOfQuadrilateralNodes; ++j)
@@ -87,8 +87,8 @@ namespace HygroThermFEM
 #else
         for(const auto & element : m_Elements)
         {
-            auto indexes = aElement->nodeIndexes();
-            auto capacitance = aElement->capacitanceMatrices();
+            auto indexes = element->nodeIndexes();
+            auto capacitance = element->capacitanceMatrices();
             for(size_t i = 0; i < numOfQuadrilateralNodes; ++i)
             {
                 for(size_t j = 0; j < numOfQuadrilateralNodes; ++j)
@@ -144,8 +144,8 @@ namespace HygroThermFEM
 #else
         for (const auto & element : m_Elements)
         {
-            auto indexes = aElement->nodeIndexes();
-            auto capacitance = aElement->capacitanceMatrices();
+            auto indexes = element->nodeIndexes();
+            auto capacitance = element->capacitanceMatrices();
             for (size_t i = 0; i < numOfQuadrilateralNodes; ++i)
             {
                 for (size_t j = 0; j < numOfQuadrilateralNodes; ++j)
@@ -217,8 +217,8 @@ namespace HygroThermFEM
 #else
         for (const auto & element : m_Elements)
         {
-            const auto indexes = aElement->nodeIndexes();
-            const auto vecR = aElement->rightSideVector();
+            const auto indexes = element->nodeIndexes();
+            const auto vecR = element->rightSideVector();
             for (size_t i = 0; i < numOfQuadrilateralNodes; ++i)
             {
                 result[indexes[i] - 1] += vecR[i];
@@ -256,8 +256,8 @@ namespace HygroThermFEM
 #else
         for (const auto & element : m_Elements)
         {
-            const auto indexes = aElement->nodeIndexes();
-            const auto flux = aElement->flux();
+            const auto indexes = element->nodeIndexes();
+            const auto flux = element->flux();
             for (size_t i = 0; i < numOfQuadrilateralNodes; ++i)
             {
                 fluxes[indexes[i] - 1].push_back(flux[i]);

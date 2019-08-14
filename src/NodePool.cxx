@@ -2,7 +2,10 @@
 #include <algorithm>
 
 #include "NodePool.hxx"
+
+#ifdef STL_MULTITHREADING
 #include <execution>
+#endif
 
 namespace HygroThermFEM
 {
@@ -52,11 +55,19 @@ namespace HygroThermFEM
     {
         assert(m_Nodes.size() == t_values.size());
 
+#ifdef STL_MULTITHREADING
         std::for_each(
           std::execution::par_unseq, std::begin(m_Nodes), std::end(m_Nodes), [&](auto && aNode) {
               const auto nodeNumber = aNode.getNodeNumber() - 1;
               aNode.setStateProperty(t_property, t_values[nodeNumber], updatePreviousTimestep);
           });
+#else
+        for(auto & node: m_Nodes)
+        {
+            const auto nodeNumber = node.getNodeNumber() - 1;
+            node.setStateProperty(t_property, t_values[nodeNumber], updatePreviousTimestep);
+        }
+#endif
     }
 
     void NodePool::clear()
