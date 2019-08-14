@@ -52,6 +52,7 @@ list(APPEND SOURCES ${SOURCES_HXX} ${INCLUDE_HXX} ${SOURCES_CXX})
 
 if (MSVC)
     add_definitions("/wd4996")
+    add_compile_definitions(STL_MULTITHREADING)
 endif ()
 
 add_library(${target_name} STATIC ${SOURCES})
