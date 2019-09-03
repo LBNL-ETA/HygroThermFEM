@@ -22,13 +22,22 @@ namespace HygroThermFEM
 
     class INodes;
 
-    //! Saturation function that will be used at boundary conditions
+    //! \brief Calculates vapor pressure at given temperature
+    //!
+    //! \param temperature Temperature in Celsius
+    //! \return vapor pressure [Pa]
     double vaporPressureAtTemperature(const double temperature);
 
-    //! Saturation function
+    //! \brief Saturation function
+    //!
+    //! \param temperature Temperature in Celsius
+    //! \return water content [kg/m^3]
     double saturationConcentrationAtTemperature(const double temperature);
 
     //! Heat of evaporation
+    //!
+    //! \param temperature Temperature in Celsius
+    //! \return Heat of evaporation
     double heatOfEvaporation(double temperature);
 
     //! \brief Definition of interface used to perform various calculation(s) over state given in
@@ -40,13 +49,19 @@ namespace HygroThermFEM
     class IValue
     {
     public:
-        //! Value at given node (redefined at every child class).
-        virtual double value(const INode2D & node   //!< Node for which value is calculated for.
-                             ) const = 0;
+        //! \brief Value at given node (redefined at every child class).
+        //!
+        //! \param node Node for which value is calculated for.
+        //! \return State variable value for given node
+        virtual double value(const INode2D & node) const = 0;
 
-        //! Values at all nodes given with parameter INodes.
-        virtual std::vector<double> values(const INodes & nodes   //!< Array of nodes
-                                           ) const;
+        //! \brief Values at all nodes given with parameter INodes.
+        //!
+        //! \param nodes Array of nodes for which values are being requested
+        //! \return Array of state variable values for requested nodes
+        virtual std::vector<double> values(const INodes & nodes) const;
+
+        //! \brief Missing default destructor in abstract class can cause memory leaks.
         virtual ~IValue() = default;
     };
 
@@ -64,21 +79,26 @@ namespace HygroThermFEM
     class IFunction : public IValue
     {
     public:
-        //! Basic constructor
-        IFunction(Variable t_Property   //!< Variable for which function will be calculated.
-        );
+        //! \brief Basic constructor
+        //!
+        //! \param t_Property Variable for which function will be calculated.
+        IFunction(Variable t_Property);
 
-        //! Returns function evaluation for given node.
-        double value(const INode2D & node   //!< Node at which function will be evaluated.
-                     ) const override;
+        //! \brief Returns function evaluation for given node.
+        //!
+        //! \param node
+        //! \return Node at which function will be evaluated.
+        double value(const INode2D & node) const override;
 
     protected:
-        //! Interface for function definition. This is place where in inherited classes function
-        //! definitions will be stored.
-        virtual double
-          evaluateFunction(double t_position = 0,   //!< Value at which function will be evaluated.
-                           double t_previousTimestep = 0   //!< Value from previous timestep
-                           ) const = 0;
+        //! \brief Interface for function definition. This is place where in inherited classes
+        //! function \brief definitions will be stored.
+        //!
+        //! \param t_position Value at which function will be evaluated.
+        //! \param t_previousTimestep Value from previous timestep.
+        //! \return evaluated state variable value.
+        virtual double evaluateFunction(double t_position = 0,
+                                        double t_previousTimestep = 0) const = 0;
 
         /// Variable that is used to calculate function value. It is extracted from current
         /// domain (material) point.
@@ -89,7 +109,8 @@ namespace HygroThermFEM
     ///  Constant
     //////////////////////////////////////////////////////////////////
 
-    /// Simple constant curve.
+    //! \brief Simple constant variable that will be used in function definitions for finite
+    //! elements.
     class Constant : public IFunction
     {
     public:
@@ -289,12 +310,18 @@ namespace HygroThermFEM
     class StateValue : public IFunction
     {
     public:
-        //! Constructor
-        StateValue(Variable property   //!< Variable that StateValue represents.
-        );
+        //! \brief Constructor
+        //!
+        //! \param property Variable that StateValue represents.
+        StateValue(Variable property);
 
     private:
-        //! Inherited function evaluation for current property
+        //! \brief Inherited function evaluation for current property
+        //!
+        //! \param t_position Position for which state value will be evaluated at. In this case it
+        //! is simply state variable value itself.
+        //! \param t_previousTimestep Value at previous timestep (Not used in this case).
+        //! \return Value at given postion (Equal to position in this case.
         double evaluateFunction(double t_position, double t_previousTimestep) const override;
     };
 
@@ -314,7 +341,7 @@ namespace HygroThermFEM
         //! \param values Vector of x,y pairs that will go into table.
         //! \param property State variable that represent value type in first column.
         //! \param interpolator Interpolation strategy used for in-between values.
-        TabularFunction1D(std::vector<FenestrationCommon::point>  values,
+        TabularFunction1D(std::vector<FenestrationCommon::point> values,
                           Variable property,
                           FenestrationCommon::Interpolator interpolator =
                             FenestrationCommon::Interpolation::Linear);
@@ -369,29 +396,32 @@ namespace HygroThermFEM
     class TabularDerivative : public IFunction
     {
     public:
-        //! Construction of tabular derivative from standard vector values.
-        TabularDerivative(
-                const std::vector<FenestrationCommon::point>
-                &values,           //!< Pair of vector values used to construct tabular derivative.
-          Variable property   //!< Variable that represent value type in first column.
-        );
+        //! \brief Construction of tabular derivative from standard vector values.
+        //!
+        //! \param values Points that construct the table.
+        //! \param property Variable that represent value type in x coordinate.
+        TabularDerivative(const std::vector<FenestrationCommon::point> & values, Variable property);
 
-        //! Construction of tabular derivative from standard vector values.
-        TabularDerivative(
-          const std::initializer_list<FenestrationCommon::point> &
-            list,             //!< Initializer list used to construct tabular derivative.
-          Variable property   //!< Variable that represent value type in first column.
-        );
+        //! \brief Construction of tabular derivative from initializer_list.
+        //!
+        //! \param list Initializer list used to construct tabular derivative.
+        //! \param property Variable that represent value type in first column.
+        TabularDerivative(const std::initializer_list<FenestrationCommon::point> & list,
+                          Variable property);
 
     protected:
         std::vector<FenestrationCommon::point> m_Curve;
 
-        //! Overriden evaluation function.
+        //! \brief Evaluation function for given class (override from base class).
+        //!
+        //! \param t_position value for which function needs to be evaluated.
+        //! \param t_previousTimestep Value in previous timestep.
+        //! \return Value for given function at requested position.
         double evaluateFunction(double t_position, double t_previousTimestep) const override;
 
-        //! Helper function that returns two closest points for interpolation.
+        //! \brief Helper function that returns two closest points for interpolation.
         virtual std::pair<FenestrationCommon::point, FenestrationCommon::point>
-          getInterpolationPoints(std::vector<FenestrationCommon::point>::const_iterator &it) const;
+          getInterpolationPoints(std::vector<FenestrationCommon::point>::const_iterator & it) const;
     };
 
     //////////////////////////////////////////////////////////////////
@@ -405,19 +435,19 @@ namespace HygroThermFEM
     class TabularDerivativeSmooth : public IFunction
     {
     public:
-        //! Construction of tabular derivative from standard vector values.
-        TabularDerivativeSmooth(
-          const std::vector<FenestrationCommon::point> &
-            values,           //!< Pair of vector values used to construct tabular derivative.
-          Variable property   //!< Variable that represent value type in first column.
-        );
+        //! \brief Construction of tabular derivative from standard vector values.
+        //!
+        //! \param values Points that construct the table
+        //! \param property Variable that represent value type in first column.
+        TabularDerivativeSmooth(const std::vector<FenestrationCommon::point> & values,
+                                Variable property);
 
-        //! Construction of tabular derivative from standard vector values.
-        TabularDerivativeSmooth(
-          const std::initializer_list<FenestrationCommon::point> &
-            list,             //!< Initializer list used to construct tabular derivative.
-          Variable property   //!< Variable that represent value type in first column.
-        );
+        //! \brief Construction of tabular derivative from standard vector values.
+        //!
+        //! \param list Initializer list used to construct tabular derivative.
+        //! \param property Variable that represent value type in first column.
+        TabularDerivativeSmooth(const std::initializer_list<FenestrationCommon::point> & list,
+                                Variable property);
 
     protected:
         std::vector<FenestrationCommon::point> m_Curve;
@@ -427,7 +457,7 @@ namespace HygroThermFEM
 
         //! Helper function that returns two closest points for interpolation.
         virtual std::pair<FenestrationCommon::point, FenestrationCommon::point>
-          getInterpolationPoints(std::vector<FenestrationCommon::point>::const_iterator &it) const;
+          getInterpolationPoints(std::vector<FenestrationCommon::point>::const_iterator & it) const;
     };
 
     //////////////////////////////////////////////////////////////////
