@@ -54,15 +54,15 @@ namespace HygroThermFEM
         virtual ~IMaterial() = default;
 
         IMaterial(std::string cs,
-                  double density,
-                  double porosity,
-                  double heatCapacity,
-                  double diffusionResistanceFactor,
-                  const std::vector<std::pair<double, double>> & thermalConductivity,
-                  const std::vector<std::pair<double, double>> & liquidTransportationCurve,
-                  const std::vector<std::pair<double, double>> & sorptionCurve,
-                  double emissivity,
-                  bool isLinear = true);
+                  const double density,
+                  const double porosity,
+                  const double heatCapacity,
+                  const double diffusionResistanceFactor,
+                  const std::vector<FenestrationCommon::point> &thermalConductivity,
+                  const std::vector<FenestrationCommon::point> &liquidTransportationCurve,
+                  const std::vector<FenestrationCommon::point> &sorptionCurve,
+                  const double emissivity,
+                  const bool isLinear = true);
 
         //! Material's name.
         std::string name() const;
@@ -86,21 +86,21 @@ namespace HygroThermFEM
         bool isLinear() const;
 
         //! Thermal conductivity table (x-water content [kg/m3], y-thermal conductivity[W/(mK)])
-        const std::vector<std::pair<double, double>> & thermalConductivity() const;
+        const std::vector<FenestrationCommon::point> & thermalConductivity() const;
 
         //! \brief Liquid transportation curve of the material.
         //!
         //! Liquid transportation coefficient shows how
         //! much of water can be distributed through the material with certain water content
         //! (x-water content [kg/m3], y-water flow [m2/s]
-        const std::vector<std::pair<double, double>> & liquidTransportationCurve() const;
+        const std::vector<FenestrationCommon::point> & liquidTransportationCurve() const;
 
         //! \brief Material's sorption curve.
         //!
         //! Sorption curve or moisture storage function show how
         //! much of water content is contained in the material at certain relative humidity
         //! (x-relative humidity [-], y-water content [kg/m3])
-        const std::vector<std::pair<double, double>> & sorptionCurve() const;
+        const std::vector<FenestrationCommon::point> & sorptionCurve() const;
 
         //! \brief Water content in given node.
         //!
@@ -124,16 +124,16 @@ namespace HygroThermFEM
         double m_DiffusionResistanceFactor;
 
         //! Thermal conductivity table is (x-water content [kg/m3], y-thermal conductivity[W/(mK)])
-        std::unique_ptr<TabularFunction> m_ThermalConductivity;
+        std::unique_ptr<TabularFunction1D> m_ThermalConductivity;
 
         //! Liquid transportation coefficient is function of water content. It shows how much of
         //! water will be transferred through material in relation to water content (x-water content
         //! [kg/m3], y-liquid transportation coefficient [m2/s]
-        std::unique_ptr<TabularFunction> m_LiquidTransportCoefficient;
+        std::unique_ptr<TabularFunction1D> m_LiquidTransportCoefficient;
 
         //! Sorption curve shows how much of water content will be in relation to relative humidity
         //! (x-relative humidity [between zero to one], y-water content [kg/m3]
-        std::unique_ptr<TabularFunction> m_SorptionCurve;
+        std::unique_ptr<TabularFunction1D> m_SorptionCurve;
 
         double m_Emissivity;
         const bool m_Linear;
@@ -152,11 +152,11 @@ namespace HygroThermFEM
              double porosity,
              double heatCapacity,
              double diffusionResistanceFactor,
-             const std::vector<std::pair<double, double>> & thermalConductivity,
-             const std::vector<std::pair<double, double>> & liquidTransportationCurve,
-             const std::vector<std::pair<double, double>> & sorptionCurve,
+             const std::vector<FenestrationCommon::point> &thermalConductivity,
+             const std::vector<FenestrationCommon::point> &liquidTransportationCurve,
+             const std::vector<FenestrationCommon::point> &sorptionCurve,
              double emissivity,
-             CavityStandard m_CavityStandard);
+             CavityStandard cavityStandard);
 
         //! \brief Some materials will require update of thermal conductivity within iterations.
         //! This virtual function requires update in every material type.
@@ -207,21 +207,21 @@ namespace HygroThermFEM
 
         //! \brief SolidMaterial construction is done through singleton class
         SolidMaterial(
-          const std::string & name,           //!< SolidMaterial name
-          double density,                     //!< Density of dry material
-          double porosity,                    //!< SolidMaterial porosity
-          double heatCapacity,                //!< Specific heat capacity of dry material
-          double diffusionResistanceFactor,   //!< Diffuse resistance factor
-          const std::vector<std::pair<double, double>> &
-            thermalConductivity,   //!< SolidMaterial conductivity of dry material where
+                const std::string & name,           //!< SolidMaterial name
+          const double density,                     //!< Density of dry material
+          const double porosity,                    //!< SolidMaterial porosity
+          const double heatCapacity,                //!< Specific heat capacity of dry material
+          const double diffusionResistanceFactor,   //!< Diffuse resistance factor
+          const std::vector<FenestrationCommon::point>
+                &thermalConductivity,   //!< SolidMaterial conductivity of dry material where
                                    //!< conductivity depends on water content
-          const std::vector<std::pair<double, double>> &
-            liquidTransportCurve,   //!< Liquid transportation curve. Relationship between relative
+          const std::vector<FenestrationCommon::point>
+                &liquidTransportCurve,   //!< Liquid transportation curve. Relationship between relative
                                     //!< humidity and ability of material to transport water.
-          const std::vector<std::pair<double, double>> &
-            sorptionCurve,   //!< Moisture storage function. Relationship between relative humidity
+          const std::vector<FenestrationCommon::point>
+                &sorptionCurve,   //!< Moisture storage function. Relationship between relative humidity
                              //!< and water content.
-          double emissivity = 0.9   //!< SolidMaterial emissivity
+          const double emissivity = 0.9   //!< SolidMaterial emissivity
         );
 
         //! Saturated vapor content calculations at given node. It is necessary

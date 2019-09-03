@@ -12,14 +12,14 @@ namespace HygroThermFEM
         static MaterialPool & Instance();
 
         const IMaterial &
-          createSolidMaterial(const std::string & name,
+          createSolidMaterial(const std::string & Name,
                               double Density,
                               double Porosity,
                               double HeatCapacity,
                               double DiffusionResistanceFactor,
-                              const std::vector<std::pair<double, double>> & ThermalConductivity,
-                              const std::vector<std::pair<double, double>> & LiquidTransportCurve,
-                              const std::vector<std::pair<double, double>> & SorptionCurve,
+                              const std::vector<FenestrationCommon::point> & ThermalConductivity,
+                              const std::vector<FenestrationCommon::point> & LiquidTransportCurve,
+                              const std::vector<FenestrationCommon::point> & SorptionCurve,
                               double emissivity = 0.9);
 
         const IGas & createGas(const std::string & name,

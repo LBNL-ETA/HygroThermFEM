@@ -7,7 +7,7 @@ using HygroThermFEM::SolidMaterial;
 using HygroThermFEM::Variable;
 using HygroThermFEM::State;
 using HygroThermFEM::INode2D;
-using HygroThermFEM::TabularFunction;
+using HygroThermFEM::TabularFunction1D;
 using HygroThermFEM::TabularDerivative;
 using HygroThermFEM::TabularDerivativeSmooth;
 using HygroThermFEM::LiquidTransportationCurve;
@@ -81,7 +81,7 @@ TEST_F(CurveTest, TestTabularLinear)
     SCOPED_TRACE("Begin Test: Test tabular linear.");
     using HygroThermFEM::MockNode2D;
 
-    const TabularFunction curve({{1, 10}, {2, 20}, {3, 30}}, Variable::temperature);
+    const TabularFunction1D curve({{1, 10}, {2, 20}, {3, 30}}, Variable::temperature);
 
     const MockNode2D node(2.5);
 
@@ -115,9 +115,9 @@ TEST_F(CurveTest, TestTabularLogarithmic1)
     SCOPED_TRACE("Begin Test: Test tabular logarithmic curve.");
     using HygroThermFEM::MockNode2D;
 
-    const TabularFunction curve({{1, 10}, {2, 20}, {3, 30}},
-                                Variable::temperature,
-                                FenestrationCommon::Interpolation::Logarithmic);
+    const TabularFunction1D curve({{1, 10}, {2, 20}, {3, 30}},
+                                  Variable::temperature,
+                                  FenestrationCommon::Interpolation::Logarithmic);
 
 
     const MockNode2D node(2.5);
@@ -132,9 +132,9 @@ TEST_F(CurveTest, TestTabularLogarithmic2)
     SCOPED_TRACE("Begin Test: Test tabular logarithmic curve.");
     using HygroThermFEM::MockNode2D;
 
-    const TabularFunction curve({{31, 2.5e-10}, {52, 3.9e-9}},
-                                Variable::temperature,
-                                FenestrationCommon::Interpolation::Logarithmic);
+    const TabularFunction1D curve({{31, 2.5e-10}, {52, 3.9e-9}},
+                                  Variable::temperature,
+                                  FenestrationCommon::Interpolation::Logarithmic);
 
     const State interpolationPoint(40, 0, 101325, 0);
     const MockNode2D node(40);
@@ -193,7 +193,7 @@ TEST_F(CurveTest, TestTabularOutOfRangeBack)
     SCOPED_TRACE("Begin Test: Test tabular out of range.");
     using HygroThermFEM::MockNode2D;
 
-    const TabularFunction curve({{1, 10}, {2, 20}, {3, 30}}, Variable::temperature);
+    const TabularFunction1D curve({{1, 10}, {2, 20}, {3, 30}}, Variable::temperature);
 
     const MockNode2D node(3.5);
 
@@ -206,7 +206,7 @@ TEST_F(CurveTest, TestTabularOutOfRangeFront)
     SCOPED_TRACE("Begin Test: Test tabular out of range.");
     using HygroThermFEM::MockNode2D;
 
-    const TabularFunction curve({{1, 10}, {2, 20}, {3, 30}}, Variable::temperature);
+    const TabularFunction1D curve({{1, 10}, {2, 20}, {3, 30}}, Variable::temperature);
 
     const MockNode2D node(0.5);
 
@@ -219,7 +219,7 @@ TEST_F(CurveTest, TestComposition1)
     SCOPED_TRACE("Begin Test: Composition (multiplication) of two functions.");
     using HygroThermFEM::MockNode2D;
 
-    const TabularFunction tabular({{1, 10}, {2, 20}, {3, 30}}, Variable::temperature);
+    const TabularFunction1D tabular({{1, 10}, {2, 20}, {3, 30}}, Variable::temperature);
 
     const auto tabular1 = tabular * 5.0;
 
@@ -235,18 +235,18 @@ TEST_F(CurveTest, TestPorosityCalculation)
     SCOPED_TRACE("Begin Test: Calculate liquid and air porosities.");
     using HygroThermFEM::MockNode2D;
 
-    TabularFunction waterContent({{0.000, 0.0},
-                                  {0.500, 0.5},
-                                  {0.800, 1.4},
-                                  {0.900, 2.6},
-                                  {0.930, 3.6},
-                                  {0.950, 4.7},
-                                  {0.970, 7.1},
-                                  {0.990, 14.8},
-                                  {0.995, 20.9},
-                                  {0.999, 33.0},
-                                  {1.000, 40.0}},
-                                 Variable::humidity);
+    TabularFunction1D waterContent({{0.000, 0.0},
+                                    {0.500, 0.5},
+                                    {0.800, 1.4},
+                                    {0.900, 2.6},
+                                    {0.930, 3.6},
+                                    {0.950, 4.7},
+                                    {0.970, 7.1},
+                                    {0.990, 14.8},
+                                    {0.995, 20.9},
+                                    {0.999, 33.0},
+                                    {1.000, 40.0}},
+                                   Variable::humidity);
 
     const MockNode2D node(1);
 

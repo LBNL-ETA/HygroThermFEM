@@ -16,9 +16,9 @@ namespace HygroThermFEM
                          const double porosity,
                          const double heatCapacity,
                          const double diffusionResistanceFactor,
-                         const std::vector<std::pair<double, double>> & thermalConductivity,
-                         const std::vector<std::pair<double, double>> & liquidTransportationCurve,
-                         const std::vector<std::pair<double, double>> & sorptionCurve,
+                         const std::vector<FenestrationCommon::point> &thermalConductivity,
+                         const std::vector<FenestrationCommon::point> &liquidTransportationCurve,
+                         const std::vector<FenestrationCommon::point> &sorptionCurve,
                          const double emissivity,
                          const bool isLinear) :
         m_Name(std::move(cs)),
@@ -26,9 +26,9 @@ namespace HygroThermFEM
         m_Porosity(porosity),
         m_HeatCapacity(heatCapacity),
         m_DiffusionResistanceFactor(diffusionResistanceFactor),
-        m_ThermalConductivity(new TabularFunction(thermalConductivity, Variable::water)),
+        m_ThermalConductivity(new TabularFunction1D(thermalConductivity, Variable::water)),
         m_LiquidTransportCoefficient(new LiquidTransportationCurve(liquidTransportationCurve)),
-        m_SorptionCurve(new TabularFunction(sorptionCurve, Variable::humidity)),
+        m_SorptionCurve(new TabularFunction1D(sorptionCurve, Variable::humidity)),
         m_Emissivity(emissivity),
         m_Linear(isLinear)
     {}
@@ -58,17 +58,17 @@ namespace HygroThermFEM
         return m_Linear;
     }
 
-    const std::vector<std::pair<double, double>> & IMaterial::thermalConductivity() const
+    const std::vector<FenestrationCommon::point> & IMaterial::thermalConductivity() const
     {
         return m_ThermalConductivity->getCurve();
     }
 
-    const std::vector<std::pair<double, double>> & IMaterial::liquidTransportationCurve() const
+    const std::vector<FenestrationCommon::point> & IMaterial::liquidTransportationCurve() const
     {
         return m_LiquidTransportCoefficient->getCurve();
     }
 
-    const std::vector<std::pair<double, double>> & IMaterial::sorptionCurve() const
+    const std::vector<FenestrationCommon::point> & IMaterial::sorptionCurve() const
     {
         return m_SorptionCurve->getCurve();
     }
@@ -112,9 +112,9 @@ namespace HygroThermFEM
                double porosity,
                double heatCapacity,
                double diffusionResistanceFactor,
-               const std::vector<std::pair<double, double>> & thermalConductivity,
-               const std::vector<std::pair<double, double>> & liquidTransportationCurve,
-               const std::vector<std::pair<double, double>> & sorptionCurve,
+               const std::vector<FenestrationCommon::point> &thermalConductivity,
+               const std::vector<FenestrationCommon::point> &liquidTransportationCurve,
+               const std::vector<FenestrationCommon::point> &sorptionCurve,
                double emissivity,
                CavityStandard cavityStandard) :
         IMaterial(cs,
@@ -139,15 +139,15 @@ namespace HygroThermFEM
     // SolidMaterial
     ///////////////////////////////////////////////////////////////////////////////////////////////
     SolidMaterial::SolidMaterial(
-      const std::string & name,
-      const double density,
-      const double porosity,
-      const double heatCapacity,
-      const double diffusionResistanceFactor,
-      const std::vector<std::pair<double, double>> & thermalConductivity,
-      const std::vector<std::pair<double, double>> & liquidTransportCurve,
-      const std::vector<std::pair<double, double>> & sorptionCurve,
-      const double emissivity) :
+            const std::string & name,
+            const double density,
+            const double porosity,
+            const double heatCapacity,
+            const double diffusionResistanceFactor,
+            const std::vector<FenestrationCommon::point> &thermalConductivity,
+            const std::vector<FenestrationCommon::point> &liquidTransportCurve,
+            const std::vector<FenestrationCommon::point> &sorptionCurve,
+            const double emissivity) :
         IMaterial(name,
                   density,
                   porosity,

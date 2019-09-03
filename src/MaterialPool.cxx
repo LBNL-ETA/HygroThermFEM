@@ -15,15 +15,15 @@ namespace HygroThermFEM
     }
 
     const IMaterial & MaterialPool::createSolidMaterial(
-      const std::string & Name,
-      double Density,
-      double Porosity,
-      double HeatCapacity,
-      double DiffusionResistanceFactor,
-      const std::vector<std::pair<double, double>> & ThermalConductivity,
-      const std::vector<std::pair<double, double>> & LiquidTransportCurve,
-      const std::vector<std::pair<double, double>> & SorptionCurve,
-      double emissivity)
+            const std::string & Name,
+            double Density,
+            double Porosity,
+            double HeatCapacity,
+            double DiffusionResistanceFactor,
+            const std::vector<FenestrationCommon::point> &ThermalConductivity,
+            const std::vector<FenestrationCommon::point> &LiquidTransportCurve,
+            const std::vector<FenestrationCommon::point> &SorptionCurve,
+            double emissivity)
     {
         checkIfMaterialExists(Name);
         m_Materials.emplace(
@@ -43,7 +43,7 @@ namespace HygroThermFEM
     const IGas & MaterialPool::createGas(const std::string & name,
                                          const CavityStandard cavityStandard)
     {
-        m_Gases[name] = std::unique_ptr<Gas>(new Gas(name, cavityStandard));
+        m_Gases[name] = std::make_unique<Gas>(name, cavityStandard);
         return *m_Gases.at(name);
     }
 

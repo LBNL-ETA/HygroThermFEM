@@ -6,8 +6,7 @@
 #include <vector>
 
 #include "Interpolator.hxx"
-//#include "State.hxx"
-//#include "Node2D.hxx"
+#include "Point.hxx"
 
 /// Functions interface is used to build function that are used for matrix
 /// building. Functions are stacked together to make full function that later
@@ -300,61 +299,61 @@ namespace HygroThermFEM
     };
 
     //////////////////////////////////////////////////////////////////
-    ///  TabularFunction
+    ///  TabularFunction1D
     //////////////////////////////////////////////////////////////////
 
     //! \brief Interface for classic tabular curve.
     //!
     //! Tabular function is made to simply return adequate value from table. Search function is
     //! performed over first column and return value is calculated from second column.
-    class TabularFunction : public IFunction
+    class TabularFunction1D : public IFunction
     {
     public:
-        //! Table construction from standard vector.
-        TabularFunction(
-          const std::vector<std::pair<double, double>> &
-            values,            //!< Vector of x,y pairs that will go into table.
-          Variable property,   //!< Variable that represent value type in first column.
-          const FenestrationCommon::Interpolator & interpolator =
-            FenestrationCommon::Interpolation::Linear   //!< Interpolation strategy used for in
-                                                        //!< between values.
-        );
+        //! \brief Table construction from standard vector.
+        //!
+        //! \param values Vector of x,y pairs that will go into table.
+        //! \param property State variable that represent value type in first column.
+        //! \param interpolator Interpolation strategy used for in-between values.
+        TabularFunction1D(std::vector<FenestrationCommon::point>  values,
+                          Variable property,
+                          FenestrationCommon::Interpolator interpolator =
+                            FenestrationCommon::Interpolation::Linear);
 
-        //! Table construction from initializer list.
-        TabularFunction(
-          const std::initializer_list<std::pair<double, double>> &
-            list,              //!< Initializer list of x,y pairs that will go into table.
-          Variable property,   //!< Variable that represent value type in first column.
-          const FenestrationCommon::Interpolator & interpolator =
-            FenestrationCommon::Interpolation::Linear   //!< Interpolation strategy used for in
-                                                        //!< between values.
-        );
+        //! \brief Table construction from initializer list.
+        //!
+        //! \param list Initializer list of x,y pairs that will go into table.
+        //! \param property Variable FenestrationCommon::Interpolator n.
+        //! \param interpolator Interpolation strategy used for in-between values.
+        TabularFunction1D(const std::initializer_list<FenestrationCommon::point> & list,
+                          Variable property,
+                          FenestrationCommon::Interpolator interpolator =
+                            FenestrationCommon::Interpolation::Linear);
 
-        //! Returns maximum value for first column.
+        //! \brief Returns maximum value for first column.
         double maxX() const;
 
-        //! Returns maximum value from second column.
+        //! \brief Returns maximum value from second column.
         double maxY() const;
 
-        //! Returns minimum value for first column.
+        //! \brief FenestrationCommon::Interpolator
         double minX() const;
 
-        //! Returns minimum value from second column.
+        //! \brief Returns minimum value from second column.
         double minY() const;
 
-        //! Returns tabular values as standard vector of pairs.
-        std::vector<std::pair<double, double>> & getCurve();
+        //! \brief Returns tabular values as standard vector of pairs.
+        std::vector<FenestrationCommon::point> & getCurve();
 
     protected:
-        std::vector<std::pair<double, double>> m_Curve;
+        std::vector<FenestrationCommon::point> m_Curve;
         FenestrationCommon::Interpolator m_Interpolator;
 
-        //! Overriden evaluation function.
+        //! \brief Function to calculate value from given table.
         double evaluateFunction(double t_position, double t_previousTimestep) const override;
 
-        //! Helper function that returns two closest points for interpolation.
-        virtual std::pair<std::pair<double, double>, std::pair<double, double>>
-          getInterpolationPoints(std::vector<std::pair<double, double>>::const_iterator & it) const;
+        //! \brief Helper function that returns two closest points for interpolation.
+        virtual std::pair<FenestrationCommon::point, FenestrationCommon::point>
+          getInterpolationPoints(std::vector<FenestrationCommon::point>::const_iterator & it) const;
     };
 
     //////////////////////////////////////////////////////////////////
@@ -372,27 +371,27 @@ namespace HygroThermFEM
     public:
         //! Construction of tabular derivative from standard vector values.
         TabularDerivative(
-          const std::vector<std::pair<double, double>> &
-            values,           //!< Pair of vector values used to construct tabular derivative.
+                const std::vector<FenestrationCommon::point>
+                &values,           //!< Pair of vector values used to construct tabular derivative.
           Variable property   //!< Variable that represent value type in first column.
         );
 
         //! Construction of tabular derivative from standard vector values.
         TabularDerivative(
-          const std::initializer_list<std::pair<double, double>> &
+          const std::initializer_list<FenestrationCommon::point> &
             list,             //!< Initializer list used to construct tabular derivative.
           Variable property   //!< Variable that represent value type in first column.
         );
 
     protected:
-        std::vector<std::pair<double, double>> m_Curve;
+        std::vector<FenestrationCommon::point> m_Curve;
 
         //! Overriden evaluation function.
         double evaluateFunction(double t_position, double t_previousTimestep) const override;
 
         //! Helper function that returns two closest points for interpolation.
-        virtual std::pair<std::pair<double, double>, std::pair<double, double>>
-          getInterpolationPoints(std::vector<std::pair<double, double>>::const_iterator & it) const;
+        virtual std::pair<FenestrationCommon::point, FenestrationCommon::point>
+          getInterpolationPoints(std::vector<FenestrationCommon::point>::const_iterator &it) const;
     };
 
     //////////////////////////////////////////////////////////////////
@@ -401,33 +400,34 @@ namespace HygroThermFEM
 
     //! \brief Estimates tabular derivative with values being smoothed between different values.
     //!
-    //! When providing table with x-y values, calculating simple derivative will cause step function between
-    //! certain values. This class will provide smooth transition between different values.
-    class TabularDerivativeSmooth : public IFunction {
+    //! When providing table with x-y values, calculating simple derivative will cause step function
+    //! between certain values. This class will provide smooth transition between different values.
+    class TabularDerivativeSmooth : public IFunction
+    {
     public:
         //! Construction of tabular derivative from standard vector values.
         TabularDerivativeSmooth(
-            const std::vector<std::pair<double, double>> &
+          const std::vector<FenestrationCommon::point> &
             values,           //!< Pair of vector values used to construct tabular derivative.
-            Variable property   //!< Variable that represent value type in first column.
+          Variable property   //!< Variable that represent value type in first column.
         );
 
         //! Construction of tabular derivative from standard vector values.
         TabularDerivativeSmooth(
-            const std::initializer_list<std::pair<double, double>> &
+          const std::initializer_list<FenestrationCommon::point> &
             list,             //!< Initializer list used to construct tabular derivative.
-            Variable property   //!< Variable that represent value type in first column.
+          Variable property   //!< Variable that represent value type in first column.
         );
 
     protected:
-        std::vector<std::pair<double, double>> m_Curve;
+        std::vector<FenestrationCommon::point> m_Curve;
 
         //! Overriden evaluation function.
         double evaluateFunction(double t_position, double t_previousTimestep) const override;
 
         //! Helper function that returns two closest points for interpolation.
-        virtual std::pair<std::pair<double, double>, std::pair<double, double>>
-            getInterpolationPoints(std::vector<std::pair<double, double>>::const_iterator & it) const;
+        virtual std::pair<FenestrationCommon::point, FenestrationCommon::point>
+          getInterpolationPoints(std::vector<FenestrationCommon::point>::const_iterator &it) const;
     };
 
     //////////////////////////////////////////////////////////////////
@@ -438,23 +438,23 @@ namespace HygroThermFEM
     //!
     //! Sorption curve is table that represents material water content as function of
     //! relative humidity. For in between values, logarithmic interpolation is used.
-    class LiquidTransportationCurve : public TabularFunction
+    class LiquidTransportationCurve : public TabularFunction1D
     {
     public:
         //! Construction of suction curve from standard vector values.
-        LiquidTransportationCurve(const std::vector<std::pair<double, double>> &
-                       values   //!< Sorption curve values in standard vector form.
-        );
+        //!
+        //! \param vec Sorption curve values in standard vector form.
+        LiquidTransportationCurve(const std::vector<FenestrationCommon::point> & vec);
 
         //! Construction of suction curve from initializer list.
-        LiquidTransportationCurve(const std::initializer_list<std::pair<double, double>> &
-                       list   //!< Soprtion curve values in initializer list form.
-        );
+        //!
+        //! \param list Soprtion curve values in initializer list form.
+        LiquidTransportationCurve(const std::initializer_list<FenestrationCommon::point> & list);
 
     protected:
         //! Helper function that returns two closest points for interpolation.
-        std::pair<std::pair<double, double>, std::pair<double, double>> getInterpolationPoints(
-          std::vector<std::pair<double, double>>::const_iterator & it) const override;
+        std::pair<FenestrationCommon::point, FenestrationCommon::point> getInterpolationPoints(
+          std::vector<FenestrationCommon::point>::const_iterator & it) const override;
     };
 
     //////////////////////////////////////////////////////////////////
