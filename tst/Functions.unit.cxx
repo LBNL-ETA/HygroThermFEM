@@ -2,13 +2,10 @@
 
 #include "HygroThermFEM2D.hxx"
 
-using HygroThermFEM::MaterialPool;
-using HygroThermFEM::SolidMaterial;
 using HygroThermFEM::Variable;
 using HygroThermFEM::State;
 using HygroThermFEM::INode2D;
 using HygroThermFEM::TabularFunction1D;
-using HygroThermFEM::TabularDerivative;
 using HygroThermFEM::TabularDerivativeSmooth;
 using HygroThermFEM::LiquidTransportationCurve;
 using HygroThermFEM::SaturationFunction;
@@ -28,16 +25,41 @@ protected:
 // Mock object that will be used to test tables
 namespace HygroThermFEM
 {
+    struct StateValues
+    {
+        StateValues(const Variable variable, const double value, const double prevTimestep = 0) :
+            variable(variable),
+            value(value),
+            prevTimestep(prevTimestep)
+        {}
+
+        Variable variable{Variable::temperature};
+        double value{0};
+        double prevTimestep{0};
+    };
+
     class MockNode2D final : public INode2D
     {
     public:
-        MockNode2D() : m_Property{{Timestep::Current, 0}, {Timestep::Previous, 0}}
+        MockNode2D() :
+            m_Property{{Variable::temperature, {{Timestep::Current, 0}, {Timestep::Previous, 0}}},
+                       {Variable::humidity, {{Timestep::Current, 0}, {Timestep::Previous, 0}}}}
         {}
+
+        MockNode2D(const std::vector<StateValues> & values)
+        {
+            for(const auto & val : values)
+            {
+                m_Property[val.variable] = {{Timestep::Current, val.value},
+                                            {Timestep::Previous, val.prevTimestep}};
+            }
+        }
+
         ~MockNode2D() = default;
         MockNode2D(const MockNode2D & mockNode) = default;
+        MockNode2D(MockNode2D && mockNode) = default;
         MockNode2D & operator=(const MockNode2D &) = default;
         MockNode2D & operator=(MockNode2D &&) = default;
-
 
         size_t getNodeNumber() const override
         {
@@ -60,18 +82,20 @@ namespace HygroThermFEM
         void setStateProperty(BaseVariable, double, bool) override
         {}
 
-        explicit MockNode2D(const double current, const double previous = 0) :
-            m_Property{{Timestep::Current, current}, {Timestep::Previous, previous}}
+        explicit MockNode2D(const StateValues & values) :
+            m_Property{
+              {values.variable,
+               {{Timestep::Current, values.value}, {Timestep::Previous, values.prevTimestep}}}}
         {}
 
-        double property(Variable = Variable::temperature,
+        double property(Variable variable,
                         const Timestep timestep = Timestep::Current) const override
         {
-            return m_Property.at(timestep);
+            return m_Property.at(variable).at(timestep);
         }
 
     private:
-        std::map<Timestep, double> m_Property;
+        std::map<Variable, std::map<Timestep, double>> m_Property;
     };
 
 }   // namespace HygroThermFEM
@@ -83,7 +107,7 @@ TEST_F(CurveTest, TestTabularLinear)
 
     const TabularFunction1D curve({{1, 10}, {2, 20}, {3, 30}}, Variable::temperature);
 
-    const MockNode2D node(2.5);
+    const MockNode2D node({Variable::temperature, 2.5});
 
     auto result = curve.value(node);
 
@@ -98,16 +122,84 @@ TEST_F(CurveTest, TestTabularLinear)
     // Need to extrapolate data if out of range. This is important to keep solution stable.
 
     // Point set higher than any other point in the table.
-    const MockNode2D node1(3.5);
+    const MockNode2D node1({Variable::temperature, 3.5});
 
     result = curve.value(node1);
     EXPECT_NEAR(35, result, 1e-6);
 
     // Point set lower than any other point in the table.
-    const MockNode2D node2(0.5);
+    const MockNode2D node2({Variable::temperature, 0.5});
 
     result = curve.value(node2);
     EXPECT_NEAR(5, result, 1e-6);
+}
+
+TEST_F(CurveTest, TestTabularLinearSinglePoint)
+{
+    SCOPED_TRACE("Begin Test: Test tabular linear with single input point.");
+    using HygroThermFEM::MockNode2D;
+
+    const TabularFunction1D curve({{1, 10}}, Variable::temperature);
+
+    const MockNode2D node({Variable::temperature, 2.5});
+
+    auto result = curve.value(node);
+
+    EXPECT_NEAR(10, result, 1e-6);
+
+    const auto max = curve.maxY();
+    EXPECT_NEAR(10, max, 1e-6);
+
+    const auto min = curve.minY();
+    EXPECT_NEAR(10, min, 1e-6);
+
+    // Point set higher than any other point in the table.
+    const MockNode2D node1({Variable::temperature, 3.5});
+
+    result = curve.value(node1);
+    EXPECT_NEAR(10, result, 1e-6);
+
+    // Point set lower than any other point in the table.
+    const MockNode2D node2({Variable::temperature, 0.5});
+
+    result = curve.value(node2);
+    EXPECT_NEAR(10, result, 1e-6);
+}
+
+TEST_F(CurveTest, TestTabular2D)
+{
+    SCOPED_TRACE("Begin Test: Test tabular linear with single input point.");
+    using HygroThermFEM::MockNode2D;
+    using HygroThermFEM::TabularFunction2D;
+    using FenestrationCommon::point;
+
+    const std::vector<point> temperatureMeasurement{{-20, 0.029}, {10, 0.035}, {80, 0.049}};
+    // Temperature measurement is performed at certain humidity
+    const double temperatureMeasurementAt{0};
+    const std::vector<point> humidityMeasurement{{0, 0.035},
+                                                 {50, 0.043},
+                                                 {100, 0.049},
+                                                 {300, 0.1},
+                                                 {500, 0.2},
+                                                 {800, 0.44},
+                                                 {900, 0.55},
+                                                 {950, 0.6},
+                                                 {990, 0.61}};
+    // Humidity measurement is performed at certain temperature
+    const double humidityMeasurementAt{10};
+
+    const TabularFunction2D table2D{temperatureMeasurement,
+                                    temperatureMeasurementAt,
+                                    Variable::temperature,
+                                    humidityMeasurement,
+                                    humidityMeasurementAt,
+                                    Variable::humidity};
+
+    const MockNode2D node({{Variable::temperature, 40}, {Variable::humidity, 220}});
+
+    const auto result = table2D.value(node);
+
+    EXPECT_NEAR(0.0856, result, 1e-6);
 }
 
 TEST_F(CurveTest, TestTabularLogarithmic1)
@@ -119,8 +211,7 @@ TEST_F(CurveTest, TestTabularLogarithmic1)
                                   Variable::temperature,
                                   FenestrationCommon::Interpolation::Logarithmic);
 
-
-    const MockNode2D node(2.5);
+    const MockNode2D node({Variable::temperature, 2.5});
 
     const auto result = curve.value(node);
 
@@ -137,7 +228,7 @@ TEST_F(CurveTest, TestTabularLogarithmic2)
                                   FenestrationCommon::Interpolation::Logarithmic);
 
     const State interpolationPoint(40, 0, 101325, 0);
-    const MockNode2D node(40);
+    const MockNode2D node({Variable::temperature, 40});
 
     const auto result = curve.value(node);
 
@@ -152,25 +243,25 @@ TEST_F(CurveTest, TestSuctionCurve)
 
     LiquidTransportationCurve curve{{0.1, 10}, {0.2, 20}, {0.3, 30}};
 
-    const MockNode2D node(0.15);
+    const MockNode2D node({Variable::water, 0.15});
 
     auto result = curve.value(node);
     EXPECT_NEAR(14.142136, result, 1e-6);
 
     // Point is before table
-    const MockNode2D node1(0.05);
+    const MockNode2D node1({Variable::water, 0.05});
 
     result = curve.value(node1);
     EXPECT_NEAR(10, result, 1e-6);
 
     State interpolationPoint2(0, 0.25, 101325, 1.0);
-    const MockNode2D node2(0.25);
+    const MockNode2D node2({Variable::water, 0.25});
     result = curve.value(node2);
     EXPECT_NEAR(24.4948974, result, 1e-6);
 
     // Point is after table
     State interpolationPoint3(0, 0.35, 101325, 1.0);
-    const MockNode2D node3(0.35);
+    const MockNode2D node3({Variable::water, 0.35});
     result = curve.value(node3);
     EXPECT_NEAR(30, result, 1e-6);
 }
@@ -182,7 +273,7 @@ TEST_F(CurveTest, TestConstantCurve)
 
     const auto cons = Constant(5.0);
 
-    const MockNode2D node(2.5);
+    const MockNode2D node({Variable::temperature, 2.5});
 
     const auto result = cons.value(node);
     EXPECT_NEAR(5, result, 1e-6);
@@ -195,7 +286,7 @@ TEST_F(CurveTest, TestTabularOutOfRangeBack)
 
     const TabularFunction1D curve({{1, 10}, {2, 20}, {3, 30}}, Variable::temperature);
 
-    const MockNode2D node(3.5);
+    const MockNode2D node({Variable::temperature, 3.5});
 
     const auto result = curve.value(node);
     EXPECT_NEAR(35, result, 1e-6);
@@ -208,7 +299,7 @@ TEST_F(CurveTest, TestTabularOutOfRangeFront)
 
     const TabularFunction1D curve({{1, 10}, {2, 20}, {3, 30}}, Variable::temperature);
 
-    const MockNode2D node(0.5);
+    const MockNode2D node({Variable::temperature, 0.5});
 
     const auto result = curve.value(node);
     EXPECT_NEAR(5, result, 1e-6);
@@ -223,7 +314,7 @@ TEST_F(CurveTest, TestComposition1)
 
     const auto tabular1 = tabular * 5.0;
 
-    const MockNode2D node(2.5);
+    const MockNode2D node({Variable::temperature, 2.5});
 
     const auto result = tabular1.value(node);
 
@@ -248,14 +339,14 @@ TEST_F(CurveTest, TestPorosityCalculation)
                                     {1.000, 40.0}},
                                    Variable::humidity);
 
-    const MockNode2D node(1);
+    const MockNode2D node({{Variable::humidity, 1}, {Variable::temperature, 0}});
 
     auto maxWaterContent = waterContent.value(node);
     const auto materialPorosity = 0.05;
 
     auto waterFill = materialPorosity / maxWaterContent * waterContent;
 
-    const MockNode2D outdoor(0.98);
+    const MockNode2D outdoor({{Variable::humidity, 0.98}, {Variable::temperature, 0}});
 
     auto result = waterFill.value(outdoor);
     EXPECT_NEAR(0.0136875, result, 1e-6);
@@ -271,7 +362,7 @@ TEST_F(CurveTest, TestSaturationFunction)
     SCOPED_TRACE("Begin Test: Test saturation function.");
     using HygroThermFEM::MockNode2D;
 
-    const MockNode2D node(20);
+    const MockNode2D node({Variable::temperature, 20});
 
     SaturationFunction sat1;
 
@@ -296,27 +387,27 @@ TEST_F(CurveTest, TestTabularDerivativeSmooth)
                                           {1.000, 180}},
                                          Variable::humidity);
 
-    const MockNode2D node1(0);
+    const MockNode2D node1({Variable::humidity, 0});
     auto result = waterContent.value(node1);
     EXPECT_NEAR(10.6, result, 1e-6);
 
-    const MockNode2D node2(1);
+    const MockNode2D node2({Variable::humidity, 1});
     result = waterContent.value(node2);
     EXPECT_NEAR(60000, result, 1e-6);
 
-    const MockNode2D node3(-1);
+    const MockNode2D node3({Variable::humidity, -1});
     result = waterContent.value(node3);
     EXPECT_NEAR(10.6, result, 1e-6);
 
-    const MockNode2D node4(2.0);
+    const MockNode2D node4({Variable::humidity, 2.0});
     result = waterContent.value(node4);
     EXPECT_NEAR(60000, result, 1e-6);
 
-    const MockNode2D node5(0.575);
+    const MockNode2D node5({Variable::humidity, 0.575});
     result = waterContent.value(node5);
     EXPECT_NEAR(20.6666667, result, 1e-6);
 
-    const MockNode2D node6(0.6);
+    const MockNode2D node6({Variable::humidity, 0.6});
     result = waterContent.value(node6);
     EXPECT_NEAR(21.222222, result, 1e-6);
 }
@@ -329,7 +420,7 @@ TEST_F(CurveTest, TestTotalMelting)
     const auto newTemperature = 1.0;
 
     // Set nodes current state
-    const MockNode2D node(newTemperature, currentTemperature);
+    const MockNode2D node({Variable::temperature, newTemperature, currentTemperature});
 
     PhaseChange phaseChange;
     const auto result = phaseChange.value(node);
@@ -346,7 +437,7 @@ TEST_F(CurveTest, TestPartialMelting)
     const auto newTemperature = icePointRatio * Constants::IcePoint;
 
     // Set nodes current state
-    const MockNode2D node(newTemperature, currentTemperature);
+    const MockNode2D node({Variable::temperature, newTemperature, currentTemperature});
 
     PhaseChange phaseChange;
     const auto result = phaseChange.value(node);
@@ -363,7 +454,7 @@ TEST_F(CurveTest, TestTotalFreezing)
     const auto newTemperature = -1.0;
 
     // Set nodes current state
-    const MockNode2D node(newTemperature, currentTemperature);
+    const MockNode2D node({Variable::temperature, newTemperature, currentTemperature});
 
     PhaseChange phaseChange;
     const auto result = phaseChange.value(node);
@@ -380,7 +471,7 @@ TEST_F(CurveTest, TestPartialFreezing)
     const auto newTemperature = freezePointRatio * Constants::IcePoint;
 
     // Set nodes current state
-    const MockNode2D node(newTemperature, currentTemperature);
+    const MockNode2D node({Variable::temperature, newTemperature, currentTemperature});
 
     PhaseChange phaseChange;
     const auto result = phaseChange.value(node);

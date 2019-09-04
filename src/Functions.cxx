@@ -85,13 +85,15 @@ namespace HygroThermFEM
     ///  TabularFunction1D
     //////////////////////////////////////////////////////////////////
 
-    TabularFunction1D::TabularFunction1D(std::vector<FenestrationCommon::point> values,
+    TabularFunction1D::TabularFunction1D(const std::vector<FenestrationCommon::point> & values,
                                          Variable property,
                                          FenestrationCommon::Interpolator interpolator) :
         IFunction(property),
-        m_Curve(std::move(values)),
+        m_Curve(values),
         m_Interpolator(std::move(interpolator))
-    {}
+    {
+        checkIfCurveIsSinglePoint();
+    }
 
     TabularFunction1D::TabularFunction1D(
       const std::initializer_list<FenestrationCommon::point> & list,
@@ -100,14 +102,17 @@ namespace HygroThermFEM
         IFunction(property),
         m_Curve(list),
         m_Interpolator(std::move(interpolator))
-    {}
+    {
+        checkIfCurveIsSinglePoint();
+    }
 
 
     double TabularFunction1D::evaluateFunction(const double t_position, const double) const
     {
-        auto it = std::find_if(m_Curve.begin(), m_Curve.end(), [&](FenestrationCommon::point val) {
-            return val.x > t_position;
-        });
+        auto it =
+          std::find_if(m_Curve.begin(), m_Curve.end(), [&](const FenestrationCommon::point & val) {
+              return val.x > t_position;
+          });
 
         const auto points = getInterpolationPoints(it);
 
@@ -162,14 +167,77 @@ namespace HygroThermFEM
         return m_Curve;
     }
 
+    void TabularFunction1D::checkIfCurveIsSinglePoint()
+    {
+        if(m_Curve.size() == 1u)
+        {
+            auto point = m_Curve[0];
+            point += FenestrationCommon::point(1, 0);
+            m_Curve.emplace_back(point);
+        }
+    }
+
+    //////////////////////////////////////////////////////////////////
+    ///  TabularFunction2D
+    //////////////////////////////////////////////////////////////////
+
+    TabularFunction2D::TabularFunction2D(
+      const std::vector<FenestrationCommon::point> & firstValues,
+      double firstTableMeasuredAt,
+      Variable firstProperty,
+      const std::vector<FenestrationCommon::point> & secondValues,
+      double secondTableMeasureAt,
+      Variable secondProperty,
+      const FenestrationCommon::Interpolator & interpolator) :
+        TabularFunction1D(secondValues, secondProperty, interpolator),
+        m_FirstTable(firstValues, firstProperty, interpolator),
+        m_FirstTableMeasuredAt{firstTableMeasuredAt},
+        m_SecondTableMeasuredAt{secondTableMeasureAt}
+    {
+        const double tolerance{1e-6};
+        const double y1{findValueAtPoint(firstValues, secondTableMeasureAt)};
+        const double y2{findValueAtPoint(secondValues, firstTableMeasuredAt)};
+        if(std::abs(y1 - y2) < tolerance)
+        {
+            m_CommonValueAtMeasuredTables = y1;
+        }
+        else
+        {
+            throw std::runtime_error("Values in two tables do not correspond to each other. Both "
+                                     "tables must return same value at measured points.");
+        }
+    }
+
+    double TabularFunction2D::value(const INode2D & node) const
+    {
+        const auto value1 = m_FirstTable.value(node);
+        const auto value2 = TabularFunction1D::value(node);
+        // This is simplified version of following result = m_CommonValueAtMeasuredTables + (value1
+        // - m_CommonValueAtMeasuredTables) + (value2 - m_CommonValueAtMeasuredTables)
+        return -m_CommonValueAtMeasuredTables + value1 + value2;
+    }
+
+    double TabularFunction2D::findValueAtPoint(const std::vector<FenestrationCommon::point> & table,
+                                               const double value) const
+    {
+        auto it =
+          std::find_if(table.begin(), table.end(), [&](const FenestrationCommon::point & val) {
+              return val.x > value;
+          });
+
+        const auto points = getInterpolationPoints(it);
+
+        return m_Interpolator.interpolate(points.first, points.second, value);
+    }
+
     //////////////////////////////////////////////////////////////////
     ///  TabularDerivative
     //////////////////////////////////////////////////////////////////
 
-    TabularDerivative::TabularDerivative(const std::vector<FenestrationCommon::point> &values,
+    TabularDerivative::TabularDerivative(std::vector<FenestrationCommon::point> values,
                                          Variable property) :
         IFunction(property),
-        m_Curve(values)
+        m_Curve(std::move(values))
     {}
 
     TabularDerivative::TabularDerivative(
@@ -185,13 +253,12 @@ namespace HygroThermFEM
         });
         const auto points = getInterpolationPoints(it);
 
-        return (points.second.y - points.first.y)
-               / (points.second.x - points.first.x);
+        return (points.second.y - points.first.y) / (points.second.x - points.first.x);
     }
 
     std::pair<FenestrationCommon::point, FenestrationCommon::point>
       TabularDerivative::getInterpolationPoints(
-              std::vector<FenestrationCommon::point>::const_iterator &it) const
+        std::vector<FenestrationCommon::point>::const_iterator & it) const
     {
         if(it == m_Curve.begin())
         {
@@ -384,5 +451,4 @@ namespace HygroThermFEM
 
         return result;
     }
-
 }   // namespace HygroThermFEM

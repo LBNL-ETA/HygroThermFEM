@@ -88,7 +88,7 @@ namespace HygroThermFEM
         //!
         //! \param node
         //! \return Node at which function will be evaluated.
-        double value(const INode2D & node) const override;
+        virtual double value(const INode2D & node) const override;
 
     protected:
         //! \brief Interface for function definition. This is place where in inherited classes
@@ -341,10 +341,10 @@ namespace HygroThermFEM
         //! \param values Vector of x,y pairs that will go into table.
         //! \param property State variable that represent value type in first column.
         //! \param interpolator Interpolation strategy used for in-between values.
-        TabularFunction1D(std::vector<FenestrationCommon::point> values,
+        TabularFunction1D(const std::vector<FenestrationCommon::point> &values,
                           Variable property,
                           FenestrationCommon::Interpolator interpolator =
-                            FenestrationCommon::Interpolation::Linear);
+                          FenestrationCommon::Interpolation::Linear);
 
         //! \brief Table construction from initializer list.
         //!
@@ -376,11 +376,68 @@ namespace HygroThermFEM
         FenestrationCommon::Interpolator m_Interpolator;
 
         //! \brief Function to calculate value from given table.
-        double evaluateFunction(double t_position, double t_previousTimestep) const override;
+        virtual double evaluateFunction(double t_position,
+                                        double t_previousTimestep) const override;
 
         //! \brief Helper function that returns two closest points for interpolation.
         virtual std::pair<FenestrationCommon::point, FenestrationCommon::point>
           getInterpolationPoints(std::vector<FenestrationCommon::point>::const_iterator & it) const;
+
+        //! \brief Expands table into two points if only one point is provided.
+        void checkIfCurveIsSinglePoint();
+    };
+
+    //////////////////////////////////////////////////////////////////
+    ///  TabularFunction2D
+    //////////////////////////////////////////////////////////////////
+
+    //! \brief Interface for tabular function in 2D space.
+    //!
+    //! Some properties are provided with two dimensional table. Good example is thermal
+    //! conductivity that is both temperature and moisture dependent.
+    class TabularFunction2D : public TabularFunction1D
+    {
+    public:
+        //! \brief Constructor of 2D table
+        //! 2D table will be constructed of two tables that will form two dimensional table.
+        //!
+        //! \param firstValues Values for first table dependency
+        //! \param firstTableMeasuredAt At which value is first table measured at. If for example, first table is
+        //! temperature dependent and second table is humidity dependent, then this value should represent.
+        //! at which humidity first table values are measured at.
+        //! \param firstProperty Property of first table.
+        //! \param secondValues Values for second table dependency.
+        //! \param secondTableMeasureAt Value at which second table is measure at.
+        //! \param secondProperty Property of second table.
+        //! \param interpolator Interpolation strategy.
+        TabularFunction2D(const std::vector<FenestrationCommon::point> &firstValues,
+                          double firstTableMeasuredAt,
+                          Variable firstProperty,
+                          const std::vector<FenestrationCommon::point> &secondValues,
+                          double secondTableMeasureAt,
+                          Variable secondProperty,
+                          const FenestrationCommon::Interpolator & interpolator =
+                          FenestrationCommon::Interpolation::Linear);
+
+        double value(const INode2D & node) const override;
+
+    private:
+
+        //! \brief Function to find y value from vector of points
+        //!
+        //! \param table Table of x-y points
+        //! \param value x-value in table for which y-value needs to be evaluated.
+        //! \return y-value for corresponding passed x-value
+        double findValueAtPoint(const std::vector<FenestrationCommon::point> & table, double value) const;
+
+        TabularFunction1D m_FirstTable;
+
+        // These two tables should share common
+        double m_FirstTableMeasuredAt{0};
+        double m_SecondTableMeasuredAt{0};
+
+        // Both tables need to match resulting value at measured properties
+        double m_CommonValueAtMeasuredTables;
     };
 
     //////////////////////////////////////////////////////////////////
@@ -400,7 +457,7 @@ namespace HygroThermFEM
         //!
         //! \param values Points that construct the table.
         //! \param property Variable that represent value type in x coordinate.
-        TabularDerivative(const std::vector<FenestrationCommon::point> & values, Variable property);
+        TabularDerivative(std::vector<FenestrationCommon::point> values, Variable property);
 
         //! \brief Construction of tabular derivative from initializer_list.
         //!
