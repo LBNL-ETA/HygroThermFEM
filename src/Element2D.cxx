@@ -406,7 +406,7 @@ namespace HygroThermFEM
 
         /// material
         const auto materialConductivity =
-          TabularFunction1D(m_Material.thermalConductivity(), Variable::water);
+          TabularFunction1D(m_Material.thermalConductivityMoistureDependent(), Variable::water);
 
         auto conductance = materialConductivity;
 
@@ -461,7 +461,7 @@ namespace HygroThermFEM
         //////////////////////////////////////////////////////////////////////
         /// SolidMaterial conductance for flux calculations
         //////////////////////////////////////////////////////////////////////
-        TabularFunction1D matCond(m_Material.thermalConductivity(), Variable::water);
+        TabularFunction1D matCond(m_Material.thermalConductivityMoistureDependent(), Variable::water);
         CondFlux(matCond);
     }
 

@@ -35,10 +35,13 @@ namespace HygroThermFEM
         //! calculation from heat transfer equation.
         //! @param excludeVaporDiffusionConduction If set to true, it will exclude water vapor
         //! diffusion conduction from heat transfer equation.
+        //! @param thermalConductivityMoistureAndTemperatureDependent Include moisture and
+        //! temperature dependency of thermal conductivity
         void setCalculationParameters(bool excludeWaterLiquidTransportation,
                                       bool excludeHeatOfEvaporation,
                                       bool excludeCapillaryConduction,
-                                      bool excludeVaporDiffusionConduction);
+                                      bool excludeVaporDiffusionConduction,
+                                      bool thermalConductivityMoistureAndTemperatureDependent);
 
         //! \brief Resets calculation parameters back to default.
         void resetCalculationParameters();
@@ -71,6 +74,10 @@ namespace HygroThermFEM
         //! transfer calculations.
         bool excludeVaporDiffusionConduction() const;
 
+        //!\ brief Defines if moisture and temperature dependent thermal conductivity will be taken
+        //!into account.
+        bool thermalConductivityTemperatureAndMoistureDependent() const;
+
     private:
         SimulationProperties();
 
@@ -93,5 +100,6 @@ namespace HygroThermFEM
         bool m_ExcludeHeatOfEvaporation;
         bool m_ExcludeCapillaryConduction;
         bool m_ExcludeVaporDiffusionConduction;
+        bool m_ThermalConductivityMoistureAndTemperatureDependent;
     };
 }   // namespace HygroThermFEM

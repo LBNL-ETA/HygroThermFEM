@@ -33,11 +33,14 @@ TEST_F(MultiDomain_2D_ExcludeLiquidTransport_1, TestExample_1)
     const auto excludeHeatOfEvaporation{false};
     const auto excludeCapillaryConduction{false};
     const auto excludeVaporDiffusionConduction{false};
+    const auto thermalConductivityMoistureAndTemperatureDependent{false};
 
-    SimulationProperties::Instance().setCalculationParameters(excludeWaterLiquidTransportation,
-                                                              excludeHeatOfEvaporation,
-                                                              excludeCapillaryConduction,
-                                                              excludeVaporDiffusionConduction);
+    SimulationProperties::Instance().setCalculationParameters(
+      excludeWaterLiquidTransportation,
+      excludeHeatOfEvaporation,
+      excludeCapillaryConduction,
+      excludeVaporDiffusionConduction,
+      thermalConductivityMoistureAndTemperatureDependent);
 
     std::vector<double> gridXCoordinates{0, 0.05, 0.1};
 

@@ -27,11 +27,14 @@ TEST_F(SteadyState_2D_ExcludeLiquidTransport_1, TestExample_1)
     const auto excludeHeatOfEvaporation{false};
     const auto excludeCapillaryConduction{false};
     const auto excludeVaporDiffusionConduction{false};
+    const auto thermalConductivityMoistureAndTemperatureDependent{false};
 
-    SimulationProperties::Instance().setCalculationParameters(excludeWaterLiquidTransportation,
-                                                              excludeHeatOfEvaporation,
-                                                              excludeCapillaryConduction,
-                                                              excludeVaporDiffusionConduction);
+    SimulationProperties::Instance().setCalculationParameters(
+      excludeWaterLiquidTransportation,
+      excludeHeatOfEvaporation,
+      excludeCapillaryConduction,
+      excludeVaporDiffusionConduction,
+      thermalConductivityMoistureAndTemperatureDependent);
 
     const double initialTemperature = 21.0;
     const double initialMoistureContent = 0.0;

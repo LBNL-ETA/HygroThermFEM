@@ -58,7 +58,7 @@ namespace HygroThermFEM
         return m_Linear;
     }
 
-    const std::vector<FenestrationCommon::point> & IMaterial::thermalConductivity() const
+    const std::vector<FenestrationCommon::point> & IMaterial::thermalConductivityMoistureDependent() const
     {
         return m_ThermalConductivity->getCurve();
     }

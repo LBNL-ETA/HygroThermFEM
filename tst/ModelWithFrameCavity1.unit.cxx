@@ -124,6 +124,6 @@ TEST_F(TestModelWithFrameCavity1, TestSingleFrameCavity)
     }
 
     const auto correctThermalConductivity{0.098654};
-    const auto thermalCond = frameCavity.thermalConductivity()[0].y;
+    const auto thermalCond = frameCavity.thermalConductivityMoistureDependent()[0].y;
     EXPECT_NEAR(correctThermalConductivity, thermalCond, 1e-6);
 }

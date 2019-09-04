@@ -54,15 +54,17 @@ namespace HygroThermFEM
         m_MaxNumberOfIterations = defaultProperties.maxIterations;
     }
 
-    void SimulationProperties::setCalculationParameters(bool excludeWaterLiquidTransportation,
-                                                        bool excludeHeatOfEvaporation,
-                                                        bool excludeCapillaryConduction,
-                                                        bool excludeVaporDiffusionConduction)
+    void SimulationProperties::setCalculationParameters(const bool excludeWaterLiquidTransportation,
+                                                        const bool excludeHeatOfEvaporation,
+                                                        const bool excludeCapillaryConduction,
+                                                        const bool excludeVaporDiffusionConduction,
+                                                        const bool thermalConductivityMoistureAndTemperatureDependent)
     {
         m_ExcludeWaterLiquidTransportation = excludeWaterLiquidTransportation;
         m_ExcludeHeatOfEvaporation = excludeHeatOfEvaporation;
         m_ExcludeCapillaryConduction = excludeCapillaryConduction;
         m_ExcludeVaporDiffusionConduction = excludeVaporDiffusionConduction;
+        m_ThermalConductivityMoistureAndTemperatureDependent = thermalConductivityMoistureAndTemperatureDependent;
     }
 
     void SimulationProperties::resetCalculationParameters()
@@ -92,6 +94,10 @@ namespace HygroThermFEM
     size_t SimulationProperties::maxNumberOfIterations() const
     {
         return m_MaxNumberOfIterations;
+    }
+
+    bool SimulationProperties::thermalConductivityTemperatureAndMoistureDependent() const {
+        return m_ThermalConductivityMoistureAndTemperatureDependent;
     }
 
 }   // namespace HygroThermFEM

@@ -135,10 +135,10 @@ TEST_F(TestModelWithFrameCavity2, TestDoubleFrameCavity)
     }
 
     const auto correctThermalConductivity1{0.163195};
-    const auto thermalCond1 = frameCavity1.thermalConductivity()[0].y;
+    const auto thermalCond1 = frameCavity1.thermalConductivityMoistureDependent()[0].y;
     EXPECT_NEAR(correctThermalConductivity1, thermalCond1, 1e-6);
 
     const auto correctThermalConductivity2{0.025013};
-    const auto thermalCond2 = frameCavity2.thermalConductivity()[0].y;
+    const auto thermalCond2 = frameCavity2.thermalConductivityMoistureDependent()[0].y;
     EXPECT_NEAR(correctThermalConductivity2, thermalCond2, 1e-6);
 }
