@@ -75,7 +75,7 @@ namespace HygroThermFEM
         bool excludeVaporDiffusionConduction() const;
 
         //!\ brief Defines if moisture and temperature dependent thermal conductivity will be taken
-        //!into account.
+        //! into account.
         bool thermalConductivityTemperatureAndMoistureDependent() const;
 
     private:
@@ -91,6 +91,7 @@ namespace HygroThermFEM
             bool excludeHeatOfEvaporation{false};
             bool excludeCapillaryConduction{false};
             bool excludeVaporDiffusionConduction{false};
+            bool thermalConductivityMoistureAndTemperatureDependent{false};
         } defaultProperties;
 
         double m_RelaxationParameter;

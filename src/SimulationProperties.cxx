@@ -73,6 +73,7 @@ namespace HygroThermFEM
         m_ExcludeHeatOfEvaporation = defaultProperties.excludeHeatOfEvaporation;
         m_ExcludeCapillaryConduction = defaultProperties.excludeCapillaryConduction;
         m_ExcludeVaporDiffusionConduction = defaultProperties.excludeVaporDiffusionConduction;
+        m_ThermalConductivityMoistureAndTemperatureDependent = defaultProperties.thermalConductivityMoistureAndTemperatureDependent;
     }
 
     void SimulationProperties::reset()
