@@ -71,10 +71,9 @@ namespace HygroThermFEM
         return m_Linear;
     }
 
-    const std::vector<FenestrationCommon::point> &
-      IMaterial::thermalConductivityMoistureDependent() const
+    TabularFunction2D IMaterial::thermalConductivityMoistureDependent() const
     {
-        return m_ThermalConductivity2DTable->getCurve();
+        return *m_ThermalConductivity2DTable;
     }
 
     const std::vector<FenestrationCommon::point> & IMaterial::liquidTransportationCurve() const
@@ -196,7 +195,9 @@ namespace HygroThermFEM
     {
         try
         {
-            if(m_ThermalConductivity2DTable->maxXFirstTable() != m_SorptionCurve->maxY()) // only moisture dependence must match to sorption curve
+            if(m_ThermalConductivity2DTable->maxXFirstTable()
+               != m_SorptionCurve
+                    ->maxY())   // only moisture dependence must match to sorption curve
             {
                 throw std::runtime_error(
                   "Thermal conductivity curve does not correspond to sorption curve. Maximum water "

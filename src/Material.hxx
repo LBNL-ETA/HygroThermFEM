@@ -94,7 +94,7 @@ namespace HygroThermFEM
         bool isLinear() const;
 
         //! Thermal conductivity table (x-water content [kg/m3], y-thermal conductivity[W/(mK)])
-        const std::vector<FenestrationCommon::point> & thermalConductivityMoistureDependent() const;
+        TabularFunction2D thermalConductivityMoistureDependent() const;
 
         //! \brief Liquid transportation curve of the material.
         //!

@@ -381,7 +381,8 @@ namespace HygroThermFEM
 
         //! \brief Helper function that returns two closest points for interpolation.
         virtual std::pair<FenestrationCommon::point, FenestrationCommon::point>
-          getInterpolationPoints(std::vector<FenestrationCommon::point>::const_iterator & it) const;
+          getInterpolationPoints(std::vector<FenestrationCommon::point>::const_iterator & it, const std::vector<FenestrationCommon::
+                                 point> & table) const;
 
         //! \brief Expands table into two points if only one point is provided.
         void checkIfCurveIsSinglePoint();
@@ -481,7 +482,8 @@ namespace HygroThermFEM
 
         //! \brief Helper function that returns two closest points for interpolation.
         virtual std::pair<FenestrationCommon::point, FenestrationCommon::point>
-          getInterpolationPoints(std::vector<FenestrationCommon::point>::const_iterator & it) const;
+          getInterpolationPoints(std::vector<FenestrationCommon::point>::const_iterator & it,
+                                 const std::vector<FenestrationCommon::point> & table) const;
     };
 
     //////////////////////////////////////////////////////////////////
@@ -517,7 +519,8 @@ namespace HygroThermFEM
 
         //! Helper function that returns two closest points for interpolation.
         virtual std::pair<FenestrationCommon::point, FenestrationCommon::point>
-          getInterpolationPoints(std::vector<FenestrationCommon::point>::const_iterator & it) const;
+          getInterpolationPoints(std::vector<FenestrationCommon::point>::const_iterator & it, const std::vector<FenestrationCommon::
+                                 point> & table) const;
     };
 
     //////////////////////////////////////////////////////////////////
@@ -544,7 +547,8 @@ namespace HygroThermFEM
     protected:
         //! Helper function that returns two closest points for interpolation.
         std::pair<FenestrationCommon::point, FenestrationCommon::point> getInterpolationPoints(
-          std::vector<FenestrationCommon::point>::const_iterator & it) const override;
+            std::vector<FenestrationCommon::point>::const_iterator & it,
+            const std::vector<FenestrationCommon::point> & table) const override;
     };
 
     //////////////////////////////////////////////////////////////////

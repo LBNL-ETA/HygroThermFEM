@@ -114,21 +114,22 @@ namespace HygroThermFEM
               return val.x > t_position;
           });
 
-        const auto points = getInterpolationPoints(it);
+        const auto points = getInterpolationPoints(it, m_Curve);
 
         return m_Interpolator.interpolate(points.first, points.second, t_position);
     }
 
     std::pair<FenestrationCommon::point, FenestrationCommon::point>
       TabularFunction1D::getInterpolationPoints(
-        std::vector<FenestrationCommon::point>::const_iterator & it) const
+          std::vector<FenestrationCommon::point>::const_iterator & it,
+          const std::vector<FenestrationCommon::point> & table) const
     {
-        if(it == m_Curve.end())
+        if(it == table.end())
         {
             --it;
         }
         const auto pt2 = *it;
-        if(it != m_Curve.begin())
+        if(it != table.begin())
         {
             --it;
         }
@@ -235,7 +236,7 @@ namespace HygroThermFEM
               return val.x > value;
           });
 
-        const auto points = getInterpolationPoints(it);
+        const auto points = getInterpolationPoints(it, table);
 
         return m_Interpolator.interpolate(points.first, points.second, value);
     }
@@ -261,29 +262,30 @@ namespace HygroThermFEM
         auto it = std::find_if(m_Curve.begin(), m_Curve.end(), [&](FenestrationCommon::point val) {
             return val.x > t_position;
         });
-        const auto points = getInterpolationPoints(it);
+        const auto points = getInterpolationPoints(it, m_Curve);
 
         return (points.second.y - points.first.y) / (points.second.x - points.first.x);
     }
 
     std::pair<FenestrationCommon::point, FenestrationCommon::point>
       TabularDerivative::getInterpolationPoints(
-        std::vector<FenestrationCommon::point>::const_iterator & it) const
+          std::vector<FenestrationCommon::point>::const_iterator & it,
+          const std::vector<FenestrationCommon::point> & table) const
     {
-        if(it == m_Curve.begin())
+        if(it == table.begin())
         {
             ++it;
         }
-        auto pt2 = it == m_Curve.end() ? m_Curve.back() : *it;
-        if(it != m_Curve.begin())
+        auto pt2 = it == table.end() ? table.back() : *it;
+        if(it != table.begin())
         {
             --it;
         }
-        if(*it == m_Curve.back())
+        if(*it == table.back())
         {
             --it;
         }
-        auto pt1 = it == m_Curve.begin() ? m_Curve.front() : *it;
+        auto pt1 = it == table.begin() ? table.front() : *it;
 
         return std::make_pair(pt1, pt2);
     }
@@ -330,7 +332,7 @@ namespace HygroThermFEM
         auto it = std::find_if(m_Curve.begin(), m_Curve.end(), [&](FenestrationCommon::point val) {
             return val.x > t_position;
         });
-        const auto points = getInterpolationPoints(it);
+        const auto points = getInterpolationPoints(it, m_Curve);
 
         const auto dy = points.second.y - points.first.y;
         const auto dx = points.second.x - points.first.x;
@@ -346,10 +348,11 @@ namespace HygroThermFEM
 
     std::pair<FenestrationCommon::point, FenestrationCommon::point>
       TabularDerivativeSmooth::getInterpolationPoints(
-        std::vector<FenestrationCommon::point>::const_iterator & it) const
+          std::vector<FenestrationCommon::point>::const_iterator & it,
+          const std::vector<FenestrationCommon::point> & table) const
     {
-        const auto pt2 = it == m_Curve.end() ? *std::prev(m_Curve.end()) : *it;
-        if(it != m_Curve.begin())
+        const auto pt2 = it == table.end() ? *std::prev(table.end()) : *it;
+        if(it != table.begin())
         {
             --it;
         }
@@ -375,10 +378,11 @@ namespace HygroThermFEM
 
     std::pair<FenestrationCommon::point, FenestrationCommon::point>
       LiquidTransportationCurve::getInterpolationPoints(
-        std::vector<FenestrationCommon::point>::const_iterator & it) const
+          std::vector<FenestrationCommon::point>::const_iterator & it,
+          const std::vector<FenestrationCommon::point> & table) const
     {
-        const auto pt2 = it == m_Curve.end() ? *std::prev(m_Curve.end()) : *it;
-        if(it != m_Curve.begin())
+        const auto pt2 = it == table.end() ? *std::prev(table.end()) : *it;
+        if(it != table.begin())
         {
             --it;
         }
