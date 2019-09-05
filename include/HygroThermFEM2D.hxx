@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../src/Node2D.hxx"
+#include "../src/Point.hxx"
 #include "../src/State.hxx"
 #include "../src/Material.hxx"
 #include "../src/Element2D.hxx"

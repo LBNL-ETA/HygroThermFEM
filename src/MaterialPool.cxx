@@ -15,25 +15,33 @@ namespace HygroThermFEM
     }
 
     const IMaterial & MaterialPool::createSolidMaterial(
-      const std::string & Name,
-      double Density,
-      double Porosity,
-      double HeatCapacity,
-      double DiffusionResistanceFactor,
-      const std::vector<std::pair<double, double>> & ThermalConductivity,
-      const std::vector<std::pair<double, double>> & LiquidTransportCurve,
-      const std::vector<std::pair<double, double>> & SorptionCurve,
-      double emissivity)
+            const std::string & Name,
+            const double ThermalConductivityDry,
+            const double Density,
+            const double Porosity,
+            const double HeatCapacity,
+            const double DiffusionResistanceFactor,
+            const std::vector<FenestrationCommon::point> & thermalConductivityMoistureDependent,
+            const double moistureDependentMeasurementTemperature,
+            const std::vector<FenestrationCommon::point> & thermalConductivityTemperatureDependent,
+            const double temperatureDependentMeasurementHumidity,
+            const std::vector<FenestrationCommon::point> &LiquidTransportCurve,
+            const std::vector<FenestrationCommon::point> &SorptionCurve,
+            const double emissivity)
     {
         checkIfMaterialExists(Name);
         m_Materials.emplace(
           std::make_pair(Name,
                          std::unique_ptr<SolidMaterial>(new SolidMaterial(Name,
+                                                                          ThermalConductivityDry,
                                                                           Density,
                                                                           Porosity,
                                                                           HeatCapacity,
                                                                           DiffusionResistanceFactor,
-                                                                          ThermalConductivity,
+                                                                          thermalConductivityMoistureDependent,
+                                                                          moistureDependentMeasurementTemperature,
+                                                                          thermalConductivityTemperatureDependent,
+                                                                          temperatureDependentMeasurementHumidity,
                                                                           LiquidTransportCurve,
                                                                           SorptionCurve,
                                                                           emissivity))));
@@ -43,7 +51,7 @@ namespace HygroThermFEM
     const IGas & MaterialPool::createGas(const std::string & name,
                                          const CavityStandard cavityStandard)
     {
-        m_Gases[name] = std::unique_ptr<Gas>(new Gas(name, cavityStandard));
+        m_Gases[name] = std::make_unique<Gas>(name, cavityStandard);
         return *m_Gases.at(name);
     }
 

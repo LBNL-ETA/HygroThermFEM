@@ -405,12 +405,20 @@ namespace HygroThermFEM
         //////////////////////////////////////////////////////////////////////////
 
         /// material
-        const auto materialConductivity =
-          TabularFunction(m_Material.thermalConductivity(), Variable::water);
+        // const auto materialConductivity =
+        //  TabularFunction1D(m_Material.thermalConductivityMoistureDependent(), Variable::water);
 
-        auto conductance = materialConductivity;
+        if(SimulationProperties::Instance().thermalConductivityTemperatureAndMoistureDependent())
+        {
+            auto materialConductivity = m_Material.thermalConductivityMoistureDependent();
+            DDu(materialConductivity);
+        }
+        else
+        {
+            auto materialConductivity = Constant(m_Material.thermalConductivityDry());
+            DDu(materialConductivity);
+        }
 
-        DDu(conductance);
 
         //////////////////////////////////////////////////////////////////////
         ///  Conversion from liquid to gas (vapor part)
@@ -461,8 +469,16 @@ namespace HygroThermFEM
         //////////////////////////////////////////////////////////////////////
         /// SolidMaterial conductance for flux calculations
         //////////////////////////////////////////////////////////////////////
-        TabularFunction matCond(m_Material.thermalConductivity(), Variable::water);
-        CondFlux(matCond);
+        if(SimulationProperties::Instance().thermalConductivityTemperatureAndMoistureDependent())
+        {
+            Constant matCond{m_Material.thermalConductivityDry()};
+            CondFlux(matCond);
+        }
+        else
+        {
+            auto matCond{m_Material.thermalConductivityMoistureDependent()};
+            CondFlux(matCond);
+        }
     }
 
     //////////////////////////////////////////////////////////////////////////////

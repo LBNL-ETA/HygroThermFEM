@@ -19,8 +19,8 @@ TEST_F(InterpolatorTest, TestLinear)
 {
     SCOPED_TRACE("Begin Test: Linear interpolation.");
 
-    std::pair<double, double> pt1{31, 4};
-    std::pair<double, double> pt2{52, 8};
+    FenestrationCommon::point pt1{31, 4};
+    FenestrationCommon::point pt2{52, 8};
     double interpolationPoint = 40;
 
     const FenestrationCommon::Interpolator interpolator(Interpolation::Linear);
@@ -33,8 +33,8 @@ TEST_F(InterpolatorTest, TestLogarithmic)
 {
     SCOPED_TRACE("Begin Test: Logarithmic interpolation.");
 
-    std::pair<double, double> pt1{31, 4};
-    std::pair<double, double> pt2{52, 8};
+    FenestrationCommon::point pt1{31, 4};
+    FenestrationCommon::point pt2{52, 8};
     double interpolationPoint = 40;
 
     const FenestrationCommon::Interpolator interpolator(Interpolation::Logarithmic);

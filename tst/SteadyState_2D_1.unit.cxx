@@ -5,9 +5,8 @@
 using HygroThermFEM::NodePool;
 using HygroThermFEM::MaterialPool;
 using HygroThermFEM::State;
-using HygroThermFEM::SimulationProperties;
 
-class SteadyState_2D_ExcludeLiquidTransport_1 : public testing::Test
+class SteadyState_2D_1 : public testing::Test
 {
 protected:
     void SetUp() override
@@ -17,25 +16,11 @@ protected:
     {
         NodePool::Instance().clear();
         MaterialPool::Instance().clear();
-        SimulationProperties::Instance().reset();
     }
 };
 
-TEST_F(SteadyState_2D_ExcludeLiquidTransport_1, TestExample_1)
+TEST_F(SteadyState_2D_1, TestExample_1)
 {
-    const auto excludeWaterLiquidTransportation{true};
-    const auto excludeHeatOfEvaporation{false};
-    const auto excludeCapillaryConduction{false};
-    const auto excludeVaporDiffusionConduction{false};
-    const auto thermalConductivityMoistureAndTemperatureDependent{false};
-
-    SimulationProperties::Instance().setCalculationParameters(
-      excludeWaterLiquidTransportation,
-      excludeHeatOfEvaporation,
-      excludeCapillaryConduction,
-      excludeVaporDiffusionConduction,
-      thermalConductivityMoistureAndTemperatureDependent);
-
     const double initialTemperature = 21.0;
     const double initialMoistureContent = 0.0;
     const double initialPressure = 101325;
@@ -69,26 +54,9 @@ TEST_F(SteadyState_2D_ExcludeLiquidTransport_1, TestExample_1)
     const std::vector<FenestrationCommon::point> thermalConductivityTemperatureDependent = {
       {0.0, 1.0}, {1, 1.0}};
     const double thermalConductivityMeasuredAtHumidity{0};
-    const std::vector<FenestrationCommon::point> liquidTransportationCurve = {{0, 0},
-                                                                              {27, 1E-8},
-                                                                              {45, 1.1E-8},
-                                                                              {90, 2E-8},
-                                                                              {126, 3.5E-8},
-                                                                              {144, 5E-8},
-                                                                              {162, 1E-7},
-                                                                              {171, 2E-7},
-                                                                              {180, 7E-7}};
+    const std::vector<FenestrationCommon::point> liquidTransportationCurve = {{0, 0}, {180, 7E-7}};
 
-    const std::vector<FenestrationCommon::point> moistureStorageFunction = {{0, 0},
-                                                                            {0.5, 5.3},
-                                                                            {0.65, 8.4},
-                                                                            {0.8, 12},
-                                                                            {0.93, 17},
-                                                                            {0.95, 25},
-                                                                            {0.99, 63},
-                                                                            {0.995, 83},
-                                                                            {0.999, 120},
-                                                                            {1, 180}};
+    const std::vector<FenestrationCommon::point> moistureStorageFunction = {{0, 0}, {1, 180}};
 
     auto & material =
       MaterialPool::Instance().createSolidMaterial("Test Material",
@@ -105,7 +73,7 @@ TEST_F(SteadyState_2D_ExcludeLiquidTransport_1, TestExample_1)
                                                    moistureStorageFunction);
 
     const auto simulateThermal{true};
-    const auto simulateMoisture{true};
+    const auto simulateMoisture{false};
 
     HygroThermFEM::MultiDomain domain{simulateThermal, simulateMoisture};
 
@@ -115,7 +83,7 @@ TEST_F(SteadyState_2D_ExcludeLiquidTransport_1, TestExample_1)
     // Create Boundary Conditions
     // const auto hc1 = 20.0;
     const auto hc1 = 1e20;
-    const auto humidity1 = 0.8;
+    const auto humidity1 = 0.0;
     // const auto temperatureAir1 = -18.0;
     const auto temperatureAir1 = 0.0;
 
@@ -123,7 +91,7 @@ TEST_F(SteadyState_2D_ExcludeLiquidTransport_1, TestExample_1)
 
     // const auto hc2 = 2.4;
     const auto hc2 = 1e20;
-    const auto humidity2 = 0.0;
+    const auto humidity2 = 1.0;
     const auto temperatureAir2 = 20.0;
 
     const HygroThermFEM::FixedBCHCCoefficients bcCoeff2{temperatureAir2, hc2, humidity2};
@@ -135,7 +103,7 @@ TEST_F(SteadyState_2D_ExcludeLiquidTransport_1, TestExample_1)
     const auto temperature = solution.temperature;
     const auto humidity = solution.humidity;
 
-    std::vector<double> correctTemperature{0, 0, 9.999995, 9.999995, 20, 20};
+    std::vector<double> correctTemperature{0, 0, 10.658980, 10.658980, 20, 20};
 
     EXPECT_EQ(temperature.size(), correctTemperature.size());
 
@@ -144,7 +112,7 @@ TEST_F(SteadyState_2D_ExcludeLiquidTransport_1, TestExample_1)
         EXPECT_NEAR(temperature[i], correctTemperature[i], 1e-6);
     }
 
-    std::vector<double> correctHumidity{0.8, 0.8, 0.438979, 0.438979, 0, 0};
+    std::vector<double> correctHumidity{0, 0, 0.5, 0.5, 1.0, 1.0};
 
     EXPECT_EQ(humidity.size(), correctHumidity.size());
 

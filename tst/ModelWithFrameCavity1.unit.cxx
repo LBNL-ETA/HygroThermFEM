@@ -47,16 +47,35 @@ TEST_F(TestModelWithFrameCavity1, TestSingleFrameCavity)
         }
     }
 
-    auto & solidMaterial = MaterialPool::Instance().createSolidMaterial(
-      "Material 1",
-      2050,                       // density
-      0.22,                       // porosity
-      850,                        // specific heat capacity (dry)
-      15,                         // diffusion resistance factor (this is mi value)
-      {{0.0, 1.8}, {180, 1.8}},   // thermal conductivity as function of water content
-      {{0, 0}, {180, 2e-6}},      // liquid transportation curve
-      {{0, 0}, {1, 180}},         // Sorption curve
-      0.9);
+    // Material Properties
+    const double thermalConductivityDry{1.8};
+    const double density{2050.0};
+    const double porosity{0.22};
+    const double specificHeatCapacityDry{850.0};
+    const double diffusionResistanceFactor{15.0};
+    const std::vector<FenestrationCommon::point> thermalConductivityMoistureDependent = {
+      {0.0, 1.8}, {180, 1.8}};
+    const double thermalConductivityMeasuredAtTemperature{0};
+    const std::vector<FenestrationCommon::point> thermalConductivityTemperatureDependent = {
+      {0.0, 1.8}, {1, 1.8}};
+    const double thermalConductivityMeasuredAtHumidity{0};
+    const std::vector<FenestrationCommon::point> liquidTransportationCurve = {{0, 0}, {180, 2e-6}};
+
+    const std::vector<FenestrationCommon::point> moistureStorageFunction = {{0, 0}, {1, 180}};
+
+    auto & solidMaterial =
+      MaterialPool::Instance().createSolidMaterial("Material 1",
+                                                   thermalConductivityDry,
+                                                   density,
+                                                   porosity,
+                                                   specificHeatCapacityDry,
+                                                   diffusionResistanceFactor,
+                                                   thermalConductivityMoistureDependent,
+                                                   thermalConductivityMeasuredAtTemperature,
+                                                   thermalConductivityTemperatureDependent,
+                                                   thermalConductivityMeasuredAtHumidity,
+                                                   liquidTransportationCurve,
+                                                   moistureStorageFunction);
 
     auto & frameCavity =
       MaterialPool::Instance().createGas("Frame Cavity 1", HygroThermFEM::CavityStandard::ISO15099);
@@ -124,6 +143,6 @@ TEST_F(TestModelWithFrameCavity1, TestSingleFrameCavity)
     }
 
     const auto correctThermalConductivity{0.098654};
-    const auto thermalCond = frameCavity.thermalConductivity()[0].second;
+    const auto thermalCond = frameCavity.thermalConductivityMoistureDependent().getCurve()[0].y;
     EXPECT_NEAR(correctThermalConductivity, thermalCond, 1e-6);
 }
