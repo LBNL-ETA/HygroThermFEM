@@ -217,6 +217,16 @@ namespace HygroThermFEM
         return -m_CommonValueAtMeasuredTables + value1 + value2;
     }
 
+    double TabularFunction2D::maxXFirstTable() const
+    {
+        return m_FirstTable.maxX();
+    }
+
+    double TabularFunction2D::maxYFirstTable() const
+    {
+        return m_FirstTable.maxY();
+    }
+
     double TabularFunction2D::findValueAtPoint(const std::vector<FenestrationCommon::point> & table,
                                                const double value) const
     {

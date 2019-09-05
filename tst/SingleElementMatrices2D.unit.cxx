@@ -31,33 +31,52 @@ TEST_F(TestSingleElementMatrices2D, TestConductionMatrix)
     NodePool::Instance().createNode(3, 15, 0);
     NodePool::Instance().createNode(4, 15, 5);
 
-    auto & material = MaterialPool::Instance().createSolidMaterial(
-                                                              "Test Material",
-                                                              1,    /// density
-                                                              0.00, /// porosity
-                                                              1,    /// specific heat capacity (dry)
-                                                              15,   /// diffusion resistance factor
-                                                              {{0.0, 1.0},
-                                                              {180, 1.0}}, /// thermal conductivity as function of water content
-                                                              {{0,   0},   /// liquid transportation coefficient
-                                                              {27,  1E-8},
-                                                              {45,  1.1E-8},
-                                                              {90,  2E-8},
-                                                              {126, 3.5E-8},
-                                                              {144, 5E-8},
-                                                              {162, 1E-7},
-                                                              {171, 2E-7},
-                                                              {180, 7E-7}},
-                                                              {{0,     0}, /// sorption curve
-                                                              {0.5,   5.3},
-                                                              {0.65,  8.4},
-                                                              {0.8,   12},
-                                                              {0.93,  17},
-                                                              {0.95,  25},
-                                                              {0.99,  63},
-                                                              {0.995, 83},
-                                                              {0.999, 120},
-                                                              {1,     180}});
+    // Material Properties
+    const double thermalConductivityDry{1.0};
+    const double density{1.0};
+    const double porosity{0.0};
+    const double specificHeatCapacityDry{1.0};
+    const double diffusionResistanceFactor{15.0};
+    const std::vector<FenestrationCommon::point> thermalConductivityMoistureDependent = {
+      {0.0, 1.0}, {180, 1.0}};
+    const double thermalConductivityMeasuredAtTemperature{0};
+    const std::vector<FenestrationCommon::point> thermalConductivityTemperatureDependent = {
+      {0.0, 1.0}, {1, 1.0}};
+    const double thermalConductivityMeasuredAtHumidity{0};
+    const std::vector<FenestrationCommon::point> liquidTransportationCurve = {{0, 0},
+                                                                              {27, 1E-8},
+                                                                              {45, 1.1E-8},
+                                                                              {90, 2E-8},
+                                                                              {126, 3.5E-8},
+                                                                              {144, 5E-8},
+                                                                              {162, 1E-7},
+                                                                              {171, 2E-7},
+                                                                              {180, 7E-7}};
+
+    const std::vector<FenestrationCommon::point> moistureStorageFunction = {{0, 0},
+                                                                            {0.5, 5.3},
+                                                                            {0.65, 8.4},
+                                                                            {0.8, 12},
+                                                                            {0.93, 17},
+                                                                            {0.95, 25},
+                                                                            {0.99, 63},
+                                                                            {0.995, 83},
+                                                                            {0.999, 120},
+                                                                            {1, 180}};
+
+    auto & material =
+      MaterialPool::Instance().createSolidMaterial("Test Material",
+                                                   thermalConductivityDry,
+                                                   density,
+                                                   porosity,
+                                                   specificHeatCapacityDry,
+                                                   diffusionResistanceFactor,
+                                                   thermalConductivityMoistureDependent,
+                                                   thermalConductivityMeasuredAtTemperature,
+                                                   thermalConductivityTemperatureDependent,
+                                                   thermalConductivityMeasuredAtHumidity,
+                                                   liquidTransportationCurve,
+                                                   moistureStorageFunction);
 
     const HygroThermFEM::ElementThermalLinear2D aElem{1, 2, 3, 4, material.name()};
 

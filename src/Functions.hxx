@@ -421,6 +421,9 @@ namespace HygroThermFEM
 
         double value(const INode2D & node) const override;
 
+        double maxXFirstTable() const;
+        double maxYFirstTable() const;
+
     private:
 
         //! \brief Function to find y value from vector of points

@@ -405,8 +405,10 @@ namespace HygroThermFEM
         //////////////////////////////////////////////////////////////////////////
 
         /// material
-        const auto materialConductivity =
-          TabularFunction1D(m_Material.thermalConductivityMoistureDependent(), Variable::water);
+        //const auto materialConductivity =
+        //  TabularFunction1D(m_Material.thermalConductivityMoistureDependent(), Variable::water);
+
+        const auto materialConductivity = Constant(m_Material.thermalConductivityDry());
 
         auto conductance = materialConductivity;
 

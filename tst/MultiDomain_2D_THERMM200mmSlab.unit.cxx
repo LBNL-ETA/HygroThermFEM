@@ -50,28 +50,44 @@ TEST_F(MultiDomain_2D_THERMM200mmSlab, TestExample_1)
     NodePool::Instance().createNode(14, -0.1, -0.009);
     NodePool::Instance().createNode(15, -0.1, 0.049);
 
-    auto & material = MaterialPool::Instance().createSolidMaterial(
-      "Aerated Concrete (density: 400 kg/m)",
-      400,                        /// density
-      0.81,                       /// porosity
-      850,                        /// specific heat capacity (dry)
-      7.9,                        /// diffusion resistance factor
-      {{0.0, 0.1}, {380, 0.1}},   /// thermal conductivity as function of water content
-      {{0, 0},                    /// liquid transportation coefficient
-       {3.1, 2e-10},
-       {38, 5.4e-09},
-       {265, 1.1e-08},
-       {342, 2e-08},
-       {380, 1e-07}},
-      {{0, 0},
-       {0.5, 3.1},
-       {0.8, 8.4},
-       {0.93, 18},
-       {0.964, 116},
-       {0.99, 266},
-       {0.995, 269},
-       {0.999, 277},
-       {1, 380}});
+    // Material Properties
+    const double thermalConductivityDry{0.1};
+    const double density{400.0};
+    const double porosity{0.81};
+    const double specificHeatCapacityDry{850.0};
+    const double diffusionResistanceFactor{7.9};
+    const std::vector<FenestrationCommon::point> thermalConductivityMoistureDependent = {
+      {0.0, 0.1}, {380, 0.1}};
+    const double thermalConductivityMeasuredAtTemperature{0};
+    const std::vector<FenestrationCommon::point> thermalConductivityTemperatureDependent = {
+      {0.0, 0.1}, {1, 0.1}};
+    const double thermalConductivityMeasuredAtHumidity{0};
+    const std::vector<FenestrationCommon::point> liquidTransportationCurve = {
+      {0, 0}, {3.1, 2e-10}, {38, 5.4e-09}, {265, 1.1e-08}, {342, 2e-08}, {380, 1e-07}};
+
+    const std::vector<FenestrationCommon::point> moistureStorageFunction = {{0, 0},
+                                                                            {0.5, 3.1},
+                                                                            {0.8, 8.4},
+                                                                            {0.93, 18},
+                                                                            {0.964, 116},
+                                                                            {0.99, 266},
+                                                                            {0.995, 269},
+                                                                            {0.999, 277},
+                                                                            {1, 380}};
+
+    auto & material =
+      MaterialPool::Instance().createSolidMaterial("Aerated Concrete (density: 400 kg/m)",
+                                                   thermalConductivityDry,
+                                                   density,
+                                                   porosity,
+                                                   specificHeatCapacityDry,
+                                                   diffusionResistanceFactor,
+                                                   thermalConductivityMoistureDependent,
+                                                   thermalConductivityMeasuredAtTemperature,
+                                                   thermalConductivityTemperatureDependent,
+                                                   thermalConductivityMeasuredAtHumidity,
+                                                   liquidTransportationCurve,
+                                                   moistureStorageFunction);
 
     HygroThermFEM::MultiDomain domain;
 
@@ -144,7 +160,7 @@ TEST_F(MultiDomain_2D_THERMM200mmSlab, TestExample_1)
     // clang-format on
 
     EXPECT_EQ(humiditySolution.size(), correctHumiditySolution.size());
-    
+
     for(auto i = 0u; i < humiditySolution.size(); ++i)
     {
         for(auto j = 0u; j < humiditySolution[i].size(); ++j)

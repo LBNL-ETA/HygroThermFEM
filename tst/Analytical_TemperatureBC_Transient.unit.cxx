@@ -51,19 +51,36 @@ TEST_F(Analytical_ConvectionBC_Transient, TestExample_1)
         NodePool::Instance().createNode(nodeIndex, val, 0.05, state);
     }
 
-    std::string materialName = "Test Material";
-    MaterialPool::Instance().createSolidMaterial(
-                                            materialName,
-                                            2050,                     /// Density
-                                            0.22,                     /// Porosity
-                                            850,                      /// Specific Heat Capacity (dry)
-      /// No need for liquid coefficients
-                                            15E-6,                    /// Diffusion Resistance Factor
-                                            {{0.0, 1.8}, {180, 1.8}}, /// Thermal Conductivity as function of water content
-                                            {{0, 0}, {180, 7E-7}},    /// Liquid Transportation Coefficient
-                                            {{0, 0}, {1, 180}}        /// Moisture Storage Function
+    // Material Properties
+    const double thermalConductivityDry{1.8};
+    const double density{2050.0};
+    const double porosity{0.22};
+    const double specificHeatCapacityDry{850.0};
+    const double diffusionResistanceFactor{15.0};
+    const std::vector<FenestrationCommon::point> thermalConductivityMoistureDependent = {
+      {0.0, 1.8}, {180, 1.8}};
+    const double thermalConductivityMeasuredAtTemperature{0};
+    const std::vector<FenestrationCommon::point> thermalConductivityTemperatureDependent = {
+      {0.0, 1.8}, {1, 1.8}};
+    const double thermalConductivityMeasuredAtHumidity{0};
+    const std::vector<FenestrationCommon::point> liquidTransportationCurve = {{0, 0}, {180, 7E-7}};
 
-                                           );
+    const std::vector<FenestrationCommon::point> moistureStorageFunction = {{0, 0}, {1, 180}};
+
+    const std::string materialName{"Test Material"};
+
+    MaterialPool::Instance().createSolidMaterial(materialName,
+                                                 thermalConductivityDry,
+                                                 density,
+                                                 porosity,
+                                                 specificHeatCapacityDry,
+                                                 diffusionResistanceFactor,
+                                                 thermalConductivityMoistureDependent,
+                                                 thermalConductivityMeasuredAtTemperature,
+                                                 thermalConductivityTemperatureDependent,
+                                                 thermalConductivityMeasuredAtHumidity,
+                                                 liquidTransportationCurve,
+                                                 moistureStorageFunction);
 
     HygroThermFEM::ThermalDomain domain;
 

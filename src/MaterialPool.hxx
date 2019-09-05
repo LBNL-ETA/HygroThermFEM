@@ -13,11 +13,15 @@ namespace HygroThermFEM
 
         const IMaterial &
           createSolidMaterial(const std::string & Name,
+                              double ThermalConductivityDry,
                               double Density,
                               double Porosity,
                               double HeatCapacity,
                               double DiffusionResistanceFactor,
-                              const std::vector<FenestrationCommon::point> & ThermalConductivity,
+                              const std::vector<FenestrationCommon::point> & thermalConductivityMoistureDependent,
+                              double moistureDependentMeasurementTemperature,
+                              const std::vector<FenestrationCommon::point> & thermalConductivityTemperatureDependent,
+                              double temperatureDependentMeasurementHumidity,
                               const std::vector<FenestrationCommon::point> & LiquidTransportCurve,
                               const std::vector<FenestrationCommon::point> & SorptionCurve,
                               double emissivity = 0.9);

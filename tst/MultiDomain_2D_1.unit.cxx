@@ -63,32 +63,52 @@ TEST_F(MultiDomain_2D_1, TestExample_1)
         H += deltaH;
     }
 
-    auto & material = MaterialPool::Instance().createSolidMaterial(
-      "Cottaer Sandstone",
-      2050,                       /// density
-      0.22,                       /// porosity
-      850,                        /// specific heat capacity (dry)
-      15,                         /// diffusion resistance factor
-      {{0.0, 1.8}, {180, 1.8}},   /// thermal conductivity as function of water content
-      {{0, 0},                    /// liquid transportation coefficient
-       {27, 1E-8},
-       {45, 1.1E-8},
-       {90, 2E-8},
-       {126, 3.5E-8},
-       {144, 5E-8},
-       {162, 1E-7},
-       {171, 2E-7},
-       {180, 7E-7}},
-      {{0, 0},   /// sorption curve
-       {0.5, 5.3},
-       {0.65, 8.4},
-       {0.8, 12},
-       {0.93, 17},
-       {0.95, 25},
-       {0.99, 63},
-       {0.995, 83},
-       {0.999, 120},
-       {1, 180}});
+    // Material Properties (Cottaer Sandstone)
+    const double thermalConductivityDry{1.8};
+    const double density{2050.0};
+    const double porosity{0.22};
+    const double specificHeatCapacityDry{850.0};
+    const double diffusionResistanceFactor{15.0};
+    const std::vector<FenestrationCommon::point> thermalConductivityMoistureDependent = {
+      {0.0, 1.8}, {180, 1.8}};
+    const double thermalConductivityMeasuredAtTemperature{0};
+    const std::vector<FenestrationCommon::point> thermalConductivityTemperatureDependent = {
+      {0.0, 1.8}, {1, 1.8}};
+    const double thermalConductivityMeasuredAtHumidity{0};
+    const std::vector<FenestrationCommon::point> liquidTransportationCurve = {{0, 0},
+                                                                              {27, 1E-8},
+                                                                              {45, 1.1E-8},
+                                                                              {90, 2E-8},
+                                                                              {126, 3.5E-8},
+                                                                              {144, 5E-8},
+                                                                              {162, 1E-7},
+                                                                              {171, 2E-7},
+                                                                              {180, 7E-7}};
+
+    const std::vector<FenestrationCommon::point> moistureStorageFunction = {{0, 0},
+                                                                            {0.5, 5.3},
+                                                                            {0.65, 8.4},
+                                                                            {0.8, 12},
+                                                                            {0.93, 17},
+                                                                            {0.95, 25},
+                                                                            {0.99, 63},
+                                                                            {0.995, 83},
+                                                                            {0.999, 120},
+                                                                            {1, 180}};
+
+    auto & material =
+      MaterialPool::Instance().createSolidMaterial("Cottaer Sandstone",
+                                                   thermalConductivityDry,
+                                                   density,
+                                                   porosity,
+                                                   specificHeatCapacityDry,
+                                                   diffusionResistanceFactor,
+                                                   thermalConductivityMoistureDependent,
+                                                   thermalConductivityMeasuredAtTemperature,
+                                                   thermalConductivityTemperatureDependent,
+                                                   thermalConductivityMeasuredAtHumidity,
+                                                   liquidTransportationCurve,
+                                                   moistureStorageFunction);
 
     HygroThermFEM::MultiDomain domain;
 

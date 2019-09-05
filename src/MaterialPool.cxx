@@ -16,24 +16,32 @@ namespace HygroThermFEM
 
     const IMaterial & MaterialPool::createSolidMaterial(
             const std::string & Name,
-            double Density,
-            double Porosity,
-            double HeatCapacity,
-            double DiffusionResistanceFactor,
-            const std::vector<FenestrationCommon::point> &ThermalConductivity,
+            const double ThermalConductivityDry,
+            const double Density,
+            const double Porosity,
+            const double HeatCapacity,
+            const double DiffusionResistanceFactor,
+            const std::vector<FenestrationCommon::point> & thermalConductivityMoistureDependent,
+            const double moistureDependentMeasurementTemperature,
+            const std::vector<FenestrationCommon::point> & thermalConductivityTemperatureDependent,
+            const double temperatureDependentMeasurementHumidity,
             const std::vector<FenestrationCommon::point> &LiquidTransportCurve,
             const std::vector<FenestrationCommon::point> &SorptionCurve,
-            double emissivity)
+            const double emissivity)
     {
         checkIfMaterialExists(Name);
         m_Materials.emplace(
           std::make_pair(Name,
                          std::unique_ptr<SolidMaterial>(new SolidMaterial(Name,
+                                                                          ThermalConductivityDry,
                                                                           Density,
                                                                           Porosity,
                                                                           HeatCapacity,
                                                                           DiffusionResistanceFactor,
-                                                                          ThermalConductivity,
+                                                                          thermalConductivityMoistureDependent,
+                                                                          moistureDependentMeasurementTemperature,
+                                                                          thermalConductivityTemperatureDependent,
+                                                                          temperatureDependentMeasurementHumidity,
                                                                           LiquidTransportCurve,
                                                                           SorptionCurve,
                                                                           emissivity))));
