@@ -202,6 +202,42 @@ TEST_F(CurveTest, TestTabular2D)
     EXPECT_NEAR(0.0856, result, 1e-6);
 }
 
+TEST_F(CurveTest, TestTabular2DSinglePoint)
+{
+    SCOPED_TRACE("Begin Test: Test tabular linear with single input point.");
+    using HygroThermFEM::MockNode2D;
+    using HygroThermFEM::TabularFunction2D;
+    using FenestrationCommon::point;
+
+    const std::vector<point> temperatureMeasurement{{-20, 0.035}};
+    // Temperature measurement is performed at certain humidity
+    const double temperatureMeasurementAt{0};
+    const std::vector<point> humidityMeasurement{{0, 0.035},
+                                                 {50, 0.043},
+                                                 {100, 0.049},
+                                                 {300, 0.1},
+                                                 {500, 0.2},
+                                                 {800, 0.44},
+                                                 {900, 0.55},
+                                                 {950, 0.6},
+                                                 {990, 0.61}};
+    // Humidity measurement is performed at certain temperature
+    const double humidityMeasurementAt{10};
+
+    const TabularFunction2D table2D{temperatureMeasurement,
+                                    temperatureMeasurementAt,
+                                    Variable::temperature,
+                                    humidityMeasurement,
+                                    humidityMeasurementAt,
+                                    Variable::humidity};
+
+    const MockNode2D node({{Variable::temperature, 40}, {Variable::humidity, 220}});
+
+    const auto result = table2D.value(node);
+
+    EXPECT_NEAR(0.0796, result, 1e-6);
+}
+
 TEST_F(CurveTest, TestTabularLogarithmic1)
 {
     SCOPED_TRACE("Begin Test: Test tabular logarithmic curve.");
