@@ -129,13 +129,12 @@ namespace HygroThermFEM
             --it;
         }
         const auto pt2 = *it;
-        if(it != table.begin())
-        {
-            --it;
-        }
-        else
-        {
-            ++it;
+        if(table.size() != 1) {
+            if (it != table.begin()) {
+                --it;
+            } else {
+                ++it;
+            }
         }
 
         const auto pt1 = *it;
