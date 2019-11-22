@@ -197,8 +197,7 @@ namespace HygroThermFEM
             }
         }
 
-        // TODO: Standard enumerator won't work. Need to fix this.
-        for(auto side : {Side::Top, Side::Bottom, Side::Left, Side::Right})
+        for(const auto side : EnumSide())
         {
             if(length.at(side) != 0)
             {
@@ -224,7 +223,7 @@ namespace HygroThermFEM
         }
 
         // TODO: Standard enumerator won't work. Fix this later.
-        for(auto side : {Side::Top, Side::Bottom, Side::Left, Side::Right})
+        for(const auto side : EnumSide())
         {
             if(length.at(side) != 0)
             {

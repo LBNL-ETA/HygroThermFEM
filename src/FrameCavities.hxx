@@ -1,7 +1,8 @@
 #pragma once
 
-#include "Elements2D.hxx"
 #include <KeffCavity.hxx>
+#include "Elements2D.hxx"
+#include "EnumerationTemplate.hpp"
 
 namespace HygroThermFEM
 {
@@ -31,6 +32,20 @@ namespace HygroThermFEM
             Bottom,
             Left,
             Right
+        };
+
+        class EnumSide : public Enum<Side>
+        {
+        public:
+            static Iterator begin()
+            {
+                return Iterator(static_cast<int>(Side::Top));
+            }
+
+            static Iterator end()
+            {
+                return Iterator(static_cast<int>(Side::Right) + 1);
+            }
         };
 
         //! \brief Simple structure to hold size of equivalent frame cavity.
