@@ -15,17 +15,24 @@ namespace HygroThermFEM
         //! Access to NodePool singleton
         static NodePool & Instance();
 
-        //! Creates node with node index and x, y coordinate and sets starting state conditions
-        Node2D &
-          createNode(std::size_t NodeIndex,   //!< Node index in finite element domain.
-                     double x,                //!< x-coordinate.
-                     double y,                //!< y-coordinate
-                     const State & state = State(0, 0, 0, 0)   //!< State of variables in the node.
-          );
+        //! \brief Creates node with node index and x, y coordinate and sets starting state
+        //! conditions
+        //!
+        //! \param NodeIndex Node index in finite element domain.
+        //! \param x x-coordinate.
+        //! \param y y-coordinate
+        //! \param state State of variables in the node.
+        //! \return Reference to newly created node
+        Node2D & createNode(std::size_t NodeIndex,
+                            double x,
+                            double y,
+                            const State & state = State(0, 0, 0, 0));
 
-        //! Returns node at given index.
-        Node2D & getNode(std::size_t Index   //!< Node index.
-        );
+        //! \brief Returns node at given index.
+        //!
+        //! \param Index Node index.
+        //! \return Reference to node at requested index
+        Node2D & getNode(std::size_t Index);
 
         //! Returns maximum node index from pool of nodes.
         std::size_t maxIndex() const;

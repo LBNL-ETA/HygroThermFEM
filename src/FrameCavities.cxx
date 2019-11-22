@@ -1,3 +1,4 @@
+#include <KeffCavity.hxx>
 
 #include "FrameCavities.hxx"
 #include "MaterialPool.hxx"
@@ -38,7 +39,7 @@ namespace HygroThermFEM
             {
                 const auto jambHeight = 1;
                 const auto pressure = 101325;
-                const GravityVector g{0, -1, 0};
+                const FenestrationCommon::GravityVector g{0, -1, 0};
                 KeffCavity::CavityISO10599 cavity(hfDirection,
                                                   m_Size.L,
                                                   m_Size.H,
