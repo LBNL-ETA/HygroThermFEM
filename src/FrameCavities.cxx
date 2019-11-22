@@ -11,14 +11,17 @@ namespace HygroThermFEM
     ///  EquivalentFrameCavity
     ///////////////////////////////////////////////////////////////////////////////
 
-    EquivalentFrameCavity::EquivalentFrameCavity(const std::vector<size_t> & nodes, IGas & gas) :
+    EquivalentFrameCavity::EquivalentFrameCavity(const std::vector<size_t> & nodes,
+                                                 IGas & gas,
+                                                 FenestrationCommon::GravityVector gravityVector) :
         m_Segments(buildSegments(nodes)),
         m_SideSegments(groupSegmentSides(m_Segments)),
         m_Side{
           {Side::Top, {0, 0}}, {Side::Bottom, {0, 0}}, {Side::Left, {0, 0}}, {Side::Right, {0, 0}}},
         m_Area(calcArea()),
         m_Size(calcSize(m_Area)),
-        m_Gas(gas)
+        m_Gas(gas),
+        m_GravityVector(std::move(gravityVector))
     {
         calcSideEmissivities();
         updateSideTemperatures();
@@ -39,7 +42,6 @@ namespace HygroThermFEM
             {
                 const auto jambHeight = 1;
                 const auto pressure = 101325;
-                const FenestrationCommon::GravityVector g{0, -1, 0};
                 KeffCavity::CavityISO10599 cavity(hfDirection,
                                                   m_Size.L,
                                                   m_Size.H,
@@ -47,7 +49,7 @@ namespace HygroThermFEM
                                                   side1,
                                                   side2,
                                                   pressure,
-                                                  g,
+                                                  m_GravityVector,
                                                   radCalc,
                                                   Gases::CGas());
                 thermalConductivity = cavity.effectiveConductivity();

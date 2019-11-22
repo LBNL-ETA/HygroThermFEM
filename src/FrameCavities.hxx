@@ -17,7 +17,10 @@ namespace HygroThermFEM
     class EquivalentFrameCavity
     {
     public:
-        explicit EquivalentFrameCavity(const std::vector<size_t> & nodes, IGas & gas);
+        explicit EquivalentFrameCavity(const std::vector<size_t> & nodes,
+                                       IGas & gas,
+                                       FenestrationCommon::GravityVector gravityVector = {
+                                         0, -1, 0});
 
         //! Public function that update frame cavity with new data, calculates new thermal
         //! conductivity and update gas with new thermal conductivity
@@ -37,12 +40,12 @@ namespace HygroThermFEM
         class EnumSide : public Enum<Side>
         {
         public:
-            static Iterator begin()
+            Iterator begin()
             {
                 return Iterator(static_cast<int>(Side::Top));
             }
 
-            static Iterator end()
+            Iterator end()
             {
                 return Iterator(static_cast<int>(Side::Right) + 1);
             }
@@ -126,7 +129,6 @@ namespace HygroThermFEM
         KeffCavity::ScreenFlow heatFlowDirection() const;
 
 
-
         const std::vector<Segment> m_Segments;
 
         //! Map that keeps segments grouped by sides. This is needed for constant temperatures
@@ -138,6 +140,7 @@ namespace HygroThermFEM
         const double m_Area;
         const Size m_Size;
         IGas & m_Gas;
+        FenestrationCommon::GravityVector m_GravityVector;
     };
 
     ///////////////////////////////////////////////////////////////////////////////
