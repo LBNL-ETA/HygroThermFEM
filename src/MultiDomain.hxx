@@ -182,6 +182,11 @@ namespace HygroThermFEM
           size_t index2,
           const std::vector<LinearizedRadiationBCCoefficients> & linearRadBC);
 
+        //! \brief Sets new gravity vector and performs new calculations
+        //!
+        //! @param gravityVector Direction of gravity
+        void setGravityVector(const FenestrationCommon::GravityVector & gravityVector);
+
     private:
         static double normError(const std::vector<double> & vec1, const std::vector<double> & vec2);
 
