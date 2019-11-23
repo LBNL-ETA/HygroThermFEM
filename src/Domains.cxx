@@ -340,6 +340,7 @@ namespace HygroThermFEM
         if(frameCavities == nullptr)
         {
             frameCavities = std::make_unique<EquivalentFrameCavities>(m_Elements);
+            frameCavities->setGravityVector(m_GravityVector);
         }
         frameCavities->update();
     }
@@ -351,7 +352,11 @@ namespace HygroThermFEM
 
     void ThermalDomain::setGravityVector(const FenestrationCommon::GravityVector & gravityVector)
     {
-        frameCavities->setGravityVector(gravityVector);
+        m_GravityVector = gravityVector;
+        if(frameCavities != nullptr)
+        {
+            frameCavities->setGravityVector(gravityVector);
+        }
     }
 
     void MoistureDomain::createElement(const size_t index1,
