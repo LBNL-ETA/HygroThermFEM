@@ -30,9 +30,9 @@ TEST_F(TestModelWithFrameCavity1, TestSingleFrameCavity)
     std::vector<double> gridX{0, 0.01, 0.02, 0.03, 0.04};
     std::vector<double> gridY{0, 0.05, 0.1, 0.15, 0.2};
 
-    const auto initialTemperature = 20;
-    const auto initialHumidity = 0.0;
-    const auto initialPressure = 101325.0;
+    const auto initialTemperature{20.0};
+    const auto initialHumidity{0.0};
+    const auto initialPressure{101325.0};
 
     const State state(initialTemperature, initialHumidity, initialPressure);
     size_t nodeIndex = 0;

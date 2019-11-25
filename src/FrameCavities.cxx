@@ -1,3 +1,4 @@
+#include <KeffCavity.hxx>
 
 #include "FrameCavities.hxx"
 #include "MaterialPool.hxx"
@@ -10,14 +11,18 @@ namespace HygroThermFEM
     ///  EquivalentFrameCavity
     ///////////////////////////////////////////////////////////////////////////////
 
-    EquivalentFrameCavity::EquivalentFrameCavity(const std::vector<size_t> & nodes, IGas & gas) :
+    EquivalentFrameCavity::EquivalentFrameCavity(
+      const std::vector<size_t> & nodes,
+      IGas & gas,
+      const FenestrationCommon::GravityVector & gravityVector) :
         m_Segments(buildSegments(nodes)),
         m_SideSegments(groupSegmentSides(m_Segments)),
         m_Side{
           {Side::Top, {0, 0}}, {Side::Bottom, {0, 0}}, {Side::Left, {0, 0}}, {Side::Right, {0, 0}}},
         m_Area(calcArea()),
         m_Size(calcSize(m_Area)),
-        m_Gas(gas)
+        m_Gas(gas),
+        m_GravityVector(gravityVector)
     {
         calcSideEmissivities();
         updateSideTemperatures();
@@ -36,9 +41,8 @@ namespace HygroThermFEM
         {
             case CavityStandard::ISO15099:
             {
-                const auto jambHeight = 1;
-                const auto pressure = 101325;
-                const GravityVector g{0, -1, 0};
+                const auto jambHeight{1.0};
+                const auto pressure{101325.0};
                 KeffCavity::CavityISO10599 cavity(hfDirection,
                                                   m_Size.L,
                                                   m_Size.H,
@@ -46,7 +50,7 @@ namespace HygroThermFEM
                                                   side1,
                                                   side2,
                                                   pressure,
-                                                  g,
+                                                  m_GravityVector,
                                                   radCalc,
                                                   Gases::CGas());
                 thermalConductivity = cavity.effectiveConductivity();
@@ -196,8 +200,7 @@ namespace HygroThermFEM
             }
         }
 
-        // TODO: Standard enumerator won't work. Need to fix this.
-        for(auto side : {Side::Top, Side::Bottom, Side::Left, Side::Right})
+        for(const auto side : EnumSide())
         {
             if(length.at(side) != 0)
             {
@@ -222,8 +225,7 @@ namespace HygroThermFEM
             }
         }
 
-        // TODO: Standard enumerator won't work. Fix this later.
-        for(auto side : {Side::Top, Side::Bottom, Side::Left, Side::Right})
+        for(const auto side : EnumSide())
         {
             if(length.at(side) != 0)
             {
@@ -256,6 +258,14 @@ namespace HygroThermFEM
         }
 
         return result;
+    }
+
+    void EquivalentFrameCavity::setGravityVector(
+      const FenestrationCommon::GravityVector & gravityVector)
+    {
+        m_GravityVector = gravityVector;
+        calcSideEmissivities();
+        updateSideTemperatures();
     }
 
     EquivalentFrameCavity::Segment::Segment(const Node2D & node1,
@@ -418,6 +428,15 @@ namespace HygroThermFEM
         for(auto & cavity : m_Cavities)
         {
             cavity.update();
+        }
+    }
+
+    void EquivalentFrameCavities::setGravityVector(
+      const FenestrationCommon::GravityVector & gravityVector)
+    {
+        for(auto & cavity : m_Cavities)
+        {
+            cavity.setGravityVector(gravityVector);
         }
     }
 

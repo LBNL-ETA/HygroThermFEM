@@ -249,7 +249,14 @@ namespace HygroThermFEM
                            size_t index4,
                            const std::string & materialName) override;
 
+        //! \brief Sets new gravity vector and performs new calculations
+        //!
+        //! @param gravityVector Direction of gravity
+        void setGravityVector(const FenestrationCommon::GravityVector & gravityVector);
+
     protected:
+        FenestrationCommon::GravityVector m_GravityVector{0, -1, 0};
+
         //! Storage for frame cavities recalculation
         std::unique_ptr<EquivalentFrameCavities> frameCavities;
 

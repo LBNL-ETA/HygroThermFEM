@@ -4,8 +4,8 @@ include(ExternalProject)
 
 ExternalProject_Add(KeffCavity
     GIT_REPOSITORY https://vidanovic@bitbucket.org/vidanovic/keffcavity.git
-    GIT_TAG "Version_1.0.2"
-    #GIT_TAG "master"
+    #GIT_TAG "Version_1.0.2"
+    GIT_TAG "master"
     
     UPDATE_COMMAND ""
     PATCH_COMMAND ""

@@ -1,7 +1,8 @@
 #pragma once
 
-#include "Elements2D.hxx"
 #include <KeffCavity.hxx>
+#include "Elements2D.hxx"
+#include "EnumerationTemplate.hpp"
 
 namespace HygroThermFEM
 {
@@ -16,11 +17,24 @@ namespace HygroThermFEM
     class EquivalentFrameCavity
     {
     public:
-        explicit EquivalentFrameCavity(const std::vector<size_t> & nodes, IGas & gas);
+        //! \brief Equivalent frame cavity constructor
+        //!
+        //! \param nodes Nodes from which frame cavity has been created
+        //! \param gas Frame cavity is filled with this gas
+        //! \param gravityVector Gravity vector in (x, y, z) coordinate system
+        explicit EquivalentFrameCavity(const std::vector<size_t> & nodes,
+                                       IGas & gas,
+                                       const FenestrationCommon::GravityVector & gravityVector = {
+                                         0, -1, 0});
 
         //! Public function that update frame cavity with new data, calculates new thermal
         //! conductivity and update gas with new thermal conductivity
         void update();
+
+        //! \brief Sets new gravity vector and performs new calculations
+        //!
+        //! \param gravityVector Direction of gravity
+        void setGravityVector(const FenestrationCommon::GravityVector & gravityVector);
 
     private:
         //! \brief Local enumerator used to assign segment to certain side of rectangular frame
@@ -31,6 +45,21 @@ namespace HygroThermFEM
             Bottom,
             Left,
             Right
+        };
+
+        //! \brief Class that will make possible for enumeration to go through for loop in C++ 11 and older standards.
+        class EnumSide : public Enum<Side>
+        {
+        public:
+            Iterator begin()
+            {
+                return Iterator(static_cast<int>(Side::Top));
+            }
+
+            Iterator end()
+            {
+                return Iterator(static_cast<int>(Side::Right) + 1);
+            }
         };
 
         //! \brief Simple structure to hold size of equivalent frame cavity.
@@ -111,7 +140,6 @@ namespace HygroThermFEM
         KeffCavity::ScreenFlow heatFlowDirection() const;
 
 
-
         const std::vector<Segment> m_Segments;
 
         //! Map that keeps segments grouped by sides. This is needed for constant temperatures
@@ -123,6 +151,7 @@ namespace HygroThermFEM
         const double m_Area;
         const Size m_Size;
         IGas & m_Gas;
+        FenestrationCommon::GravityVector m_GravityVector;
     };
 
     ///////////////////////////////////////////////////////////////////////////////
@@ -140,6 +169,11 @@ namespace HygroThermFEM
 
         //! \brief Updates frame cavities with new temperatures.
         void update();
+
+        //! \brief Sets new gravity vector and performs new calculations
+        //!
+        //! \param gravityVector Direction of gravity
+        void setGravityVector(const FenestrationCommon::GravityVector & gravityVector);
 
     private:
         //! Helper class used in algorithm to determine frame cavity boundaries

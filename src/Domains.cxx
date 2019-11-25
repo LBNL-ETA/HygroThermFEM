@@ -169,7 +169,8 @@ namespace HygroThermFEM
     }
 
     IDomain::IDomain(const BaseVariable property, bool automaticUpdateOfPreviousTimestep) :
-        m_Property(property), m_AutomaticUpdatePreviousTimestep(automaticUpdateOfPreviousTimestep)
+        m_Property(property),
+        m_AutomaticUpdatePreviousTimestep(automaticUpdateOfPreviousTimestep)
     {}
 
     std::vector<NodeFlux> IDomain::flux() const
@@ -339,13 +340,24 @@ namespace HygroThermFEM
         if(frameCavities == nullptr)
         {
             frameCavities = std::make_unique<EquivalentFrameCavities>(m_Elements);
+            frameCavities->setGravityVector(m_GravityVector);
         }
         frameCavities->update();
     }
 
     ThermalDomain::ThermalDomain(bool automaticUpdatePreviousTimestep) :
-        IDomain(BaseVariable::temperature, automaticUpdatePreviousTimestep), frameCavities(nullptr)
+        IDomain(BaseVariable::temperature, automaticUpdatePreviousTimestep),
+        frameCavities(nullptr)
     {}
+
+    void ThermalDomain::setGravityVector(const FenestrationCommon::GravityVector & gravityVector)
+    {
+        m_GravityVector = gravityVector;
+        if(frameCavities != nullptr)
+        {
+            frameCavities->setGravityVector(gravityVector);
+        }
+    }
 
     void MoistureDomain::createElement(const size_t index1,
                                        const size_t index2,
