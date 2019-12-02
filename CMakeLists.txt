@@ -11,6 +11,14 @@ project(${target_name} CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 
+option(BUILD_FOR_CODE_COVERAGE ON)
+
+if (BUILD_FOR_CODE_COVERAGE)
+    if (CMAKE_COMPILER_IS_GNUCXX)
+        set(CMAKE_CXX_FLAGS "--coverage")
+    endif()
+endif()
+
 option(BUILD_FOR_PROFILING OFF)
 
 if(BUILD_FOR_PROFILING)
