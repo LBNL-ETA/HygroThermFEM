@@ -44,3 +44,23 @@ namespace Constants
     static const double Cp_Vapor = 1850;
 
 }   // namespace Constants
+
+namespace Timestep
+{
+    //! Enumeration that will be used to notify exterior world on current timestep simlation level.
+    //!
+    //! None - current timestep level is normal. No division performed and engine is trying to do
+    //! simulation with provided timestep division
+    //! One - current timestep level is increased. This case means that the engine is trying to
+    //! perform timestep simulation by dividing it with some number (current implementation divides
+    //! timestep into ten smaller timesteps) Two - Timestep is even more refined. Three - Maximum
+    //! level of timestep refinement.
+
+    enum class Level
+    {
+        None,
+        One,
+        Two,
+        Three
+    };
+}   // namespace Timestep
