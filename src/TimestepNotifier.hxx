@@ -33,7 +33,7 @@ protected:
     }
 
 public:
-    //! \brief Subscribe for notificiations.
+    //! \brief Subscribe for notifications.
     void subscribe(TimestepObserver<T> * observer)
     {
         observers.push_back(observer);

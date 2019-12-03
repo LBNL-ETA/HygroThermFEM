@@ -63,11 +63,12 @@ namespace HygroThermFEM
     {
         std::vector<double> solution;
         bool converged{false};
-        size_t maxDivisions{3u};
         size_t currentDivision{0u};
         double currentDTime{t_DTime};
         double totalTime{0};
         auto stateVariables{currentStateValues};
+        TimestepData::Level level{TimestepData::Level::Standard};
+
         // In case program failed to converge, it will cut down step to smaller one and will perform
         // multiple consecutive simulations in order to achieve solution at requested timestep.
         while(totalTime < t_DTime)
@@ -77,9 +78,10 @@ namespace HygroThermFEM
             converged = current.second;
             if(!converged)
             {
-                currentDTime = currentDTime / 10;
+                ++level;
+                currentDTime = currentDTime / TimestepData::NumberOfSubsegments;
                 ++currentDivision;
-                if(currentDivision > maxDivisions)
+                if(currentDivision > TimestepData::maxDivisions)
                 {
                     throw std::runtime_error("Solution failed to converge.");
                 }
