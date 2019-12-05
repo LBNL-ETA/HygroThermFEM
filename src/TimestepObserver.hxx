@@ -2,9 +2,13 @@
 
 #include "Common.hxx"
 
-template <typename T>
-class TimestepObserver {
-public:
-    virtual ~TimestepObserver() = default;
-    virtual void fieldChanged(const Timestep::Level& timestepLevel, unsigned timestepNumber) = 0;
-};
+namespace Timesteps {
+
+    class TimestepObserver {
+    public:
+        virtual ~TimestepObserver() = default;
+
+        virtual void levelChanged(unsigned divisionLevel, unsigned timestepNumber) = 0;
+    };
+
+}

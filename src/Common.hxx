@@ -44,36 +44,3 @@ namespace Constants
     static const double Cp_Vapor = 1850;
 
 }   // namespace Constants
-
-namespace TimestepData
-{
-    //! Enumeration that will be used to notify exterior world on current timestep simlation level.
-    //!
-    //! Standard - current timestep level is normal. No division performed and engine is trying to do
-    //! simulation with provided timestep division
-    //! One - current timestep level is increased. This case means that the engine is trying to
-    //! perform timestep simulation by dividing it with some number (current implementation divides
-    //! timestep into ten smaller timesteps) Two - Timestep is even more refined. Three - Maximum
-    //! level of timestep refinement.
-
-    enum class Level
-    {
-        Standard = 0,
-        One,
-        Two,
-        Three
-    };
-
-    inline Level operator++(Level& mode)
-    {
-        static unsigned numberOfEnums{static_cast<int>(Level::Three) + 1};
-        mode = static_cast<Level>((static_cast<int>(mode) + 1) % numberOfEnums);
-        return mode;
-    }
-
-    //! Engine will try to divide timestep three times before it reports divergence.
-    const unsigned maxDivisions{3};
-
-    //! In case of convergence failure, program will divide timestep into number of smaller timesteps.
-    const unsigned NumberOfSubsegments{10};
-}   // namespace Timestep

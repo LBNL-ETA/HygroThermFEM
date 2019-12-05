@@ -9,6 +9,7 @@
 #include "VectorOperators.hxx"
 #include "SimulationProperties.hxx"
 #include "NodePool.hxx"
+#include "TimestepData.hxx"
 
 namespace HygroThermFEM
 {
@@ -63,25 +64,26 @@ namespace HygroThermFEM
     {
         std::vector<double> solution;
         bool converged{false};
-        size_t currentDivision{0u};
+        auto currentDivisionLevel{0u};
+        auto maxDivisionLevel{Timesteps::Settings::Instance().getMaxDivisions()};
         double currentDTime{t_DTime};
         double totalTime{0};
         auto stateVariables{currentStateValues};
-        TimestepData::Level level{TimestepData::Level::Standard};
+        unsigned numberOfSubtimesteps{Timesteps::Settings::Instance().getNumberOfSubtimesteps()};
 
         // In case program failed to converge, it will cut down step to smaller one and will perform
         // multiple consecutive simulations in order to achieve solution at requested timestep.
         while(totalTime < t_DTime)
         {
+            notify(currentDivisionLevel, unsigned(totalTime / currentDTime));
             const auto current = transientTimestep(stateVariables, currentDTime, timestepIndex);
             solution = current.first;
             converged = current.second;
             if(!converged)
             {
-                ++level;
-                currentDTime = currentDTime / TimestepData::NumberOfSubsegments;
-                ++currentDivision;
-                if(currentDivision > TimestepData::maxDivisions)
+                currentDTime = currentDTime / numberOfSubtimesteps;
+                ++currentDivisionLevel;
+                if(currentDivisionLevel > maxDivisionLevel)
                 {
                     throw std::runtime_error("Solution failed to converge.");
                 }

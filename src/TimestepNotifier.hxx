@@ -5,43 +5,38 @@
 #include <algorithm>
 
 #include "Common.hxx"
+#include "TimestepObserver.hxx"
 
-template<typename>
-class TimestepObserver;
-
-//! \brief Observable template for timestep change notification.
-//!
-//! Engine will try to perform simulation within given timestep division. Sometimes that is not
-//! working and the engine will divide timestep into smaller divisions. This class implements
-//! notification for outside world in case someone is interested what the engine is doing.
-//! \tparam T Observer that needs to implement function which will be used to perform notification
-//! actions.
-
-template<typename T>
-class TimestepNotifier
+namespace Timesteps
 {
-private:
-    std::vector<TimestepObserver<T> *> observers;
+    //! \brief Observable template for timestep change notification.
+    //!
+    //! Engine will try to perform simulation within given timestep division. Sometimes that is not
+    //! working and the engine will divide timestep into smaller divisions. This class implements
+    //! notification for outside world in case someone is interested what the engine is doing.
 
-protected:
-    void notify(const Timestep::Level& timestepLevel, const unsigned timestepNumber)
+    class TimestepNotifier
     {
-        for(auto observer : observers)
-        {
-            observer->levelChanged(timestepLevel, timestepNumber);
-        }
-    }
+    private:
+        std::vector<TimestepObserver *> observers;
 
-public:
-    //! \brief Subscribe for notifications.
-    void subscribe(TimestepObserver<T> * observer)
-    {
-        observers.push_back(observer);
-    }
+    protected:
+        //! \brief Notification to observers of current statue of the simulation
+        //!
+        //! \param divisionLevel - Current timestep division level
+        //! \param timestepNumber - Current timestep index in current division
+        void notify(unsigned divisionLevel, unsigned timestepNumber);
 
-    //! \brief Call itself to unsubscribe from notifications.
-    void unsubscribe(TimestepObserver<T> * observer)
-    {
-        observers.erase(std::remove(begin(observers), end(observers), observer), end(observers));
-    }
-};
+    public:
+        //! \brief Subscribe for notifications.
+        //!
+        //! \param observer - Observer that needs to be notified about simulation changes
+        void subscribe(TimestepObserver * observer);
+
+        //! \brief Unsubscribe from notifications.
+        //!
+        //! \param observer - Observer that was notified about simulation changes.
+        void unsubscribe(TimestepObserver * observer);
+    };
+
+}   // namespace Timesteps

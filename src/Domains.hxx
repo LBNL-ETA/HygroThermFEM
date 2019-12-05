@@ -6,6 +6,8 @@
 #include "BoundaryConditions2D.hxx"
 #include "FrameCavities.hxx"
 #include "BoundaryConditionCoefficients.hxx"
+#include "TimestepNotifier.hxx"
+#include "TimestepObserver.hxx"
 
 namespace HygroThermFEM
 {
@@ -21,7 +23,7 @@ namespace HygroThermFEM
     //!
     //! One domain will solve single differential equation and therefore, single domain will
     //! represent thermal, moisture or pressure separately.
-    class IDomain
+    class IDomain : public Timesteps::TimestepNotifier
     {
     public:
         virtual ~IDomain() = default;
