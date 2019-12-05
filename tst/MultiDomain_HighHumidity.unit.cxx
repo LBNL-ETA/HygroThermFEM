@@ -6,6 +6,28 @@
 using HygroThermFEM::NodePool;
 using HygroThermFEM::MaterialPool;
 
+class ObserveSimulationProgrees : public Timesteps::TimestepObserver
+{
+public:
+    void levelChanged(unsigned divisionLevel, unsigned timestepNumber) override
+    {
+        // No need to notify simulation at level zero
+        if(divisionLevel > 0)
+        {
+            m_SimulationCalls.at(divisionLevel) += 1;
+        }
+    }
+
+    unsigned getLevelOne() const {return m_SimulationCalls.at(1);}
+    unsigned getLevelTwo() const {return m_SimulationCalls.at(2);}
+    unsigned getLevelThree() const {return m_SimulationCalls.at(3);}
+
+private:
+    // Map will simply keep track of how many times simulation was called
+    // at given division level
+    std::map<unsigned, unsigned> m_SimulationCalls{{1,0}, {2,0}, {3,0}};
+};
+
 class MultiDomain_HighHumidity : public testing::Test
 {
 protected:
