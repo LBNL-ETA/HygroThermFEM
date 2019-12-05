@@ -28,3 +28,4 @@
 #include "../src/FrameCavities.hxx"
 #include "../src/SimulationProperties.hxx"
 #include "../src/BoundaryConditionCoefficients.hxx"
+#include "../src/TimestepObserver.hxx"
