@@ -38,43 +38,40 @@ namespace HygroThermFEM
         // data for next iteration.
         do
         {
-            if(m_PerformMoisture)
+            size_t localIterCounter{0};
+            while(humidityError > ConvergenceError && localIterCounter <= MaxIterations
+                  && temperatureError > ConvergenceError && localIterCounter <= MaxIterations)
             {
-                size_t localIterCounter{0};
-                while(humidityError > ConvergenceError && localIterCounter <= MaxIterations)
+                if(m_PerformMoisture)
                 {
                     humiditySolution = m_MoistureDomain.transient(humidity, dTime, timestepIndex);
                     humidityError = normError(humiditySolution.solution, currentHumidity);
                     currentHumidity = humiditySolution.solution;
                     ++localIterCounter;
                 }
-            }
-            else
-            {
-                humidityError = 0;
-            }
-
-            if(m_PerformThermal)
-            {
-                size_t localIterCounter{0};
-                while(temperatureError > ConvergenceError && localIterCounter <= MaxIterations)
+                else
+                {
+                    humidityError = 0;
+                }
+                if(m_PerformThermal)
                 {
                     temperatureSolution =
-                      m_ThermalDomain.transient(temperature, dTime, timestepIndex);
+                            m_ThermalDomain.transient(temperature, dTime, timestepIndex);
                     temperatureError = normError(temperatureSolution.solution, currentTemperature);
                     currentTemperature = temperatureSolution.solution;
                     ++localIterCounter;
                 }
+                else
+                {
+                    temperatureError = 0;
+                }
             }
-            else
-            {
-                temperatureError = 0;
-            }
+
 
             if(m_PerformMoisture)
             {
                 NodePool::Instance().updateNodeValues(
-                  temperatureSolution.solution, BaseVariable::temperature, false);
+                        temperatureSolution.solution, BaseVariable::temperature, false);
                 humiditySolution = m_MoistureDomain.transient(humidity, dTime, timestepIndex);
                 humidityError = normError(humiditySolution.solution, currentHumidity);
                 currentHumidity = humiditySolution.solution;
@@ -83,16 +80,17 @@ namespace HygroThermFEM
             if(m_PerformThermal)
             {
                 NodePool::Instance().updateNodeValues(
-                  humiditySolution.solution, BaseVariable::humidity, false);
+                        humiditySolution.solution, BaseVariable::humidity, false);
                 temperatureSolution = m_ThermalDomain.transient(temperature, dTime, timestepIndex);
                 temperatureError = normError(temperatureSolution.solution, currentTemperature);
                 currentTemperature = temperatureSolution.solution;
             }
 
             ++currentIteration;
+        }
 
-        } while((temperatureError > ConvergenceError && humidityError > ConvergenceError)
-                || currentIteration > MaxIterations);
+        while((temperatureError > ConvergenceError && humidityError > ConvergenceError)
+              || currentIteration > MaxIterations);
 
         NodePool::Instance().updateNodeValues(
           temperatureSolution.solution, BaseVariable::temperature, true);
