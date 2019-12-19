@@ -2,6 +2,11 @@
 
 #include "Domains.hxx"
 
+namespace Timesteps
+{
+    class TimestepObserver;
+}
+
 namespace HygroThermFEM
 {
     struct Solution
@@ -186,6 +191,27 @@ namespace HygroThermFEM
         //!
         //! @param gravityVector Direction of gravity
         void setGravityVector(const FenestrationCommon::GravityVector & gravityVector);
+
+        //! \brief Assign observer to thermal part of the engine.
+        //!
+        //! \param observer
+        void subscribeThermal(Timesteps::TimestepObserver * observer);
+
+        //! \brief Unsubscribe from thermal notifications
+        //!
+        //! \param observer
+        void unsubscribeThermal(Timesteps::TimestepObserver * observer);
+
+        //! \brief Assign observer to moisture part of the engine.
+        //!
+        //! \param observer
+        void subscribeMoisture(Timesteps::TimestepObserver * observer);
+
+        //! \brief Unsubscribe from moisture notifications
+        //!
+        //! \param observer
+        void unsubscribeMoisture(Timesteps::TimestepObserver * observer);
+
 
     private:
         static double normError(const std::vector<double> & vec1, const std::vector<double> & vec2);

@@ -9,6 +9,7 @@
 #include "VectorOperators.hxx"
 #include "SimulationProperties.hxx"
 #include "NodePool.hxx"
+#include "TimestepData.hxx"
 
 namespace HygroThermFEM
 {
@@ -63,23 +64,26 @@ namespace HygroThermFEM
     {
         std::vector<double> solution;
         bool converged{false};
-        size_t maxDivisions{3u};
-        size_t currentDivision{0u};
+        auto currentDivisionLevel{0u};
+        auto maxDivisionLevel{Timesteps::Settings::Instance().getMaxDivisions()};
         double currentDTime{t_DTime};
         double totalTime{0};
         auto stateVariables{currentStateValues};
+        unsigned numberOfSubtimesteps{Timesteps::Settings::Instance().getNumberOfSubtimesteps()};
+
         // In case program failed to converge, it will cut down step to smaller one and will perform
         // multiple consecutive simulations in order to achieve solution at requested timestep.
         while(totalTime < t_DTime)
         {
+            notify(currentDivisionLevel, unsigned(totalTime / currentDTime));
             const auto current = transientTimestep(stateVariables, currentDTime, timestepIndex);
             solution = current.first;
             converged = current.second;
             if(!converged)
             {
-                currentDTime = currentDTime / 10;
-                ++currentDivision;
-                if(currentDivision > maxDivisions)
+                currentDTime = currentDTime / numberOfSubtimesteps;
+                ++currentDivisionLevel;
+                if(currentDivisionLevel > maxDivisionLevel)
                 {
                     throw std::runtime_error("Solution failed to converge.");
                 }
@@ -169,8 +173,7 @@ namespace HygroThermFEM
     }
 
     IDomain::IDomain(const BaseVariable property, bool automaticUpdateOfPreviousTimestep) :
-        m_Property(property),
-        m_AutomaticUpdatePreviousTimestep(automaticUpdateOfPreviousTimestep)
+        m_Property(property), m_AutomaticUpdatePreviousTimestep(automaticUpdateOfPreviousTimestep)
     {}
 
     std::vector<NodeFlux> IDomain::flux() const
@@ -346,8 +349,7 @@ namespace HygroThermFEM
     }
 
     ThermalDomain::ThermalDomain(bool automaticUpdatePreviousTimestep) :
-        IDomain(BaseVariable::temperature, automaticUpdatePreviousTimestep),
-        frameCavities(nullptr)
+        IDomain(BaseVariable::temperature, automaticUpdatePreviousTimestep), frameCavities(nullptr)
     {}
 
     void ThermalDomain::setGravityVector(const FenestrationCommon::GravityVector & gravityVector)

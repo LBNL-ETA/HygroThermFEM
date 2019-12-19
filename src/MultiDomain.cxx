@@ -13,8 +13,7 @@ namespace HygroThermFEM
     // passing false to subdomains means that previous timestep values will not be automatically
     // updated. This mean that multidomain must update its values once solution converged.
     MultiDomain::MultiDomain(const bool performThermal, const bool performMoisture) :
-        m_PerformThermal(performThermal),
-        m_PerformMoisture(performMoisture)
+        m_PerformThermal(performThermal), m_PerformMoisture(performMoisture)
     {}
 
     Solution MultiDomain::transient(std::vector<double> & temperature,
@@ -268,7 +267,7 @@ namespace HygroThermFEM
 
     void MultiDomain::createTemperatureBC(size_t index1, size_t index2, std::vector<double> temp)
     {
-        m_ThermalDomain.createTemperatureBC(index1, index2, temp);
+        m_ThermalDomain.createTemperatureBC(index1, index2, std::move(temp));
     }
 
     void MultiDomain::createBlackBodyRadiationBC(const size_t index1,
@@ -327,6 +326,26 @@ namespace HygroThermFEM
     void MultiDomain::setGravityVector(const FenestrationCommon::GravityVector & gravityVector)
     {
         m_ThermalDomain.setGravityVector(gravityVector);
+    }
+
+    void MultiDomain::subscribeThermal(Timesteps::TimestepObserver * observer)
+    {
+        m_ThermalDomain.subscribe(observer);
+    }
+
+    void MultiDomain::unsubscribeThermal(Timesteps::TimestepObserver * observer)
+    {
+        m_ThermalDomain.unsubscribe(observer);
+    }
+
+    void MultiDomain::subscribeMoisture(Timesteps::TimestepObserver * observer)
+    {
+        m_MoistureDomain.subscribe(observer);
+    }
+
+    void MultiDomain::unsubscribeMoisture(Timesteps::TimestepObserver * observer)
+    {
+        m_MoistureDomain.unsubscribe(observer);
     }
 
     Solution::Solution(const double dtime,
