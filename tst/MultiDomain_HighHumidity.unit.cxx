@@ -18,9 +18,9 @@ public:
         }
     }
 
-    unsigned getLevelOne() const {return m_SimulationCalls.at(1);}
-    unsigned getLevelTwo() const {return m_SimulationCalls.at(2);}
-    unsigned getLevelThree() const {return m_SimulationCalls.at(3);}
+    [[nodiscard]] unsigned getLevelOne() const {return m_SimulationCalls.at(1);}
+    [[nodiscard]] unsigned getLevelTwo() const {return m_SimulationCalls.at(2);}
+    [[nodiscard]] unsigned getLevelThree() const {return m_SimulationCalls.at(3);}
 
 private:
     // Map will simply keep track of how many times simulation was called
@@ -159,10 +159,10 @@ TEST_F(MultiDomain_HighHumidity, TestExample_1)
         ++timestepIndex;
     }
 
-    const std::vector<double> correctHumidityError{2.360245e-09, 5.885973e-06};
+    const std::vector<double> correctHumidityError{4.131868e-07, 1.509739e-06};
     const std::vector<std::vector<double>> correctWaterContentSolution{
-      {121.998443, 121.998443, 122.131248, 122.131248, 122.296497, 122.296497},
-      {123.757800, 123.757800, 123.864376, 123.864376, 123.997089, 123.997089}};
+            {121.994944,121.994944,122.127524,122.127524,122.292494,122.292494},
+            {123.768705,123.768705,123.876207,123.876207,124.010072,124.010072}};
 
     EXPECT_EQ(waterContentSolution.size(), correctWaterContentSolution.size());
 
@@ -175,10 +175,10 @@ TEST_F(MultiDomain_HighHumidity, TestExample_1)
         }
     }
 
-    const std::vector<double> correctTemperatureError{9.199912e-07, 0.000335};
+    const std::vector<double> correctTemperatureError{0.005612, 0.013515};
     const std::vector<std::vector<double>> correctTemperatureSolution{
-      {0.697104, 0.697104, 2.286707, 2.286707, 6.993783, 6.993783},
-      {1.880509, 1.880509, 4.595794, 4.595794, 9.928281, 9.928281}};
+            {0.696524,0.696524,2.284785,2.284785,6.987855,6.987855},
+            {1.881866,1.881866,4.601701,4.601701,9.950096,9.950096}};
 
     EXPECT_EQ(temperatureSolution.size(), correctTemperatureSolution.size());
 
