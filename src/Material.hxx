@@ -3,6 +3,7 @@
 #include <vector>
 #include <memory>
 #include <string>
+#include <optional>
 
 #include "Functions.hxx"
 #include "KeffCavity.hxx"
@@ -54,19 +55,19 @@ namespace HygroThermFEM
         virtual ~IMaterial() = default;
 
         IMaterial(
-          std::string cs,
-          double thermalConductivityDry,
-          double density,
-          double porosity,
-          double heatCapacity,
-          double diffusionResistanceFactor,
-          const std::vector<FenestrationCommon::point> & thermalConductivityMoistureDependent,
-          double moistureDependentMeasurementTemperature,
-          const std::vector<FenestrationCommon::point> & thermalConductivityTemperatureDependent,
-          double temperatureDependentMeasurementHumidity,
-          const std::vector<FenestrationCommon::point> & liquidTransportationCurve,
-          const std::vector<FenestrationCommon::point> & sorptionCurve,
-          double emissivity,
+          std::string name,
+          std::optional<double> thermalConductivityDry,
+          std::optional<double> density,
+          std::optional<double> porosity,
+          std::optional<double> heatCapacity,
+          std::optional<double> diffusionResistanceFactor,
+          std::optional<std::vector<FenestrationCommon::point>> thermalConductivityMoistureDependent,
+          std::optional<double> moistureDependentMeasurementTemperature,
+          std::optional<std::vector<FenestrationCommon::point>> thermalConductivityTemperatureDependent,
+          std::optional<double> temperatureDependentMeasurementHumidity,
+          std::optional<std::vector<FenestrationCommon::point>> liquidTransportationCurve,
+          std::optional<std::vector<FenestrationCommon::point>> sorptionCurve,
+          std::optional<double> emissivity,
           bool isLinear = true);
 
         //! Material's name.
@@ -126,11 +127,11 @@ namespace HygroThermFEM
 
     protected:
         std::string m_Name;
-        double m_ThermalConductivityDry;
-        double m_Density;
-        double m_Porosity;
-        double m_HeatCapacity;
-        double m_DiffusionResistanceFactor;
+        std::optional<double> m_ThermalConductivityDry;
+        std::optional<double> m_Density;
+        std::optional<double> m_Porosity;
+        std::optional<double> m_HeatCapacity;
+        std::optional<double> m_DiffusionResistanceFactor;
 
         //! Thermal conductivity table is (x-water content [kg/m3], temperature[Celsius], y-thermal
         //! conductivity[W/(mK)])
@@ -145,7 +146,7 @@ namespace HygroThermFEM
         //! (x-relative humidity [between zero to one], y-water content [kg/m3]
         std::unique_ptr<TabularFunction1D> m_SorptionCurve;
 
-        double m_Emissivity;
+        std::optional<double> m_Emissivity;
         const bool m_Linear;
     };
 
@@ -157,19 +158,19 @@ namespace HygroThermFEM
     class IGas : public IMaterial
     {
     public:
-        IGas(const std::string & cs,
-             double thermalConductivityDry,
-             double density,
-             double porosity,
-             double heatCapacity,
-             double diffusionResistanceFactor,
-             const std::vector<FenestrationCommon::point> & thermalConductivityMoistureDependent,
-             double moistureDependentMeasurementTemperature,
-             const std::vector<FenestrationCommon::point> & thermalConductivityTemperatureDependent,
-             double temperatureDependentMeasurementHumidity,
-             const std::vector<FenestrationCommon::point> & liquidTransportationCurve,
-             const std::vector<FenestrationCommon::point> & sorptionCurve,
-             double emissivity,
+        IGas(std::string name,
+             std::optional<double> thermalConductivityDry,
+             std::optional<double> density,
+             std::optional<double> porosity,
+             std::optional<double> heatCapacity,
+             std::optional<double> diffusionResistanceFactor,
+             std::optional<std::vector<FenestrationCommon::point>> thermalConductivityMoistureDependent,
+             std::optional<double> moistureDependentMeasurementTemperature,
+             std::optional<std::vector<FenestrationCommon::point>> thermalConductivityTemperatureDependent,
+             std::optional<double> temperatureDependentMeasurementHumidity,
+             std::optional<std::vector<FenestrationCommon::point>> liquidTransportationCurve,
+             std::optional<std::vector<FenestrationCommon::point>> sorptionCurve,
+             std::optional<double> emissivity,
              CavityStandard cavityStandard);
 
         //! \brief Some materials will require update of thermal conductivity within iterations.
@@ -238,18 +239,18 @@ namespace HygroThermFEM
         //! and water content.
         //! \param emissivity SolidMaterial emissivity
         SolidMaterial(
-          const std::string & name,
-          double thermalConductivityDry,
-          double density,
-          double porosity,
-          double heatCapacity,
-          double diffusionResistanceFactor,
-          const std::vector<FenestrationCommon::point> & thermalConductivityMoistureDependent,
-          double moistureDependentMeasurementTemperature,
-          const std::vector<FenestrationCommon::point> & thermalConductivityTemperatureDependent,
-          double temperatureDependentMeasurementHumidity,
-          const std::vector<FenestrationCommon::point> & liquidTransportCurve,
-          const std::vector<FenestrationCommon::point> & sorptionCurve,
+          std::string name,
+          std::optional<double> thermalConductivityDry,
+          std::optional<double> density,
+          std::optional<double> porosity,
+          std::optional<double> heatCapacity,
+          std::optional<double> diffusionResistanceFactor,
+          std::optional<std::vector<FenestrationCommon::point>> thermalConductivityMoistureDependent,
+          std::optional<double> moistureDependentMeasurementTemperature,
+          std::optional<std::vector<FenestrationCommon::point>> thermalConductivityTemperatureDependent,
+          std::optional<double> temperatureDependentMeasurementHumidity,
+          std::optional<std::vector<FenestrationCommon::point>> liquidTransportCurve,
+          std::optional<std::vector<FenestrationCommon::point>> sorptionCurve,
           double emissivity = 0.9);
 
         //! Saturated vapor content calculations at given node. It is necessary

@@ -12,58 +12,75 @@ namespace HygroThermFEM
     // IMaterial
     ///////////////////////////////////////////////////////////////////////////////////////////////
     IMaterial::IMaterial(
-      std::string cs,
-      const double thermalConductivityDry,
-      const double density,
-      const double porosity,
-      const double heatCapacity,
-      const double diffusionResistanceFactor,
-      const std::vector<FenestrationCommon::point> & thermalConductivityMoistureDependent,
-      const double moistureDependentMeasurementTemperature,
-      const std::vector<FenestrationCommon::point> & thermalConductivityTemperatureDependent,
-      const double temperatureDependentMeasurementHumidity,
-      const std::vector<FenestrationCommon::point> & liquidTransportationCurve,
-      const std::vector<FenestrationCommon::point> & sorptionCurve,
-      const double emissivity,
+      std::string name,
+      std::optional<double> thermalConductivityDry,
+      std::optional<double> density,
+      std::optional<double> porosity,
+      std::optional<double> heatCapacity,
+      std::optional<double> diffusionResistanceFactor,
+      std::optional<std::vector<FenestrationCommon::point>> thermalConductivityMoistureDependent,
+      std::optional<double> moistureDependentMeasurementTemperature,
+      std::optional<std::vector<FenestrationCommon::point>> thermalConductivityTemperatureDependent,
+      std::optional<double> temperatureDependentMeasurementHumidity,
+      std::optional<std::vector<FenestrationCommon::point>> liquidTransportationCurve,
+      std::optional<std::vector<FenestrationCommon::point>> sorptionCurve,
+      std::optional<double> emissivity,
       const bool isLinear) :
-        m_Name(std::move(cs)),
-        m_ThermalConductivityDry(thermalConductivityDry),
-        m_Density(density),
-        m_Porosity(porosity),
-        m_HeatCapacity(heatCapacity),
-        m_DiffusionResistanceFactor(diffusionResistanceFactor),
-        m_LiquidTransportCoefficient(new LiquidTransportationCurve(liquidTransportationCurve)),
-        m_SorptionCurve(new TabularFunction1D(sorptionCurve, Variable::humidity)),
-        m_Emissivity(emissivity),
+        m_Name(std::move(name)),
+        m_ThermalConductivityDry(std::move(thermalConductivityDry)),
+        m_Density(std::move(density)),
+        m_Porosity(std::move(porosity)),
+        m_HeatCapacity(std::move(heatCapacity)),
+        m_DiffusionResistanceFactor(std::move(diffusionResistanceFactor)),
+        m_ThermalConductivity2DTable(nullptr),
+        m_LiquidTransportCoefficient(nullptr),
+        m_SorptionCurve(nullptr),
+        m_Emissivity(std::move(emissivity)),
         m_Linear(isLinear)
     {
-        m_ThermalConductivity2DTable =
-          std::make_unique<TabularFunction2D>(thermalConductivityMoistureDependent,
-                                              moistureDependentMeasurementTemperature,
-                                              Variable::humidity,
-                                              thermalConductivityTemperatureDependent,
-                                              temperatureDependentMeasurementHumidity,
-                                              Variable::temperature);
+        if(thermalConductivityMoistureDependent.has_value()
+           && moistureDependentMeasurementTemperature.has_value()
+           && thermalConductivityTemperatureDependent.has_value()
+           && temperatureDependentMeasurementHumidity.has_value())
+        {
+            m_ThermalConductivity2DTable =
+              std::make_unique<TabularFunction2D>(thermalConductivityMoistureDependent.value(),
+                                                  moistureDependentMeasurementTemperature.value(),
+                                                  Variable::humidity,
+                                                  thermalConductivityTemperatureDependent.value(),
+                                                  temperatureDependentMeasurementHumidity.value(),
+                                                  Variable::temperature);
+        }
+        if(liquidTransportationCurve.has_value())
+        {
+            m_LiquidTransportCoefficient =
+              std::make_unique<LiquidTransportationCurve>(liquidTransportationCurve.value());
+        }
+        if(sorptionCurve.has_value())
+        {
+            m_SorptionCurve =
+              std::make_unique<TabularFunction1D>(sorptionCurve.value(), Variable::humidity);
+        }
     }
 
     double IMaterial::density() const
     {
-        return m_Density;
+        return m_Density.value();
     }
 
     double IMaterial::heatCapacity() const
     {
-        return m_HeatCapacity;
+        return m_HeatCapacity.value();
     }
 
     double IMaterial::porosity() const
     {
-        return m_Porosity;
+        return m_Porosity.value();
     }
 
     double IMaterial::diffusionResistanceFactor() const
     {
-        return m_DiffusionResistanceFactor;
+        return m_DiffusionResistanceFactor.value();
     }
 
     bool IMaterial::isLinear() const
@@ -93,7 +110,7 @@ namespace HygroThermFEM
 
     double IMaterial::emissivity() const
     {
-        return m_Emissivity;
+        return m_Emissivity.value();
     }
 
     bool operator<(const IMaterial & lhs, const IMaterial & rhs)
@@ -118,7 +135,7 @@ namespace HygroThermFEM
 
     double IMaterial::thermalConductivityDry() const
     {
-        return m_ThermalConductivityDry;
+        return m_ThermalConductivityDry.value();
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -126,33 +143,33 @@ namespace HygroThermFEM
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
     IGas::IGas(
-      const std::string & cs,
-      const double thermalConductivityDry,
-      const double density,
-      const double porosity,
-      const double heatCapacity,
-      const double diffusionResistanceFactor,
-      const std::vector<FenestrationCommon::point> & thermalConductivityMoistureDependent,
-      const double moistureDependentMeasurementTemperature,
-      const std::vector<FenestrationCommon::point> & thermalConductivityTemperatureDependent,
-      const double temperatureDependentMeasurementHumidity,
-      const std::vector<FenestrationCommon::point> & liquidTransportationCurve,
-      const std::vector<FenestrationCommon::point> & sorptionCurve,
-      const double emissivity,
+      std::string name,
+      std::optional<double> thermalConductivityDry,
+      std::optional<double> density,
+      std::optional<double> porosity,
+      std::optional<double> heatCapacity,
+      std::optional<double> diffusionResistanceFactor,
+      std::optional<std::vector<FenestrationCommon::point>> thermalConductivityMoistureDependent,
+      std::optional<double> moistureDependentMeasurementTemperature,
+      std::optional<std::vector<FenestrationCommon::point>> thermalConductivityTemperatureDependent,
+      std::optional<double> temperatureDependentMeasurementHumidity,
+      std::optional<std::vector<FenestrationCommon::point>> liquidTransportationCurve,
+      std::optional<std::vector<FenestrationCommon::point>> sorptionCurve,
+      std::optional<double> emissivity,
       const CavityStandard cavityStandard) :
-        IMaterial(cs,
-                  thermalConductivityDry,
-                  density,
-                  porosity,
-                  heatCapacity,
-                  diffusionResistanceFactor,
-                  thermalConductivityMoistureDependent,
-                  moistureDependentMeasurementTemperature,
-                  thermalConductivityTemperatureDependent,
-                  temperatureDependentMeasurementHumidity,
-                  liquidTransportationCurve,
-                  sorptionCurve,
-                  emissivity,
+        IMaterial(std::move(name),
+                  std::move(thermalConductivityDry),
+                  std::move(density),
+                  std::move(porosity),
+                  std::move(heatCapacity),
+                  std::move(diffusionResistanceFactor),
+                  std::move(thermalConductivityMoistureDependent),
+                  std::move(moistureDependentMeasurementTemperature),
+                  std::move(thermalConductivityTemperatureDependent),
+                  std::move(temperatureDependentMeasurementHumidity),
+                  std::move(liquidTransportationCurve),
+                  std::move(sorptionCurve),
+                  std::move(emissivity),
                   false),   // Gases introduce nonlinearty into domain
         m_CavityStandard(cavityStandard)
     {}
@@ -166,48 +183,56 @@ namespace HygroThermFEM
     // SolidMaterial
     ///////////////////////////////////////////////////////////////////////////////////////////////
     SolidMaterial::SolidMaterial(
-      const std::string & name,
-      const double thermalConductivityDry,
-      const double density,
-      const double porosity,
-      const double heatCapacity,
-      const double diffusionResistanceFactor,
-      const std::vector<FenestrationCommon::point> & thermalConductivityMoistureDependent,
-      double moistureDependentMeasurementTemperature,
-      const std::vector<FenestrationCommon::point> & thermalConductivityTemperatureDependent,
-      double temperatureDependentMeasurementHumidity,
-      const std::vector<FenestrationCommon::point> & liquidTransportCurve,
-      const std::vector<FenestrationCommon::point> & sorptionCurve,
+      std::string name,
+      std::optional<double> thermalConductivityDry,
+      std::optional<double> density,
+      std::optional<double> porosity,
+      std::optional<double> heatCapacity,
+      std::optional<double> diffusionResistanceFactor,
+      std::optional<std::vector<FenestrationCommon::point>> thermalConductivityMoistureDependent,
+      std::optional<double> moistureDependentMeasurementTemperature,
+      std::optional<std::vector<FenestrationCommon::point>> thermalConductivityTemperatureDependent,
+      std::optional<double> temperatureDependentMeasurementHumidity,
+      std::optional<std::vector<FenestrationCommon::point>> liquidTransportCurve,
+      std::optional<std::vector<FenestrationCommon::point>> sorptionCurve,
       const double emissivity) :
-        IMaterial(name,
-                  thermalConductivityDry,
-                  density,
-                  porosity,
-                  heatCapacity,
-                  diffusionResistanceFactor,
-                  thermalConductivityMoistureDependent,
-                  moistureDependentMeasurementTemperature,
-                  thermalConductivityTemperatureDependent,
-                  temperatureDependentMeasurementHumidity,
-                  liquidTransportCurve,
-                  sorptionCurve,
+        IMaterial(std::move(name),
+                  std::move(thermalConductivityDry),
+                  std::move(density),
+                  std::move(porosity),
+                  std::move(heatCapacity),
+                  std::move(diffusionResistanceFactor),
+                  std::move(thermalConductivityMoistureDependent),
+                  std::move(moistureDependentMeasurementTemperature),
+                  std::move(thermalConductivityTemperatureDependent),
+                  std::move(temperatureDependentMeasurementHumidity),
+                  std::move(liquidTransportCurve),
+                  std::move(sorptionCurve),
                   emissivity)
     {
         try
         {
-            if(m_ThermalConductivity2DTable->maxXFirstTable()
-               != m_SorptionCurve
-                    ->maxY())   // only moisture dependence must match to sorption curve
+            if(m_ThermalConductivity2DTable != nullptr && m_SorptionCurve != nullptr)
             {
-                throw std::runtime_error(
-                  "Thermal conductivity curve does not correspond to sorption curve. Maximum water "
-                  "content is not identical in both tables.");
+                if(m_ThermalConductivity2DTable->maxXFirstTable()
+                   != m_SorptionCurve
+                        ->maxY())   // only moisture dependence must match to sorption curve
+                {
+                    throw std::runtime_error("Thermal conductivity curve does not correspond to "
+                                             "sorption curve. Maximum water "
+                                             "content is not identical in both tables.");
+                }
             }
-            if(m_LiquidTransportCoefficient->maxX() != m_SorptionCurve->maxY())
+
+            if(m_LiquidTransportCoefficient != nullptr && m_SorptionCurve != nullptr)
             {
-                throw std::runtime_error(
-                  "Liquid transportation coefficient table does not correspond to sorption curve. "
-                  "Maximum water content is not identical in both tables.");
+                if(m_LiquidTransportCoefficient->maxX() != m_SorptionCurve->maxY())
+                {
+                    throw std::runtime_error(
+                      "Liquid transportation coefficient table does not correspond to sorption "
+                      "curve. "
+                      "Maximum water content is not identical in both tables.");
+                }
             }
         }
         catch(const std::runtime_error & e)
@@ -256,12 +281,12 @@ namespace HygroThermFEM
     {
         const auto waterContent = m_SorptionCurve->value(node);
         const auto maxWaterContent = m_SorptionCurve->maxY();
-        return waterContent / maxWaterContent * m_Porosity;
+        return waterContent / maxWaterContent * m_Porosity.value();
     }
 
     double SolidMaterial::airPorosity(const INode2D & node) const
     {
-        return m_Porosity - liquidPorosity(node);
+        return m_Porosity.value() - liquidPorosity(node);
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -285,19 +310,23 @@ namespace HygroThermFEM
 
     Gas::Gas(const std::string & name, CavityStandard cavityStandard) :
         IGas(name,
-             0.05,                         // Thermal conductivity dry
-             0.0,                          // Density
-             1.0,                          // Porosity
-             0.0,                          // Heat Capacity
-             2,                            // Diffusion resistance factor
-             {{0.0, 0.05}, {1.0, 0.05}},   // Thermal conductivity moisture dependent
+             0.05,   // Thermal conductivity dry
+             0.0,    // Density
+             1.0,    // Porosity
+             0.0,    // Heat Capacity
+             2,      // Diffusion resistance factor
+             std::optional<std::vector<FenestrationCommon::point>>(
+               {{0.0, 0.05}, {1.0, 0.05}}),   // Thermal conductivity moisture dependent
              0,
-             {{0.0, 0.05}, {1.0, 0.05}},   // Thermal conductivity temperature dependent
+             std::optional<std::vector<FenestrationCommon::point>>(
+               {{0.0, 0.05}, {1.0, 0.05}}),   // Thermal conductivity temperature dependent
              0,
-             {{0.0, 0.0}, {1.0, 1.0}},   // Liquid transportation curve
-             {{0.0, 0.0}, {1.0, 1.0}},   // Sorption curve
-             0.0,                        // emissivity
-             cavityStandard)             // Standard used for cavity calculations
+             std::optional<std::vector<FenestrationCommon::point>>(
+               {{0.0, 0.0}, {1.0, 1.0}}),   // Liquid transportation curve
+             std::optional<std::vector<FenestrationCommon::point>>(
+               {{0.0, 0.0}, {1.0, 1.0}}),   // Sorption curve
+             0.0,                           // emissivity
+             cavityStandard)                // Standard used for cavity calculations
 
     {}
 
