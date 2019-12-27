@@ -11,20 +11,22 @@ namespace HygroThermFEM
     public:
         static MaterialPool & Instance();
 
-        const IMaterial &
-          createSolidMaterial(const std::string & Name,
-                              double ThermalConductivityDry,
-                              double Density,
-                              double Porosity,
-                              double HeatCapacity,
-                              double DiffusionResistanceFactor,
-                              const std::vector<FenestrationCommon::point> & thermalConductivityMoistureDependent,
-                              double moistureDependentMeasurementTemperature,
-                              const std::vector<FenestrationCommon::point> & thermalConductivityTemperatureDependent,
-                              double temperatureDependentMeasurementHumidity,
-                              const std::vector<FenestrationCommon::point> & LiquidTransportCurve,
-                              const std::vector<FenestrationCommon::point> & SorptionCurve,
-                              double emissivity = 0.9);
+        const IMaterial & createSolidMaterial(
+          const std::string & Name,
+          double ThermalConductivityDry,
+          double Density,
+          double Porosity,
+          double HeatCapacity,
+          double DiffusionResistanceFactor,
+          const std::vector<FenestrationCommon::point> & thermalConductivityMoistureDependent,
+          double moistureDependentMeasurementTemperature,
+          const std::vector<FenestrationCommon::point> & thermalConductivityTemperatureDependent,
+          double temperatureDependentMeasurementHumidity,
+          const std::vector<FenestrationCommon::point> & LiquidTransportCurve,
+          const std::vector<FenestrationCommon::point> & SorptionCurve,
+          double emissivity = 0.9);
+
+        const IMaterial & createSolidMaterial(std::string Name);
 
         const IGas & createGas(const std::string & name,
                                CavityStandard cavityStandard = CavityStandard::ISO15099);
@@ -36,11 +38,11 @@ namespace HygroThermFEM
         void clear();
 
         //! Returns all material names
-        std::vector<std::string> getMaterials() const;
+        [[nodiscard]] std::vector<std::string> getMaterials() const;
 
-        std::vector<std::string> getSolidMaterials() const;
+        [[nodiscard]] std::vector<std::string> getSolidMaterials() const;
 
-        std::vector<std::string> getGases() const;
+        [[nodiscard]] std::vector<std::string> getGases() const;
 
     private:
         MaterialPool() = default;

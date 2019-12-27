@@ -15,36 +15,44 @@ namespace HygroThermFEM
     }
 
     const IMaterial & MaterialPool::createSolidMaterial(
-            const std::string & Name,
-            const double ThermalConductivityDry,
-            const double Density,
-            const double Porosity,
-            const double HeatCapacity,
-            const double DiffusionResistanceFactor,
-            const std::vector<FenestrationCommon::point> & thermalConductivityMoistureDependent,
-            const double moistureDependentMeasurementTemperature,
-            const std::vector<FenestrationCommon::point> & thermalConductivityTemperatureDependent,
-            const double temperatureDependentMeasurementHumidity,
-            const std::vector<FenestrationCommon::point> &LiquidTransportCurve,
-            const std::vector<FenestrationCommon::point> &SorptionCurve,
-            const double emissivity)
+      const std::string & Name,
+      const double ThermalConductivityDry,
+      const double Density,
+      const double Porosity,
+      const double HeatCapacity,
+      const double DiffusionResistanceFactor,
+      const std::vector<FenestrationCommon::point> & thermalConductivityMoistureDependent,
+      const double moistureDependentMeasurementTemperature,
+      const std::vector<FenestrationCommon::point> & thermalConductivityTemperatureDependent,
+      const double temperatureDependentMeasurementHumidity,
+      const std::vector<FenestrationCommon::point> & LiquidTransportCurve,
+      const std::vector<FenestrationCommon::point> & SorptionCurve,
+      const double emissivity)
     {
         checkIfMaterialExists(Name);
-        m_Materials.emplace(
-          std::make_pair(Name,
-                         std::unique_ptr<SolidMaterial>(new SolidMaterial(Name,
-                                                                          ThermalConductivityDry,
-                                                                          Density,
-                                                                          Porosity,
-                                                                          HeatCapacity,
-                                                                          DiffusionResistanceFactor,
-                                                                          thermalConductivityMoistureDependent,
-                                                                          moistureDependentMeasurementTemperature,
-                                                                          thermalConductivityTemperatureDependent,
-                                                                          temperatureDependentMeasurementHumidity,
-                                                                          LiquidTransportCurve,
-                                                                          SorptionCurve,
-                                                                          emissivity))));
+        m_Materials.emplace(std::make_pair(
+          Name,
+          std::unique_ptr<SolidMaterial>(new SolidMaterial(Name,
+                                                           ThermalConductivityDry,
+                                                           Density,
+                                                           Porosity,
+                                                           HeatCapacity,
+                                                           DiffusionResistanceFactor,
+                                                           thermalConductivityMoistureDependent,
+                                                           moistureDependentMeasurementTemperature,
+                                                           thermalConductivityTemperatureDependent,
+                                                           temperatureDependentMeasurementHumidity,
+                                                           LiquidTransportCurve,
+                                                           SorptionCurve,
+                                                           emissivity))));
+        return *m_Materials.at(Name);
+    }
+
+    const IMaterial & MaterialPool::createSolidMaterial(
+      std::string Name)
+    {
+        checkIfMaterialExists(Name);
+        m_Materials.emplace(std::make_pair(Name,new SolidMaterial(Name)));
         return *m_Materials.at(Name);
     }
 
@@ -64,7 +72,7 @@ namespace HygroThermFEM
         return *m_Materials.at(name);
     }
 
-    IGas & MaterialPool::gas(const std::string & name) const 
+    IGas & MaterialPool::gas(const std::string & name) const
     {
         return *m_Gases.at(name);
     }

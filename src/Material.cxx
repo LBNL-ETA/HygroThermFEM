@@ -63,6 +63,9 @@ namespace HygroThermFEM
         }
     }
 
+    IMaterial::IMaterial(std::string name) : m_Name(std::move(name)), m_Linear(true)
+    {}
+
     std::string IMaterial::name() const
     {
         return m_Name;
@@ -143,7 +146,8 @@ namespace HygroThermFEM
     {
         if(m_LiquidTransportCoefficient == nullptr)
         {
-            throw std::runtime_error("Material " + m_Name + " do not have liquid transportation coefficient.");
+            throw std::runtime_error("Material " + m_Name
+                                     + " do not have liquid transportation coefficient.");
         }
         return m_LiquidTransportCoefficient->getCurve();
     }
@@ -279,6 +283,9 @@ namespace HygroThermFEM
             std::cout << e.what();
         }
     }
+
+    SolidMaterial::SolidMaterial(std::string name) : IMaterial(std::move(name))
+    {}
 
     double SolidMaterial::saturationConcentration(const INode2D & node)
     {

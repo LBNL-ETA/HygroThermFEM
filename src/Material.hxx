@@ -70,6 +70,8 @@ namespace HygroThermFEM
           std::optional<double> emissivity,
           bool isLinear = true);
 
+        IMaterial(std::string name);
+
         //! Material's name.
         std::string name() const;
 
@@ -127,11 +129,11 @@ namespace HygroThermFEM
 
     protected:
         std::string m_Name;
-        std::optional<double> m_ThermalConductivityDry;
-        std::optional<double> m_Density;
-        std::optional<double> m_Porosity;
-        std::optional<double> m_SpecificHeatCapacity;
-        std::optional<double> m_DiffusionResistanceFactor;
+        std::optional<double> m_ThermalConductivityDry{};
+        std::optional<double> m_Density{};
+        std::optional<double> m_Porosity{};
+        std::optional<double> m_SpecificHeatCapacity{};
+        std::optional<double> m_DiffusionResistanceFactor{};
 
         //! Thermal conductivity table is (x-water content [kg/m3], temperature[Celsius], y-thermal
         //! conductivity[W/(mK)])
@@ -146,7 +148,7 @@ namespace HygroThermFEM
         //! (x-relative humidity [between zero to one], y-water content [kg/m3]
         std::unique_ptr<TabularFunction1D> m_SorptionCurve;
 
-        std::optional<double> m_Emissivity;
+        std::optional<double> m_Emissivity{};
         const bool m_Linear;
     };
 
@@ -252,6 +254,8 @@ namespace HygroThermFEM
           std::optional<std::vector<FenestrationCommon::point>> liquidTransportCurve,
           std::optional<std::vector<FenestrationCommon::point>> sorptionCurve,
           double emissivity = 0.9);
+
+        explicit SolidMaterial(std::string name);
 
         //! Saturated vapor content calculations at given node. It is necessary
         //! for water content calculations.
