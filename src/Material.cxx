@@ -26,17 +26,17 @@ namespace HygroThermFEM
       std::optional<std::vector<FenestrationCommon::point>> sorptionCurve,
       std::optional<double> emissivity,
       const bool isLinear) :
-        m_Name(std::move(name)),
-        m_ThermalConductivityDry(std::move(thermalConductivityDry)),
-        m_Density(std::move(density)),
-        m_Porosity(std::move(porosity)),
-        m_HeatCapacity(std::move(heatCapacity)),
-        m_DiffusionResistanceFactor(std::move(diffusionResistanceFactor)),
-        m_ThermalConductivity2DTable(nullptr),
-        m_LiquidTransportCoefficient(nullptr),
-        m_SorptionCurve(nullptr),
-        m_Emissivity(std::move(emissivity)),
-        m_Linear(isLinear)
+            m_Name(std::move(name)),
+            m_ThermalConductivityDry(std::move(thermalConductivityDry)),
+            m_Density(std::move(density)),
+            m_Porosity(std::move(porosity)),
+            m_SpecificHeatCapacity(std::move(heatCapacity)),
+            m_DiffusionResistanceFactor(std::move(diffusionResistanceFactor)),
+            m_ThermalConductivity2DTable(nullptr),
+            m_LiquidTransportCoefficient(nullptr),
+            m_SorptionCurve(nullptr),
+            m_Emissivity(std::move(emissivity)),
+            m_Linear(isLinear)
     {
         if(thermalConductivityMoistureDependent.has_value()
            && moistureDependentMeasurementTemperature.has_value()
@@ -63,23 +63,62 @@ namespace HygroThermFEM
         }
     }
 
+    std::string IMaterial::name() const
+    {
+        return m_Name;
+    }
+
+    double IMaterial::thermalConductivityDry() const
+    {
+        if(!m_ThermalConductivityDry.has_value())
+        {
+            throw std::runtime_error("Material " + m_Name + " do not have thermal conductivity.");
+        }
+        return m_ThermalConductivityDry.value();
+    }
+
     double IMaterial::density() const
     {
+        if(!m_Density.has_value())
+        {
+            throw std::runtime_error("Material " + m_Name + " do not have density.");
+        }
         return m_Density.value();
     }
 
     double IMaterial::heatCapacity() const
     {
-        return m_HeatCapacity.value();
+        if(!m_SpecificHeatCapacity.has_value())
+        {
+            throw std::runtime_error("Material " + m_Name + " do not have specific heat capacity.");
+        }
+        return m_SpecificHeatCapacity.value();
     }
 
     double IMaterial::porosity() const
     {
+        if(!m_Porosity.has_value())
+        {
+            throw std::runtime_error("Material " + m_Name + " do not have porosity.");
+        }
         return m_Porosity.value();
+    }
+
+    double IMaterial::emissivity() const
+    {
+        if(!m_Emissivity.has_value())
+        {
+            throw std::runtime_error("Material " + m_Name + " do not have emissivity.");
+        }
+        return m_Emissivity.value();
     }
 
     double IMaterial::diffusionResistanceFactor() const
     {
+        if(!m_DiffusionResistanceFactor.has_value())
+        {
+            throw std::runtime_error("Material " + m_Name + " do not have diffusion resistance factor.");
+        }
         return m_DiffusionResistanceFactor.value();
     }
 
@@ -103,16 +142,6 @@ namespace HygroThermFEM
         return m_SorptionCurve->getCurve();
     }
 
-    std::string IMaterial::name() const
-    {
-        return m_Name;
-    }
-
-    double IMaterial::emissivity() const
-    {
-        return m_Emissivity.value();
-    }
-
     bool operator<(const IMaterial & lhs, const IMaterial & rhs)
     {
         return lhs.m_Name < rhs.m_Name;
@@ -131,11 +160,6 @@ namespace HygroThermFEM
     bool operator>=(const IMaterial & lhs, const IMaterial & rhs)
     {
         return !(lhs < rhs);
-    }
-
-    double IMaterial::thermalConductivityDry() const
-    {
-        return m_ThermalConductivityDry.value();
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////

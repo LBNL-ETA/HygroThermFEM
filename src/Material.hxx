@@ -130,7 +130,7 @@ namespace HygroThermFEM
         std::optional<double> m_ThermalConductivityDry;
         std::optional<double> m_Density;
         std::optional<double> m_Porosity;
-        std::optional<double> m_HeatCapacity;
+        std::optional<double> m_SpecificHeatCapacity;
         std::optional<double> m_DiffusionResistanceFactor;
 
         //! Thermal conductivity table is (x-water content [kg/m3], temperature[Celsius], y-thermal
