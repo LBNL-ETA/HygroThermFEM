@@ -26,17 +26,17 @@ namespace HygroThermFEM
       std::optional<std::vector<FenestrationCommon::point>> sorptionCurve,
       std::optional<double> emissivity,
       const bool isLinear) :
-            m_Name(std::move(name)),
-            m_ThermalConductivityDry(std::move(thermalConductivityDry)),
-            m_Density(std::move(density)),
-            m_Porosity(std::move(porosity)),
-            m_SpecificHeatCapacity(std::move(heatCapacity)),
-            m_DiffusionResistanceFactor(std::move(diffusionResistanceFactor)),
-            m_ThermalConductivity2DTable(nullptr),
-            m_LiquidTransportCoefficient(nullptr),
-            m_SorptionCurve(nullptr),
-            m_Emissivity(std::move(emissivity)),
-            m_Linear(isLinear)
+        m_Name(std::move(name)),
+        m_ThermalConductivityDry(std::move(thermalConductivityDry)),
+        m_Density(std::move(density)),
+        m_Porosity(std::move(porosity)),
+        m_SpecificHeatCapacity(std::move(heatCapacity)),
+        m_DiffusionResistanceFactor(std::move(diffusionResistanceFactor)),
+        m_ThermalConductivity2DTable(nullptr),
+        m_LiquidTransportCoefficient(nullptr),
+        m_SorptionCurve(nullptr),
+        m_Emissivity(std::move(emissivity)),
+        m_Linear(isLinear)
     {
         if(thermalConductivityMoistureDependent.has_value()
            && moistureDependentMeasurementTemperature.has_value()
@@ -117,7 +117,8 @@ namespace HygroThermFEM
     {
         if(!m_DiffusionResistanceFactor.has_value())
         {
-            throw std::runtime_error("Material " + m_Name + " do not have diffusion resistance factor.");
+            throw std::runtime_error("Material " + m_Name
+                                     + " do not have diffusion resistance factor.");
         }
         return m_DiffusionResistanceFactor.value();
     }
@@ -129,16 +130,30 @@ namespace HygroThermFEM
 
     TabularFunction2D IMaterial::thermalConductivityMoistureDependent() const
     {
+        if(m_ThermalConductivity2DTable == nullptr)
+        {
+            throw std::runtime_error("Material " + m_Name
+                                     + " do not have assigned table for moisture and temperature "
+                                       "dependent thermal conductivity.");
+        }
         return *m_ThermalConductivity2DTable;
     }
 
     const std::vector<FenestrationCommon::point> & IMaterial::liquidTransportationCurve() const
     {
+        if(m_LiquidTransportCoefficient == nullptr)
+        {
+            throw std::runtime_error("Material " + m_Name + " do not have liquid transportation coefficient.");
+        }
         return m_LiquidTransportCoefficient->getCurve();
     }
 
     const std::vector<FenestrationCommon::point> & IMaterial::sorptionCurve() const
     {
+        if(m_SorptionCurve == nullptr)
+        {
+            throw std::runtime_error("Material " + m_Name + " do not have sorption curve.");
+        }
         return m_SorptionCurve->getCurve();
     }
 
