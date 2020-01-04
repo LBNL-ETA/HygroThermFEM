@@ -48,7 +48,7 @@ namespace HygroThermFEM
         return *m_Materials.at(Name);
     }
 
-    const IMaterial & MaterialPool::createSolidMaterial(
+    IMaterial & MaterialPool::createSolidMaterial(
       std::string Name)
     {
         checkIfMaterialExists(Name);
@@ -63,7 +63,7 @@ namespace HygroThermFEM
         return *m_Gases.at(name);
     }
 
-    const IMaterial & MaterialPool::material(const std::string & name) const
+    IMaterial & MaterialPool::material(const std::string & name) const
     {
         if(m_Gases.find(name) != m_Gases.end())
         {

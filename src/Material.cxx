@@ -38,10 +38,11 @@ namespace HygroThermFEM
         m_Emissivity(emissivity),
         m_Linear(isLinear)
     {
-        setThermalConductivityMoistureDependent(thermalConductivityMoistureDependent,
-                                                moistureDependentMeasurementTemperature,
-                                                thermalConductivityTemperatureDependent,
-                                                temperatureDependentMeasurementHumidity);
+        setThermalConductivityMoistureAndTemperatureDependent(
+          thermalConductivityMoistureDependent,
+          moistureDependentMeasurementTemperature,
+          thermalConductivityTemperatureDependent,
+          temperatureDependentMeasurementHumidity);
 
         setLiquidTransportationCurve(liquidTransportationCurve);
         setSorptionCurve(sorptionCurve);
@@ -69,6 +70,11 @@ namespace HygroThermFEM
         m_ThermalConductivityDry = thermalConductivity;
     }
 
+    bool IMaterial::hasThermalConductivityDry() const
+    {
+        return m_ThermalConductivityDry.has_value();
+    }
+
     double IMaterial::density() const
     {
         if(!m_Density.has_value())
@@ -81,6 +87,11 @@ namespace HygroThermFEM
     void IMaterial::setDensity(const double density)
     {
         m_Density = density;
+    }
+
+    bool IMaterial::hasDensity() const
+    {
+        return m_Density.has_value();
     }
 
     double IMaterial::heatCapacity() const
@@ -97,6 +108,11 @@ namespace HygroThermFEM
         m_SpecificHeatCapacity = heatCapacity;
     }
 
+    bool IMaterial::hasHeatCapacity() const
+    {
+        return m_SpecificHeatCapacity.has_value();
+    }
+
     double IMaterial::porosity() const
     {
         if(!m_Porosity.has_value())
@@ -109,6 +125,11 @@ namespace HygroThermFEM
     void IMaterial::setPorosity(const double porosity)
     {
         m_Porosity = porosity;
+    }
+
+    bool IMaterial::hasPorosity() const
+    {
+        return m_Porosity.has_value();
     }
 
     double IMaterial::emissivity() const
@@ -140,12 +161,17 @@ namespace HygroThermFEM
         m_DiffusionResistanceFactor = diffusionResistanceFactor;
     }
 
+    bool IMaterial::hasDiffusionResistanceFactor() const
+    {
+        return m_DiffusionResistanceFactor.has_value();
+    }
+
     bool IMaterial::isLinear() const
     {
         return m_Linear;
     }
 
-    TabularFunction2D IMaterial::thermalConductivityMoistureDependent() const
+    TabularFunction2D IMaterial::thermalConductivityMoistureAndTemperatureDependent() const
     {
         if(m_ThermalConductivity2DTable == nullptr)
         {
@@ -156,11 +182,11 @@ namespace HygroThermFEM
         return *m_ThermalConductivity2DTable;
     }
 
-    void IMaterial::setThermalConductivityMoistureDependent(
+    void IMaterial::setThermalConductivityMoistureAndTemperatureDependent(
       const std::vector<FenestrationCommon::point> & thermalConductivityMoistureDependent,
-      const double moistureDependentMeasuredTemperature,
+      double moistureDependentMeasuredTemperature,
       const std::vector<FenestrationCommon::point> & thermalConductivityTemperatureDependent,
-      const double temperatureDependentMeasurementHumidity)
+      double temperatureDependentMeasurementHumidity)
     {
         m_ThermalConductivity2DTable =
           std::make_unique<TabularFunction2D>(thermalConductivityMoistureDependent,
@@ -169,6 +195,11 @@ namespace HygroThermFEM
                                               thermalConductivityTemperatureDependent,
                                               temperatureDependentMeasurementHumidity,
                                               Variable::temperature);
+    }
+
+    bool IMaterial::hasThermalConductivityMoistureAndTemperatureDependent() const
+    {
+        return (m_ThermalConductivity2DTable != nullptr);
     }
 
     const std::vector<FenestrationCommon::point> & IMaterial::liquidTransportationCurve() const
@@ -188,6 +219,11 @@ namespace HygroThermFEM
           std::make_unique<LiquidTransportationCurve>(liquidTransportationCurve);
     }
 
+    bool IMaterial::hasLiquidTransportationCurve() const
+    {
+        return (m_LiquidTransportCoefficient != nullptr);
+    }
+
     const std::vector<FenestrationCommon::point> & IMaterial::sorptionCurve() const
     {
         if(m_SorptionCurve == nullptr)
@@ -200,6 +236,11 @@ namespace HygroThermFEM
     void IMaterial::setSorptionCurve(const std::vector<FenestrationCommon::point> & sorptionCurve)
     {
         m_SorptionCurve = std::make_unique<TabularFunction1D>(sorptionCurve, Variable::humidity);
+    }
+
+    bool IMaterial::hasSorptionCurve() const
+    {
+        return (m_SorptionCurve != nullptr);
     }
 
     bool operator<(const IMaterial & lhs, const IMaterial & rhs)

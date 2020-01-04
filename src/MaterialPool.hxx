@@ -26,12 +26,12 @@ namespace HygroThermFEM
           const std::vector<FenestrationCommon::point> & SorptionCurve,
           double emissivity = 0.9);
 
-        const IMaterial & createSolidMaterial(std::string Name);
+        IMaterial & createSolidMaterial(std::string Name);
 
         const IGas & createGas(const std::string & name,
                                CavityStandard cavityStandard = CavityStandard::ISO15099);
 
-        const IMaterial & material(const std::string & name) const;
+        IMaterial & material(const std::string & name) const;
 
         IGas & gas(const std::string & name) const;
 
