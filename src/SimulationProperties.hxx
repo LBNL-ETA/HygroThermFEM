@@ -12,10 +12,10 @@ namespace HygroThermFEM
         //! \brief Sets iteration parameters for use in every Finite Element Method domain defined
         //! in this engine.
         //!
-        //! @param relaxationParameter Number that is > 0 and <=1 that will be used in
+        //! \param relaxationParameter Number that is > 0 and <=1 that will be used in
         //! iterations to recalculate state variable for start in the next iteration.
-        //! @param errorTolerance Tolerance for which solution will be acceptable.
-        //! @param maxNumberOfIterations Number of iterations for which solver will attempt to reach
+        //! \param errorTolerance Tolerance for which solution will be acceptable.
+        //! \param maxNumberOfIterations Number of iterations for which solver will attempt to reach
         //! solution with given parameters.
         void setIterationParameters(double relaxationParameter,
                                     double errorTolerance,
@@ -27,15 +27,15 @@ namespace HygroThermFEM
         //! \brief Sets simulation parameters for use in thermal and moisture domains. It defines
         //! what parts of equations will be excluded from finite element model calculations.
         //!
-        //! @param excludeWaterLiquidTransportation If set to true, it will exclude water liquid
+        //! \param excludeWaterLiquidTransportation If set to true, it will exclude water liquid
         //! transportation from mass transfer equation.
-        //! @param excludeHeatOfEvaporation If set to true, it will exclude heat of evaporation
+        //! \param excludeHeatOfEvaporation If set to true, it will exclude heat of evaporation
         //! calculation from heat transfer equation.
-        //! @param excludeCapillaryConduction If set to true, it will exclude capillary conduction
+        //! \param excludeCapillaryConduction If set to true, it will exclude capillary conduction
         //! calculation from heat transfer equation.
-        //! @param excludeVaporDiffusionConduction If set to true, it will exclude water vapor
+        //! \param excludeVaporDiffusionConduction If set to true, it will exclude water vapor
         //! diffusion conduction from heat transfer equation.
-        //! @param thermalConductivityMoistureAndTemperatureDependent Include moisture and
+        //! \param thermalConductivityMoistureAndTemperatureDependent Include moisture and
         //! temperature dependency of thermal conductivity
         void setCalculationParameters(bool excludeWaterLiquidTransportation,
                                       bool excludeHeatOfEvaporation,
@@ -84,14 +84,14 @@ namespace HygroThermFEM
         //! \brief Keeps default parameters in single place
         struct DefaultProperties
         {
-            double relaxationParameter{1.0};
-            double errorTolerance{1e-5};
-            size_t maxIterations{50};
-            bool excludeWaterLiquidTransportation{false};
-            bool excludeHeatOfEvaporation{false};
-            bool excludeCapillaryConduction{false};
-            bool excludeVaporDiffusionConduction{false};
-            bool thermalConductivityMoistureAndTemperatureDependent{false};
+            const double relaxationParameter{1.0};
+            const double errorTolerance{1e-5};
+            const size_t maxIterations{50};
+            const bool excludeWaterLiquidTransportation{false};
+            const bool excludeHeatOfEvaporation{false};
+            const bool excludeCapillaryConduction{false};
+            const bool excludeVaporDiffusionConduction{false};
+            const bool thermalConductivityMoistureAndTemperatureDependent{false};
         } defaultProperties;
 
         double m_RelaxationParameter;

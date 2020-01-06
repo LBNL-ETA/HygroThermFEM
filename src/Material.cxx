@@ -146,6 +146,11 @@ namespace HygroThermFEM
         m_Emissivity = emissivity;
     }
 
+    bool IMaterial::hasEmissivity() const
+    {
+        return m_Emissivity.has_value();
+    }
+
     double IMaterial::diffusionResistanceFactor() const
     {
         if(!m_DiffusionResistanceFactor.has_value())

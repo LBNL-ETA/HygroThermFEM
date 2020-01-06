@@ -127,6 +127,9 @@ namespace HygroThermFEM
         //! \param emissivity Value to which emissivity will be set to
         virtual void setEmissivity(double emissivity) final;
 
+        //! \brief Checks if value has been set
+        virtual bool hasEmissivity() const final;
+
         //! Material's diffusion resistance factor.
         virtual double diffusionResistanceFactor() const final;
 

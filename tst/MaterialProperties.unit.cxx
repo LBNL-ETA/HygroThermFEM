@@ -20,7 +20,6 @@ TEST_F(TestMaterialProperties, PropertiesExistence)
 {
     SCOPED_TRACE("Material properties.");
 
-    // Material Properties (Cottaer Sandstone)
     const double thermalConductivityDry{1.8};
     const double density{2050.0};
     const double porosity{0.22};
