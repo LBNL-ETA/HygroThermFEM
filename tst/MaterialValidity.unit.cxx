@@ -18,7 +18,7 @@ protected:
         HygroThermFEM::MaterialPool::Instance().clear();
     }
 
-    std::string materialName() const
+    [[nodiscard]] std::string materialName() const
     {
         return m_MaterialName;
     }
@@ -33,7 +33,7 @@ TEST_F(MaterialValidityTest, TestConductivity)
     const auto & mat = HygroThermFEM::MaterialPool::Instance().material(materialName());
     try
     {
-        mat.thermalConductivityDry();
+        [[maybe_unused]] auto test = mat.thermalConductivityDry();
     }
     catch(const std::exception & e)
     {
@@ -48,7 +48,7 @@ TEST_F(MaterialValidityTest, TestDensity)
     const auto & mat = HygroThermFEM::MaterialPool::Instance().material(materialName());
     try
     {
-        mat.density();
+        [[maybe_unused]] auto test = mat.density();
     }
     catch(const std::exception & e)
     {
@@ -63,7 +63,7 @@ TEST_F(MaterialValidityTest, TestHeatCapacity)
     const auto & mat = HygroThermFEM::MaterialPool::Instance().material(materialName());
     try
     {
-        mat.heatCapacity();
+        [[maybe_unused]] auto test = mat.heatCapacity();
     }
     catch(const std::exception & e)
     {
@@ -78,7 +78,7 @@ TEST_F(MaterialValidityTest, TestPorosity)
     const auto & mat = HygroThermFEM::MaterialPool::Instance().material(materialName());
     try
     {
-        mat.porosity();
+        [[maybe_unused]] auto test = mat.porosity();
     }
     catch(const std::exception & e)
     {
@@ -93,7 +93,7 @@ TEST_F(MaterialValidityTest, TestEmissivity)
     const auto & mat = HygroThermFEM::MaterialPool::Instance().material(materialName());
     try
     {
-        mat.emissivity();
+        [[maybe_unused]] auto test = mat.emissivity();
     }
     catch(const std::exception & e)
     {
@@ -108,7 +108,7 @@ TEST_F(MaterialValidityTest, TestDiffusionResistanceFactor)
     const auto & mat = HygroThermFEM::MaterialPool::Instance().material(materialName());
     try
     {
-        mat.diffusionResistanceFactor();
+        [[maybe_unused]] auto test = mat.diffusionResistanceFactor();
     }
     catch(const std::exception & e)
     {
