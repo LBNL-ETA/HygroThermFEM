@@ -377,22 +377,22 @@ namespace HygroThermFEM
         /// Capacitance functions
         //////////////////////////////////////////////////////////////////////////////////////
 
-        // const auto dryContent = (1 - m_Material.porosity()) * m_Material.density();
-        const StateValue liquidContent(Variable::liquid);
-        const StateValue iceContent(Variable::ice);
-        // auto airContent = getMaterialAirFill(mat);
-        // const StateValue airContent(Variable::vapor);
+        if(m_Material.hasDensity())
+        {
+            const StateValue liquidContent(Variable::liquid);
+            const StateValue iceContent(Variable::ice);
 
-        // Vapor content changes are ignored for now
-        const auto equivalentDensity = m_Material.density() + liquidContent + iceContent;
+            // Vapor content changes are ignored for now
+            const auto equivalentDensity = m_Material.density() + liquidContent + iceContent;
 
-        const auto equivalentCapacitance =
-          m_Material.heatCapacity() + (iceContent / Constants::Density_Ice) * Constants::Cp_Ice
-          + (liquidContent / Constants::Density_Water) * Constants::Cp_Water;
+            const auto equivalentCapacitance =
+              m_Material.heatCapacity() + (iceContent / Constants::Density_Ice) * Constants::Cp_Ice
+              + (liquidContent / Constants::Density_Water) * Constants::Cp_Water;
 
-        auto capacitance = equivalentDensity * equivalentCapacitance;
+            auto capacitance = equivalentDensity * equivalentCapacitance;
 
-        Cap(capacitance);
+            Cap(capacitance);
+        }
 
         // Phase change part
         // This is incorrect phase change equation. Correct one is kept in branch IceContentFix.
@@ -409,28 +409,39 @@ namespace HygroThermFEM
         //  TabularFunction1D(m_Material.thermalConductivityMoistureAndTemperatureDependent(),
         //  Variable::water);
 
-        if(SimulationProperties::Instance().thermalConductivityTemperatureAndMoistureDependent())
+        if(SimulationProperties::Instance().thermalConductivityTemperatureAndMoistureDependent()
+           && m_Material.hasThermalConductivityMoistureAndTemperatureDependent())
         {
             auto materialConductivity =
               m_Material.thermalConductivityMoistureAndTemperatureDependent();
             DDu(materialConductivity);
+
+            Constant matCond{m_Material.thermalConductivityDry()};
+            CondFlux(matCond);
         }
-        else
+        if(!SimulationProperties::Instance().thermalConductivityTemperatureAndMoistureDependent()
+           && m_Material.hasThermalConductivityDry())
         {
             auto materialConductivity = Constant(m_Material.thermalConductivityDry());
             DDu(materialConductivity);
+
+            auto matCond{m_Material.thermalConductivityMoistureAndTemperatureDependent()};
+            CondFlux(matCond);
         }
 
 
         //////////////////////////////////////////////////////////////////////
         ///  Conversion from liquid to gas (vapor part)
         //////////////////////////////////////////////////////////////////////
-        const auto delta = Constant(2.5E-5 / m_Material.diffusionResistanceFactor());
-        if(!SimulationProperties::Instance().excludeHeatOfEvaporation())
+        if(m_Material.hasDiffusionResistanceFactor())
         {
-            auto h = HeatOfEvaporation() * delta;
+            const auto delta = Constant(2.5E-5 / m_Material.diffusionResistanceFactor());
+            if(!SimulationProperties::Instance().excludeHeatOfEvaporation())
+            {
+                auto h = HeatOfEvaporation() * delta;
 
-            multiplies(h, Variable::vapor);
+                multiplies(h, Variable::vapor);
+            }
         }
 
         //////////////////////////////////////////////////////////////////////
@@ -443,7 +454,8 @@ namespace HygroThermFEM
         //////////////////////////////////////////////////////////////////////
         ///  Conduction from liquid
         //////////////////////////////////////////////////////////////////////
-        if(!SimulationProperties::Instance().excludeCapillaryConduction())
+        if(!SimulationProperties::Instance().excludeCapillaryConduction()
+           && m_Material.hasSorptionCurve() && m_Material.hasLiquidTransportationCurve())
         {
             auto humidity = StateValue(Variable::humidity);
             const TabularDerivativeSmooth sorptionDerivative(m_Material.sorptionCurve(),
@@ -456,30 +468,14 @@ namespace HygroThermFEM
         //////////////////////////////////////////////////////////////////////
         ///  Conduction from vapor
         //////////////////////////////////////////////////////////////////////
-        if(!SimulationProperties::Instance().excludeVaporDiffusionConduction())
+        if(!SimulationProperties::Instance().excludeVaporDiffusionConduction()
+           && m_Material.hasDiffusionResistanceFactor())
         {
+            const auto delta = Constant(2.5E-5 / m_Material.diffusionResistanceFactor());
             auto vapCond = Constant(-1) * delta * Constants::Cp_Vapor;
             StateValue vaporContent(Variable::vapor);
 
             DpDu(vapCond, vaporContent);
-        }
-
-        //////////////////////////////////////////////////////////////////////
-        ///  Conduction from airflow
-        //////////////////////////////////////////////////////////////////////
-
-        //////////////////////////////////////////////////////////////////////
-        /// SolidMaterial conductance for flux calculations
-        //////////////////////////////////////////////////////////////////////
-        if(SimulationProperties::Instance().thermalConductivityTemperatureAndMoistureDependent())
-        {
-            Constant matCond{m_Material.thermalConductivityDry()};
-            CondFlux(matCond);
-        }
-        else
-        {
-            auto matCond{m_Material.thermalConductivityMoistureAndTemperatureDependent()};
-            CondFlux(matCond);
         }
     }
 
@@ -497,19 +493,26 @@ namespace HygroThermFEM
         //////////////////////////////////////////////////////////////////////////////
         /// Water vapor diffusion
         //////////////////////////////////////////////////////////////////////////////
-        Constant delta(2.5E-5 / m_Material.diffusionResistanceFactor());
-        auto conductance = delta * SaturationFunction();
+        if(m_Material.hasDiffusionResistanceFactor())
+        {
+            Constant delta(2.5E-5 / m_Material.diffusionResistanceFactor());
+            auto conductance = delta * SaturationFunction();
 
-        // Note that diffusion equation is partial derivative that gets split into two derivative
-        // terms which then get into system as DDU and DpDu parts.
-        DDu(conductance);
+            // Note that diffusion equation is partial derivative that gets split into two
+            // derivative terms which then get into system as DDU and DpDu parts.
+            DDu(conductance);
 
-        DpDu(delta, SaturationFunction());
+            DpDu(delta, SaturationFunction());
+
+            // Function for flux calculations.
+            CondFlux(conductance);
+        }
 
         //////////////////////////////////////////////////////////////////////////////
         /// Water liquid transportation
         //////////////////////////////////////////////////////////////////////////////
-        if(!SimulationProperties::Instance().excludeWaterLiquidTransportation())
+        if(!SimulationProperties::Instance().excludeWaterLiquidTransportation()
+           && m_Material.hasSorptionCurve() && m_Material.hasLiquidTransportationCurve())
         {
             auto sorptionDerivative1 =
               TabularDerivativeSmooth(m_Material.sorptionCurve(), Variable::humidity);
@@ -522,16 +525,18 @@ namespace HygroThermFEM
         //////////////////////////////////////////////////////////////////////////////
         /// Creating capacitance function
         //////////////////////////////////////////////////////////////////////////////
-        auto sorptionDerivative2 =
-          TabularDerivativeSmooth(m_Material.sorptionCurve(), Variable::humidity);
-        Cap(sorptionDerivative2);
+        if(m_Material.hasSorptionCurve())
+        {
+            auto sorptionDerivative2 =
+              TabularDerivativeSmooth(m_Material.sorptionCurve(), Variable::humidity);
+            Cap(sorptionDerivative2);
+        }
 
         //////////////////////////////////////////////////////////////////////
         /// Functions for flux calculations
         //////////////////////////////////////////////////////////////////////
-        CondFlux(conductance);
-        // Cond(delta);
-        if(!SimulationProperties::Instance().excludeWaterLiquidTransportation())
+        if(!SimulationProperties::Instance().excludeWaterLiquidTransportation()
+           && m_Material.hasLiquidTransportationCurve())
         {
             CondFlux(LiquidTransportationCurve(m_Material.liquidTransportationCurve()));
         }
