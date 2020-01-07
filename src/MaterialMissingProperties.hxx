@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <vector>
 
 namespace HygroThermFEM
 {
@@ -23,5 +24,25 @@ namespace HygroThermFEM
         [[nodiscard]] std::string missingPropertiesMessage() const;
 
         bool isMissingAnyProperty() const;
+    };
+
+    //////////////////////////////////////////////////////////////////////////
+    ///  MaterialsErrorCheckVector
+    //////////////////////////////////////////////////////////////////////////
+
+    //! \brief Simple class that holds info about error data in materials.
+    class MaterialsErrorCheckVector
+    {
+    public:
+        MaterialMissingProperties operator[](const size_t Index) const;
+
+        [[nodiscard]] bool isMaterialLibraryCorrect() const;
+
+        void push_back(MaterialMissingProperties missingProperties);
+
+        size_t size() const;
+
+    private:
+        std::vector<MaterialMissingProperties> m_MaterialMissingProperties;
     };
 }   // namespace HygroThermFEM

@@ -57,10 +57,10 @@ namespace HygroThermFEM
         Solution steadyState();
 
         //! \brief Checks validity of materials for transient simulation
-        std::vector<MaterialMissingProperties> checkMaterialsForTransientSimulation() const;
+        MaterialsErrorCheckVector checkMaterialsForTransientSimulation() const;
 
         //! \brief Checks validity of materials for transient simulation
-        std::vector<MaterialMissingProperties> checkMaterialsForSteadyStateSimulation() const;
+        MaterialsErrorCheckVector checkMaterialsForSteadyStateSimulation() const;
 
         //! \brief Sets if moisture simulation will be performed
         //!

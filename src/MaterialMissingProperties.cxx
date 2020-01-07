@@ -2,6 +2,9 @@
 
 namespace HygroThermFEM
 {
+    //////////////////////////////////////////////////////////////////////////
+    ///  MaterialMissingProperties
+    //////////////////////////////////////////////////////////////////////////
     std::string MaterialMissingProperties::missingPropertiesMessage() const
     {
         std::string message{};
@@ -58,5 +61,34 @@ namespace HygroThermFEM
                || WaterVaporDiffusionResistanceFactor || MoistureStorageFunction
                || LiquidTransportationSuction || LiquidTransportationRedistribution
                || ThermalConductivityMoistureAndTemperatureDependent;
+    }
+
+    //////////////////////////////////////////////////////////////////////////
+    ///  MaterialsErrorCheckVector
+    //////////////////////////////////////////////////////////////////////////
+
+    MaterialMissingProperties MaterialsErrorCheckVector::operator[](const size_t Index) const
+    {
+        return m_MaterialMissingProperties[Index];
+    }
+
+    bool MaterialsErrorCheckVector::isMaterialLibraryCorrect() const
+    {
+        bool isCorrect{true};
+        for(const auto & mat : m_MaterialMissingProperties)
+        {
+            isCorrect = isCorrect && !mat.isMissingAnyProperty();
+        }
+        return isCorrect;
+    }
+
+    void MaterialsErrorCheckVector::push_back(MaterialMissingProperties missingProperties)
+    {
+        m_MaterialMissingProperties.push_back(std::move(missingProperties));
+    }
+
+    size_t MaterialsErrorCheckVector::size() const
+    {
+        return m_MaterialMissingProperties.size();
     }
 }   // namespace HygroThermFEM

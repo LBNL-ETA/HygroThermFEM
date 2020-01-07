@@ -36,6 +36,7 @@ TEST_F(TestMaterialChecker, TestExample_1)
     // Check for transient simulation
     const auto matCheckTransient = domain.checkMaterialsForTransientSimulation();
     EXPECT_EQ(matCheckTransient.size(), 1);
+    EXPECT_EQ(matCheckTransient.isMaterialLibraryCorrect(), false);
 
     // Series of test means following. Material property is missing for given simulation properties
     // and therefore it is set to true. If material property is not needed for given simulation
@@ -54,6 +55,7 @@ TEST_F(TestMaterialChecker, TestExample_1)
     // Check for steady-state simulation
     const auto matCheckSteadyState = domain.checkMaterialsForSteadyStateSimulation();
     EXPECT_EQ(matCheckSteadyState.size(), 1);
+    EXPECT_EQ(matCheckSteadyState.isMaterialLibraryCorrect(), false);
     EXPECT_EQ(matCheckSteadyState[0].Density, false);
     EXPECT_EQ(matCheckSteadyState[0].Emissivity, true);
     EXPECT_EQ(matCheckSteadyState[0].Porosity, true);
@@ -82,6 +84,7 @@ TEST_F(TestMaterialChecker, TestExample_2)
     // Check for transient simulation
     const auto matCheckTransient = domain.checkMaterialsForTransientSimulation();
     EXPECT_EQ(matCheckTransient.size(), 1);
+    EXPECT_EQ(matCheckTransient.isMaterialLibraryCorrect(), false);
 
     // Series of test means following. Material property is missing for given simulation properties
     // and therefore it is set to true. If material property is not needed for given simulation
@@ -100,6 +103,7 @@ TEST_F(TestMaterialChecker, TestExample_2)
     // Check for steady-state simulation
     const auto matCheckSteadyState = domain.checkMaterialsForSteadyStateSimulation();
     EXPECT_EQ(matCheckSteadyState.size(), 1);
+    EXPECT_EQ(matCheckSteadyState.isMaterialLibraryCorrect(), false);
     EXPECT_EQ(matCheckSteadyState[0].Density, false);
     EXPECT_EQ(matCheckSteadyState[0].Emissivity, true);
     EXPECT_EQ(matCheckSteadyState[0].Porosity, false);
@@ -128,6 +132,7 @@ TEST_F(TestMaterialChecker, TestExample_3)
     // Check for transient simulation
     const auto matCheckTransient = domain.checkMaterialsForTransientSimulation();
     EXPECT_EQ(matCheckTransient.size(), 1);
+    EXPECT_EQ(matCheckTransient.isMaterialLibraryCorrect(), false);
 
     // Series of test means following. Material property is missing for given simulation properties
     // and therefore it is set to true. If material property is not needed for given simulation
@@ -146,6 +151,7 @@ TEST_F(TestMaterialChecker, TestExample_3)
     // Check for steady-state simulation
     const auto matCheckSteadyState = domain.checkMaterialsForSteadyStateSimulation();
     EXPECT_EQ(matCheckSteadyState.size(), 1);
+    EXPECT_EQ(matCheckSteadyState.isMaterialLibraryCorrect(), false);
     EXPECT_EQ(matCheckSteadyState[0].Density, false);
     EXPECT_EQ(matCheckSteadyState[0].Emissivity, true);
     EXPECT_EQ(matCheckSteadyState[0].Porosity, true);
@@ -190,6 +196,7 @@ TEST_F(TestMaterialChecker, TestExample_4)
     // Check for transient simulation
     const auto matCheckTransient = domain.checkMaterialsForTransientSimulation();
     EXPECT_EQ(matCheckTransient.size(), 1);
+    EXPECT_EQ(matCheckTransient.isMaterialLibraryCorrect(), false);
 
     // Series of test means following. Material property is missing for given simulation properties
     // and therefore it is set to true. If material property is not needed for given simulation
@@ -208,6 +215,7 @@ TEST_F(TestMaterialChecker, TestExample_4)
     // Check for steady-state simulation
     const auto matCheckSteadyState = domain.checkMaterialsForSteadyStateSimulation();
     EXPECT_EQ(matCheckSteadyState.size(), 1);
+    EXPECT_EQ(matCheckSteadyState.isMaterialLibraryCorrect(), false);
     EXPECT_EQ(matCheckSteadyState[0].Density, false);
     EXPECT_EQ(matCheckSteadyState[0].Emissivity, true);
     EXPECT_EQ(matCheckSteadyState[0].Porosity, true);
@@ -252,6 +260,7 @@ TEST_F(TestMaterialChecker, TestExample_5)
     // Check for transient simulation
     const auto matCheckTransient = domain.checkMaterialsForTransientSimulation();
     EXPECT_EQ(matCheckTransient.size(), 1);
+    EXPECT_EQ(matCheckTransient.isMaterialLibraryCorrect(), false);
 
     // Series of test means following. Material property is missing for given simulation properties
     // and therefore it is set to true. If material property is not needed for given simulation
@@ -270,6 +279,7 @@ TEST_F(TestMaterialChecker, TestExample_5)
     // Check for steady-state simulation
     const auto matCheckSteadyState = domain.checkMaterialsForSteadyStateSimulation();
     EXPECT_EQ(matCheckSteadyState.size(), 1);
+    EXPECT_EQ(matCheckSteadyState.isMaterialLibraryCorrect(), false);
     EXPECT_EQ(matCheckSteadyState[0].Density, false);
     EXPECT_EQ(matCheckSteadyState[0].Emissivity, true);
     EXPECT_EQ(matCheckSteadyState[0].Porosity, false);

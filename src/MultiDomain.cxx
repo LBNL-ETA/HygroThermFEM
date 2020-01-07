@@ -357,14 +357,13 @@ namespace HygroThermFEM
         return m_PerformThermal;
     }
 
-    std::vector<MaterialMissingProperties> MultiDomain::checkMaterialsForTransientSimulation() const
+    MaterialsErrorCheckVector MultiDomain::checkMaterialsForTransientSimulation() const
     {
         MaterialDataChecker dataChecker{*this};
         return dataChecker.checkMaterialProperties(true);
     }
 
-    std::vector<MaterialMissingProperties>
-      MultiDomain::checkMaterialsForSteadyStateSimulation() const
+    MaterialsErrorCheckVector MultiDomain::checkMaterialsForSteadyStateSimulation() const
     {
         MaterialDataChecker dataChecker{*this};
         return dataChecker.checkMaterialProperties(false);

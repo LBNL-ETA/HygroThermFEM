@@ -6,14 +6,18 @@
 
 namespace HygroThermFEM
 {
+    //////////////////////////////////////////////////////////////////////////
+    ///  MaterialDataChecker
+    //////////////////////////////////////////////////////////////////////////
+
     MaterialDataChecker::MaterialDataChecker(const MultiDomain & multiDomain) :
         multiDomain(multiDomain)
     {}
 
-    std::vector<MaterialMissingProperties>
+    MaterialsErrorCheckVector
       MaterialDataChecker::checkMaterialProperties(const bool isTransientSimulation)
     {
-        std::vector<MaterialMissingProperties> missingProperties;
+        MaterialsErrorCheckVector missingProperties;
         for(const auto & materialName : MaterialPool::Instance().getSolidMaterials())
         {
             const auto & material{MaterialPool::Instance().material(materialName)};
@@ -92,5 +96,4 @@ namespace HygroThermFEM
 
         return missing;
     }
-
 }   // namespace HygroThermFEM
