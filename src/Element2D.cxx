@@ -406,11 +406,13 @@ namespace HygroThermFEM
 
         /// material
         // const auto materialConductivity =
-        //  TabularFunction1D(m_Material.thermalConductivityMoistureAndTemperatureDependent(), Variable::water);
+        //  TabularFunction1D(m_Material.thermalConductivityMoistureAndTemperatureDependent(),
+        //  Variable::water);
 
         if(SimulationProperties::Instance().thermalConductivityTemperatureAndMoistureDependent())
         {
-            auto materialConductivity = m_Material.thermalConductivityMoistureAndTemperatureDependent();
+            auto materialConductivity =
+              m_Material.thermalConductivityMoistureAndTemperatureDependent();
             DDu(materialConductivity);
         }
         else
@@ -529,7 +531,10 @@ namespace HygroThermFEM
         //////////////////////////////////////////////////////////////////////
         CondFlux(conductance);
         // Cond(delta);
-        CondFlux(LiquidTransportationCurve(m_Material.liquidTransportationCurve()));
+        if(!SimulationProperties::Instance().excludeWaterLiquidTransportation())
+        {
+            CondFlux(LiquidTransportationCurve(m_Material.liquidTransportationCurve()));
+        }
     }
 
 }   // namespace HygroThermFEM

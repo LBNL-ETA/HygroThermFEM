@@ -24,12 +24,25 @@ TEST_F(TestMaterialChecker, TestExample_1)
 {
     SCOPED_TRACE("Test for material missing properties.");
 
-    // Material Properties (Cottaer Sandstone)
-    auto & material =
-      MaterialPool::Instance().createSolidMaterial("Test material");
+    // Note that material is incomplete
+    MaterialPool::Instance().createSolidMaterial("Test material");
 
     HygroThermFEM::MultiDomain domain;
 
     const auto matCheck = domain.checkMaterialsForTransientSimulation();
     EXPECT_EQ(matCheck.size(), 1);
+
+    // Series of test means following. Material property is missing for given simulation properties
+    // and therefore it is set to true. If material property is not needed for given simulation
+    // properties then it is set to false.
+    EXPECT_EQ(matCheck[0].Density, true);
+    EXPECT_EQ(matCheck[0].Emissivity, true);
+    EXPECT_EQ(matCheck[0].Porosity, true);
+    EXPECT_EQ(matCheck[0].SpecificHeatCapacityDry, true);
+    EXPECT_EQ(matCheck[0].ThermalConductivityDry, true);
+    EXPECT_EQ(matCheck[0].WaterVaporDiffusionResistanceFactor, true);
+    EXPECT_EQ(matCheck[0].MoistureStorageFunction, true);
+    EXPECT_EQ(matCheck[0].LiquidTransportationSuction, true);
+    EXPECT_EQ(matCheck[0].LiquidTransportationRedistribution, false);
+    EXPECT_EQ(matCheck[0].ThermalConductivityMoistureAndTemperatureDependent, false);
 }
