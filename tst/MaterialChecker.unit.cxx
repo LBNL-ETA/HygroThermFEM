@@ -138,7 +138,7 @@ TEST_F(TestMaterialChecker, TestExample_3)
     // and therefore it is set to true. If material property is not needed for given simulation
     // properties then it is set to false.
     EXPECT_EQ(matCheckTransient[0].Density, false);
-    EXPECT_EQ(matCheckTransient[0].Emissivity, true);
+    EXPECT_EQ(matCheckTransient[0].Emissivity, false);
     EXPECT_EQ(matCheckTransient[0].Porosity, true);
     EXPECT_EQ(matCheckTransient[0].SpecificHeatCapacityDry, false);
     EXPECT_EQ(matCheckTransient[0].ThermalConductivityDry, false);
@@ -153,7 +153,7 @@ TEST_F(TestMaterialChecker, TestExample_3)
     EXPECT_EQ(matCheckSteadyState.size(), 1);
     EXPECT_EQ(matCheckSteadyState.isMaterialLibraryCorrect(), false);
     EXPECT_EQ(matCheckSteadyState[0].Density, false);
-    EXPECT_EQ(matCheckSteadyState[0].Emissivity, true);
+    EXPECT_EQ(matCheckSteadyState[0].Emissivity, false);
     EXPECT_EQ(matCheckSteadyState[0].Porosity, true);
     EXPECT_EQ(matCheckSteadyState[0].SpecificHeatCapacityDry, false);
     EXPECT_EQ(matCheckSteadyState[0].ThermalConductivityDry, false);

@@ -32,7 +32,7 @@ namespace HygroThermFEM
     }
 
     MaterialMissingProperties MaterialDataChecker::checkMaterial(const IMaterial & material,
-                                                                 const bool isTransientSimulation)
+                                                                 const bool isTransientSimulation) const
     {
         MaterialMissingProperties missing;
 
@@ -41,7 +41,7 @@ namespace HygroThermFEM
           isTransientSimulation && !material.hasDensity() && multiDomain.isThermalSimulationON();
 
         // Emissivity will be required always
-        missing.Emissivity = !material.hasEmissivity();
+        missing.Emissivity = !material.hasEmissivity() && multiDomain.isThermalSimulationON();
 
         // Porosity is indirectly required when calculating liquid content
         missing.Porosity = !material.hasPorosity() && multiDomain.isMoistureSimulationON();

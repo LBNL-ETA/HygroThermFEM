@@ -31,7 +31,7 @@ namespace HygroThermFEM
         //! \param isTransientSimulation True if simulation is transient, False if steady-state.
         //! \return Missing properties for given material.
         MaterialMissingProperties checkMaterial(const IMaterial & material,
-                                                bool isTransientSimulation);
+                                                bool isTransientSimulation) const;
 
         const MultiDomain & multiDomain;
     };
