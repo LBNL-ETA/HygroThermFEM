@@ -56,11 +56,11 @@ namespace HygroThermFEM
         //! Calculates steady state solution for multiple domains.
         Solution steadyState();
 
-        //! \brief Checks validity of materials for transient simulation
-        MaterialsErrorCheckVector checkMaterialsForTransientSimulation() const;
-
-        //! \brief Checks validity of materials for transient simulation
-        MaterialsErrorCheckVector checkMaterialsForSteadyStateSimulation() const;
+        //! \brief Checks validity of materials for any simulation
+        //!
+        //! \param simulationType Enumerator for simulation type (SteadyState or Transient)
+        //! \return Information about materials with all missing properties.
+        MaterialsErrorCheckVector checkForMaterialsValidity(SimulationType simulationType) const;
 
         //! \brief Sets if moisture simulation will be performed
         //!
@@ -228,6 +228,12 @@ namespace HygroThermFEM
 
 
     private:
+        //! \brief Checks validity of materials for transient simulation
+        MaterialsErrorCheckVector checkMaterialsForTransientSimulation() const;
+
+        //! \brief Checks validity of materials for transient simulation
+        MaterialsErrorCheckVector checkMaterialsForSteadyStateSimulation() const;
+
         static double normError(const std::vector<double> & vec1, const std::vector<double> & vec2);
 
         ThermalDomain m_ThermalDomain;

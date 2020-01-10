@@ -14,7 +14,8 @@ namespace HygroThermFEM
     // passing false to subdomains means that previous timestep values will not be automatically
     // updated. This mean that multidomain must update its values once solution converged.
     MultiDomain::MultiDomain(const bool performThermal, const bool performMoisture) :
-        m_PerformThermal(performThermal), m_PerformMoisture(performMoisture)
+        m_PerformThermal(performThermal),
+        m_PerformMoisture(performMoisture)
     {}
 
     Solution MultiDomain::transient(std::vector<double> & temperature,
@@ -367,6 +368,24 @@ namespace HygroThermFEM
     {
         MaterialDataChecker dataChecker{*this};
         return dataChecker.checkMaterialProperties(false);
+    }
+
+    MaterialsErrorCheckVector
+      MultiDomain::checkForMaterialsValidity(const SimulationType simulationType) const
+    {
+        MaterialsErrorCheckVector result;
+        switch(simulationType)
+        {
+            case SimulationType::SteadyState:
+                result = checkMaterialsForSteadyStateSimulation();
+                break;
+            case SimulationType::Transient:
+                result = checkMaterialsForTransientSimulation();
+                break;
+            default:
+                throw std::runtime_error("Incorrect selection of simulation type.");
+        }
+        return result;
     }
 
     Solution::Solution(const double dtime,
