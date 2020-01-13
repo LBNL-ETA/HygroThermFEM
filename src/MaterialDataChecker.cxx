@@ -36,6 +36,8 @@ namespace HygroThermFEM
     {
         MaterialMissingProperties missing;
 
+        missing.materialName = material.name();
+
         // Used in thermal equation only in case of transient simulation
         missing.Density =
           isTransientSimulation && !material.hasDensity() && multiDomain.isThermalSimulationON();
