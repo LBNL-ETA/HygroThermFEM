@@ -12,6 +12,8 @@ namespace HygroThermFEM
         return temperature + 273.15;
     }
 
+    enum class SimulationType{SteadyState, Transient};
+
 }   // namespace HygroThermFEM
 
 namespace Constants

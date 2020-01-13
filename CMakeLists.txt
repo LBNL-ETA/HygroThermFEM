@@ -1,13 +1,10 @@
-
 cmake_minimum_required(VERSION 3.12)
 
 set(target_name HygroThermFEM)
 
-set(CMAKE_PROJECT_VERSION_MAJOR "1")
-set(CMAKE_PROJECT_VERSION_MINOR "0")
-set(CMAKE_PROJECT_VERSION_PATCH "0")
+cmake_policy(SET CMP0048 NEW)
 
-project(${target_name} CXX)
+project(${target_name} VERSION 1.0.0 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 

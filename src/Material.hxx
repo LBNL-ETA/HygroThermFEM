@@ -3,6 +3,7 @@
 #include <vector>
 #include <memory>
 #include <string>
+#include <optional>
 
 #include "Functions.hxx"
 #include "KeffCavity.hxx"
@@ -54,7 +55,7 @@ namespace HygroThermFEM
         virtual ~IMaterial() = default;
 
         IMaterial(
-          std::string cs,
+          std::string name,
           double thermalConductivityDry,
           double density,
           double porosity,
@@ -69,46 +70,136 @@ namespace HygroThermFEM
           double emissivity,
           bool isLinear = true);
 
+        IMaterial(std::string name);
+
         //! Material's name.
         std::string name() const;
 
         //! Thermal conductivity of dry material
-        double thermalConductivityDry() const;
+        virtual double thermalConductivityDry() const final;
+
+        //! Sets material thermal conductivity to given value
+        //!
+        //! \param thermalConductivity Value to which thermal conductivity will be set to
+        virtual void setThermalConductivity(double thermalConductivity) final;
+
+        //! \brief Checks if value has been set
+        virtual bool hasThermalConductivityDry() const final;
 
         //! Material's density.
-        double density() const;
+        virtual double density() const final;
+
+        //! Sets material density to given value
+        //!
+        //! \param density Value to which density will be set to
+        virtual void setDensity(double density) final;
+
+        //! \brief Checks if value has been set
+        virtual bool hasDensity() const final;
 
         //! Material's specific heat capacity.
-        double heatCapacity() const;
+        virtual double heatCapacity() const final;
+
+        //! Sets material heat capacity to given value
+        //!
+        //! \param heatCapacity Value to which heat capacity will be set to
+        virtual void setHeatCapacity(double heatCapacity) final;
+
+        //! \brief Checks if value has been set
+        virtual bool hasHeatCapacity() const final;
 
         //! Material's porosity.
-        double porosity() const;
+        virtual double porosity() const final;
+
+        //! Sets material porosity to given value
+        //!
+        //! \param porosity Value to which porosity will be set to
+        virtual void setPorosity(double porosity) final;
+
+        //! \brief Checks if value has been set
+        virtual bool hasPorosity() const final;
 
         //! Returns material emissivity.
-        double emissivity() const;
+        virtual double emissivity() const final;
+
+        //! Sets material emissivity to given value
+        //!
+        //! \param emissivity Value to which emissivity will be set to
+        virtual void setEmissivity(double emissivity) final;
+
+        //! \brief Checks if value has been set
+        virtual bool hasEmissivity() const final;
 
         //! Material's diffusion resistance factor.
-        double diffusionResistanceFactor() const;
+        virtual double diffusionResistanceFactor() const final;
+
+        //! Sets material diffusion resistance factor to given value
+        //!
+        //! \param diffusionResistanceFactor Value to which diffusion resistance factor will be set
+        //! to
+        virtual void setDiffusionResistanceFactor(double diffusionResistanceFactor) final;
+
+        //! \brief Checks if value has been set
+        virtual bool hasDiffusionResistanceFactor() const final;
 
         //! Material can require nonlinear iterations.
-        bool isLinear() const;
+        virtual bool isLinear() const final;
 
         //! Thermal conductivity table (x-water content [kg/m3], y-thermal conductivity[W/(mK)])
-        TabularFunction2D thermalConductivityMoistureDependent() const;
+        virtual TabularFunction2D thermalConductivityMoistureAndTemperatureDependent() const final;
+
+        //! Sets thermal condctivity dependence on temperature and moisture
+        //!
+        //! \param thermalConductivityMoistureDependent table of thermal conductivity values in
+        //! relation to moisture content
+        //! \param moistureDependentMeasuredTemperature temperature at
+        //! which moisture dependent thermal conductivity is measured
+        //! \param thermalConductivityTemperatureDependent table of thermal conductivity values
+        //! in relation to temperature
+        //! \param temperatureDependentMeasurementHumidity moisture content
+        //! at which thermal conductivity table is measured
+        virtual void setThermalConductivityMoistureAndTemperatureDependent(
+          const std::vector<FenestrationCommon::point> & thermalConductivityMoistureDependent,
+          double moistureDependentMeasuredTemperature,
+          const std::vector<FenestrationCommon::point> & thermalConductivityTemperatureDependent,
+          double temperatureDependentMeasurementHumidity) final;
+
+        //! \brief Checks if table has been set
+        virtual bool hasThermalConductivityMoistureAndTemperatureDependent() const final;
 
         //! \brief Liquid transportation curve of the material.
         //!
         //! Liquid transportation coefficient shows how
         //! much of water can be distributed through the material with certain water content
         //! (x-water content [kg/m3], y-water flow [m2/s]
-        const std::vector<FenestrationCommon::point> & liquidTransportationCurve() const;
+        virtual const std::vector<FenestrationCommon::point> &
+          liquidTransportationCurve() const final;
+
+        //! \brief Sets material liquid transportation curve
+        //!
+        //! \param liquidTransportationCurve values at which liquid transportation curve will be set
+        //! to
+        virtual void setLiquidTransportationCurve(
+          const std::vector<FenestrationCommon::point> & liquidTransportationCurve) final;
+
+        //! \brief Checks if curve has been set
+        virtual bool hasLiquidTransportationCurve() const final;
 
         //! \brief Material's sorption curve.
         //!
         //! Sorption curve or moisture storage function show how
         //! much of water content is contained in the material at certain relative humidity
         //! (x-relative humidity [-], y-water content [kg/m3])
-        const std::vector<FenestrationCommon::point> & sorptionCurve() const;
+        virtual const std::vector<FenestrationCommon::point> & sorptionCurve() const final;
+
+        //! \brief Sets material's sorption curve
+        //!
+        //! \param sorptionCurve values for sorption curve
+        virtual void
+          setSorptionCurve(const std::vector<FenestrationCommon::point> & sorptionCurve) final;
+
+        //! \brief Checks if curve has been set
+        virtual bool hasSorptionCurve() const final;
 
         //! \brief Water content in given node.
         //!
@@ -126,11 +217,11 @@ namespace HygroThermFEM
 
     protected:
         std::string m_Name;
-        double m_ThermalConductivityDry;
-        double m_Density;
-        double m_Porosity;
-        double m_HeatCapacity;
-        double m_DiffusionResistanceFactor;
+        std::optional<double> m_ThermalConductivityDry{};
+        std::optional<double> m_Density{};
+        std::optional<double> m_Porosity{};
+        std::optional<double> m_SpecificHeatCapacity{};
+        std::optional<double> m_DiffusionResistanceFactor{};
 
         //! Thermal conductivity table is (x-water content [kg/m3], temperature[Celsius], y-thermal
         //! conductivity[W/(mK)])
@@ -145,7 +236,7 @@ namespace HygroThermFEM
         //! (x-relative humidity [between zero to one], y-water content [kg/m3]
         std::unique_ptr<TabularFunction1D> m_SorptionCurve;
 
-        double m_Emissivity;
+        std::optional<double> m_Emissivity{};
         const bool m_Linear;
     };
 
@@ -157,7 +248,7 @@ namespace HygroThermFEM
     class IGas : public IMaterial
     {
     public:
-        IGas(const std::string & cs,
+        IGas(std::string name,
              double thermalConductivityDry,
              double density,
              double porosity,
@@ -229,16 +320,17 @@ namespace HygroThermFEM
         //! \param thermalConductivityMoistureDependent Moisture dependent thermal conductivity
         //! \param moistureDependentMeasurementTemperature Temperature at which moisture dependent
         //! thermal conductivity is measured
-        //! \param thermalConductivityTemperatureDependent Temperature dependent thermal conductivity
-        //! \param temperatureDependentMeasurementHumidity Humidity at which temperature dependent thermal
-        //! conductivity is measured
-        //! \param liquidTransportCurve Liquid transportation curve.
-        //! Relationship between relative humidity and ability of material to transport water.
-        //! \param sorptionCurve Moisture storage function. Relationship between relative humidity
-        //! and water content.
+        //! \param thermalConductivityTemperatureDependent Temperature dependent thermal
+        //! conductivity
+        //! \param temperatureDependentMeasurementHumidity Humidity at which
+        //! temperature dependent thermal conductivity is measured
+        //! \param liquidTransportCurve Liquid transportation curve. Relationship between relative
+        //! humidity and ability of material to transport water.
+        //! \param sorptionCurve Moisture storage function.
+        //! Relationship between relative humidity and water content.
         //! \param emissivity SolidMaterial emissivity
         SolidMaterial(
-          const std::string & name,
+          std::string name,
           double thermalConductivityDry,
           double density,
           double porosity,
@@ -251,6 +343,8 @@ namespace HygroThermFEM
           const std::vector<FenestrationCommon::point> & liquidTransportCurve,
           const std::vector<FenestrationCommon::point> & sorptionCurve,
           double emissivity = 0.9);
+
+        explicit SolidMaterial(std::string name);
 
         //! Saturated vapor content calculations at given node. It is necessary
         //! for water content calculations.

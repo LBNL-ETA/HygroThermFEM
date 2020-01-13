@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Domains.hxx"
+#include "MaterialMissingProperties.hxx"
 
 namespace Timesteps
 {
@@ -9,6 +10,7 @@ namespace Timesteps
 
 namespace HygroThermFEM
 {
+    //! \brief Keeps solution from current timestep for every node in the domain.
     struct Solution
     {
         Solution(double dtime,
@@ -42,10 +44,10 @@ namespace HygroThermFEM
         MultiDomain(bool performThermal = true, bool performMoisture = true);
 
         //! \brief Calculates next timestep value from current values
-        //! @param temperature vector of nodal temperatures from previous timestep
-        //! @param humidity vector of nodal humidity from previous timestep
-        //! @param t_DTime time between two timestep
-        //! @param timestepIndex current timestep index used in variable boundary conditions case
+        //! \param temperature vector of nodal temperatures from previous timestep
+        //! \param humidity vector of nodal humidity from previous timestep
+        //! \param t_DTime time between two timestep
+        //! \param timestepIndex current timestep index used in variable boundary conditions case
         Solution transient(std::vector<double> & temperature,
                            std::vector<double> & humidity,
                            double t_DTime,
@@ -54,15 +56,27 @@ namespace HygroThermFEM
         //! Calculates steady state solution for multiple domains.
         Solution steadyState();
 
+        //! \brief Checks validity of materials for any simulation
+        //!
+        //! \param simulationType Enumerator for simulation type (SteadyState or Transient)
+        //! \return Information about materials with all missing properties.
+        MaterialsErrorCheckVector checkForMaterialsValidity(SimulationType simulationType) const;
+
         //! \brief Sets if moisture simulation will be performed
         //!
         //! @param val if set to true, moisture simulation will be performed
         void performMoistureSimulation(bool val);
 
+        //! \brief Checks if moisture simulation is ON
+        bool isMoistureSimulationON() const;
+
         //! \brief Sets if thermal simulation will be performed
         //!
         //! @param val if set to true, thermal simulation will be performed
         void performThermalSimulation(bool val);
+
+        //! \brief Checks if thermal simulation is ON
+        bool isThermalSimulationON() const;
 
         static std::vector<double> property(Variable property);
 
@@ -214,6 +228,12 @@ namespace HygroThermFEM
 
 
     private:
+        //! \brief Checks validity of materials for transient simulation
+        MaterialsErrorCheckVector checkMaterialsForTransientSimulation() const;
+
+        //! \brief Checks validity of materials for transient simulation
+        MaterialsErrorCheckVector checkMaterialsForSteadyStateSimulation() const;
+
         static double normError(const std::vector<double> & vec1, const std::vector<double> & vec2);
 
         ThermalDomain m_ThermalDomain;

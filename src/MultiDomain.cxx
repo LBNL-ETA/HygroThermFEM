@@ -7,13 +7,15 @@
 #include "FEMMath.hxx"
 #include "NodePool.hxx"
 #include "SimulationProperties.hxx"
+#include "MaterialDataChecker.hxx"
 
 namespace HygroThermFEM
 {
     // passing false to subdomains means that previous timestep values will not be automatically
     // updated. This mean that multidomain must update its values once solution converged.
     MultiDomain::MultiDomain(const bool performThermal, const bool performMoisture) :
-        m_PerformThermal(performThermal), m_PerformMoisture(performMoisture)
+        m_PerformThermal(performThermal),
+        m_PerformMoisture(performMoisture)
     {}
 
     Solution MultiDomain::transient(std::vector<double> & temperature,
@@ -56,7 +58,7 @@ namespace HygroThermFEM
                 if(m_PerformThermal)
                 {
                     temperatureSolution =
-                            m_ThermalDomain.transient(temperature, dTime, timestepIndex);
+                      m_ThermalDomain.transient(temperature, dTime, timestepIndex);
                     temperatureError = normError(temperatureSolution.solution, currentTemperature);
                     currentTemperature = temperatureSolution.solution;
                     ++localIterCounter;
@@ -71,7 +73,7 @@ namespace HygroThermFEM
             if(m_PerformMoisture)
             {
                 NodePool::Instance().updateNodeValues(
-                        temperatureSolution.solution, BaseVariable::temperature, false);
+                  temperatureSolution.solution, BaseVariable::temperature, false);
                 humiditySolution = m_MoistureDomain.transient(humidity, dTime, timestepIndex);
                 humidityError = normError(humiditySolution.solution, currentHumidity);
                 currentHumidity = humiditySolution.solution;
@@ -80,7 +82,7 @@ namespace HygroThermFEM
             if(m_PerformThermal)
             {
                 NodePool::Instance().updateNodeValues(
-                        humiditySolution.solution, BaseVariable::humidity, false);
+                  humiditySolution.solution, BaseVariable::humidity, false);
                 temperatureSolution = m_ThermalDomain.transient(temperature, dTime, timestepIndex);
                 temperatureError = normError(temperatureSolution.solution, currentTemperature);
                 currentTemperature = temperatureSolution.solution;
@@ -344,6 +346,46 @@ namespace HygroThermFEM
     void MultiDomain::unsubscribeMoisture(Timesteps::TimestepObserver * observer)
     {
         m_MoistureDomain.unsubscribe(observer);
+    }
+
+    bool MultiDomain::isMoistureSimulationON() const
+    {
+        return m_PerformMoisture;
+    }
+
+    bool MultiDomain::isThermalSimulationON() const
+    {
+        return m_PerformThermal;
+    }
+
+    MaterialsErrorCheckVector MultiDomain::checkMaterialsForTransientSimulation() const
+    {
+        MaterialDataChecker dataChecker{*this};
+        return dataChecker.checkMaterialProperties(true);
+    }
+
+    MaterialsErrorCheckVector MultiDomain::checkMaterialsForSteadyStateSimulation() const
+    {
+        MaterialDataChecker dataChecker{*this};
+        return dataChecker.checkMaterialProperties(false);
+    }
+
+    MaterialsErrorCheckVector
+      MultiDomain::checkForMaterialsValidity(const SimulationType simulationType) const
+    {
+        MaterialsErrorCheckVector result;
+        switch(simulationType)
+        {
+            case SimulationType::SteadyState:
+                result = checkMaterialsForSteadyStateSimulation();
+                break;
+            case SimulationType::Transient:
+                result = checkMaterialsForTransientSimulation();
+                break;
+            default:
+                throw std::runtime_error("Incorrect selection of simulation type.");
+        }
+        return result;
     }
 
     Solution::Solution(const double dtime,
