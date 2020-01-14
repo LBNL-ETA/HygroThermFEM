@@ -440,6 +440,14 @@ namespace HygroThermFEM
         m_DiffusionResistanceFactor = diffusionResistanceFactor;
     }
 
+    void Gas::updateSorptionCurve(double saturationTemperature)
+    {
+        auto & curve = m_SorptionCurve->getCurve();
+        auto & last{ curve[curve.size() - 1] };
+        const auto vaporContent{saturationConcentrationAtTemperature(saturationTemperature - 273.15)};
+        last.y = vaporContent;
+    }
+
     Gas::Gas(const std::string & name, CavityStandard cavityStandard) :
         IGas(name,
              0.05,   // Thermal conductivity dry

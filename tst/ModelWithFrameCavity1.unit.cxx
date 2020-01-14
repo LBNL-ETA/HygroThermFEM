@@ -19,8 +19,6 @@ protected:
         NodePool::Instance().clear();
         MaterialPool::Instance().clear();
     }
-
-public:
 };
 
 TEST_F(TestModelWithFrameCavity1, TestSingleFrameCavity)

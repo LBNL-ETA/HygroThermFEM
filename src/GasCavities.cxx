@@ -70,6 +70,7 @@ namespace HygroThermFEM
         }
         m_Gas.updateThermalConductivity(thermalConductivity);
         m_Gas.updateDiffusionResistanceFactor(diffusionResistanceFactor);
+        m_Gas.updateSorptionCurve((side1.temperature + side2.temperature) / 2.0);
     }
 
     std::vector<EquivalentGasCavity::Segment>
