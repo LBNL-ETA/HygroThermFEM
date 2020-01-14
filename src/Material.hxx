@@ -269,6 +269,11 @@ namespace HygroThermFEM
         //! \param thermalConductivity New value for thermal conductivity.
         virtual void updateThermalConductivity(double thermalConductivity) = 0;
 
+        //! \brief Gases will require update on diffusion resistance factor on every iteration.
+        //!
+        //! \param diffusionResistanceFactor New value for diffusion resistance factor.
+        virtual void updateDiffusionResistanceFactor(double diffusionResistanceFactor) = 0;
+
         CavityStandard standard() const;
 
     private:
@@ -375,5 +380,7 @@ namespace HygroThermFEM
         Water waterContent(const INode2D & node) const override;
 
         void updateThermalConductivity(double thermalConductivity) override;
+
+        void updateDiffusionResistanceFactor(double diffusionResistanceFactor) override;
     };
 }   // namespace HygroThermFEM

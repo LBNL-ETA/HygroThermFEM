@@ -37,6 +37,7 @@ namespace HygroThermFEM
         const auto standard = m_Gas.standard();
         const auto radCalc{KeffCavity::RadiationCalculation::Yes};
         auto thermalConductivity{0.0};
+        auto diffusionResistanceFactor{0.0};
         switch(standard)
         {
             case CavityStandard::ISO15099:
@@ -54,18 +55,21 @@ namespace HygroThermFEM
                                                   radCalc,
                                                   Gases::CGas());
                 thermalConductivity = cavity.effectiveConductivity();
+                diffusionResistanceFactor = cavity.effectiveDiffusionResistanceFactor();
                 break;
             }
             case CavityStandard::CEN:
             {
                 KeffCavity::CavityCEN cavity(
-                  hfDirection, m_Size.L, m_Size.H, m_Area, side1, side2, radCalc);
+                  hfDirection, m_Size.L, m_Size.H, m_Area, side1, side2, Gases::CGas(), radCalc);
                 thermalConductivity = cavity.effectiveConductivity();
+                diffusionResistanceFactor = cavity.effectiveDiffusionResistanceFactor();
                 break;
             }
             default:;
         }
         m_Gas.updateThermalConductivity(thermalConductivity);
+        m_Gas.updateDiffusionResistanceFactor(diffusionResistanceFactor);
     }
 
     std::vector<EquivalentFrameCavity::Segment>
