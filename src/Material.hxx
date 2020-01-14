@@ -70,7 +70,7 @@ namespace HygroThermFEM
           double emissivity,
           bool isLinear = true);
 
-        IMaterial(std::string name);
+        IMaterial(std::string name, bool isLinear = true);
 
         //! Material's name.
         [[nodiscard]] std::string name() const;
@@ -249,18 +249,6 @@ namespace HygroThermFEM
     {
     public:
         IGas(std::string name,
-             double thermalConductivityDry,
-             double density,
-             double porosity,
-             double heatCapacity,
-             double diffusionResistanceFactor,
-             const std::vector<FenestrationCommon::point> & thermalConductivityMoistureDependent,
-             double moistureDependentMeasurementTemperature,
-             const std::vector<FenestrationCommon::point> & thermalConductivityTemperatureDependent,
-             double temperatureDependentMeasurementHumidity,
-             const std::vector<FenestrationCommon::point> & liquidTransportationCurve,
-             const std::vector<FenestrationCommon::point> & sorptionCurve,
-             double emissivity,
              CavityStandard cavityStandard);
 
         //! \brief Some materials will require update of thermal conductivity within iterations.
@@ -283,6 +271,17 @@ namespace HygroThermFEM
 
     private:
         CavityStandard m_CavityStandard;
+
+        static const double DefaultThermalConductivityDry;
+        static const double DefaultDensity;
+        static const double DefaultPorosity;
+        static const double DefaultHeatCapacity;
+        const static double DefaultDiffusionResistanceFactor;
+        const static std::vector<FenestrationCommon::point> DefaultSorptionCurve;
+        const static std::vector<FenestrationCommon::point> DefaultThermalConductivityMoistureDependent;
+        static const double DefaultMoistureDependentMeasurementTemperature;
+        const static std::vector<FenestrationCommon::point> DefaultThermalConductivityTemperatureDependent;
+        static const double DefaultTemperatureDependentMeasurementMoisture;
     };
 
     ///////////////////////////////////////////////////////////////////////////////////////////////

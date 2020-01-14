@@ -48,7 +48,8 @@ namespace HygroThermFEM
         setSorptionCurve(sorptionCurve);
     }
 
-    IMaterial::IMaterial(std::string name) : m_Name(std::move(name)), m_Linear(true)
+    IMaterial::IMaterial(std::string name, const bool isLinear) :
+        m_Name(std::move(name)), m_Linear(isLinear)
     {}
 
     std::string IMaterial::name() const
@@ -272,42 +273,40 @@ namespace HygroThermFEM
     // IGas
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
-    IGas::IGas(
-      std::string name,
-      double thermalConductivityDry,
-      double density,
-      double porosity,
-      double heatCapacity,
-      double diffusionResistanceFactor,
-      const std::vector<FenestrationCommon::point> & thermalConductivityMoistureDependent,
-      double moistureDependentMeasurementTemperature,
-      const std::vector<FenestrationCommon::point> & thermalConductivityTemperatureDependent,
-      double temperatureDependentMeasurementHumidity,
-      const std::vector<FenestrationCommon::point> & liquidTransportationCurve,
-      const std::vector<FenestrationCommon::point> & sorptionCurve,
-      double emissivity,
-      const CavityStandard cavityStandard) :
-        IMaterial(std::move(name),
-                  thermalConductivityDry,
-                  density,
-                  porosity,
-                  heatCapacity,
-                  diffusionResistanceFactor,
-                  thermalConductivityMoistureDependent,
-                  moistureDependentMeasurementTemperature,
-                  thermalConductivityTemperatureDependent,
-                  temperatureDependentMeasurementHumidity,
-                  liquidTransportationCurve,
-                  sorptionCurve,
-                  emissivity,
-                  false),   // Gases introduce nonlinearty into domain
-        m_CavityStandard(cavityStandard)
-    {}
+    IGas::IGas(std::string name, const CavityStandard cavityStandard) :
+        IMaterial(std::move(name), false), m_CavityStandard(cavityStandard)
+    {
+        setThermalConductivity(DefaultThermalConductivityDry);
+        setDensity(DefaultDensity);
+        setPorosity(DefaultPorosity);
+        setHeatCapacity(DefaultHeatCapacity);
+        setDiffusionResistanceFactor(DefaultDiffusionResistanceFactor);
+        setSorptionCurve(DefaultSorptionCurve);
+        //setThermalConductivityMoistureAndTemperatureDependent(
+        //  DefaultThermalConductivityMoistureDependent,
+        //  DefaultMoistureDependentMeasurementTemperature,
+        //  DefaultThermalConductivityTemperatureDependent,
+        //  DefaultTemperatureDependentMeasurementMoisture);
+    }
 
     CavityStandard IGas::standard() const
     {
         return m_CavityStandard;
     }
+
+    const double IGas::DefaultThermalConductivityDry = 0.05;
+    const double IGas::DefaultDensity = 0.0;
+    const double IGas::DefaultPorosity = 1.0;
+    const double IGas::DefaultHeatCapacity = 0.0;
+    const double IGas::DefaultDiffusionResistanceFactor = 2;
+    const std::vector<FenestrationCommon::point> IGas::DefaultSorptionCurve = {{0.0, 0.0},
+                                                                               {1.0, 1.0}};
+    const std::vector<FenestrationCommon::point> IGas::DefaultThermalConductivityMoistureDependent =
+      {{0.0, 0.05}, {1.0, 0.05}};
+    const double IGas::DefaultMoistureDependentMeasurementTemperature = 0;
+    const std::vector<FenestrationCommon::point>
+      IGas::DefaultThermalConductivityTemperatureDependent = {{0.0, 0.05}, {1.0, 0.05}};
+    const double IGas::DefaultTemperatureDependentMeasurementMoisture = 0;
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
     // SolidMaterial
@@ -443,29 +442,13 @@ namespace HygroThermFEM
     void Gas::updateSorptionCurve(double saturationTemperature)
     {
         auto & curve = m_SorptionCurve->getCurve();
-        auto & last{ curve[curve.size() - 1] };
-        const auto vaporContent{saturationConcentrationAtTemperature(saturationTemperature - 273.15)};
+        auto & last{curve[curve.size() - 1]};
+        const auto vaporContent{
+          saturationConcentrationAtTemperature(saturationTemperature - 273.15)};
         last.y = vaporContent;
     }
 
-    Gas::Gas(const std::string & name, CavityStandard cavityStandard) :
-        IGas(name,
-             0.05,   // Thermal conductivity dry
-             0.0,    // Density
-             1.0,    // Porosity
-             0.0,    // Heat Capacity
-             2,      // Diffusion resistance factor
-             std::vector<FenestrationCommon::point>(
-               {{0.0, 0.05}, {1.0, 0.05}}),   // Thermal conductivity moisture dependent
-             0,
-             std::vector<FenestrationCommon::point>(
-               {{0.0, 0.05}, {1.0, 0.05}}),   // Thermal conductivity temperature dependent
-             0,
-             std::vector<FenestrationCommon::point>(
-               {{0.0, 0.0}, {1.0, 1.0}}),   // Liquid transportation curve
-             std::vector<FenestrationCommon::point>({{0.0, 0.0}, {1.0, 1.0}}),   // Sorption curve
-             0.0,                                                                // emissivity
-             cavityStandard)   // Standard used for cavity calculations
+    Gas::Gas(const std::string & name, CavityStandard cavityStandard) : IGas(name, cavityStandard)
 
     {}
 
