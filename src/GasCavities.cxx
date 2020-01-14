@@ -53,7 +53,7 @@ namespace HygroThermFEM
                                                   pressure,
                                                   m_GravityVector,
                                                   radCalc,
-                                                  Gases::CGas());
+                                                  m_Gas.getGas());
                 thermalConductivity = cavity.effectiveConductivity();
                 diffusionResistanceFactor = cavity.effectiveDiffusionResistanceFactor();
                 break;
@@ -61,7 +61,7 @@ namespace HygroThermFEM
             case CavityStandard::CEN:
             {
                 KeffCavity::CavityCEN cavity(
-                  hfDirection, m_Size.L, m_Size.H, m_Area, side1, side2, Gases::CGas(), radCalc);
+                  hfDirection, m_Size.L, m_Size.H, m_Area, side1, side2, m_Gas.getGas(), radCalc);
                 thermalConductivity = cavity.effectiveConductivity();
                 diffusionResistanceFactor = cavity.effectiveDiffusionResistanceFactor();
                 break;

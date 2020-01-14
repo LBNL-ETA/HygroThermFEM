@@ -249,7 +249,7 @@ namespace HygroThermFEM
     {
     public:
         IGas(std::string name,
-             CavityStandard cavityStandard);
+             CavityStandard cavityStandard, Gases::CGas gas = Gases::CGas());
 
         //! \brief Some materials will require update of thermal conductivity within iterations.
         //! This virtual function requires update in every material type.
@@ -269,8 +269,12 @@ namespace HygroThermFEM
 
         [[nodiscard]] CavityStandard standard() const;
 
+        [[nodiscard]] Gases::CGas & getGas();
+
     private:
         CavityStandard m_CavityStandard;
+
+        Gases::CGas m_Gas;
 
         static const double DefaultThermalConductivityDry;
         static const double DefaultDensity;
@@ -387,6 +391,6 @@ namespace HygroThermFEM
 
         void updateDiffusionResistanceFactor(double diffusionResistanceFactor) override;
 
-        void updateSorptionCurve(double saturationTemperature) override;
+        void updateSorptionCurve(double saturationTemperature) override;        
     };
 }   // namespace HygroThermFEM

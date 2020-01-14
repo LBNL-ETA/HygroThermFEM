@@ -273,8 +273,8 @@ namespace HygroThermFEM
     // IGas
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
-    IGas::IGas(std::string name, const CavityStandard cavityStandard) :
-        IMaterial(std::move(name), false), m_CavityStandard(cavityStandard)
+    IGas::IGas(std::string name, const CavityStandard cavityStandard, Gases::CGas gas) :
+        IMaterial(std::move(name), false), m_CavityStandard(cavityStandard), m_Gas(std::move(gas))
     {
         setThermalConductivity(DefaultThermalConductivityDry);
         setDensity(DefaultDensity);
@@ -295,6 +295,11 @@ namespace HygroThermFEM
     CavityStandard IGas::standard() const
     {
         return m_CavityStandard;
+    }
+
+    Gases::CGas & IGas::getGas()
+    {
+        return m_Gas;
     }
 
     const double IGas::DefaultThermalConductivityDry = 0.05;
