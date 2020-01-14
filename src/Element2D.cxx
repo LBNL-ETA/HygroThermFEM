@@ -416,7 +416,7 @@ namespace HygroThermFEM
               m_Material.thermalConductivityMoistureAndTemperatureDependent();
             DDu(materialConductivity);
 
-            Constant matCond{m_Material.thermalConductivityDry()};
+            auto matCond{m_Material.thermalConductivityMoistureAndTemperatureDependent()};
             CondFlux(matCond);
         }
         if(!SimulationProperties::Instance().thermalConductivityTemperatureAndMoistureDependent()
@@ -425,7 +425,7 @@ namespace HygroThermFEM
             auto materialConductivity = Constant(m_Material.thermalConductivityDry());
             DDu(materialConductivity);
 
-            auto matCond{m_Material.thermalConductivityMoistureAndTemperatureDependent()};
+            Constant matCond{m_Material.thermalConductivityDry()};
             CondFlux(matCond);
         }
 

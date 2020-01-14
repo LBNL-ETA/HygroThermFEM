@@ -87,7 +87,12 @@ namespace HygroThermFEM
             if(!materialName.empty())
             {
                 const auto & material = MaterialPool::Instance().material(materialName);
-                emissivity = material.emissivity();
+
+                // This is possible if two frame cavities are next to each other
+                if (material.hasEmissivity())
+                {
+                    emissivity = material.emissivity();
+                }
             }
             segments.emplace_back(node1, node2, emissivity);
         }

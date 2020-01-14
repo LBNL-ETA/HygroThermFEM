@@ -282,11 +282,14 @@ namespace HygroThermFEM
         setHeatCapacity(DefaultHeatCapacity);
         setDiffusionResistanceFactor(DefaultDiffusionResistanceFactor);
         setSorptionCurve(DefaultSorptionCurve);
-        //setThermalConductivityMoistureAndTemperatureDependent(
-        //  DefaultThermalConductivityMoistureDependent,
-        //  DefaultMoistureDependentMeasurementTemperature,
-        //  DefaultThermalConductivityTemperatureDependent,
-        //  DefaultTemperatureDependentMeasurementMoisture);
+
+        // Gas cavities in equations will use 2D table in order to estimate all necessary data.
+        // That is why we need to insert some default in the first place.
+        setThermalConductivityMoistureAndTemperatureDependent(
+          DefaultThermalConductivityMoistureDependent,
+          DefaultMoistureDependentMeasurementTemperature,
+          DefaultThermalConductivityTemperatureDependent,
+          DefaultTemperatureDependentMeasurementMoisture);
     }
 
     CavityStandard IGas::standard() const
