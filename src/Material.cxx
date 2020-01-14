@@ -435,6 +435,11 @@ namespace HygroThermFEM
         curve.emplace_back(maxX, thermalConductivity);
     }
 
+    void Gas::updateDiffusionResistanceFactor(const double diffusionResistanceFactor)
+    {
+        m_DiffusionResistanceFactor = diffusionResistanceFactor;
+    }
+
     Gas::Gas(const std::string & name, CavityStandard cavityStandard) :
         IGas(name,
              0.05,   // Thermal conductivity dry
