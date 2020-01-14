@@ -7,14 +7,14 @@
 namespace HygroThermFEM
 {
     ///////////////////////////////////////////////////////////////////////////////
-    ///  EquivalentFrameCavity
+    ///  EquivalentGasCavity
     ///////////////////////////////////////////////////////////////////////////////
 
     //! \brief Used to create equivalent frame cavity.
     //!
     //! Class first performs rectangularization and then applies one of two standards for
     //! calculating equivalent thermal conductivity.
-    class EquivalentFrameCavity
+    class EquivalentGasCavity
     {
     public:
         //! \brief Equivalent frame cavity constructor
@@ -22,9 +22,9 @@ namespace HygroThermFEM
         //! \param nodes Nodes from which frame cavity has been created
         //! \param gas Frame cavity is filled with this gas
         //! \param gravityVector Gravity vector in (x, y, z) coordinate system
-        explicit EquivalentFrameCavity(const std::vector<size_t> & nodes,
-                                       IGas & gas,
-                                       const FenestrationCommon::GravityVector & gravityVector = {
+        explicit EquivalentGasCavity(const std::vector<size_t> & nodes,
+                                     IGas & gas,
+                                     const FenestrationCommon::GravityVector & gravityVector = {
                                          0, -1, 0});
 
         //! Public function that update frame cavity with new data, calculates new thermal
@@ -155,17 +155,17 @@ namespace HygroThermFEM
     };
 
     ///////////////////////////////////////////////////////////////////////////////
-    ///  EquivalentFrameCavities
+    ///  EquivalentGasCavities
     ///////////////////////////////////////////////////////////////////////////////
 
     //! \brief Class to calculate equivalent frame cavities from mesh model
-    class EquivalentFrameCavities
+    class EquivalentGasCavities
     {
     public:
         //! Construction of frame cavities.
         //!
         //! \param elements: All elements from the domain.
-        explicit EquivalentFrameCavities(const ElementsLinear2D & elements);
+        explicit EquivalentGasCavities(const ElementsLinear2D & elements);
 
         //! \brief Updates frame cavities with new temperatures.
         void update();
@@ -219,7 +219,7 @@ namespace HygroThermFEM
 
         //! Keeps boundary nodes for every frame cavity in the domain.
         std::map<std::string, std::vector<size_t>> m_BoundaryNodes;
-        std::vector<EquivalentFrameCavity> m_Cavities;
+        std::vector<EquivalentGasCavity> m_Cavities;
     };
 
 }   // namespace HygroThermFEM

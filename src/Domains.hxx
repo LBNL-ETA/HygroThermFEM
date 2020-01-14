@@ -4,7 +4,7 @@
 
 #include "Elements2D.hxx"
 #include "BoundaryConditions2D.hxx"
-#include "FrameCavities.hxx"
+#include "GasCavities.hxx"
 #include "BoundaryConditionCoefficients.hxx"
 #include "TimestepNotifier.hxx"
 #include "TimestepObserver.hxx"
@@ -63,6 +63,11 @@ namespace HygroThermFEM
           const std::string & materialName   //!< SolidMaterial that will be assigned to the element
           ) = 0;
 
+        //! \brief Sets new gravity vector and performs new calculations
+        //!
+        //! @param gravityVector Direction of gravity
+        void setGravityVector(const FenestrationCommon::GravityVector & gravityVector);
+
     protected:
         friend class MultiDomain;
 
@@ -109,6 +114,11 @@ namespace HygroThermFEM
         BaseVariable m_Property;
         ElementsLinear2D m_Elements;
         BoundaryConditions2D m_BCs;
+
+        FenestrationCommon::GravityVector m_GravityVector{0, -1, 0};
+
+        //! Storage for gas cavities recalculation
+        std::unique_ptr<EquivalentGasCavities> gasCavities;
 
         // Indicates if transient timestep will automatically update previous timestep solution.
         // This should be turned off if used in multidomain because previous timestep should
@@ -251,17 +261,7 @@ namespace HygroThermFEM
                            size_t index4,
                            const std::string & materialName) override;
 
-        //! \brief Sets new gravity vector and performs new calculations
-        //!
-        //! @param gravityVector Direction of gravity
-        void setGravityVector(const FenestrationCommon::GravityVector & gravityVector);
-
     protected:
-        FenestrationCommon::GravityVector m_GravityVector{0, -1, 0};
-
-        //! Storage for frame cavities recalculation
-        std::unique_ptr<EquivalentFrameCavities> frameCavities;
-
         void postProcess(std::vector<double> & solution) override;
     };
 
