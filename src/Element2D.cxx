@@ -167,6 +167,9 @@ namespace HygroThermFEM
     {
         /// Evaluating material influence in every node (This is important to know when
         /// calculating water content).
+        // TODO: This will perform for every domain. Consequence is that weighting factors will be
+        // doubled when two subdomains are used or tripled if three domains are used. However,
+        // results will be correct since ratio will be correct.
         while(!m_Nodes.last())
         {
             /// Form triangle of nodes. node1 is in center and angle is calculated at that node.
@@ -177,7 +180,7 @@ namespace HygroThermFEM
             /// Weighting coefficient depends on angle that is form by nodes next to node1.
             /// That coefficient is fraction of full circle.
             const auto weightingCoefficient =
-              angleBetweenNodes(node1, node2, node3) / Constants::PI_HTF;
+              angleBetweenNodes(node1, node2, node3) / (2 * Constants::PI_HTF);
             /// Node will have possibility to calculate certain properties that will be
             /// material dependent.
             node1.assignMaterial(materialName, weightingCoefficient);
