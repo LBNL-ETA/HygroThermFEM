@@ -216,6 +216,11 @@ namespace HygroThermFEM
         friend bool operator>=(const IMaterial & lhs, const IMaterial & rhs);
 
     protected:
+
+        //! Saturated vapor content calculations at given node. It is necessary
+        //! for water content calculations.
+        static double saturationConcentration(const INode2D & node);
+
         std::string m_Name;
         std::optional<double> m_ThermalConductivityDry{};
         std::optional<double> m_Density{};
@@ -358,10 +363,6 @@ namespace HygroThermFEM
           double emissivity = 0.9);
 
         explicit SolidMaterial(std::string name);
-
-        //! Saturated vapor content calculations at given node. It is necessary
-        //! for water content calculations.
-        static double saturationConcentration(const INode2D & node);
 
         //! Calculates amount of pores filled with liquid. Necessary for water content calculations.
         [[nodiscard]] double liquidPorosity(const INode2D & node) const;

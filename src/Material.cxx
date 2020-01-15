@@ -249,6 +249,13 @@ namespace HygroThermFEM
         return (m_SorptionCurve != nullptr);
     }
 
+    double IMaterial::saturationConcentration(const INode2D & node)
+    {
+        const auto temperature = node.property(Variable::temperature);
+
+        return saturationConcentrationAtTemperature(temperature);
+    }
+
     bool operator<(const IMaterial & lhs, const IMaterial & rhs)
     {
         return lhs.m_Name < rhs.m_Name;
@@ -375,13 +382,6 @@ namespace HygroThermFEM
     SolidMaterial::SolidMaterial(std::string name) : IMaterial(std::move(name))
     {}
 
-    double SolidMaterial::saturationConcentration(const INode2D & node)
-    {
-        const auto temperature = node.property(Variable::temperature);
-
-        return saturationConcentrationAtTemperature(temperature);
-    }
-
     Water SolidMaterial::waterContent(const INode2D & node) const
     {
         return {
@@ -427,9 +427,12 @@ namespace HygroThermFEM
     // Gas
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
-    Water Gas::waterContent(const INode2D &) const
+    Water Gas::waterContent(const INode2D & node) const
     {
-        return {};
+        const auto vaporConcentration = saturationConcentration(node)
+               * node.property(Variable::humidity);
+        // Gas have only vapor concentration
+        return {vaporConcentration, 0, vaporConcentration, 0};
     }
 
     void Gas::updateThermalConductivity(double thermalConductivity)
