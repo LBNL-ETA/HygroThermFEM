@@ -456,8 +456,7 @@ namespace HygroThermFEM
         last.y = vaporContent;
     }
 
-    Gas::Gas(const std::string & name, CavityStandard cavityStandard) : IGas(name, cavityStandard)
-
+    Gas::Gas(const std::string & name, CavityStandard cavityStandard, Gases::CGas gas) : IGas(name, cavityStandard, gas)
     {}
 
     Water::Water(double water, double liquid, double vapor, double ice) :

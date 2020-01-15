@@ -8,7 +8,7 @@ using HygroThermFEM::NodePool;
 using HygroThermFEM::MaterialPool;
 using HygroThermFEM::State;
 
-class TestModelWithFrameCavity1 : public testing::Test
+class TestModelWithFrameCavity3 : public testing::Test
 {
 protected:
     void SetUp() override
@@ -21,7 +21,7 @@ protected:
     }
 };
 
-TEST_F(TestModelWithFrameCavity1, TestSingleFrameCavity)
+TEST_F(TestModelWithFrameCavity3, TestSingleFrameCavity)
 {
     SCOPED_TRACE("Begin Test: Model with single frame cavity.");
 
@@ -75,8 +75,14 @@ TEST_F(TestModelWithFrameCavity1, TestSingleFrameCavity)
                                                    liquidTransportationCurve,
                                                    moistureStorageFunction);
 
+    Gases::CGas gas;
+    gas.addGasItem(0.1, Gases::GasDef::Air);
+    gas.addGasItem(0.3, Gases::GasDef::Argon);
+    gas.addGasItem(0.3, Gases::GasDef::Krypton);
+    gas.addGasItem(0.3, Gases::GasDef::Xenon);
+
     auto & frameCavity =
-      MaterialPool::Instance().createGas("Frame Cavity 1", HygroThermFEM::CavityStandard::ISO15099);
+      MaterialPool::Instance().createGas("Frame Cavity 1", HygroThermFEM::CavityStandard::ISO15099, gas);
 
     // Elements that will contain frame cavity
     std::set<size_t> frameCavityElement{6, 7, 10};
@@ -140,8 +146,7 @@ TEST_F(TestModelWithFrameCavity1, TestSingleFrameCavity)
         solution.push_back(temperatures);
     }
 
-    const auto correctThermalConductivity{0.098654};
-    const auto thermalCond =
-      frameCavity.thermalConductivityMoistureAndTemperatureDependent().getCurve()[0].y;
+    const auto correctThermalConductivity{0.085172};
+    const auto thermalCond = frameCavity.thermalConductivityMoistureAndTemperatureDependent().getCurve()[0].y;
     EXPECT_NEAR(correctThermalConductivity, thermalCond, 1e-6);
 }

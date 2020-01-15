@@ -381,7 +381,7 @@ namespace HygroThermFEM
     public:
         Gas() = delete;
 
-        explicit Gas(const std::string & name, CavityStandard cavityStandard = CavityStandard::ISO15099);
+        explicit Gas(const std::string & name, CavityStandard cavityStandard = CavityStandard::ISO15099, Gases::CGas gas = Gases::CGas());
 
         //! Water content for given node
         //!< param node Node for which water content is required.

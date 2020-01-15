@@ -57,9 +57,9 @@ namespace HygroThermFEM
     }
 
     const IGas & MaterialPool::createGas(const std::string & name,
-                                         const CavityStandard cavityStandard)
+                                         const CavityStandard cavityStandard, Gases::CGas gas)
     {
-        m_Gases[name] = std::make_unique<Gas>(name, cavityStandard);
+        m_Gases[name] = std::make_unique<Gas>(name, cavityStandard, gas);
         return *m_Gases.at(name);
     }
 
