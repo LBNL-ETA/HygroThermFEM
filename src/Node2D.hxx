@@ -166,9 +166,25 @@ namespace HygroThermFEM
 
         std::map<Timestep, State> m_State;
 
+        struct MaterialContainer
+        {
+            MaterialContainer(const double weightingFactor, const IMaterial & material) :
+                weightingFactor(weightingFactor),
+                material(material)
+            {}
+
+            void addWeight(const double value)
+            {
+                weightingFactor += value;
+            }
+
+            double weightingFactor;
+            const IMaterial & material;
+        };
+
         /// Node can belong to multiple materials. This will be used to calculate secondary
         /// properties based on primary properties (water content depends on humidity)
-        std::set<std::pair<double, std::reference_wrapper<const IMaterial>>> m_Materials;
+        std::map<std::string, MaterialContainer> m_Materials;
 
         Water m_Water;
     };

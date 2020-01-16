@@ -7,14 +7,14 @@
 namespace HygroThermFEM
 {
     ///////////////////////////////////////////////////////////////////////////////
-    ///  EquivalentFrameCavity
+    ///  EquivalentGasCavity
     ///////////////////////////////////////////////////////////////////////////////
 
-    //! \brief Used to create equivalent frame cavity.
+    //! \brief Used to create equivalent properties of air cavity.
     //!
     //! Class first performs rectangularization and then applies one of two standards for
     //! calculating equivalent thermal conductivity.
-    class EquivalentFrameCavity
+    class EquivalentGasCavity
     {
     public:
         //! \brief Equivalent frame cavity constructor
@@ -22,13 +22,12 @@ namespace HygroThermFEM
         //! \param nodes Nodes from which frame cavity has been created
         //! \param gas Frame cavity is filled with this gas
         //! \param gravityVector Gravity vector in (x, y, z) coordinate system
-        explicit EquivalentFrameCavity(const std::vector<size_t> & nodes,
-                                       IGas & gas,
-                                       const FenestrationCommon::GravityVector & gravityVector = {
+        explicit EquivalentGasCavity(const std::vector<size_t> & nodes,
+                                     IGas & gas,
+                                     const FenestrationCommon::GravityVector & gravityVector = {
                                          0, -1, 0});
 
-        //! Public function that update frame cavity with new data, calculates new thermal
-        //! conductivity and update gas with new thermal conductivity
+        //! Public function that update gas cavity with new data, calculates new thermal
         void update();
 
         //! \brief Sets new gravity vector and performs new calculations
@@ -80,21 +79,21 @@ namespace HygroThermFEM
             Segment(const Node2D & node1, const Node2D & node2, double emissivity);
 
             //! Emissivity of the segment
-            double emissivity() const;
+            [[nodiscard]] double emissivity() const;
 
             //! Segment length
-            double length() const;
+            [[nodiscard]] double length() const;
 
             //! Segment's average temperature
-            double temperature() const;
+            [[nodiscard]] double temperature() const;
 
-            const Node2D & firstNode() const;
+            [[nodiscard]] const Node2D & firstNode() const;
 
             //! Helper function that is used in area calculation for entire frame cavity.
-            double crossCalc() const;
+            [[nodiscard]] double crossCalc() const;
 
             //! Returns side (Left, Right, Top or Bottom) to which segment belongs.
-            const Side & side() const;
+            [[nodiscard]] const Side & side() const;
 
         private:
             //! Calculates frame cavity side to which segment belongs to.
@@ -102,7 +101,7 @@ namespace HygroThermFEM
             //! \param node1 Segment's first node
             //! \param node2 Segment's second node
             //! \return Side to which segment belongs to.
-            Side calcSide(const Node2D & node1, const Node2D & node2) const;
+            [[nodiscard]] Side calcSide(const Node2D & node1, const Node2D & node2) const;
 
             const Node2D & node1;
             const Node2D & node2;
@@ -119,13 +118,13 @@ namespace HygroThermFEM
         KeffCavity::CavitySide getSide2(KeffCavity::ScreenFlow screenFlow);
 
         //! Calculates frame cavity area out of segments
-        double calcArea() const;
+        [[nodiscard]] double calcArea() const;
 
         static std::string findCommonMaterial(const Node2D & node1, const Node2D & node2);
 
         static std::vector<Segment> buildSegments(const std::vector<size_t> & nodes);
 
-        Size calcSize(double area) const;
+        [[nodiscard]] Size calcSize(double area) const;
 
         //! Group segments at four sides of cavity. This is used in rectangularization algorithm.
         static std::map<Side, std::vector<Segment>>
@@ -137,7 +136,7 @@ namespace HygroThermFEM
         void updateSideTemperatures();
 
         //! \brief Calculates screen heat flow direction.
-        KeffCavity::ScreenFlow heatFlowDirection() const;
+        [[nodiscard]] KeffCavity::ScreenFlow heatFlowDirection() const;
 
 
         const std::vector<Segment> m_Segments;
@@ -155,17 +154,17 @@ namespace HygroThermFEM
     };
 
     ///////////////////////////////////////////////////////////////////////////////
-    ///  EquivalentFrameCavities
+    ///  EquivalentGasCavities
     ///////////////////////////////////////////////////////////////////////////////
 
     //! \brief Class to calculate equivalent frame cavities from mesh model
-    class EquivalentFrameCavities
+    class EquivalentGasCavities
     {
     public:
         //! Construction of frame cavities.
         //!
         //! \param elements: All elements from the domain.
-        explicit EquivalentFrameCavities(const ElementsLinear2D & elements);
+        explicit EquivalentGasCavities(const ElementsLinear2D & elements);
 
         //! \brief Updates frame cavities with new temperatures.
         void update();
@@ -219,7 +218,7 @@ namespace HygroThermFEM
 
         //! Keeps boundary nodes for every frame cavity in the domain.
         std::map<std::string, std::vector<size_t>> m_BoundaryNodes;
-        std::vector<EquivalentFrameCavity> m_Cavities;
+        std::vector<EquivalentGasCavity> m_Cavities;
     };
 
 }   // namespace HygroThermFEM

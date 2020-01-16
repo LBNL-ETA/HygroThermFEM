@@ -1,6 +1,6 @@
 #include <KeffCavity.hxx>
 
-#include "FrameCavities.hxx"
+#include "GasCavities.hxx"
 #include "MaterialPool.hxx"
 #include "NodePool.hxx"
 #include "Common.hxx"
@@ -8,10 +8,10 @@
 namespace HygroThermFEM
 {
     ///////////////////////////////////////////////////////////////////////////////
-    ///  EquivalentFrameCavity
+    ///  EquivalentGasCavity
     ///////////////////////////////////////////////////////////////////////////////
 
-    EquivalentFrameCavity::EquivalentFrameCavity(
+    EquivalentGasCavity::EquivalentGasCavity(
       const std::vector<size_t> & nodes,
       IGas & gas,
       const FenestrationCommon::GravityVector & gravityVector) :
@@ -28,7 +28,7 @@ namespace HygroThermFEM
         updateSideTemperatures();
     }
 
-    void EquivalentFrameCavity::update()
+    void EquivalentGasCavity::update()
     {
         updateSideTemperatures();
         const auto hfDirection = heatFlowDirection();
@@ -53,7 +53,7 @@ namespace HygroThermFEM
                                                   pressure,
                                                   m_GravityVector,
                                                   radCalc,
-                                                  Gases::CGas());
+                                                  m_Gas.getGas());
                 thermalConductivity = cavity.effectiveConductivity();
                 diffusionResistanceFactor = cavity.effectiveDiffusionResistanceFactor();
                 break;
@@ -61,7 +61,7 @@ namespace HygroThermFEM
             case CavityStandard::CEN:
             {
                 KeffCavity::CavityCEN cavity(
-                  hfDirection, m_Size.L, m_Size.H, m_Area, side1, side2, Gases::CGas(), radCalc);
+                  hfDirection, m_Size.L, m_Size.H, m_Area, side1, side2, m_Gas.getGas(), radCalc);
                 thermalConductivity = cavity.effectiveConductivity();
                 diffusionResistanceFactor = cavity.effectiveDiffusionResistanceFactor();
                 break;
@@ -70,10 +70,11 @@ namespace HygroThermFEM
         }
         m_Gas.updateThermalConductivity(thermalConductivity);
         m_Gas.updateDiffusionResistanceFactor(diffusionResistanceFactor);
+        m_Gas.updateSorptionCurve((side1.temperature + side2.temperature) / 2.0);
     }
 
-    std::vector<EquivalentFrameCavity::Segment>
-      EquivalentFrameCavity::buildSegments(const std::vector<size_t> & nodes)
+    std::vector<EquivalentGasCavity::Segment>
+      EquivalentGasCavity::buildSegments(const std::vector<size_t> & nodes)
     {
         std::vector<Segment> segments;
         for(size_t i = 0u; i < nodes.size(); ++i)
@@ -86,14 +87,19 @@ namespace HygroThermFEM
             if(!materialName.empty())
             {
                 const auto & material = MaterialPool::Instance().material(materialName);
-                emissivity = material.emissivity();
+
+                // This is possible if two frame cavities are next to each other
+                if (material.hasEmissivity())
+                {
+                    emissivity = material.emissivity();
+                }
             }
             segments.emplace_back(node1, node2, emissivity);
         }
         return segments;
     }
 
-    KeffCavity::CavitySide EquivalentFrameCavity::getSide1(KeffCavity::ScreenFlow screenFlow)
+    KeffCavity::CavitySide EquivalentGasCavity::getSide1(KeffCavity::ScreenFlow screenFlow)
     {
         std::map<KeffCavity::ScreenFlow, Side> flowMap{
           {KeffCavity::ScreenFlow::Left, Side::Right},
@@ -105,7 +111,7 @@ namespace HygroThermFEM
         return m_Side.at(flowMap.at(screenFlow));
     }
 
-    KeffCavity::CavitySide EquivalentFrameCavity::getSide2(KeffCavity::ScreenFlow screenFlow)
+    KeffCavity::CavitySide EquivalentGasCavity::getSide2(KeffCavity::ScreenFlow screenFlow)
     {
         std::map<KeffCavity::ScreenFlow, Side> flowMap{
           {KeffCavity::ScreenFlow::Left, Side::Left},
@@ -117,8 +123,8 @@ namespace HygroThermFEM
         return m_Side.at(flowMap.at(screenFlow));
     }
 
-    std::string EquivalentFrameCavity::findCommonMaterial(const Node2D & node1,
-                                                          const Node2D & node2)
+    std::string EquivalentGasCavity::findCommonMaterial(const Node2D & node1,
+                                                        const Node2D & node2)
     {
         std::string name;
         auto node1Materials = node1.getSolidMaterialNames();
@@ -139,7 +145,7 @@ namespace HygroThermFEM
         return name;
     }
 
-    double EquivalentFrameCavity::calcArea() const
+    double EquivalentGasCavity::calcArea() const
     {
         double area{0};
         for(const auto & segment : m_Segments)
@@ -149,7 +155,7 @@ namespace HygroThermFEM
         return 0.5 * area;
     }
 
-    EquivalentFrameCavity::Size EquivalentFrameCavity::calcSize(const double area) const
+    EquivalentGasCavity::Size EquivalentGasCavity::calcSize(const double area) const
     {
         double maxX = m_Segments[0].firstNode().X();
         double minX = m_Segments[0].firstNode().X();
@@ -174,8 +180,8 @@ namespace HygroThermFEM
         return {L, H};
     }
 
-    std::map<EquivalentFrameCavity::Side, std::vector<EquivalentFrameCavity::Segment>>
-      EquivalentFrameCavity::groupSegmentSides(const std::vector<Segment> & segments)
+    std::map<EquivalentGasCavity::Side, std::vector<EquivalentGasCavity::Segment>>
+      EquivalentGasCavity::groupSegmentSides(const std::vector<Segment> & segments)
     {
         std::map<Side, std::vector<Segment>> result{{Side::Top, std::vector<Segment>()},
                                                     {Side::Bottom, std::vector<Segment>()},
@@ -188,7 +194,7 @@ namespace HygroThermFEM
         return result;
     }
 
-    void EquivalentFrameCavity::calcSideEmissivities()
+    void EquivalentGasCavity::calcSideEmissivities()
     {
         std::map<Side, double> length{
           {Side::Top, 0}, {Side::Bottom, 0}, {Side::Left, 0}, {Side::Right, 0}};
@@ -213,7 +219,7 @@ namespace HygroThermFEM
         }
     }
 
-    void EquivalentFrameCavity::updateSideTemperatures()
+    void EquivalentGasCavity::updateSideTemperatures()
     {
         std::map<Side, double> length{
           {Side::Top, 0}, {Side::Bottom, 0}, {Side::Left, 0}, {Side::Right, 0}};
@@ -238,7 +244,7 @@ namespace HygroThermFEM
         }
     }
 
-    KeffCavity::ScreenFlow EquivalentFrameCavity::heatFlowDirection() const
+    KeffCavity::ScreenFlow EquivalentGasCavity::heatFlowDirection() const
     {
         const auto leftTemp = m_Side.at(Side::Left).temperature;
         const auto rightTemp = m_Side.at(Side::Right).temperature;
@@ -264,7 +270,7 @@ namespace HygroThermFEM
         return result;
     }
 
-    void EquivalentFrameCavity::setGravityVector(
+    void EquivalentGasCavity::setGravityVector(
       const FenestrationCommon::GravityVector & gravityVector)
     {
         m_GravityVector = gravityVector;
@@ -272,9 +278,9 @@ namespace HygroThermFEM
         updateSideTemperatures();
     }
 
-    EquivalentFrameCavity::Segment::Segment(const Node2D & node1,
-                                            const Node2D & node2,
-                                            double emissivity) :
+    EquivalentGasCavity::Segment::Segment(const Node2D & node1,
+                                          const Node2D & node2,
+                                          double emissivity) :
         node1(node1),
         node2(node2),
         m_Emissivity(emissivity),
@@ -283,8 +289,8 @@ namespace HygroThermFEM
         m_Side(calcSide(node1, node2))
     {}
 
-    EquivalentFrameCavity::Side EquivalentFrameCavity::Segment::calcSide(const Node2D & n1,
-                                                                         const Node2D & n2) const
+    EquivalentGasCavity::Side EquivalentGasCavity::Segment::calcSide(const Node2D & n1,
+                                                                     const Node2D & n2) const
     {
         const auto PI = 4 * std::atan(1);
         const auto angle = std::atan2((n2.Y() - n1.Y()), (n2.X() - n1.X()));
@@ -311,48 +317,48 @@ namespace HygroThermFEM
         return aSide;
     }
 
-    double EquivalentFrameCavity::Segment::emissivity() const
+    double EquivalentGasCavity::Segment::emissivity() const
     {
         return m_Emissivity;
     }
 
-    double EquivalentFrameCavity::Segment::length() const
+    double EquivalentGasCavity::Segment::length() const
     {
         return m_Length;
     }
 
-    double EquivalentFrameCavity::Segment::temperature() const
+    double EquivalentGasCavity::Segment::temperature() const
     {
         return 0.5
                * (node1.property(Variable::temperature) + node2.property(Variable::temperature));
     }
 
-    double EquivalentFrameCavity::Segment::crossCalc() const
+    double EquivalentGasCavity::Segment::crossCalc() const
     {
         return node1.X() * node2.Y() - node1.Y() * node2.X();
     }
 
-    const Node2D & EquivalentFrameCavity::Segment::firstNode() const
+    const Node2D & EquivalentGasCavity::Segment::firstNode() const
     {
         return node1;
     }
 
-    const EquivalentFrameCavity::Side & EquivalentFrameCavity::Segment::side() const
+    const EquivalentGasCavity::Side & EquivalentGasCavity::Segment::side() const
     {
         return m_Side;
     }
 
     ///////////////////////////////////////////////////////////////////////////////
-    ///  EquivalentFrameCavities
+    ///  EquivalentGasCavities
     ///////////////////////////////////////////////////////////////////////////////
 
-    EquivalentFrameCavities::EquivalentFrameCavities(const ElementsLinear2D & m_Elements) :
+    EquivalentGasCavities::EquivalentGasCavities(const ElementsLinear2D & m_Elements) :
         m_Elements(m_Elements)
     {
         createEquivalentFrameCavities();
     }
 
-    void EquivalentFrameCavities::createEquivalentFrameCavities()
+    void EquivalentGasCavities::createEquivalentFrameCavities()
     {
         auto frameCavities = MaterialPool::Instance().getGases();
 
@@ -372,8 +378,8 @@ namespace HygroThermFEM
         }
     }
 
-    std::set<EquivalentFrameCavities::line>
-      EquivalentFrameCavities::getEdges(const std::vector<std::vector<size_t>> & elNodes)
+    std::set<EquivalentGasCavities::line>
+      EquivalentGasCavities::getEdges(const std::vector<std::vector<size_t>> & elNodes)
     {
         std::map<std::set<size_t>, size_t> edges;
         std::set<line> allEdges;
@@ -406,7 +412,7 @@ namespace HygroThermFEM
         return allEdges;
     }
 
-    std::vector<size_t> EquivalentFrameCavities::edgeNodesOrdered(std::set<line> & allEdges)
+    std::vector<size_t> EquivalentGasCavities::edgeNodesOrdered(std::set<line> & allEdges)
     {
         std::vector<size_t> boundaryLine;
 
@@ -427,7 +433,7 @@ namespace HygroThermFEM
         return boundaryLine;
     }
 
-    void EquivalentFrameCavities::update()
+    void EquivalentGasCavities::update()
     {
         for(auto & cavity : m_Cavities)
         {
@@ -435,7 +441,7 @@ namespace HygroThermFEM
         }
     }
 
-    void EquivalentFrameCavities::setGravityVector(
+    void EquivalentGasCavities::setGravityVector(
       const FenestrationCommon::GravityVector & gravityVector)
     {
         for(auto & cavity : m_Cavities)
@@ -444,20 +450,20 @@ namespace HygroThermFEM
         }
     }
 
-    EquivalentFrameCavities::line::line(const size_t n1, const size_t n2) : n1(n1), n2(n2)
+    EquivalentGasCavities::line::line(const size_t n1, const size_t n2) : n1(n1), n2(n2)
     {}
 
-    size_t EquivalentFrameCavities::line::getN1() const
+    size_t EquivalentGasCavities::line::getN1() const
     {
         return n1;
     }
 
-    size_t EquivalentFrameCavities::line::getN2() const
+    size_t EquivalentGasCavities::line::getN2() const
     {
         return n2;
     }
 
-    bool EquivalentFrameCavities::line::operator<(const line & rhs) const
+    bool EquivalentGasCavities::line::operator<(const line & rhs) const
     {
         if(n1 < rhs.n1)
             return true;
@@ -466,17 +472,17 @@ namespace HygroThermFEM
         return n2 < rhs.n2;
     }
 
-    bool EquivalentFrameCavities::line::operator>(const line & rhs) const
+    bool EquivalentGasCavities::line::operator>(const line & rhs) const
     {
         return rhs < *this;
     }
 
-    bool EquivalentFrameCavities::line::operator<=(const line & rhs) const
+    bool EquivalentGasCavities::line::operator<=(const line & rhs) const
     {
         return !(rhs < *this);
     }
 
-    bool EquivalentFrameCavities::line::operator>=(const line & rhs) const
+    bool EquivalentGasCavities::line::operator>=(const line & rhs) const
     {
         return !(*this < rhs);
     }

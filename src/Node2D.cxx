@@ -114,7 +114,12 @@ namespace HygroThermFEM
     void Node2D::assignMaterial(const std::string & t_Material, double weightingCoefficient)
     {
         auto & material = MaterialPool::Instance().material(t_Material);
-        m_Materials.emplace(weightingCoefficient, material);
+        const auto isAlreadyThere{m_Materials.find(t_Material)};
+        if (isAlreadyThere != m_Materials.end())
+        {
+            m_Materials.at(t_Material).addWeight(weightingCoefficient);
+        }
+        m_Materials.emplace(t_Material, MaterialContainer{ weightingCoefficient, material });
         updateWaterContent();
     }
 
@@ -134,8 +139,8 @@ namespace HygroThermFEM
         // materials
         for(auto & val : m_Materials)
         {
-            sum += val.second.get().waterContent(*this) * val.first;
-            weighting += val.first;
+            sum += val.second.material.waterContent(*this) * val.second.weightingFactor;
+            weighting += val.second.weightingFactor;
         }
         if(weighting != 0)
         {
@@ -154,7 +159,7 @@ namespace HygroThermFEM
         std::vector<std::string> names;
         for(const auto & material : m_Materials)
         {
-            names.push_back(material.second.get().name());
+            names.push_back(material.first);
         }
         return names;
     }

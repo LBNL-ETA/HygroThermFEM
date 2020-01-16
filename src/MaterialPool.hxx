@@ -29,7 +29,7 @@ namespace HygroThermFEM
         IMaterial & createSolidMaterial(std::string Name);
 
         const IGas & createGas(const std::string & name,
-                               CavityStandard cavityStandard = CavityStandard::ISO15099);
+                               CavityStandard cavityStandard = CavityStandard::ISO15099, Gases::CGas gas = Gases::CGas());
 
         IMaterial & material(const std::string & name) const;
 

@@ -31,7 +31,7 @@ namespace HygroThermFEM
         Water & operator+=(const Water & other);
         Water & operator/(const double & other);
 
-        double content(WaterContent content) const;
+        [[nodiscard]] double content(WaterContent content) const;
 
     private:
         std::map<WaterContent, double> m_Content;
@@ -70,13 +70,13 @@ namespace HygroThermFEM
           double emissivity,
           bool isLinear = true);
 
-        IMaterial(std::string name);
+        IMaterial(std::string name, bool isLinear = true);
 
         //! Material's name.
-        std::string name() const;
+        [[nodiscard]] std::string name() const;
 
         //! Thermal conductivity of dry material
-        virtual double thermalConductivityDry() const final;
+        [[nodiscard]] virtual double thermalConductivityDry() const final;
 
         //! Sets material thermal conductivity to given value
         //!
@@ -84,10 +84,10 @@ namespace HygroThermFEM
         virtual void setThermalConductivity(double thermalConductivity) final;
 
         //! \brief Checks if value has been set
-        virtual bool hasThermalConductivityDry() const final;
+        [[nodiscard]] virtual bool hasThermalConductivityDry() const final;
 
         //! Material's density.
-        virtual double density() const final;
+        [[nodiscard]] virtual double density() const final;
 
         //! Sets material density to given value
         //!
@@ -95,10 +95,10 @@ namespace HygroThermFEM
         virtual void setDensity(double density) final;
 
         //! \brief Checks if value has been set
-        virtual bool hasDensity() const final;
+        [[nodiscard]] virtual bool hasDensity() const final;
 
         //! Material's specific heat capacity.
-        virtual double heatCapacity() const final;
+        [[nodiscard]] virtual double heatCapacity() const final;
 
         //! Sets material heat capacity to given value
         //!
@@ -106,10 +106,10 @@ namespace HygroThermFEM
         virtual void setHeatCapacity(double heatCapacity) final;
 
         //! \brief Checks if value has been set
-        virtual bool hasHeatCapacity() const final;
+        [[nodiscard]] virtual bool hasHeatCapacity() const final;
 
         //! Material's porosity.
-        virtual double porosity() const final;
+        [[nodiscard]] virtual double porosity() const final;
 
         //! Sets material porosity to given value
         //!
@@ -117,10 +117,10 @@ namespace HygroThermFEM
         virtual void setPorosity(double porosity) final;
 
         //! \brief Checks if value has been set
-        virtual bool hasPorosity() const final;
+        [[nodiscard]] virtual bool hasPorosity() const final;
 
         //! Returns material emissivity.
-        virtual double emissivity() const final;
+        [[nodiscard]] virtual double emissivity() const final;
 
         //! Sets material emissivity to given value
         //!
@@ -128,10 +128,10 @@ namespace HygroThermFEM
         virtual void setEmissivity(double emissivity) final;
 
         //! \brief Checks if value has been set
-        virtual bool hasEmissivity() const final;
+        [[nodiscard]] virtual bool hasEmissivity() const final;
 
         //! Material's diffusion resistance factor.
-        virtual double diffusionResistanceFactor() const final;
+        [[nodiscard]] virtual double diffusionResistanceFactor() const final;
 
         //! Sets material diffusion resistance factor to given value
         //!
@@ -140,13 +140,13 @@ namespace HygroThermFEM
         virtual void setDiffusionResistanceFactor(double diffusionResistanceFactor) final;
 
         //! \brief Checks if value has been set
-        virtual bool hasDiffusionResistanceFactor() const final;
+        [[nodiscard]] virtual bool hasDiffusionResistanceFactor() const final;
 
         //! Material can require nonlinear iterations.
-        virtual bool isLinear() const final;
+        [[nodiscard]] virtual bool isLinear() const final;
 
         //! Thermal conductivity table (x-water content [kg/m3], y-thermal conductivity[W/(mK)])
-        virtual TabularFunction2D thermalConductivityMoistureAndTemperatureDependent() const final;
+        [[nodiscard]] virtual TabularFunction2D thermalConductivityMoistureAndTemperatureDependent() const final;
 
         //! Sets thermal condctivity dependence on temperature and moisture
         //!
@@ -165,14 +165,14 @@ namespace HygroThermFEM
           double temperatureDependentMeasurementHumidity) final;
 
         //! \brief Checks if table has been set
-        virtual bool hasThermalConductivityMoistureAndTemperatureDependent() const final;
+        [[nodiscard]] virtual bool hasThermalConductivityMoistureAndTemperatureDependent() const final;
 
         //! \brief Liquid transportation curve of the material.
         //!
         //! Liquid transportation coefficient shows how
         //! much of water can be distributed through the material with certain water content
         //! (x-water content [kg/m3], y-water flow [m2/s]
-        virtual const std::vector<FenestrationCommon::point> &
+        [[nodiscard]] virtual const std::vector<FenestrationCommon::point> &
           liquidTransportationCurve() const final;
 
         //! \brief Sets material liquid transportation curve
@@ -183,14 +183,14 @@ namespace HygroThermFEM
           const std::vector<FenestrationCommon::point> & liquidTransportationCurve) final;
 
         //! \brief Checks if curve has been set
-        virtual bool hasLiquidTransportationCurve() const final;
+        [[nodiscard]] virtual bool hasLiquidTransportationCurve() const final;
 
         //! \brief Material's sorption curve.
         //!
         //! Sorption curve or moisture storage function show how
         //! much of water content is contained in the material at certain relative humidity
         //! (x-relative humidity [-], y-water content [kg/m3])
-        virtual const std::vector<FenestrationCommon::point> & sorptionCurve() const final;
+        [[nodiscard]] virtual const std::vector<FenestrationCommon::point> & sorptionCurve() const final;
 
         //! \brief Sets material's sorption curve
         //!
@@ -199,14 +199,14 @@ namespace HygroThermFEM
           setSorptionCurve(const std::vector<FenestrationCommon::point> & sorptionCurve) final;
 
         //! \brief Checks if curve has been set
-        virtual bool hasSorptionCurve() const final;
+        [[nodiscard]] virtual bool hasSorptionCurve() const final;
 
         //! \brief Water content in given node.
         //!
         //! \param node Node for which water content is required.
         //! \param waterContent Water content property (total, liquid, vapor or ice).
         //! \return Value of water content.
-        virtual Water waterContent(const INode2D & node) const = 0;
+        [[nodiscard]] virtual Water waterContent(const INode2D & node) const = 0;
 
         // Materials are stored in set that is used by other classes and that is why we need these
         // operators
@@ -216,6 +216,11 @@ namespace HygroThermFEM
         friend bool operator>=(const IMaterial & lhs, const IMaterial & rhs);
 
     protected:
+
+        //! Saturated vapor content calculations at given node. It is necessary
+        //! for water content calculations.
+        static double saturationConcentration(const INode2D & node);
+
         std::string m_Name;
         std::optional<double> m_ThermalConductivityDry{};
         std::optional<double> m_Density{};
@@ -249,19 +254,7 @@ namespace HygroThermFEM
     {
     public:
         IGas(std::string name,
-             double thermalConductivityDry,
-             double density,
-             double porosity,
-             double heatCapacity,
-             double diffusionResistanceFactor,
-             const std::vector<FenestrationCommon::point> & thermalConductivityMoistureDependent,
-             double moistureDependentMeasurementTemperature,
-             const std::vector<FenestrationCommon::point> & thermalConductivityTemperatureDependent,
-             double temperatureDependentMeasurementHumidity,
-             const std::vector<FenestrationCommon::point> & liquidTransportationCurve,
-             const std::vector<FenestrationCommon::point> & sorptionCurve,
-             double emissivity,
-             CavityStandard cavityStandard);
+             CavityStandard cavityStandard, Gases::CGas gas = Gases::CGas());
 
         //! \brief Some materials will require update of thermal conductivity within iterations.
         //! This virtual function requires update in every material type.
@@ -274,10 +267,30 @@ namespace HygroThermFEM
         //! \param diffusionResistanceFactor New value for diffusion resistance factor.
         virtual void updateDiffusionResistanceFactor(double diffusionResistanceFactor) = 0;
 
-        CavityStandard standard() const;
+        //! \brief Update sorption curve with new data
+        //!
+        //! \param saturationTemperature Temperature at which saturation will occur
+        virtual void updateSorptionCurve(double saturationTemperature) = 0;
+
+        [[nodiscard]] CavityStandard standard() const;
+
+        [[nodiscard]] Gases::CGas & getGas();
 
     private:
         CavityStandard m_CavityStandard;
+
+        Gases::CGas m_Gas;
+
+        static const double DefaultThermalConductivityDry;
+        static const double DefaultDensity;
+        static const double DefaultPorosity;
+        static const double DefaultHeatCapacity;
+        const static double DefaultDiffusionResistanceFactor;
+        const static std::vector<FenestrationCommon::point> DefaultSorptionCurve;
+        const static std::vector<FenestrationCommon::point> DefaultThermalConductivityMoistureDependent;
+        static const double DefaultMoistureDependentMeasurementTemperature;
+        const static std::vector<FenestrationCommon::point> DefaultThermalConductivityTemperatureDependent;
+        static const double DefaultTemperatureDependentMeasurementMoisture;
     };
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -300,20 +313,20 @@ namespace HygroThermFEM
         //! \param node Node for which water content is required.
         //! \param waterContent Water content property (total, liquid, vapor or ice).
         //! \return Value of water content.
-        Water waterContent(const INode2D & node) const override;
+        [[nodiscard]] Water waterContent(const INode2D & node) const override;
 
     private:
         //! Returns total water content in given node.
-        double totalWaterContent(const INode2D & node) const;
+        [[nodiscard]] double totalWaterContent(const INode2D & node) const;
 
         //! Returns vapor content in given node.
-        double vaporContent(const INode2D & node) const;
+        [[nodiscard]] double vaporContent(const INode2D & node) const;
 
         //! Returns liquid content in given node.
-        double liquidWaterContent(const INode2D & node) const;
+        [[nodiscard]] double liquidWaterContent(const INode2D & node) const;
 
         //! Returns ice content in given node.
-        double iceContent(const INode2D & node) const;
+        [[nodiscard]] double iceContent(const INode2D & node) const;
 
         //! \brief SolidMaterial construction is done through singleton class
         //!
@@ -351,15 +364,11 @@ namespace HygroThermFEM
 
         explicit SolidMaterial(std::string name);
 
-        //! Saturated vapor content calculations at given node. It is necessary
-        //! for water content calculations.
-        static double saturationConcentration(const INode2D & node);
-
         //! Calculates amount of pores filled with liquid. Necessary for water content calculations.
-        double liquidPorosity(const INode2D & node) const;
+        [[nodiscard]] double liquidPorosity(const INode2D & node) const;
 
         //! Calculates amount of pores filled with air. Necessary for water content calculations.
-        double airPorosity(const INode2D & node) const;
+        [[nodiscard]] double airPorosity(const INode2D & node) const;
     };
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -373,14 +382,16 @@ namespace HygroThermFEM
     public:
         Gas() = delete;
 
-        Gas(const std::string & name, CavityStandard cavityStandard = CavityStandard::ISO15099);
+        explicit Gas(const std::string & name, CavityStandard cavityStandard = CavityStandard::ISO15099, Gases::CGas gas = Gases::CGas());
 
         //! Water content for given node
         //!< param node Node for which water content is required.
-        Water waterContent(const INode2D & node) const override;
+        [[nodiscard]] Water waterContent(const INode2D & node) const override;
 
         void updateThermalConductivity(double thermalConductivity) override;
 
         void updateDiffusionResistanceFactor(double diffusionResistanceFactor) override;
+
+        void updateSorptionCurve(double saturationTemperature) override;        
     };
 }   // namespace HygroThermFEM
