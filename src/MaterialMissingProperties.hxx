@@ -21,7 +21,7 @@ namespace HygroThermFEM
         bool ThermalConductivityMoistureAndTemperatureDependent{false};
 
         //! \brief Returns human-readable message about missing properties
-        [[nodiscard]] std::string missingPropertiesMessage() const;
+        [[nodiscard]] std::vector<std::string> missingPropertiesMessage() const;
 
         bool isMissingAnyProperty() const;
     };

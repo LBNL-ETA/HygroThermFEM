@@ -5,51 +5,51 @@ namespace HygroThermFEM
     //////////////////////////////////////////////////////////////////////////
     ///  MaterialMissingProperties
     //////////////////////////////////////////////////////////////////////////
-    std::string MaterialMissingProperties::missingPropertiesMessage() const
+    std::vector<std::string> MaterialMissingProperties::missingPropertiesMessage() const
     {
-        std::string message{};
+        std::vector<std::string> message{};
         if(isMissingAnyProperty())
         {
-            message += "Material " + materialName + " is missing following properties:\n";
+            message.push_back("Material " + materialName + " is missing following properties:");
             if(Density)
             {
-                message += "- Density \n";
+                message.emplace_back("- Density");
             }
             if(Emissivity)
             {
-                message += "- Emissivity \n";
+                message.emplace_back("- Emissivity");
             }
             if(Porosity)
             {
-                message += "- Porosity \n";
+                message.emplace_back("- Porosity");
             }
             if(SpecificHeatCapacityDry)
             {
-                message += "- Specific Heat Capacity Dry \n";
+                message.emplace_back("- Specific Heat Capacity Dry");
             }
             if(ThermalConductivityDry)
             {
-                message += "- Thermal Conductivity Dry \n";
+                message.emplace_back("- Thermal Conductivity Dry");
             }
             if(WaterVaporDiffusionResistanceFactor)
             {
-                message += "- Water Vapor Diffusion Resistance Factor \n";
+                message.emplace_back("- Water Vapor Diffusion Resistance Factor");
             }
             if(MoistureStorageFunction)
             {
-                message += "- Moisture Storage Function \n";
+                message.emplace_back("- Moisture Storage Function");
             }
             if(LiquidTransportationSuction)
             {
-                message += "- Liquid Transportation Suction Curve \n";
+                message.emplace_back("- Liquid Transportation Suction Curve");
             }
             if(LiquidTransportationRedistribution)
             {
-                message += "- Liquid Transportation Redistribution Curve \n";
+                message.emplace_back("- Liquid Transportation Redistribution Curve");
             }
             if(ThermalConductivityMoistureAndTemperatureDependent)
             {
-                message += "- Thermal Conductivity Moisture and Temperature Dependent \n";
+                message.emplace_back("- Thermal Conductivity Moisture and Temperature Dependent");
             }
         }
         return message;
