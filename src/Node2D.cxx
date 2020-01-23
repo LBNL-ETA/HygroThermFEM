@@ -115,11 +115,11 @@ namespace HygroThermFEM
     {
         auto & material = MaterialPool::Instance().material(t_Material);
         const auto isAlreadyThere{m_Materials.find(t_Material)};
-        if (isAlreadyThere != m_Materials.end())
+        if(isAlreadyThere != m_Materials.end())
         {
             m_Materials.at(t_Material).addWeight(weightingCoefficient);
         }
-        m_Materials.emplace(t_Material, MaterialContainer{ weightingCoefficient, material });
+        m_Materials.emplace(t_Material, MaterialContainer{weightingCoefficient, material});
         updateWaterContent();
     }
 
@@ -139,8 +139,14 @@ namespace HygroThermFEM
         // materials
         for(auto & val : m_Materials)
         {
-            sum += val.second.material.waterContent(*this) * val.second.weightingFactor;
-            weighting += val.second.weightingFactor;
+            auto & material{val.second.material};
+            // Since material properties are optional, engine will not be able to update water
+            // content in case some properties are missing.
+            if(material.hasSorptionCurve() && material.hasPorosity())
+            {
+                sum += val.second.material.waterContent(*this) * val.second.weightingFactor;
+                weighting += val.second.weightingFactor;
+            }
         }
         if(weighting != 0)
         {
