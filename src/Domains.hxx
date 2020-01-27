@@ -68,6 +68,9 @@ namespace HygroThermFEM
         //! @param gravityVector Direction of gravity
         void setGravityVector(const FenestrationCommon::GravityVector & gravityVector);
 
+        //! \brief Deletes geometry and clears up boundary conditions.
+        void clearModel();
+
     protected:
         friend class MultiDomain;
 

@@ -20,6 +20,9 @@ namespace HygroThermFEM
         //! Simple constructor
         explicit BoundaryConditions2D();
 
+        //! Clearing boundary conditions
+        void clear();
+
         //! Making copy of boundary conditions container is not allowed. Since all changes
         //! and updates should be kept at one place.
         BoundaryConditions2D(const BoundaryConditions2D & other) = delete;

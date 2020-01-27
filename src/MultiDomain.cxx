@@ -388,6 +388,12 @@ namespace HygroThermFEM
         return result;
     }
 
+    void MultiDomain::clearModel()
+    {
+        m_ThermalDomain.clearModel();
+        m_MoistureDomain.clearModel();
+    }
+
     Solution::Solution(const double dtime,
                        std::vector<double> temperature,
                        std::vector<double> humidity,

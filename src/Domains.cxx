@@ -10,6 +10,7 @@
 #include "SimulationProperties.hxx"
 #include "NodePool.hxx"
 #include "TimestepData.hxx"
+#include "MaterialPool.hxx"
 
 namespace HygroThermFEM
 {
@@ -200,6 +201,13 @@ namespace HygroThermFEM
         {
             gasCavities->setGravityVector(gravityVector);
         }
+    }
+
+    void IDomain::clearModel()
+    {
+        NodePool::Instance().clear();
+        MaterialPool::Instance().clear();
+        m_BCs.clear();
     }
 
     void

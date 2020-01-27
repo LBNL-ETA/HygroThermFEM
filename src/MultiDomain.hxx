@@ -226,6 +226,9 @@ namespace HygroThermFEM
         //! \param observer
         void unsubscribeMoisture(Timesteps::TimestepObserver * observer);
 
+        //! \brief Deletes Geometry and boundary conditions
+        void clearModel();
+
 
     private:
         //! \brief Checks validity of materials for transient simulation
