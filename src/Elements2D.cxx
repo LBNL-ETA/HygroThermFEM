@@ -142,16 +142,15 @@ namespace HygroThermFEM
                       });
 
 #else
-        for (const auto & element : m_Elements)
+        for(const auto & element : m_Elements)
         {
             auto indexes = element->nodeIndexes();
             auto capacitance = element->capacitanceMatrices();
-            for (size_t i = 0; i < numOfQuadrilateralNodes; ++i)
+            for(size_t i = 0; i < numOfQuadrilateralNodes; ++i)
             {
-                for (size_t j = 0; j < numOfQuadrilateralNodes; ++j)
+                for(size_t j = 0; j < numOfQuadrilateralNodes; ++j)
                 {
-                    Capacitance(indexes[i] - 1, indexes[j] - 1) +=
-                        capacitance(i, j) / DTime;
+                    Capacitance(indexes[i] - 1, indexes[j] - 1) += capacitance(i, j) / DTime;
                 }
             }
         }
@@ -215,11 +214,11 @@ namespace HygroThermFEM
                       });
 
 #else
-        for (const auto & element : m_Elements)
+        for(const auto & element : m_Elements)
         {
             const auto indexes = element->nodeIndexes();
             const auto vecR = element->rightSideVector();
-            for (size_t i = 0; i < numOfQuadrilateralNodes; ++i)
+            for(size_t i = 0; i < numOfQuadrilateralNodes; ++i)
             {
                 result[indexes[i] - 1] += vecR[i];
             }
@@ -254,11 +253,11 @@ namespace HygroThermFEM
                       });
 
 #else
-        for (const auto & element : m_Elements)
+        for(const auto & element : m_Elements)
         {
             const auto indexes = element->nodeIndexes();
             const auto flux = element->flux();
-            for (size_t i = 0; i < numOfQuadrilateralNodes; ++i)
+            for(size_t i = 0; i < numOfQuadrilateralNodes; ++i)
             {
                 fluxes[indexes[i] - 1].push_back(flux[i]);
             }
@@ -287,6 +286,11 @@ namespace HygroThermFEM
     const std::vector<std::unique_ptr<IElementLinear2D>> & ElementsLinear2D::elements() const
     {
         return m_Elements;
+    }
+
+    void ElementsLinear2D::clearElements()
+    {
+        m_Elements.clear();
     }
 
 

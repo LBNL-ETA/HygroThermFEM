@@ -54,6 +54,9 @@ namespace HygroThermFEM
         //! \brief Returns all elements in the domain.
         const std::vector<std::unique_ptr<IElementLinear2D>> & elements() const;
 
+        //! \brief Clears elements to be ready for next simulation
+        void clearElements();
+
     protected:
         std::vector<std::unique_ptr<IElementLinear2D>> m_Elements;
     };

@@ -208,6 +208,7 @@ namespace HygroThermFEM
         NodePool::Instance().clear();
         MaterialPool::Instance().clear();
         m_BCs.clear();
+        m_Elements.clearElements();
     }
 
     void
