@@ -89,7 +89,7 @@ namespace HygroThermFEM
                 const auto & material = MaterialPool::Instance().material(materialName);
 
                 // This is possible if two frame cavities are next to each other
-                if (material.hasEmissivity())
+                if(material.hasEmissivity())
                 {
                     emissivity = material.emissivity();
                 }
@@ -123,8 +123,7 @@ namespace HygroThermFEM
         return m_Side.at(flowMap.at(screenFlow));
     }
 
-    std::string EquivalentGasCavity::findCommonMaterial(const Node2D & node1,
-                                                        const Node2D & node2)
+    std::string EquivalentGasCavity::findCommonMaterial(const Node2D & node1, const Node2D & node2)
     {
         std::string name;
         auto node1Materials = node1.getSolidMaterialNames();
@@ -270,8 +269,8 @@ namespace HygroThermFEM
         return result;
     }
 
-    void EquivalentGasCavity::setGravityVector(
-      const FenestrationCommon::GravityVector & gravityVector)
+    void
+      EquivalentGasCavity::setGravityVector(const FenestrationCommon::GravityVector & gravityVector)
     {
         m_GravityVector = gravityVector;
         calcSideEmissivities();
@@ -404,7 +403,10 @@ namespace HygroThermFEM
                 else
                 {
                     edges[edge] = 1u;
-                    allEdges.insert(line(index1, index2));
+                    if(index1 != index2)
+                    {
+                        allEdges.insert(line(index1, index2));
+                    }
                 }
             }
         }
