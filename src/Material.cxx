@@ -415,7 +415,11 @@ namespace HygroThermFEM
     {
         const auto waterContent = m_SorptionCurve->value(node);
         const auto maxWaterContent = m_SorptionCurve->maxY();
-        return waterContent / maxWaterContent * m_Porosity.value();
+        // In case when sorption curve is zero, then maximal water content will be zero and program
+        // should return zero for liquid porosity since it does not exist
+        const auto result{maxWaterContent != 0 ? waterContent / maxWaterContent * m_Porosity.value()
+                                               : 0};
+        return result;
     }
 
     double SolidMaterial::airPorosity(const INode2D & node) const
@@ -429,8 +433,8 @@ namespace HygroThermFEM
 
     Water Gas::waterContent(const INode2D & node) const
     {
-        const auto vaporConcentration = saturationConcentration(node)
-               * node.property(Variable::humidity);
+        const auto vaporConcentration =
+          saturationConcentration(node) * node.property(Variable::humidity);
         // Gas have only vapor concentration
         return {vaporConcentration, 0, vaporConcentration, 0};
     }
@@ -459,7 +463,8 @@ namespace HygroThermFEM
         last.y = vaporContent;
     }
 
-    Gas::Gas(const std::string & name, CavityStandard cavityStandard, Gases::CGas gas) : IGas(name, cavityStandard, gas)
+    Gas::Gas(const std::string & name, CavityStandard cavityStandard, Gases::CGas gas) :
+        IGas(name, cavityStandard, gas)
     {}
 
     Water::Water(double water, double liquid, double vapor, double ice) :
