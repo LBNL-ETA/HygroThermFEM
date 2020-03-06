@@ -70,7 +70,7 @@ TEST_F(MultiDomain_2D_NoMoistureStorageFunction, TestExample_1)
     const std::vector<FenestrationCommon::point> moistureStorageFunction = {{0, 0}};
 
     auto & material =
-      MaterialPool::Instance().createSolidMaterial("No liqud or vapor transport curves",
+      MaterialPool::Instance().createSolidMaterial("No liquid or vapor transport curves",
                                                    thermalConductivityDry,
                                                    density,
                                                    porosity,
