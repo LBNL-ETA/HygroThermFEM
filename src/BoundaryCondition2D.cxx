@@ -59,14 +59,14 @@ namespace HygroThermFEM
         return result;
     }
 
+    ////////////////////////////////////////////////////////
+    /// FixedConvectionCoefficient
+    ////////////////////////////////////////////////////////
+
     FixedConvectionCoefficient::FixedConvectionCoefficient(const INodes & nodes,
                                                            double ambientVariable) :
         IConvectiveCoefficient(nodes, ambientVariable)
     {}
-
-    ////////////////////////////////////////////////////////
-    /// FixedConvectionCoefficient
-    ////////////////////////////////////////////////////////
 
     std::vector<double> FixedConvectionCoefficient::convectiveCoefficients() const
     {

@@ -31,6 +31,8 @@ namespace HygroThermFEM
 
     protected:
         const INodes & m_Nodes;
+
+        //! \brief Ambient variable represents either convective film coefficient or ambient temperature
         const double m_AmbientVariable;
     };
 
