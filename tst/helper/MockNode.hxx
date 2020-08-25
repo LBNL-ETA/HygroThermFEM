@@ -23,7 +23,7 @@ namespace HygroThermFEM
     class MockNode2D final : public INode2D
     {
     public:
-        MockNode2D(size_t nodeNum, double t_x, double t_y);
+        MockNode2D(size_t nodeNum = 0, double t_x = 0, double t_y = 0);
 
         MockNode2D(size_t nodeNum, double t_x, double t_y, const std::vector<StateValues> & values);
 
@@ -43,5 +43,16 @@ namespace HygroThermFEM
 
     private:
         std::map<Variable, std::map<Timestep, double>> m_Property;
+    };
+
+    ////////////////////////////////////////////////////////////////////////////
+    ////   MockNodes2D
+    ////////////////////////////////////////////////////////////////////////////
+
+    class MockNodes2D : public INodes
+    {
+    public:
+        //! Container constructor
+        MockNodes2D(MockNode2D & t_Node1, MockNode2D & t_Node2);
     };
 }   // namespace HygroThermFEM

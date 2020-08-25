@@ -1,5 +1,7 @@
 #include "MockNode.hxx"
 
+// Mock classes for Node and Nodes so that we can test some functionality in real nodes.
+
 namespace HygroThermFEM
 {
     ////////////////////////////////////////////////////////////
@@ -52,5 +54,12 @@ namespace HygroThermFEM
     {}
 
     void MockNode2D::setStateProperty(BaseVariable, double, bool)
+    {}
+
+    ////////////////////////////////////////////////////////////////////////////
+    ////   MockNodes2D
+    ////////////////////////////////////////////////////////////////////////////
+    MockNodes2D::MockNodes2D(MockNode2D & t_Node1, MockNode2D & t_Node2) :
+      INodes{t_Node1, t_Node2}
     {}
 }   // namespace HygroThermFEM

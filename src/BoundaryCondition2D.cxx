@@ -6,6 +6,7 @@
 #include "VectorOperators.hxx"
 #include "Common.hxx"
 #include "SimulationProperties.hxx"
+#include "FEMMath.hxx"
 
 namespace HygroThermFEM
 {
@@ -79,7 +80,8 @@ namespace HygroThermFEM
         {
             result.push_back(
               std::max(minimumConvectionCoefficient,
-                       1.31 * std::pow(std::abs(temperature - m_AirTemperature), 1.0 / 3.0)));
+                       1.81 * std::pow(std::abs(temperature - m_AirTemperature), 1.0 / 3.0)
+                         / (1.382 - std::abs(std::cos(HygroThermFEM::radians(m_SurfaceTilt))))));
         }
         return result;
     }
@@ -179,8 +181,8 @@ namespace HygroThermFEM
         IConvectionBC(index1,
                       index2,
                       fixedBCHCCoefficients.AirTemperature,
-                      ConvectionModelFactory::createConstantFilmCoefficient(m_Nodes,
-                                                     fixedBCHCCoefficients.ConvectionCoefficient),
+                      ConvectionModelFactory::createConstantFilmCoefficient(
+                        m_Nodes, fixedBCHCCoefficients.ConvectionCoefficient),
                       fixedBCHCCoefficients.AirHumidity,
                       t_CalculateMoisture)
     {}
@@ -189,15 +191,16 @@ namespace HygroThermFEM
     /// TARPConvectionBC
     ////////////////////////////////////////////////////////
     TARPConvectionBC::TARPConvectionBC(size_t index1,
-                                               size_t index2,
-                                               const VariableBCHCCoefficients & varHCCoeff,
-                                               const bool t_CalculateMoisture) :
-        IConvectionBC(index1,
-                      index2,
-                      varHCCoeff.AirTemperature,
-                      ConvectionModelFactory::createTARPFilmCoefficient(m_Nodes, varHCCoeff.AirTemperature),
-                      varHCCoeff.AirHumidity,
-                      t_CalculateMoisture)
+                                       size_t index2,
+                                       const VariableBCHCCoefficients & varHCCoeff,
+                                       const bool t_CalculateMoisture) :
+        IConvectionBC(
+          index1,
+          index2,
+          varHCCoeff.AirTemperature,
+          ConvectionModelFactory::createTARPFilmCoefficient(m_Nodes, varHCCoeff.AirTemperature),
+          varHCCoeff.AirHumidity,
+          t_CalculateMoisture)
     {}
 
     ////////////////////////////////////////////////////////
@@ -350,16 +353,16 @@ namespace HygroThermFEM
     /// MoistureBCTARPHc
     /////////////////////////////////////////////////////
     MoistureBCTARPHc::MoistureBCTARPHc(size_t index1,
-                                               size_t index2,
-                                               const std::string & materialName,
-                                               const VariableBCHCCoefficients & varHCCoeff) :
-        IMoistureBC(index1,
-                    index2,
-                    materialName,
-                    varHCCoeff.AirHumidity,
-                    varHCCoeff.AirTemperature,
-                    ConvectionModelFactory::createTARPFilmCoefficient(
-                      m_Nodes, varHCCoeff.AirTemperature))
+                                       size_t index2,
+                                       const std::string & materialName,
+                                       const VariableBCHCCoefficients & varHCCoeff) :
+        IMoistureBC(
+          index1,
+          index2,
+          materialName,
+          varHCCoeff.AirHumidity,
+          varHCCoeff.AirTemperature,
+          ConvectionModelFactory::createTARPFilmCoefficient(m_Nodes, varHCCoeff.AirTemperature))
     {}
 
 
