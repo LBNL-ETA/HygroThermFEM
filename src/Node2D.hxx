@@ -217,7 +217,7 @@ namespace HygroThermFEM
         INodes(std::initializer_list<std::reference_wrapper<INode2D>> t_Nodes);
 
         //! Returns properties for all nodes in the storage.
-        std::vector<double>
+        [[nodiscard]] std::vector<double>
             properties(Variable property //!< Variable for which node values will be calculated.
                 ) const;
 
@@ -226,10 +226,10 @@ namespace HygroThermFEM
             ) const;
 
         //! Returns node indexes.
-        std::vector<std::size_t> getNodeIndexes() const;
+        [[nodiscard]] std::vector<std::size_t> getNodeIndexes() const;
 
         //! Returns number of nodes.
-        std::size_t size() const;
+        [[nodiscard]] std::size_t size() const;
 
     protected:
         //! Construction of node storage for boundary conditions.

@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "HygroThermFEM2D.hxx"
+#include "MockNode.hxx"
 
 using HygroThermFEM::Variable;
 using HygroThermFEM::State;
@@ -21,77 +22,6 @@ protected:
     void TearDown() override
     {}
 };
-
-// Mock object that will be used to test tables
-namespace HygroThermFEM
-{
-    struct StateValues
-    {
-        StateValues(const Variable variable, const double value, const double prevTimestep = 0) :
-            variable(variable),
-            value(value),
-            prevTimestep(prevTimestep)
-        {}
-
-        Variable variable{Variable::temperature};
-        double value{0};
-        double prevTimestep{0};
-    };    
-
-    class MockNode2D final : public INode2D
-    {
-    public:
-        MockNode2D(const size_t nodeNum, const double t_x, const double t_y) :
-            INode2D(nodeNum, t_x, t_y),
-            m_Property{{Variable::temperature, {{Timestep::Current, 0}, {Timestep::Previous, 0}}},
-                       {Variable::humidity, {{Timestep::Current, 0}, {Timestep::Previous, 0}}}}
-        {}
-
-        MockNode2D(const size_t nodeNum,
-                   const double t_x,
-                   const double t_y,
-                   const std::vector<StateValues> & values) :
-            INode2D(nodeNum, t_x, t_y)
-        {
-            for(const auto & val : values)
-            {
-                m_Property[val.variable] = {{Timestep::Current, val.value},
-                                            {Timestep::Previous, val.prevTimestep}};
-            }
-        }
-
-        ~MockNode2D() = default;
-        MockNode2D(const MockNode2D & mockNode) = default;
-        MockNode2D(MockNode2D && mockNode) = default;
-        MockNode2D & operator=(const MockNode2D &) = default;
-        MockNode2D & operator=(MockNode2D &&) = default;
-
-        void assignMaterial(const std::string &, double) override
-        {}
-
-        void setStateProperty(BaseVariable, double, bool) override
-        {}
-
-        explicit MockNode2D(const size_t nodeNum,
-                            const double t_x,
-                            const double t_y,
-                            const StateValues & values) :
-            INode2D(nodeNum, t_x, t_y),
-            m_Property{
-                {values.variable,
-                 {{Timestep::Current, values.value}, {Timestep::Previous, values.prevTimestep}}}}
-        {}
-
-        double property(Variable variable,
-                        const Timestep timestep = Timestep::Current) const override
-        {
-            return m_Property.at(variable).at(timestep);
-        }
-
-    private:
-        std::map<Variable, std::map<Timestep, double>> m_Property;
-    };
-} // namespace HygroThermFEM
 
 TEST_F(CurveTest, TestTabularLinear)
 {

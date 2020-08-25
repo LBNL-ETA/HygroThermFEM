@@ -71,6 +71,8 @@ target_link_libraries( ${target_name} PUBLIC KeffCavity)
 
 if (BUILD_HTFEM_TESTING)
     include_directories(include)
+    include_directories(tst/helper)
+    
     #set(google_disable_pthreads ON)
     # include(CMakeLists-GTest.txt)
     configure_file(CMakeListsGTest.txt.in ${CMAKE_BINARY_DIR}/googletest-download/CMakeLists.txt)
@@ -91,7 +93,7 @@ if (BUILD_HTFEM_TESTING)
     
     include_directories(${CMAKE_BINARY_DIR}/googletest-src/googletest ${CMAKE_BINARY_DIR}/googletest-src/googletest/include)    
 
-    file(GLOB all_test_src RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "tst/*.cxx")
+    file(GLOB all_test_src RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "tst/main.cxx" "tst/units/*.cxx" "tst/helper/*.hxx" "tst/helper/*.cxx")
     LIST(APPEND test_src ${all_test_src})
 
     CREATE_TEST_TARGETS_HTFEM(${target_name} "${test_src}" ${target_name})

@@ -36,7 +36,7 @@ namespace HygroThermFEM
         );
 
         //! Returns node indexes
-        std::vector<std::size_t> getNodeIndexes() const;
+        [[nodiscard]] std::vector<std::size_t> getNodeIndexes() const;
 
         //! Returns node with given index.
         INode2D & getNode(std::size_t index) const;
