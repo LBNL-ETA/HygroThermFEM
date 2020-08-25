@@ -7,7 +7,8 @@ namespace HygroThermFEM
     ///   LocalPoint1D
     ////////////////////////////////////////////////////////////////////////////
 
-    LocalPoint1D::LocalPoint1D(double const t_ksi) : ksi(t_ksi)
+    LocalPoint1D::LocalPoint1D(double const t_ksi) :
+        ksi(t_ksi)
     {}
 
     LocalPoint1D::LocalPoint1D(LocalPoint1D const & t_LocalPoint)
@@ -19,13 +20,50 @@ namespace HygroThermFEM
     ///   LocalPoint2D
     ////////////////////////////////////////////////////////////////////////////
 
-    LocalPoint2D::LocalPoint2D(double const t_ksi, double const t_eta) : ksi(t_ksi), eta(t_eta)
+    LocalPoint2D::LocalPoint2D(double const t_ksi, double const t_eta) :
+        ksi(t_ksi),
+        eta(t_eta)
     {}
 
     LocalPoint2D::LocalPoint2D(LocalPoint2D const & t_LocalPoint)
     {
         ksi = t_LocalPoint.ksi;
         eta = t_LocalPoint.eta;
+    }
+
+    INode2D::INode2D(std::size_t t_NodeNumber, double t_x, double t_y) :
+        m_NodeNumber(t_NodeNumber),
+        m_x(t_x),
+        m_y(t_y)
+    {}
+
+    bool operator==(const INode2D & first, const INode2D & second)
+    {
+        bool identical = true;
+        identical = identical && first.m_NodeNumber == second.m_NodeNumber;
+        identical = identical && first.m_x == second.m_x;
+        identical = identical && first.m_y == second.m_y;
+        return identical;
+    }
+
+    bool operator!=(const INode2D & first, const INode2D & second)
+    {
+        return !operator==(first, second);
+    }
+
+    size_t INode2D::getNodeNumber() const
+    {
+        return m_NodeNumber;
+    }
+
+    double INode2D::X() const
+    {
+        return m_x;
+    }
+
+    double INode2D::Y() const
+    {
+        return m_y;
     }
 
     ////////////////////////////////////////////////////////////////////////////
@@ -36,10 +74,7 @@ namespace HygroThermFEM
                    const double t_x,
                    const double t_y,
                    const State & t_State) :
-        INode2D(),
-        m_NodeNumber(t_NodeNumber),
-        m_x(t_x),
-        m_y(t_y),
+        INode2D(t_NodeNumber, t_x, t_y),
         m_State{{Timestep::Current, t_State}, {Timestep::Previous, t_State}},
         m_Water(calcWaterContent())
     {}
@@ -68,35 +103,6 @@ namespace HygroThermFEM
         return 0;
     }
 
-    bool operator==(const Node2D & first, const Node2D & second)
-    {
-        bool identical = true;
-        identical = identical && first.m_NodeNumber == second.m_NodeNumber;
-        identical = identical && first.m_x == second.m_x;
-        identical = identical && first.m_y == second.m_y;
-        return identical;
-    }
-
-    bool operator!=(const Node2D & first, const Node2D & second)
-    {
-        return !operator==(first, second);
-    }
-
-    size_t Node2D::getNodeNumber() const
-    {
-        return m_NodeNumber;
-    }
-
-    double Node2D::X() const
-    {
-        return m_x;
-    }
-
-    double Node2D::Y() const
-    {
-        return m_y;
-    }
-
     void Node2D::setStateProperty(const BaseVariable t_Property,
                                   double t_value,
                                   bool updatePreviousValue)
@@ -105,7 +111,7 @@ namespace HygroThermFEM
         if(updatePreviousValue)
         {
             m_State.at(Timestep::Previous)
-              .setValue(t_Property, m_State.at(Timestep::Current).getValue(t_Property));
+                   .setValue(t_Property, m_State.at(Timestep::Current).getValue(t_Property));
         }
         m_State.at(Timestep::Current).setValue(t_Property, t_value);
         updateWaterContent();
@@ -174,7 +180,8 @@ namespace HygroThermFEM
     ///   INodesStorage
     ////////////////////////////////////////////////////////////////////////////
 
-    INodes::INodes(std::initializer_list<std::reference_wrapper<Node2D>> t_Nodes) : m_Nodes(t_Nodes)
+    INodes::INodes(std::initializer_list<std::reference_wrapper<INode2D>> t_Nodes) :
+        m_Nodes(t_Nodes)
     {}
 
     INodes::INodes(Node2D & node1, Node2D & node2)
@@ -201,7 +208,7 @@ namespace HygroThermFEM
         return indexes;
     }
 
-    Node2D & INodes::operator[](const std::size_t index) const
+    INode2D & INodes::operator[](const std::size_t index) const
     {
         if(index >= m_Nodes.size())
         {
@@ -229,7 +236,8 @@ namespace HygroThermFEM
     ///   LineNodes2D
     ////////////////////////////////////////////////////////////////////////////
 
-    LineNodes2D::LineNodes2D(Node2D & t_Node1, Node2D & t_Node2) : INodes{t_Node1, t_Node2}
+    LineNodes2D::LineNodes2D(Node2D & t_Node1, Node2D & t_Node2) :
+        INodes{t_Node1, t_Node2}
     {}
 
     ////////////////////////////////////////////////////////////////////////////
@@ -242,4 +250,4 @@ namespace HygroThermFEM
                                                Node2D & t_Node4) :
         INodes({t_Node1, t_Node2, t_Node3, t_Node4})
     {}
-}   // namespace HygroThermFEM
+} // namespace HygroThermFEM

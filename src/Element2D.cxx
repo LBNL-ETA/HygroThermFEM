@@ -284,7 +284,7 @@ namespace HygroThermFEM
         return results;
     }
 
-    Node2D & IElementLinear2D::getNode(const std::size_t index) const
+    INode2D & IElementLinear2D::getNode(const std::size_t index) const
     {
         assert(index < m_Nodes.size());
         return m_Nodes[index];
