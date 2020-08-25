@@ -6,47 +6,34 @@
 
 namespace HygroThermFEM
 {
-    enum class ConvectionModel
-    {
-        Fixed,
-        Variable
-    };
-
     ////////////////////////////////////////////////////////
     /// IConvectiveCoefficient
     ////////////////////////////////////////////////////////
 
     //! \brief Interface for convective coefficient calculations
+    //!
+    //! The most important functionality of this interface is that it keeps all the nodes
+    //! associated with it.
     class IConvectiveCoefficient
     {
     public:
-        IConvectiveCoefficient(const INodes & nodes, double ambientVariable);
+        explicit IConvectiveCoefficient(const INodes & nodes);
         virtual ~IConvectiveCoefficient() = default;
         IConvectiveCoefficient(const IConvectiveCoefficient & other) = default;
         IConvectiveCoefficient(IConvectiveCoefficient && other) = default;
         IConvectiveCoefficient & operator=(const IConvectiveCoefficient & other) = delete;
         IConvectiveCoefficient & operator=(IConvectiveCoefficient && other) = delete;
-        virtual std::vector<double> convectiveCoefficients() const = 0;
-        std::vector<double> betaConv() const;
+        [[nodiscard]] virtual std::vector<double> convectiveCoefficients() const = 0;
+
+        //! \brief Water vapor transfer coefficient is always the same and it does not depend on
+        //! how convective film coefficient is calculated
+        //!
+        //! \return Array that contains calculated values for each node associated with the boundary
+        [[nodiscard]] std::vector<double> waterVaporTransferCoefficient() const;
 
     protected:
+        //! Nodes associated with the boundary
         const INodes & m_Nodes;
-
-        //! \brief Ambient variable represents either convective film coefficient or ambient temperature
-        const double m_AmbientVariable;
-    };
-
-    ////////////////////////////////////////////////////////
-    /// VariableConvectionCoefficient
-    ////////////////////////////////////////////////////////
-
-    //! \brief Convective heat transfer coefficient is calculated based on ambient temperature
-    class VariableConvectionCoefficient : public IConvectiveCoefficient
-    {
-    public:
-        VariableConvectionCoefficient(const INodes & nodes, double ambientVariable);
-
-        std::vector<double> convectiveCoefficients() const override;
     };
 
     ////////////////////////////////////////////////////////
@@ -56,9 +43,64 @@ namespace HygroThermFEM
     class FixedConvectionCoefficient : public IConvectiveCoefficient
     {
     public:
-        FixedConvectionCoefficient(const INodes & nodes, double ambientVariable);
+        FixedConvectionCoefficient(const INodes & nodes, double convectionFilmCoefficient);
 
-        std::vector<double> convectiveCoefficients() const override;
+        [[nodiscard]] std::vector<double> convectiveCoefficients() const override;
+
+    private:
+        double m_ConvectionFilmCoefficient;
+    };
+
+    ////////////////////////////////////////////////////////
+    /// IVariableConvectiveCoefficient
+    ////////////////////////////////////////////////////////
+
+    //! \brief Convective heat transfer coefficient is calculated based on ambient temperature
+    class IVariableConvectiveCoefficient : public IConvectiveCoefficient
+    {
+    public:
+        IVariableConvectiveCoefficient(const INodes & nodes,
+                                       double airTemperature,
+                                       double surfaceTilt = 0);
+
+    protected:
+        double m_AirTemperature{0};
+        double m_SurfaceTilt{0};
+    };
+
+    ////////////////////////////////////////////////////////
+    /// TARPFilmCoefficient
+    ////////////////////////////////////////////////////////
+
+    //! \brief Film coefficient calculated based on comprehensive natural convection model (TARP)
+    class TARPFilmCoefficient : public IVariableConvectiveCoefficient
+    {
+    public:
+        //! \brief TARP algorithm requires air temperature and surface tilt.
+        //!
+        //! \param nodes Nodes associated with the boundary
+        //! \param airTemperature Air temperature of the ambient [degrees Celsius]
+        //! \param surfaceTilt Surface tilt for which film coefficient is being calculated [degrees]
+        TARPFilmCoefficient(const INodes & nodes, double airTemperature, double surfaceTilt = 90);
+        [[nodiscard]] std::vector<double> convectiveCoefficients() const override;
+    };
+
+    ////////////////////////////////////////////////////////
+    /// ASHRAEInsideFilmCoefficient
+    ////////////////////////////////////////////////////////
+
+    class ASHRAEInsideFilmCoefficient : public IVariableConvectiveCoefficient
+    {
+    public:
+        ASHRAEInsideFilmCoefficient(const INodes & nodes,
+                                    double airTemperature,
+                                    double surfaceTilt,
+                                    double mSurfaceHeight);
+
+        [[nodiscard]] std::vector<double> convectiveCoefficients() const override;
+
+    private:
+        double m_SurfaceHeight;
     };
 
     ////////////////////////////////////////////////////////
@@ -70,7 +112,10 @@ namespace HygroThermFEM
     {
     public:
         static std::unique_ptr<IConvectiveCoefficient>
-          create(ConvectionModel model, const INodes & nodes, double ambientVariable);
+          createConstantFilmCoefficient(const INodes & nodes, double filmCoefficient);
+
+        static std::unique_ptr<IConvectiveCoefficient> createTARPFilmCoefficient(
+          const INodes & nodes, double airTemperature, double surfaceTilt = 90);
     };
 
     ////////////////////////////////////////////////////////
@@ -93,10 +138,10 @@ namespace HygroThermFEM
                       bool t_SimulateMoisture = true);
 
         //! Function that calculates right hand side vector.
-        std::vector<double> R_Vector() const override;
+        [[nodiscard]] std::vector<double> R_Vector() const override;
 
-        //! Function that calculates matrix.
-        SquareMatrix H_Matrix() const override;
+        //! Function that calculates H matrix.
+        [[nodiscard]] SquareMatrix H_Matrix() const override;
 
     protected:
         const double m_AirTemperature;
@@ -121,15 +166,15 @@ namespace HygroThermFEM
     };
 
     ////////////////////////////////////////////////////////
-    /// VariableConvectionBC
+    /// TARPConvectionBC
     ////////////////////////////////////////////////////////
-    class VariableConvectionBC : public IConvectionBC
+    class TARPConvectionBC : public IConvectionBC
     {
     public:
-        VariableConvectionBC(size_t index1,
-                             size_t index2,
-                             const VariableBCHCCoefficients & varHCCoeff,
-                             bool t_CalculateMoisture = true);
+        TARPConvectionBC(size_t index1,
+                         size_t index2,
+                         const VariableBCHCCoefficients & varHCCoeff,
+                         bool t_CalculateMoisture = true);
     };
 
     ////////////////////////////////////////////////////////
@@ -271,17 +316,17 @@ namespace HygroThermFEM
     };
 
     /////////////////////////////////////////////////////
-    /// MoistureBCCalculatedHc
+    /// MoistureBCTARPHc
     /////////////////////////////////////////////////////
 
     //! \brief Moisture boundary condition that calculates convective coefficient.
-    class MoistureBCVariableHc : public IMoistureBC
+    class MoistureBCTARPHc : public IMoistureBC
     {
     public:
-        MoistureBCVariableHc(size_t index1,
-                             size_t index2,
-                             const std::string & materialName,
-                             const VariableBCHCCoefficients & varHCCoeff);
+        MoistureBCTARPHc(size_t index1,
+                         size_t index2,
+                         const std::string & materialName,
+                         const VariableBCHCCoefficients & varHCCoeff);
     };
 
     /////////////////////////////////////////////////////

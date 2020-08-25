@@ -13,12 +13,10 @@ namespace HygroThermFEM
     /// IConvectiveCoefficient
     ////////////////////////////////////////////////////////
 
-    IConvectiveCoefficient::IConvectiveCoefficient(const INodes & nodes,
-                                                   const double ambientVariable) :
-        m_Nodes(nodes), m_AmbientVariable(ambientVariable)
+    IConvectiveCoefficient::IConvectiveCoefficient(const INodes & nodes) : m_Nodes(nodes)
     {}
 
-    std::vector<double> IConvectiveCoefficient::betaConv() const
+    std::vector<double> IConvectiveCoefficient::waterVaporTransferCoefficient() const
     {
         std::vector<double> beta(m_Nodes.size(), 0);
         for(std::size_t j = 0; j < numOfBCNodes; ++j)
@@ -38,15 +36,42 @@ namespace HygroThermFEM
     }
 
     ////////////////////////////////////////////////////////
-    /// VariableConvectionCoefficient
+    /// FixedConvectionCoefficient
     ////////////////////////////////////////////////////////
 
-    VariableConvectionCoefficient::VariableConvectionCoefficient(const INodes & nodes,
-                                                                 double ambientVariable) :
-        IConvectiveCoefficient(nodes, ambientVariable)
+    FixedConvectionCoefficient::FixedConvectionCoefficient(const INodes & nodes,
+                                                           double filmCoefficient) :
+        IConvectiveCoefficient(nodes), m_ConvectionFilmCoefficient(filmCoefficient)
     {}
 
-    std::vector<double> VariableConvectionCoefficient::convectiveCoefficients() const
+    std::vector<double> FixedConvectionCoefficient::convectiveCoefficients() const
+    {
+        std::vector<double> result(m_Nodes.size(), m_ConvectionFilmCoefficient);
+
+        return result;
+    }
+
+    ////////////////////////////////////////////////////////
+    /// IVariableConvectiveCoefficient
+    ////////////////////////////////////////////////////////
+
+    IVariableConvectiveCoefficient::IVariableConvectiveCoefficient(const INodes & nodes,
+                                                                   double airTemperature,
+                                                                   double surfaceTilt) :
+        IConvectiveCoefficient(nodes), m_AirTemperature(airTemperature), m_SurfaceTilt(surfaceTilt)
+    {}
+
+    ////////////////////////////////////////////////////////
+    /// TARPFilmCoefficient
+    ////////////////////////////////////////////////////////
+
+    TARPFilmCoefficient::TARPFilmCoefficient(const INodes & nodes,
+                                             double airTemperature,
+                                             double surfaceTilt) :
+        IVariableConvectiveCoefficient(nodes, airTemperature, surfaceTilt)
+    {}
+
+    std::vector<double> TARPFilmCoefficient::convectiveCoefficients() const
     {
         const auto minimumConvectionCoefficient = 3.0;
         std::vector<double> result;
@@ -54,41 +79,43 @@ namespace HygroThermFEM
         {
             result.push_back(
               std::max(minimumConvectionCoefficient,
-                       1.31 * std::pow(std::abs(temperature - m_AmbientVariable), 1.0 / 3.0)));
+                       1.31 * std::pow(std::abs(temperature - m_AirTemperature), 1.0 / 3.0)));
         }
         return result;
     }
 
     ////////////////////////////////////////////////////////
-    /// FixedConvectionCoefficient
+    /// ASHRAEInsideFilmCoefficient
     ////////////////////////////////////////////////////////
 
-    FixedConvectionCoefficient::FixedConvectionCoefficient(const INodes & nodes,
-                                                           double ambientVariable) :
-        IConvectiveCoefficient(nodes, ambientVariable)
+    ASHRAEInsideFilmCoefficient::ASHRAEInsideFilmCoefficient(const INodes & nodes,
+                                                             double airTemperature,
+                                                             double surfaceTilt,
+                                                             double mSurfaceHeight) :
+        IVariableConvectiveCoefficient(nodes, airTemperature, surfaceTilt),
+        m_SurfaceHeight(mSurfaceHeight)
     {}
 
-    std::vector<double> FixedConvectionCoefficient::convectiveCoefficients() const
+    std::vector<double> ASHRAEInsideFilmCoefficient::convectiveCoefficients() const
     {
-        std::vector<double> result(m_Nodes.size(), m_AmbientVariable);
-
-        return result;
+        return std::vector<double>();
     }
 
     ////////////////////////////////////////////////////////
     /// ConvectionModelFactory
     ////////////////////////////////////////////////////////
-    std::unique_ptr<IConvectiveCoefficient> ConvectionModelFactory::create(
-      const ConvectionModel model, const INodes & nodes, double ambientVariable)
+
+    std::unique_ptr<IConvectiveCoefficient>
+      ConvectionModelFactory::createConstantFilmCoefficient(const INodes & nodes,
+                                                            double filmCoefficient)
     {
-        switch(model)
-        {
-            case ConvectionModel::Fixed:
-                return std::make_unique<FixedConvectionCoefficient>(nodes, ambientVariable);
-            case ConvectionModel::Variable:
-                return std::make_unique<VariableConvectionCoefficient>(nodes, ambientVariable);
-        }
-        return nullptr;
+        return std::make_unique<FixedConvectionCoefficient>(nodes, filmCoefficient);
+    }
+
+    std::unique_ptr<IConvectiveCoefficient> ConvectionModelFactory::createTARPFilmCoefficient(
+      const INodes & nodes, double airTemperature, double surfaceTilt)
+    {
+        return std::make_unique<TARPFilmCoefficient>(nodes, airTemperature, surfaceTilt);
     }
 
     ////////////////////////////////////////////////////////
@@ -129,7 +156,8 @@ namespace HygroThermFEM
                    - humidity * saturationConcentrationAtTemperature(T))
                   * heatOfEvaporation(T);
             }
-            const auto vaporFluxEnergy = vaporLeak * m_ConvectiveCoeffCalc->betaConv();
+            const auto vaporFluxEnergy =
+              vaporLeak * m_ConvectiveCoeffCalc->waterVaporTransferCoefficient();
             rightHandSide = rightHandSide + vaporFluxEnergy;
         }
 
@@ -151,25 +179,23 @@ namespace HygroThermFEM
         IConvectionBC(index1,
                       index2,
                       fixedBCHCCoefficients.AirTemperature,
-                      ConvectionModelFactory::create(ConvectionModel::Fixed,
-                                                     m_Nodes,
+                      ConvectionModelFactory::createConstantFilmCoefficient(m_Nodes,
                                                      fixedBCHCCoefficients.ConvectionCoefficient),
                       fixedBCHCCoefficients.AirHumidity,
                       t_CalculateMoisture)
     {}
 
     ////////////////////////////////////////////////////////
-    /// VariableConvectionBC
+    /// TARPConvectionBC
     ////////////////////////////////////////////////////////
-    VariableConvectionBC::VariableConvectionBC(size_t index1,
+    TARPConvectionBC::TARPConvectionBC(size_t index1,
                                                size_t index2,
                                                const VariableBCHCCoefficients & varHCCoeff,
                                                const bool t_CalculateMoisture) :
         IConvectionBC(index1,
                       index2,
                       varHCCoeff.AirTemperature,
-                      ConvectionModelFactory::create(
-                        ConvectionModel::Variable, m_Nodes, varHCCoeff.AirTemperature),
+                      ConvectionModelFactory::createTARPFilmCoefficient(m_Nodes, varHCCoeff.AirTemperature),
                       varHCCoeff.AirHumidity,
                       t_CalculateMoisture)
     {}
@@ -301,7 +327,8 @@ namespace HygroThermFEM
     std::vector<double> IMoistureBC::R_Vector() const
     {
         const auto satOutside = saturationConcentrationAtTemperature(m_AirTemperature);
-        const auto gconv = m_ConvectiveCoeffCalc->betaConv() * satOutside * m_AirHumidity;
+        const auto gconv =
+          m_ConvectiveCoeffCalc->waterVaporTransferCoefficient() * satOutside * m_AirHumidity;
         return m_PsiVector * gconv;
     }
 
@@ -313,15 +340,16 @@ namespace HygroThermFEM
             const double T = m_Nodes[j].property(Variable::temperature);
             concentration[j] = saturationConcentrationAtTemperature(T);
         }
-        const auto vaporFlux = concentration * m_ConvectiveCoeffCalc->betaConv();
+        const auto vaporFlux =
+          concentration * m_ConvectiveCoeffCalc->waterVaporTransferCoefficient();
 
         return m_PsiPsiMatrix.mmultRows(vaporFlux);
     }
 
     /////////////////////////////////////////////////////
-    /// MoistureBCVariableHc
+    /// MoistureBCTARPHc
     /////////////////////////////////////////////////////
-    MoistureBCVariableHc::MoistureBCVariableHc(size_t index1,
+    MoistureBCTARPHc::MoistureBCTARPHc(size_t index1,
                                                size_t index2,
                                                const std::string & materialName,
                                                const VariableBCHCCoefficients & varHCCoeff) :
@@ -330,8 +358,8 @@ namespace HygroThermFEM
                     materialName,
                     varHCCoeff.AirHumidity,
                     varHCCoeff.AirTemperature,
-                    ConvectionModelFactory::create(
-                      ConvectionModel::Variable, m_Nodes, varHCCoeff.AirTemperature))
+                    ConvectionModelFactory::createTARPFilmCoefficient(
+                      m_Nodes, varHCCoeff.AirTemperature))
     {}
 
 
@@ -347,8 +375,8 @@ namespace HygroThermFEM
                     materialName,
                     fixedBchcCoefficients.AirHumidity,
                     fixedBchcCoefficients.AirTemperature,
-                    ConvectionModelFactory::create(ConvectionModel::Fixed,
-                                                   m_Nodes,
-                                                   fixedBchcCoefficients.ConvectionCoefficient))
+                    ConvectionModelFactory::createConstantFilmCoefficient(
+                      m_Nodes, fixedBchcCoefficients.ConvectionCoefficient))
     {}
+
 }   // namespace HygroThermFEM
