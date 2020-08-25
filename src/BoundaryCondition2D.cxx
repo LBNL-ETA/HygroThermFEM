@@ -104,11 +104,63 @@ namespace HygroThermFEM
     }
 
     ////////////////////////////////////////////////////////
+    /// IWindBasedConvectiveCoefficient
+    ////////////////////////////////////////////////////////
+
+    IWindBasedConvectiveCoefficient::IWindBasedConvectiveCoefficient(const INodes & nodes,
+                                                                     const double airTemperature,
+                                                                     const double windSpeed) :
+        IConvectiveCoefficient(nodes), m_AirTemperature(airTemperature), m_WindSpeed(windSpeed)
+    {}
+
+    ////////////////////////////////////////////////////////
+    /// ASHRAEOutsideFilmCoefficient
+    ////////////////////////////////////////////////////////
+
+    ASHRAEOutsideFilmCoefficient::ASHRAEOutsideFilmCoefficient(const INodes & nodes,
+                                                               const double windSpeed) :
+      IWindBasedConvectiveCoefficient(nodes, ASHRAEOutsideAirTemperature, windSpeed)
+    {}
+
+    std::vector<double> ASHRAEOutsideFilmCoefficient::convectiveCoefficients() const
+    {
+        std::vector<double> result;
+        for(size_t i = 0u; i < m_Nodes.size(); ++i)
+        {
+            result.push_back(4 + 4 * m_WindSpeed);
+        }
+        return result;
+    }
+
+    ////////////////////////////////////////////////////////
+    /// YazdanianKlemsFilmCoefficient
+    ////////////////////////////////////////////////////////
+
+    YazdanianKlemsFilmCoefficient::YazdanianKlemsFilmCoefficient(const INodes & nodes,
+                                                                 double airSpeed,
+                                                                 double windSpeed,
+                                                                 WindDirection direction) :
+      IWindBasedConvectiveCoefficient(nodes, airSpeed, windSpeed), m_Direction(direction)
+    {}
+
+    std::vector<double> YazdanianKlemsFilmCoefficient::convectiveCoefficients() const
+    {
+        std::vector<double> result;
+        for(const auto & temperature : m_Nodes.properties(Variable::temperature))
+        {
+            const auto first{std::pow(0.84 * std::pow(std::abs(temperature - m_AirTemperature), 0.33), 2)};
+            const auto second{std::pow(coeffs.at(m_Direction).A * std::pow(m_WindSpeed, coeffs.at(m_Direction).B), 2)};
+            result.push_back(std::pow(first + second, 0.5));
+        }
+        return result;
+    }
+
+    ////////////////////////////////////////////////////////
     /// ConvectionModelFactory
     ////////////////////////////////////////////////////////
 
     std::unique_ptr<IConvectiveCoefficient>
-      ConvectionModelFactory::createConstantFilmCoefficient(const INodes & nodes,
+      ConvectionModelFactory::createFixedFilmCoefficient(const INodes & nodes,
                                                             double filmCoefficient)
     {
         return std::make_unique<FixedConvectionCoefficient>(nodes, filmCoefficient);
@@ -118,6 +170,20 @@ namespace HygroThermFEM
       const INodes & nodes, double airTemperature, double surfaceTilt)
     {
         return std::make_unique<TARPFilmCoefficient>(nodes, airTemperature, surfaceTilt);
+    }
+
+    std::unique_ptr<IConvectiveCoefficient>
+      ConvectionModelFactory::createASHRAEOutsideFilmCoefficient(const INodes & nodes, double windSpeed)
+    {
+        return std::make_unique<ASHRAEOutsideFilmCoefficient>(nodes, windSpeed);
+    }
+    std::unique_ptr<IConvectiveCoefficient>
+      ConvectionModelFactory::createYazdanianKlemsFilmCoefficient(const INodes & nodes,
+                                                                  double airTemperature,
+                                                                  double windSpeed,
+                                                                  WindDirection direction)
+    {
+        return std::make_unique<YazdanianKlemsFilmCoefficient>(nodes, airTemperature, windSpeed, direction);
     }
 
     ////////////////////////////////////////////////////////
@@ -181,7 +247,7 @@ namespace HygroThermFEM
         IConvectionBC(index1,
                       index2,
                       fixedBCHCCoefficients.AirTemperature,
-                      ConvectionModelFactory::createConstantFilmCoefficient(
+                      ConvectionModelFactory::createFixedFilmCoefficient(
                         m_Nodes, fixedBCHCCoefficients.ConvectionCoefficient),
                       fixedBCHCCoefficients.AirHumidity,
                       t_CalculateMoisture)
@@ -378,8 +444,7 @@ namespace HygroThermFEM
                     materialName,
                     fixedBchcCoefficients.AirHumidity,
                     fixedBchcCoefficients.AirTemperature,
-                    ConvectionModelFactory::createConstantFilmCoefficient(
+                    ConvectionModelFactory::createFixedFilmCoefficient(
                       m_Nodes, fixedBchcCoefficients.ConvectionCoefficient))
     {}
-
 }   // namespace HygroThermFEM
