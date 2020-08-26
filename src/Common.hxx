@@ -7,7 +7,7 @@ namespace HygroThermFEM
     //! \brief Conversion of temperature from Celsius to Kelvin
     //!
     //! \param temperature Input temperature in degrees Celsius
-    inline double toKelvin(const double temperature)
+    inline double celsiusToKelvin(const double temperature)
     {
         return temperature + 273.15;
     }
@@ -21,6 +21,7 @@ namespace Constants
     static const double PI_HTF = atan(1) * 4;
     static const double STEFANBOLTZMANN = 5.6697E-8;
     static const double ABSOLUTEZERO = -273.15;
+    static const double GravityConstant = 9.807;
 
     // Need to handle phase change through steep function. Melting is happening
     // between IcePoint and FreezingPoint

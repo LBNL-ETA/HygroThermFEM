@@ -82,17 +82,61 @@ namespace HygroThermFEM
 
     ASHRAEInsideFilmCoefficient::ASHRAEInsideFilmCoefficient(const INodes & nodes,
                                                              double airTemperature,
+                                                             double airPressure,
                                                              double surfaceTilt,
                                                              double mSurfaceHeight) :
         IConvectiveCoefficient(nodes),
-        m_AirTemperature(airTemperature),
-        m_SuraceTilt(surfaceTilt),
+        m_AirTemperature(celsiusToKelvin(airTemperature)),   // Note that algorithm require Kelvins
+        m_AirPressure(airPressure),
+        m_SurfaceTilt(surfaceTilt),
         m_SurfaceHeight(mSurfaceHeight)
     {}
 
     std::vector<double> ASHRAEInsideFilmCoefficient::convectiveCoefficients() const
     {
-        return std::vector<double>();
+        std::vector<double> result;
+        const auto surfaceTiltRad{radians(m_SurfaceTilt)};
+        for(const auto & temperature : m_Nodes.properties(Variable::temperature))
+        {
+            const double tMean{m_AirTemperature + 0.25 * (celsiusToKelvin(temperature) - m_AirTemperature)};
+            const double deltaT{std::abs(m_AirTemperature - celsiusToKelvin(temperature))};
+            Gases::CGas gas;
+            gas.setTemperatureAndPressure(tMean, m_AirPressure);
+            const auto prop{gas.getGasProperties()};
+            const auto gr{Constants::GravityConstant * std::pow(m_SurfaceHeight, 3) * deltaT
+                          * std::pow(prop.m_Density, 2) / (tMean * std::pow(prop.m_Viscosity, 2))};
+            const auto RaCrit{
+              2.5e5 * std::pow((std::exp(0.72 * m_SurfaceTilt) / std::sin(surfaceTiltRad)), 0.2)};
+            const auto RaL{gr * prop.m_PrandlNumber};
+
+            auto Gnui{0.0};
+            if(m_SurfaceTilt >= 0 && m_SurfaceTilt < 15.0)
+            {
+                Gnui = 0.13 * std::pow(RaL, 1.0 / 3.0);
+            }
+            else if(m_SurfaceTilt >= 0 && m_SurfaceTilt <= 90.0)
+            {
+                if(RaL <= RaCrit)
+                {
+                    Gnui = 0.56 * std::pow((RaL * std::sin(surfaceTiltRad)), 0.25);
+                }
+                else
+                {
+                    Gnui = 0.13 * (std::pow(RaL, 1.0 / 3.0) - std::pow(RaCrit, 1.0 / 3.0))
+                           + 0.56 * std::pow((RaCrit * std::sin(surfaceTiltRad)), 0.25);
+                }
+            }
+            else if(m_SurfaceTilt > 90 && m_SurfaceTilt <= 179.0)
+            {
+                Gnui = 0.56 * std::pow((RaL * std::sin(surfaceTiltRad)), 0.25);
+            }
+            else if(m_SurfaceTilt > 179 && m_SurfaceTilt <= 180.0)
+            {
+                Gnui = 0.58 * std::pow(RaL, 1.0 / 3.0);
+            }
+            result.push_back(Gnui * (prop.m_ThermalConductivity / m_SurfaceHeight));
+        }
+        return result;
     }
 
     ////////////////////////////////////////////////////////
@@ -157,8 +201,7 @@ namespace HygroThermFEM
         std::vector<double> result;
         std::map<WindDirection, double> Vc{
           {WindDirection::Windward, m_WindSpeed > 2 ? 0.25 * m_WindSpeed : 0.5 * m_WindSpeed},
-          {WindDirection::Leeward, 0.3 + 0.05 * m_WindSpeed}
-        };
+          {WindDirection::Leeward, 0.3 + 0.05 * m_WindSpeed}};
         const auto filmCoefficient{4.7 + 7.6 * Vc.at(m_Direction)};
 
         for(auto i = 0u; i < m_Nodes.size(); ++i)
@@ -208,6 +251,17 @@ namespace HygroThermFEM
         return std::make_unique<KimuraFilmCoefficient>(nodes, windSpeed, direction);
     }
 
+    std::unique_ptr<IConvectiveCoefficient>
+      ConvectionModelFactory::createASHRAEInsideFilmCoefficient(const INodes & nodes,
+                                                                double airTemperature,
+                                                                double surfaceTilt,
+                                                                double surfaceHeight,
+                                                                double airPressure)
+    {
+        return std::make_unique<ASHRAEInsideFilmCoefficient>(
+          nodes, airTemperature, airPressure, surfaceTilt, surfaceHeight);
+    }
+
     ////////////////////////////////////////////////////////
     /// IConvectionBC
     ////////////////////////////////////////////////////////
@@ -232,7 +286,8 @@ namespace HygroThermFEM
         const auto excludeHeatOfEvaporation =
           SimulationProperties::Instance().excludeHeatOfEvaporation();
         // Moisture is dumping some energy into domain. However, it is possible that user
-        // choose not to simulate moisture in which case energy should not be included in simulation
+        // choose not to simulate moisture in which case energy should not be included in
+        // simulation
         if(m_SimulateMoisture && !excludeHeatOfEvaporation)
         {
             // Vapor leaking part is added here
@@ -359,8 +414,8 @@ namespace HygroThermFEM
         std::vector<double> result(numOfBCNodes, 0);
         for(std::size_t j = 0; j < numOfBCNodes; ++j)
         {
-            const double T = toKelvin(m_Nodes[j].property(Variable::temperature));
-            const double Trad = toKelvin(m_RadiationTemperature);
+            const double T = celsiusToKelvin(m_Nodes[j].property(Variable::temperature));
+            const double Trad = celsiusToKelvin(m_RadiationTemperature);
             result[j] =
               (T + Trad) * (Trad * Trad + T * T) * Constants::STEFANBOLTZMANN * m_Emissivity;
         }

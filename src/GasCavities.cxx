@@ -230,7 +230,7 @@ namespace HygroThermFEM
             for(const auto & segment : side.second)
             {
                 length.at(aSide) += segment.length();
-                temperatureLength.at(aSide) += segment.length() * toKelvin(segment.temperature());
+                temperatureLength.at(aSide) += segment.length() * celsiusToKelvin(segment.temperature());
             }
         }
 

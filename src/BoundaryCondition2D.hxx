@@ -81,14 +81,16 @@ namespace HygroThermFEM
     public:
         ASHRAEInsideFilmCoefficient(const INodes & nodes,
                                     double airTemperature,
+                                    double airPressure,
                                     double surfaceTilt,
-                                    double mSurfaceHeight);
+                                    double surfaceHeight);
 
         [[nodiscard]] std::vector<double> convectiveCoefficients() const override;
 
     private:
         double m_AirTemperature;
-        double m_SuraceTilt;
+        double m_AirPressure;
+        double m_SurfaceTilt;
         double m_SurfaceHeight;
     };
 
@@ -174,6 +176,13 @@ namespace HygroThermFEM
 
         static std::unique_ptr<IConvectiveCoefficient>
           createASHRAEOutsideFilmCoefficient(const INodes & nodes, double windSpeed);
+
+        static std::unique_ptr<IConvectiveCoefficient>
+          createASHRAEInsideFilmCoefficient(const INodes & nodes,
+                                            double airTemperature,
+                                            double surfaceTilt,
+                                            double surfaceHeight,
+                                            double airPressure = 101325);
 
         static std::unique_ptr<IConvectiveCoefficient> createYazdanianKlemsFilmCoefficient(
           const INodes & nodes, double airTemperature, double windSpeed, WindDirection direction);
