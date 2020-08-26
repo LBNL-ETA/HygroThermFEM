@@ -52,28 +52,11 @@ namespace HygroThermFEM
     };
 
     ////////////////////////////////////////////////////////
-    /// IVariableConvectiveCoefficient
-    ////////////////////////////////////////////////////////
-
-    //! \brief Convective heat transfer coefficient is calculated based on ambient temperature
-    class IVariableConvectiveCoefficient : public IConvectiveCoefficient
-    {
-    public:
-        IVariableConvectiveCoefficient(const INodes & nodes,
-                                       double airTemperature,
-                                       double surfaceTilt = 0);
-
-    protected:
-        double m_AirTemperature{0};
-        double m_SurfaceTilt{0};
-    };
-
-    ////////////////////////////////////////////////////////
     /// TARPFilmCoefficient
     ////////////////////////////////////////////////////////
 
     //! \brief Film coefficient calculated based on comprehensive natural convection model (TARP)
-    class TARPFilmCoefficient : public IVariableConvectiveCoefficient
+    class TARPFilmCoefficient : public IConvectiveCoefficient
     {
     public:
         //! \brief TARP algorithm requires air temperature and surface tilt.
@@ -83,13 +66,17 @@ namespace HygroThermFEM
         //! \param surfaceTilt Surface tilt for which film coefficient is being calculated [degrees]
         TARPFilmCoefficient(const INodes & nodes, double airTemperature, double surfaceTilt = 90);
         [[nodiscard]] std::vector<double> convectiveCoefficients() const override;
+
+    private:
+        double m_AirTemperature;
+        double m_SurfaceTilt;
     };
 
     ////////////////////////////////////////////////////////
     /// ASHRAEInsideFilmCoefficient
     ////////////////////////////////////////////////////////
 
-    class ASHRAEInsideFilmCoefficient : public IVariableConvectiveCoefficient
+    class ASHRAEInsideFilmCoefficient : public IConvectiveCoefficient
     {
     public:
         ASHRAEInsideFilmCoefficient(const INodes & nodes,
@@ -100,42 +87,24 @@ namespace HygroThermFEM
         [[nodiscard]] std::vector<double> convectiveCoefficients() const override;
 
     private:
+        double m_AirTemperature;
+        double m_SuraceTilt;
         double m_SurfaceHeight;
-    };
-
-    ////////////////////////////////////////////////////////
-    /// IWindBasedConvectiveCoefficient
-    ////////////////////////////////////////////////////////
-
-    //! \brief Convective heat transfer coefficient is calculated based on wind speed and/or air
-    //! temperature
-    class IWindBasedConvectiveCoefficient : public IConvectiveCoefficient
-    {
-    public:
-        IWindBasedConvectiveCoefficient(const INodes & nodes,
-                                        double airTemperature,
-                                        double windSpeed = 0);
-
-    protected:
-        double m_AirTemperature{0};
-        double m_WindSpeed{0};
     };
 
     ////////////////////////////////////////////////////////
     /// ASHRAEOutsideFilmCoefficient
     ////////////////////////////////////////////////////////
 
-    class ASHRAEOutsideFilmCoefficient : public IWindBasedConvectiveCoefficient
+    class ASHRAEOutsideFilmCoefficient : public IConvectiveCoefficient
     {
-    private:
-        //! Base interface is using air temperature. However, ASHRAE outside film coefficient is not
-        //! using air temperature
-        const double ASHRAEOutsideAirTemperature{0};
-
     public:
         ASHRAEOutsideFilmCoefficient(const INodes & nodes, double windSpeed);
 
         [[nodiscard]] std::vector<double> convectiveCoefficients() const override;
+
+    private:
+        double m_WindSpeed;
     };
 
     enum class WindDirection
@@ -148,7 +117,7 @@ namespace HygroThermFEM
     /// YazdanianKlemsFilmCoefficient
     ////////////////////////////////////////////////////////
 
-    class YazdanianKlemsFilmCoefficient : public IWindBasedConvectiveCoefficient
+    class YazdanianKlemsFilmCoefficient : public IConvectiveCoefficient
     {
     public:
         YazdanianKlemsFilmCoefficient(const INodes & nodes,
@@ -156,9 +125,11 @@ namespace HygroThermFEM
                                       double windSpeed,
                                       WindDirection direction);
 
-        std::vector<double> convectiveCoefficients() const override;
+        [[nodiscard]] std::vector<double> convectiveCoefficients() const override;
 
     private:
+        double m_AirTemperature;
+        double m_WindSpeed;
         WindDirection m_Direction;
 
         struct Coeffs
@@ -169,6 +140,22 @@ namespace HygroThermFEM
 
         std::map<WindDirection, Coeffs> coeffs{{WindDirection::Windward, {2.38, 0.89}},
                                                {WindDirection::Leeward, {2.86, 0.617}}};
+    };
+
+    ////////////////////////////////////////////////////////
+    /// KimuraFilmCoefficient
+    ////////////////////////////////////////////////////////
+
+    class KimuraFilmCoefficient : public IConvectiveCoefficient
+    {
+    public:
+        KimuraFilmCoefficient(const INodes & nodes, double mWindSpeed, WindDirection mDirection);
+
+        std::vector<double> convectiveCoefficients() const override;
+
+    private:
+        double m_WindSpeed;
+        WindDirection m_Direction;
     };
 
     ////////////////////////////////////////////////////////
@@ -190,6 +177,9 @@ namespace HygroThermFEM
 
         static std::unique_ptr<IConvectiveCoefficient> createYazdanianKlemsFilmCoefficient(
           const INodes & nodes, double airTemperature, double windSpeed, WindDirection direction);
+
+        static std::unique_ptr<IConvectiveCoefficient> createKimuraFilmCoefficient(
+          const INodes & nodes, double windSpeed, WindDirection direction);
     };
 
     ////////////////////////////////////////////////////////

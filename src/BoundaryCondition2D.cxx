@@ -53,23 +53,13 @@ namespace HygroThermFEM
     }
 
     ////////////////////////////////////////////////////////
-    /// IVariableConvectiveCoefficient
-    ////////////////////////////////////////////////////////
-
-    IVariableConvectiveCoefficient::IVariableConvectiveCoefficient(const INodes & nodes,
-                                                                   double airTemperature,
-                                                                   double surfaceTilt) :
-        IConvectiveCoefficient(nodes), m_AirTemperature(airTemperature), m_SurfaceTilt(surfaceTilt)
-    {}
-
-    ////////////////////////////////////////////////////////
     /// TARPFilmCoefficient
     ////////////////////////////////////////////////////////
 
     TARPFilmCoefficient::TARPFilmCoefficient(const INodes & nodes,
                                              double airTemperature,
                                              double surfaceTilt) :
-        IVariableConvectiveCoefficient(nodes, airTemperature, surfaceTilt)
+        IConvectiveCoefficient(nodes), m_AirTemperature(airTemperature), m_SurfaceTilt(surfaceTilt)
     {}
 
     std::vector<double> TARPFilmCoefficient::convectiveCoefficients() const
@@ -94,7 +84,9 @@ namespace HygroThermFEM
                                                              double airTemperature,
                                                              double surfaceTilt,
                                                              double mSurfaceHeight) :
-        IVariableConvectiveCoefficient(nodes, airTemperature, surfaceTilt),
+        IConvectiveCoefficient(nodes),
+        m_AirTemperature(airTemperature),
+        m_SuraceTilt(surfaceTilt),
         m_SurfaceHeight(mSurfaceHeight)
     {}
 
@@ -104,22 +96,12 @@ namespace HygroThermFEM
     }
 
     ////////////////////////////////////////////////////////
-    /// IWindBasedConvectiveCoefficient
-    ////////////////////////////////////////////////////////
-
-    IWindBasedConvectiveCoefficient::IWindBasedConvectiveCoefficient(const INodes & nodes,
-                                                                     const double airTemperature,
-                                                                     const double windSpeed) :
-        IConvectiveCoefficient(nodes), m_AirTemperature(airTemperature), m_WindSpeed(windSpeed)
-    {}
-
-    ////////////////////////////////////////////////////////
     /// ASHRAEOutsideFilmCoefficient
     ////////////////////////////////////////////////////////
 
     ASHRAEOutsideFilmCoefficient::ASHRAEOutsideFilmCoefficient(const INodes & nodes,
                                                                const double windSpeed) :
-      IWindBasedConvectiveCoefficient(nodes, ASHRAEOutsideAirTemperature, windSpeed)
+        IConvectiveCoefficient(nodes), m_WindSpeed(windSpeed)
     {}
 
     std::vector<double> ASHRAEOutsideFilmCoefficient::convectiveCoefficients() const
@@ -137,10 +119,13 @@ namespace HygroThermFEM
     ////////////////////////////////////////////////////////
 
     YazdanianKlemsFilmCoefficient::YazdanianKlemsFilmCoefficient(const INodes & nodes,
-                                                                 double airSpeed,
+                                                                 double airTemperature,
                                                                  double windSpeed,
                                                                  WindDirection direction) :
-      IWindBasedConvectiveCoefficient(nodes, airSpeed, windSpeed), m_Direction(direction)
+        IConvectiveCoefficient(nodes),
+        m_AirTemperature(airTemperature),
+        m_WindSpeed(windSpeed),
+        m_Direction(direction)
     {}
 
     std::vector<double> YazdanianKlemsFilmCoefficient::convectiveCoefficients() const
@@ -148,9 +133,37 @@ namespace HygroThermFEM
         std::vector<double> result;
         for(const auto & temperature : m_Nodes.properties(Variable::temperature))
         {
-            const auto first{std::pow(0.84 * std::pow(std::abs(temperature - m_AirTemperature), 0.33), 2)};
-            const auto second{std::pow(coeffs.at(m_Direction).A * std::pow(m_WindSpeed, coeffs.at(m_Direction).B), 2)};
+            const auto first{
+              std::pow(0.84 * std::pow(std::abs(temperature - m_AirTemperature), 0.33), 2)};
+            const auto second{std::pow(
+              coeffs.at(m_Direction).A * std::pow(m_WindSpeed, coeffs.at(m_Direction).B), 2)};
             result.push_back(std::pow(first + second, 0.5));
+        }
+        return result;
+    }
+
+    ////////////////////////////////////////////////////////
+    /// KimuraFilmCoefficient
+    ////////////////////////////////////////////////////////
+
+    KimuraFilmCoefficient::KimuraFilmCoefficient(const INodes & nodes,
+                                                 double mWindSpeed,
+                                                 WindDirection mDirection) :
+        IConvectiveCoefficient(nodes), m_WindSpeed(mWindSpeed), m_Direction(mDirection)
+    {}
+
+    std::vector<double> KimuraFilmCoefficient::convectiveCoefficients() const
+    {
+        std::vector<double> result;
+        std::map<WindDirection, double> Vc{
+          {WindDirection::Windward, m_WindSpeed > 2 ? 0.25 * m_WindSpeed : 0.5 * m_WindSpeed},
+          {WindDirection::Leeward, 0.3 + 0.05 * m_WindSpeed}
+        };
+        const auto filmCoefficient{4.7 + 7.6 * Vc.at(m_Direction)};
+
+        for(auto i = 0u; i < m_Nodes.size(); ++i)
+        {
+            result.push_back(filmCoefficient);
         }
         return result;
     }
@@ -161,7 +174,7 @@ namespace HygroThermFEM
 
     std::unique_ptr<IConvectiveCoefficient>
       ConvectionModelFactory::createFixedFilmCoefficient(const INodes & nodes,
-                                                            double filmCoefficient)
+                                                         double filmCoefficient)
     {
         return std::make_unique<FixedConvectionCoefficient>(nodes, filmCoefficient);
     }
@@ -173,17 +186,26 @@ namespace HygroThermFEM
     }
 
     std::unique_ptr<IConvectiveCoefficient>
-      ConvectionModelFactory::createASHRAEOutsideFilmCoefficient(const INodes & nodes, double windSpeed)
+      ConvectionModelFactory::createASHRAEOutsideFilmCoefficient(const INodes & nodes,
+                                                                 double windSpeed)
     {
         return std::make_unique<ASHRAEOutsideFilmCoefficient>(nodes, windSpeed);
     }
+
     std::unique_ptr<IConvectiveCoefficient>
       ConvectionModelFactory::createYazdanianKlemsFilmCoefficient(const INodes & nodes,
                                                                   double airTemperature,
                                                                   double windSpeed,
                                                                   WindDirection direction)
     {
-        return std::make_unique<YazdanianKlemsFilmCoefficient>(nodes, airTemperature, windSpeed, direction);
+        return std::make_unique<YazdanianKlemsFilmCoefficient>(
+          nodes, airTemperature, windSpeed, direction);
+    }
+
+    std::unique_ptr<IConvectiveCoefficient> ConvectionModelFactory::createKimuraFilmCoefficient(
+      const INodes & nodes, double windSpeed, WindDirection direction)
+    {
+        return std::make_unique<KimuraFilmCoefficient>(nodes, windSpeed, direction);
     }
 
     ////////////////////////////////////////////////////////
@@ -447,4 +469,5 @@ namespace HygroThermFEM
                     ConvectionModelFactory::createFixedFilmCoefficient(
                       m_Nodes, fixedBchcCoefficients.ConvectionCoefficient))
     {}
+
 }   // namespace HygroThermFEM

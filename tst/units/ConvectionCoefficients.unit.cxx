@@ -167,3 +167,36 @@ TEST_F(ConvectionCoefficientsTest, TestYazdanianKlemsWindward)
     EXPECT_NEAR(correctCoeffNode1, result[0], 1e-6);
     EXPECT_NEAR(correctCoeffNode2, result[1], 1e-6);
 }
+
+TEST_F(ConvectionCoefficientsTest, TestKimura)
+{
+    SCOPED_TRACE("Begin Test: Test Kimura - Leedward direction.");
+    using HygroThermFEM::MockNode2D;
+    using HygroThermFEM::MockNodes2D;
+    using HygroThermFEM::ConvectionModelFactory;
+    using HygroThermFEM::INodes;
+
+    const size_t nodeNumber{0};
+    const double x_coord{0};
+    const double y_coord{0};
+
+    MockNode2D node1(nodeNumber, x_coord, y_coord, {Variable::temperature, 2.5});
+    MockNode2D node2(nodeNumber, x_coord, y_coord, {Variable::temperature, 3.5});
+
+    MockNodes2D line{node1, node2};
+
+    const auto windSpeed{5.5};
+    HygroThermFEM::WindDirection direction{HygroThermFEM::WindDirection::Leeward};
+    const auto convectionModel{ConvectionModelFactory::createKimuraFilmCoefficient(
+      line, windSpeed, direction)};
+
+    auto result{convectionModel->convectiveCoefficients()};
+
+    EXPECT_EQ(2u, result.size());
+
+    const auto correctCoeffNode1{9.07};
+    const auto correctCoeffNode2{9.07};
+
+    EXPECT_NEAR(correctCoeffNode1, result[0], 1e-6);
+    EXPECT_NEAR(correctCoeffNode2, result[1], 1e-6);
+}

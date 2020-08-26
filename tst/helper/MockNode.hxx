@@ -23,7 +23,7 @@ namespace HygroThermFEM
     class MockNode2D final : public INode2D
     {
     public:
-        MockNode2D(size_t nodeNum = 0, double t_x = 0, double t_y = 0);
+        explicit MockNode2D(size_t nodeNum = 0, double t_x = 0, double t_y = 0);
 
         MockNode2D(size_t nodeNum, double t_x, double t_y, const std::vector<StateValues> & values);
 
