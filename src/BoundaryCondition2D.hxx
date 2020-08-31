@@ -3,11 +3,10 @@
 #include "IBCLine2D.hxx"
 #include "Material.hxx"
 #include "BoundaryConditionCoefficients.hxx"
+#include "ConvectiveCoefficient.hxx"
 
 namespace HygroThermFEM
 {
-    class IConvectiveCoefficient;
-
     ////////////////////////////////////////////////////////
     /// IConvectionBC
     ////////////////////////////////////////////////////////
