@@ -29,3 +29,4 @@
 #include "../src/SimulationProperties.hxx"
 #include "../src/BoundaryConditionCoefficients.hxx"
 #include "../src/TimestepObserver.hxx"
+#include "../src/ConvectiveCoefficient.hxx"
