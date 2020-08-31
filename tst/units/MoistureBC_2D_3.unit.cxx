@@ -101,10 +101,11 @@ TEST_F(MoistureBC_2D_3, TestExample_1)
     // Create Boundary Conditions
     const auto ambientTemperature = 20.0;
     const auto ambientHumidity = 0.5;
+    const auto surfaceTilt{90.0};
 
     const HygroThermFEM::VariableBCTARPHCCoefficients bcCoeff{ambientTemperature, ambientHumidity};
 
-    domain.createMoistureBCVariableHc(1, 2, bcCoeff);
+    domain.createMoistureBCVariableTARPHc(1, 2, bcCoeff, surfaceTilt);
 
     const auto dTime = 36000;
     const auto nSteps = 4;

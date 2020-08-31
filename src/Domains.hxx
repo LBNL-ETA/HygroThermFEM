@@ -163,22 +163,27 @@ namespace HygroThermFEM
         //! @param index1 Node 1 index
         //! @param index2 Node 2 index
         //! @param varHCCoeff structure to hold variable convection coefficient boundary conditions
-        //! @param t_CalculateMoisture Flag on whether or not to calculate moisture
-        void createConvectionBCVariableTARPHc(const size_t index1,
-                                              const size_t index2,
+        //! @param surfaceTilt Surface tilt at the boundary [degrees]
+        //! @param simulateVaporFluxEnergy Flag on whether or not to include energy from moisture
+        //! flux
+        void createConvectionBCVariableTARPHc(size_t index1,
+                                              size_t index2,
                                               const VariableBCTARPHCCoefficients & varHCCoeff,
-                                              const bool t_CalculateMoisture = true);
+                                              double surfaceTilt = 90,
+                                              bool simulateVaporFluxEnergy = true);
 
         //! \brief Creation of convection boundary condition
         //! @param index1 Node 1 index
         //! @param index2 Node 2 index
         //! @param varHCCoeff structure to hold variable convection coefficients boundary
         //! conditions for transient simulations
+        //! @param surfaceTilt Surface tilt at the current boundary
         //! @param t_CalculateMoisture Flag on whether or not to calculate moisture
         void createConvectionBCVariableTARPHc(
           size_t index1,
           size_t index2,
           const std::vector<VariableBCTARPHCCoefficients> & varHCCoeff,
+          double surfaceTilt = 90,
           bool t_CalculateMoisture = true);
 
         //! \brief Creation of temperature boundary condition
@@ -280,18 +285,23 @@ namespace HygroThermFEM
         //! @param index1 Node 1 index
         //! @param index2 Node 2 index
         //! @param varHCCoeff structure to hold variable convection coefficient boundary conditions
-        void createMoistureBCVariableHc(size_t index1,
-                                        size_t index2,
-                                        const VariableBCTARPHCCoefficients & varHCCoeff);
+        //! @param surfaceTilt Surface tilt at the boundary
+        void createMoistureBCVariableTARPHc(size_t index1,
+                                            size_t index2,
+                                            const VariableBCTARPHCCoefficients & varHCCoeff,
+                                            double surfaceTilt);
 
         //! \brief Creation of convection boundary condition
         //! @param index1 Node 1 index
         //! @param index2 Node 2 index
         //! @param varCoeff structure to hold fixed convection coefficient boundary
         //! conditions for every timestep
-        void createMoistureBCVariableHc(size_t index1,
-                                        size_t index2,
-                                        const std::vector<VariableBCTARPHCCoefficients> & varCoeff);
+        //! @param surfaceTilt Surface tilt at the boundary
+        void createMoistureBCVariableTARPHc(
+            size_t index1,
+            size_t index2,
+            const std::vector<VariableBCTARPHCCoefficients> & varCoeff,
+            double surfaceTilt);
 
         //! \brief Creation of convection boundary condition
         //! @param index1 Node 1 index

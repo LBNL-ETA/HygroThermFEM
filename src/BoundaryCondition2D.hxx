@@ -221,9 +221,8 @@ namespace HygroThermFEM
         std::unique_ptr<IConvectiveCoefficient> m_ConvectiveCoeffCalc;
         const double m_AirHumidity;
 
-        //! If moisture is simulated then calculate energy from moisture flux. Otherwise, don't do
-        //! it.
-        bool m_SimulateMoisture;
+        //! Need to include energy from vapor flux energy if moisture is present.
+        bool m_SimulateVaporFluxEnergy;
     };
 
     ////////////////////////////////////////////////////////
@@ -232,10 +231,17 @@ namespace HygroThermFEM
     class ConstantConvectionBC : public IConvectionBC
     {
     public:
+        //! \brief Creation of constant convection heat transfer coefficient boundary conditions.
+        //!
+        //! @param index1 node1 index
+        //! @param index2 node2 index
+        //! @param fixedBCHCCoefficients Structure that holds necessary coefficients in other to
+        //! create constant film coefficient boundary condition
+        //! @param simulateVaporFluxEnergy Need to be true if we want to include vapor flux energy
         ConstantConvectionBC(size_t index1,
                              size_t index2,
                              const FixedBCHCCoefficients & fixedBCHCCoefficients,
-                             bool t_CalculateMoisture = true);
+                             bool simulateVaporFluxEnergy = true);
     };
 
     ////////////////////////////////////////////////////////
@@ -244,10 +250,20 @@ namespace HygroThermFEM
     class TARPConvectionBC : public IConvectionBC
     {
     public:
+        //! \brief Convection boundary condition with TARP convection algorithm
+        //!
+        //! @param index1 node1 index
+        //! @param index2 node2 index
+        //! @param varHCCoeff Necessary coefficients that will be used to create TARP heat flow
+        //! convection algorithm
+        //! @param surfaceTilt Surface tilt at the boundary
+        //! @param simulateVaporFluxEnergy Indicates whether or not moisture will be calculated at
+        //! the boundary
         TARPConvectionBC(size_t index1,
                          size_t index2,
                          const VariableBCTARPHCCoefficients & varHCCoeff,
-                         bool t_CalculateMoisture = true);
+                         double surfaceTilt = 90,
+                         bool simulateVaporFluxEnergy = true);
     };
 
     ////////////////////////////////////////////////////////
@@ -376,10 +392,10 @@ namespace HygroThermFEM
                     std::unique_ptr<IConvectiveCoefficient> model);
 
         //! Function that calculates right hand side vector.
-        std::vector<double> R_Vector() const override;
+        [[nodiscard]] std::vector<double> R_Vector() const override;
 
         //! Function that calculates matrix.
-        SquareMatrix H_Matrix() const override;
+        [[nodiscard]] SquareMatrix H_Matrix() const override;
 
     protected:
         double m_AirHumidity;
@@ -398,10 +414,21 @@ namespace HygroThermFEM
     class MoistureBCTARPHc : public IMoistureBC
     {
     public:
+        //! \brief Construction of boundary condition with TARP algorithm for convective heat
+        //! transfer calculations
+        //!
+        //! @param index1 Node 1 index
+        //! @param index2 Node 2 index
+        //! @param materialName Material name for which boundary is associated with
+        //! @param varHCCoeff Coefficients that are necessary for TARP heat transfer coefficient
+        //! calculations. Structure contain only coefficients that are variable through every
+        //! timestep.
+        //! @param surafceTilt Surface tilt at the boundary. [degrees]
         MoistureBCTARPHc(size_t index1,
                          size_t index2,
                          const std::string & materialName,
-                         const VariableBCTARPHCCoefficients & varHCCoeff);
+                         const VariableBCTARPHCCoefficients & varHCCoeff,
+                         double surfaceTilt = 90);
     };
 
     /////////////////////////////////////////////////////

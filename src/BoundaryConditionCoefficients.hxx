@@ -33,15 +33,14 @@ namespace HygroThermFEM
     struct VariableBCTARPHCCoefficients
     {
         //! \brief Construction of variables for TARP convection model.
+        //! This structure holds only values that vary through every timestep.
         //!
         //! \param airTemperature Air/Ambient temperature of exterior/interior environment
         //! \param airHumidity Air humidity of the environment
-        //! \param surfaceTilt Tilt of the surface at which boundary is located
-        VariableBCTARPHCCoefficients(double airTemperature, double airHumidity, double surfaceTilt = 90);
+        VariableBCTARPHCCoefficients(double airTemperature, double airHumidity);
 
         double AirTemperature{0.0}; // Celsius
         double AirHumidity{0.0}; // Humidity range is from 0 to 1
-        double SurfaceTilt{90.0}; // degrees
     };
 
     ///////////////////////////////////////////////////////////////////////////////////////////////

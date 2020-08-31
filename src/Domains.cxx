@@ -240,22 +240,24 @@ namespace HygroThermFEM
       const size_t index1,
       const size_t index2,
       const VariableBCTARPHCCoefficients & varHCCoeff,
-      const bool t_CalculateMoisture)
+      const double surfaceTilt,
+      const bool simulateVaporFluxEnergy)
     {
-        m_BCs.assignBC(
-          std::make_unique<TARPConvectionBC>(index1, index2, varHCCoeff, t_CalculateMoisture));
+        m_BCs.assignBC(std::make_unique<TARPConvectionBC>(
+          index1, index2, varHCCoeff, surfaceTilt, simulateVaporFluxEnergy));
     }
 
     void ThermalDomain::createConvectionBCVariableTARPHc(
       size_t index1,
       size_t index2,
       const std::vector<VariableBCTARPHCCoefficients> & varHCCoeff,
+      double surfaceTilt,
       bool t_CalculateMoisture)
     {
         std::vector<std::unique_ptr<IBCLinear2D>> timestepBCs;
         std::for_each(varHCCoeff.begin(), varHCCoeff.end(), [&](const auto & bc) {
-            timestepBCs.push_back(
-              std::make_unique<TARPConvectionBC>(index1, index2, bc, t_CalculateMoisture));
+            timestepBCs.push_back(std::make_unique<TARPConvectionBC>(
+              index1, index2, bc, surfaceTilt, t_CalculateMoisture));
         });
         m_BCs.assignTimestepBCs(std::move(timestepBCs));
     }
@@ -381,25 +383,30 @@ namespace HygroThermFEM
           fem::make_unique<ElementMoistureLinear2D>(index1, index2, index3, index4, materialName));
     }
 
-    void MoistureDomain::createMoistureBCVariableHc(const size_t index1,
-                                                    const size_t index2,
-                                                    const VariableBCTARPHCCoefficients & varHCCoeff)
+    void MoistureDomain::createMoistureBCVariableTARPHc(const size_t index1,
+                                                        const size_t index2,
+                                                        const VariableBCTARPHCCoefficients & varHCCoeff,
+                                                        double surfaceTilt = 90)
     {
         /// Need to pull material for current moisture boundary condition
         auto & Material = m_Elements.findElement(index1, index2)->getMaterial();
         m_BCs.assignBC(
-          fem::make_unique<MoistureBCTARPHc>(index1, index2, Material.name(), varHCCoeff));
+          fem::make_unique<MoistureBCTARPHc>(index1, index2, Material.name(), varHCCoeff, surfaceTilt));
     }
 
-    void MoistureDomain::createMoistureBCVariableHc(
-      size_t index1, size_t index2, const std::vector<VariableBCTARPHCCoefficients> & varCoeff)
+    void MoistureDomain::createMoistureBCVariableTARPHc(
+        size_t index1,
+        size_t index2,
+        const std::vector<VariableBCTARPHCCoefficients> & varCoeff,
+        double surfaceTilt = 90)
     {
         std::vector<std::unique_ptr<IBCLinear2D>> timestepBCs;
-        auto & Material = m_Elements.findElement(index1, index2)->getMaterial();
-        std::for_each(varCoeff.begin(), varCoeff.end(), [&](const auto & bc) {
+        const auto & Material = m_Elements.findElement(index1, index2)->getMaterial();
+        for(const auto & coeff : varCoeff)
+        {
             timestepBCs.push_back(
-              std::make_unique<MoistureBCTARPHc>(index1, index2, Material.name(), bc));
-        });
+              std::make_unique<MoistureBCTARPHc>(index1, index2, Material.name(), coeff, surfaceTilt));
+        }
         m_BCs.assignTimestepBCs(std::move(timestepBCs));
     }
 

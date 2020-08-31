@@ -98,7 +98,8 @@ namespace HygroThermFEM
         const auto surfaceTiltRad{radians(m_SurfaceTilt)};
         for(const auto & temperature : m_Nodes.properties(Variable::temperature))
         {
-            const double tMean{m_AirTemperature + 0.25 * (celsiusToKelvin(temperature) - m_AirTemperature)};
+            const double tMean{m_AirTemperature
+                               + 0.25 * (celsiusToKelvin(temperature) - m_AirTemperature)};
             const double deltaT{std::abs(m_AirTemperature - celsiusToKelvin(temperature))};
             Gases::CGas gas;
             gas.setTemperatureAndPressure(tMean, m_AirPressure);
@@ -276,7 +277,7 @@ namespace HygroThermFEM
         m_AirTemperature(t_AirTemperature),
         m_ConvectiveCoeffCalc(std::move(convModel)),
         m_AirHumidity(t_AirHumidity),
-        m_SimulateMoisture(t_SimulateMoisture)
+        m_SimulateVaporFluxEnergy(t_SimulateMoisture)
     {}
 
     std::vector<double> IConvectionBC::R_Vector() const
@@ -288,7 +289,7 @@ namespace HygroThermFEM
         // Moisture is dumping some energy into domain. However, it is possible that user
         // choose not to simulate moisture in which case energy should not be included in
         // simulation
-        if(m_SimulateMoisture && !excludeHeatOfEvaporation)
+        if(m_SimulateVaporFluxEnergy && !excludeHeatOfEvaporation)
         {
             // Vapor leaking part is added here
             std::vector<double> vaporLeak(numOfBCNodes, 0);
@@ -320,14 +321,14 @@ namespace HygroThermFEM
     ConstantConvectionBC::ConstantConvectionBC(size_t index1,
                                                size_t index2,
                                                const FixedBCHCCoefficients & fixedBCHCCoefficients,
-                                               const bool t_CalculateMoisture) :
+                                               const bool simulateVaporFluxEnergy) :
         IConvectionBC(index1,
                       index2,
                       fixedBCHCCoefficients.AirTemperature,
                       ConvectionModelFactory::createFixedFilmCoefficient(
                         m_Nodes, fixedBCHCCoefficients.ConvectionCoefficient),
                       fixedBCHCCoefficients.AirHumidity,
-                      t_CalculateMoisture)
+                      simulateVaporFluxEnergy)
     {}
 
     ////////////////////////////////////////////////////////
@@ -336,14 +337,15 @@ namespace HygroThermFEM
     TARPConvectionBC::TARPConvectionBC(size_t index1,
                                        size_t index2,
                                        const VariableBCTARPHCCoefficients & varHCCoeff,
-                                       const bool t_CalculateMoisture) :
-        IConvectionBC(
-          index1,
-          index2,
-          varHCCoeff.AirTemperature,
-          ConvectionModelFactory::createTARPFilmCoefficient(m_Nodes, varHCCoeff.AirTemperature),
-          varHCCoeff.AirHumidity,
-          t_CalculateMoisture)
+                                       const double surfaceTilt,
+                                       const bool simulateVaporFluxEnergy) :
+        IConvectionBC(index1,
+                      index2,
+                      varHCCoeff.AirTemperature,
+                      ConvectionModelFactory::createTARPFilmCoefficient(
+                        m_Nodes, varHCCoeff.AirTemperature, surfaceTilt),
+                      varHCCoeff.AirHumidity,
+                      simulateVaporFluxEnergy)
     {}
 
     ////////////////////////////////////////////////////////
@@ -498,14 +500,15 @@ namespace HygroThermFEM
     MoistureBCTARPHc::MoistureBCTARPHc(size_t index1,
                                        size_t index2,
                                        const std::string & materialName,
-                                       const VariableBCTARPHCCoefficients & varHCCoeff) :
-        IMoistureBC(
-          index1,
-          index2,
-          materialName,
-          varHCCoeff.AirHumidity,
-          varHCCoeff.AirTemperature,
-          ConvectionModelFactory::createTARPFilmCoefficient(m_Nodes, varHCCoeff.AirTemperature))
+                                       const VariableBCTARPHCCoefficients & varHCCoeff,
+                                       double surfaceTilt) :
+        IMoistureBC(index1,
+                    index2,
+                    materialName,
+                    varHCCoeff.AirHumidity,
+                    varHCCoeff.AirTemperature,
+                    ConvectionModelFactory::createTARPFilmCoefficient(
+                      m_Nodes, varHCCoeff.AirTemperature, surfaceTilt))
     {}
 
 

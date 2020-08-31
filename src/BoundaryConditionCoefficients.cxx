@@ -24,9 +24,8 @@ namespace HygroThermFEM
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
     VariableBCTARPHCCoefficients::VariableBCTARPHCCoefficients(const double airTemperature,
-                                                               const double airHumidity,
-                                                               const double surfaceTilt) :
-        AirTemperature(airTemperature), AirHumidity(airHumidity), SurfaceTilt(surfaceTilt)
+                                                               const double airHumidity) :
+        AirTemperature(airTemperature), AirHumidity(airHumidity)
     {}
 
     ///////////////////////////////////////////////////////////////////////////////////////////////

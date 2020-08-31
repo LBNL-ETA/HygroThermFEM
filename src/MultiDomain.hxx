@@ -119,9 +119,11 @@ namespace HygroThermFEM
         //! @param index2 Node 2 index
         //! @param varHCCoeff Structure with values that are used in variable convection
         //! coefficient boundary condition calculations
+        //! @param Surface tilt at the boundary [degrees]
         void createMoistureBCVariableTARPHc(size_t index1,
                                             size_t index2,
-                                            const VariableBCTARPHCCoefficients & varHCCoeff);
+                                            const VariableBCTARPHCCoefficients & varHCCoeff,
+                                            double surfaceTilt = 90);
 
         //! \brief Creates set of boundary condition coefficients that are used during transient
         //! simulation
@@ -129,10 +131,12 @@ namespace HygroThermFEM
         //! @param index2 Node 2 index
         //! @param varHCCoeff Structure with values that are used in variable convection
         //! coefficient boundary condition calculations
+        //! @param Surface tilt at the boundary [degrees]
         void createMoistureBCVariableTARPHc(
-          size_t index1,
-          size_t index2,
-          const std::vector<VariableBCTARPHCCoefficients> & varHCCoeff);
+            size_t index1,
+            size_t index2,
+            const std::vector<VariableBCTARPHCCoefficients> & varHCCoeff,
+            double surfaceTilt = 90);
 
         //! \brief Sets fixed temperature boundary conditions
         //! @param index1 Node 1 index
@@ -242,8 +246,8 @@ namespace HygroThermFEM
 
         ThermalDomain m_ThermalDomain;
         MoistureDomain m_MoistureDomain;
-        bool m_PerformThermal;
-        bool m_PerformMoisture;
+        bool m_SimulateThermal;
+        bool m_SimulateMoisture;
     };
 
 }   // namespace HygroThermFEM
