@@ -98,7 +98,7 @@ TEST_F(Analytical_ConvectionBC_Transient, TestExample_1)
     // Create Boundary Conditions
     const auto tSurface = 0.0;
 
-    domain.createTemperatureBC(21, 22, tSurface);
+    domain.createBC_FixedTemperature(21, 22, tSurface);
 
     const auto dTime = 36;
     const auto nSteps = 1000;

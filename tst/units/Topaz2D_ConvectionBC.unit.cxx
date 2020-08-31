@@ -104,7 +104,7 @@ TEST_F(Topaz2D_ConvectionBC, TestExample_1)
 
     const HygroThermFEM::FixedBCHCCoefficients bcCoeff{tSurface, hc};
 
-    domain.createConvectionBCFixedHc(5, 6, bcCoeff);
+    domain.createBC_FixedHc(5, 6, bcCoeff);
 
     const auto dTime = 3600;
     const auto nSteps = 4;

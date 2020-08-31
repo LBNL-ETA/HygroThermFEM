@@ -9,7 +9,7 @@
 #include "ConvectiveCoefficient.hxx"
 
 namespace HygroThermFEM
-{    
+{
     ////////////////////////////////////////////////////////
     /// IConvectionBC
     ////////////////////////////////////////////////////////
@@ -83,7 +83,7 @@ namespace HygroThermFEM
     ////////////////////////////////////////////////////////
     TARPConvectionBC::TARPConvectionBC(size_t index1,
                                        size_t index2,
-                                       const VariableBCTARPHCCoefficients & varHCCoeff,
+                                       const TARPCoefficients & varHCCoeff,
                                        const double surfaceTilt,
                                        const bool simulateVaporFluxEnergy) :
         IConvectionBC(index1,
@@ -93,6 +93,24 @@ namespace HygroThermFEM
                         m_Nodes, varHCCoeff.AirTemperature, surfaceTilt),
                       varHCCoeff.AirHumidity,
                       simulateVaporFluxEnergy)
+    {}
+
+    ////////////////////////////////////////////////////////
+    /// ASHRAEInsideConvectionBC
+    ////////////////////////////////////////////////////////
+    ASHRAEInsideConvectionBC::ASHRAEInsideConvectionBC(size_t index1,
+                                                       size_t index2,
+                                                       const ASHRAEInsideCoefficients & coeff,
+                                                       double surfaceHeight,
+                                                       double surfaceTilt,
+                                                       bool simulateVaporFluxEnergy) : 
+      IConvectionBC(index1,
+                    index2,
+                    coeff.AirTemperature,
+                    ConvectionModelFactory::createASHRAEInsideFilmCoefficient(
+                      m_Nodes, coeff.AirTemperature, surfaceTilt, surfaceHeight, coeff.AirPressure),
+                    coeff.AirHumidity,
+                    simulateVaporFluxEnergy)
     {}
 
     ////////////////////////////////////////////////////////
@@ -247,7 +265,7 @@ namespace HygroThermFEM
     MoistureBCTARPHc::MoistureBCTARPHc(size_t index1,
                                        size_t index2,
                                        const std::string & materialName,
-                                       const VariableBCTARPHCCoefficients & varHCCoeff,
+                                       const TARPCoefficients & varHCCoeff,
                                        double surfaceTilt) :
         IMoistureBC(index1,
                     index2,

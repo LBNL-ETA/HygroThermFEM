@@ -20,12 +20,24 @@ namespace HygroThermFEM
     {}
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
-    // VariableBCTARPHCCoefficients
+    // TARPCoefficients
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
-    VariableBCTARPHCCoefficients::VariableBCTARPHCCoefficients(const double airTemperature,
+    TARPCoefficients::TARPCoefficients(const double airTemperature,
                                                                const double airHumidity) :
         AirTemperature(airTemperature), AirHumidity(airHumidity)
+    {}
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+    /// ASHRAEInsideCoefficients
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+    
+    ASHRAEInsideCoefficients::ASHRAEInsideCoefficients(double air_temperature,
+                                                       double air_pressure,
+                                                       double air_humidity):
+        AirTemperature(air_temperature),
+        AirPressure(air_pressure),
+        AirHumidity(air_humidity)
     {}
 
     ///////////////////////////////////////////////////////////////////////////////////////////////

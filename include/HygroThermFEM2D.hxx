@@ -18,7 +18,7 @@
 #include "../src/VectorOperators.hxx"
 #include "../src/LinearSolver.hxx"
 #include "../src/FEMunique.hxx"
-#include "../src/Domains.hxx"
+#include "../src/Domain.hxx"
 #include "../src/Functions.hxx"
 #include "../src/Interpolator.hxx"
 #include "../src/MaterialPool.hxx"

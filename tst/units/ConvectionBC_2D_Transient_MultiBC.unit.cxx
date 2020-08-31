@@ -94,8 +94,8 @@ TEST_F(ConvectionBC_2D_Transient_MultiBC, TestExample_1)
 
     const HygroThermFEM::FixedBCHCCoefficients bcCoeff2{temperatureAir2, hc2};
 
-    domain.createConvectionBCFixedHc(1, 2, bcCoeffsTransient);
-    domain.createConvectionBCFixedHc(6, 5, bcCoeff2);
+    domain.createBC_FixedHc(1, 2, bcCoeffsTransient);
+    domain.createBC_FixedHc(6, 5, bcCoeff2);
 
     const auto dTime = 3600;
     const auto nSteps = 4;

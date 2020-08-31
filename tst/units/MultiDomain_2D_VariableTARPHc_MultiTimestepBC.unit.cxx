@@ -103,7 +103,7 @@ TEST_F(MultiDomain_2D_VariableTARPHc_MultiTimestepBC, TestExample_1)
     /// Create Boundary Conditions
 
     // Variable boundary conditions (temperature and humidity) over ten timesteps.
-    const std::vector<HygroThermFEM::VariableBCTARPHCCoefficients> bcCoeff{{20.0, 0.6},
+    const std::vector<HygroThermFEM::TARPCoefficients> bcCoeff{{20.0, 0.6},
                                                                        {20.0, 0.5},
                                                                        {20.0, 0.4},
                                                                        {20.0, 0.3},

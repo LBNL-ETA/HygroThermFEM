@@ -1,6 +1,8 @@
 #pragma once
 
-#include "Domains.hxx"
+#include "Domain.hxx"
+#include "ThermalDomain.hxx"
+#include "MoistureDomain.hxx"
 #include "MaterialMissingProperties.hxx"
 
 namespace Timesteps
@@ -122,7 +124,7 @@ namespace HygroThermFEM
         //! @param Surface tilt at the boundary [degrees]
         void createMoistureBCVariableTARPHc(size_t index1,
                                             size_t index2,
-                                            const VariableBCTARPHCCoefficients & varHCCoeff,
+                                            const TARPCoefficients & varHCCoeff,
                                             double surfaceTilt = 90);
 
         //! \brief Creates set of boundary condition coefficients that are used during transient
@@ -135,7 +137,7 @@ namespace HygroThermFEM
         void createMoistureBCVariableTARPHc(
             size_t index1,
             size_t index2,
-            const std::vector<VariableBCTARPHCCoefficients> & varHCCoeff,
+            const std::vector<TARPCoefficients> & varHCCoeff,
             double surfaceTilt = 90);
 
         //! \brief Sets fixed temperature boundary conditions

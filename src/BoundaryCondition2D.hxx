@@ -78,9 +78,33 @@ namespace HygroThermFEM
         //! the boundary
         TARPConvectionBC(size_t index1,
                          size_t index2,
-                         const VariableBCTARPHCCoefficients & varHCCoeff,
+                         const TARPCoefficients & varHCCoeff,
                          double surfaceTilt = 90,
                          bool simulateVaporFluxEnergy = true);
+    };
+
+    ////////////////////////////////////////////////////////
+    /// ASHRAEInsideConvectionBC
+    ////////////////////////////////////////////////////////
+
+    //! \brief Convection boundary condition with ASHRAE inside convection algorithm
+    class ASHRAEInsideConvectionBC : public IConvectionBC
+    {
+    public:
+        //! \brief Construction of ASHRAE inside convection algorithm
+        //!
+        //! @param index1 Node 1 index
+        //! @param index2 Node 2 index
+        //! @param coeff Timestep coefficients that are used in ASHRAE Inside convection algorithm
+        //! @param surfaceHeight Surface height for which convection coefficient has been calculated [meters]
+        //! @param surfaceTilt Surface tilt at the boundary [degrees]
+        //! @param simulateVaporFluxEnergy Indicates whether energy from vapor flow should be included in calculations.
+        ASHRAEInsideConvectionBC(size_t index1,
+                                 size_t index2,
+                                 const ASHRAEInsideCoefficients & coeff,
+                                 double surfaceHeight,
+                                 double surfaceTilt = 90,
+                                 bool simulateVaporFluxEnergy = true);
     };
 
     ////////////////////////////////////////////////////////
@@ -127,10 +151,10 @@ namespace HygroThermFEM
         );
 
         //! Function that calculates right hand side vector.
-        std::vector<double> R_Vector() const override;
+        [[nodiscard]] std::vector<double> R_Vector() const override;
 
         //! Function that calculates matrix.
-        SquareMatrix H_Matrix() const override;
+        [[nodiscard]] SquareMatrix H_Matrix() const override;
 
     private:
         double m_Flux;
@@ -156,10 +180,10 @@ namespace HygroThermFEM
         );
 
         //! Function that calculates right hand side vector.
-        std::vector<double> R_Vector() const override;
+        [[nodiscard]] std::vector<double> R_Vector() const override;
 
         //! Function that calculates matrix.
-        SquareMatrix H_Matrix() const override;
+        [[nodiscard]] SquareMatrix H_Matrix() const override;
 
     private:
         //! Radiative convective coefficient that needs to be calculated based on current
@@ -244,7 +268,7 @@ namespace HygroThermFEM
         MoistureBCTARPHc(size_t index1,
                          size_t index2,
                          const std::string & materialName,
-                         const VariableBCTARPHCCoefficients & varHCCoeff,
+                         const TARPCoefficients & varHCCoeff,
                          double surfaceTilt = 90);
     };
 

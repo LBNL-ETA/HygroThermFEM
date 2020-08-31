@@ -22,7 +22,7 @@ namespace HygroThermFEM
     };
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
-    /// VariableBCTARPHCCoefficients
+    /// TARPCoefficients
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
     //! \brief Structure to keep boundary condition coefficients for comprehensive natural
@@ -30,29 +30,36 @@ namespace HygroThermFEM
     //!
     //! It is simply the structure that holds all necessary variables that are needed to create
     //! boundary condition for comprehensive natural convection model that is often named as TARP
-    struct VariableBCTARPHCCoefficients
+    struct TARPCoefficients
     {
         //! \brief Construction of variables for TARP convection model.
         //! This structure holds only values that vary through every timestep.
         //!
         //! \param airTemperature Air/Ambient temperature of exterior/interior environment
         //! \param airHumidity Air humidity of the environment
-        VariableBCTARPHCCoefficients(double airTemperature, double airHumidity);
+        TARPCoefficients(double airTemperature, double airHumidity);
 
-        double AirTemperature{0.0}; // Celsius
-        double AirHumidity{0.0}; // Humidity range is from 0 to 1
+        double AirTemperature{0.0};   // Celsius
+        double AirHumidity{0.0};      // Humidity range is from 0 to 1
     };
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
-    /// VariableBCASHRAEInsideHCCoefficients
+    /// ASHRAEInsideCoefficients
     ///////////////////////////////////////////////////////////////////////////////////////////////
-    struct VariableBCASHRAEInsideHCCoefficients
-    {
 
-        double AirTemperature{0.0}; // Celsius
-        double AirHumidity{0.0}; // Humidity range is from 0 to 1
-        double SurfaceHeight{0.0}; // meters
-        double SurfaceTilt{90.0}; // degrees
+    //! \brief Structure to keep boundary condition coefficients that are used in ASHRAE indoor
+    //! model.
+    //!
+    //! This structure will keep only coefficients that are variable between timesteps. Idea is that
+    //! this structure will be used to keep data in some kind of array.
+    struct ASHRAEInsideCoefficients
+    {
+        //! \brief Simple constructor for the structure
+        ASHRAEInsideCoefficients(double air_temperature, double air_pressure, double air_humidity);
+
+        double AirTemperature{0.0};     // Celsius
+        double AirPressure{101325.0};   // Pascals
+        double AirHumidity{0.0};        // Humidity range is from 0 to 1
     };
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
