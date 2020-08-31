@@ -335,7 +335,7 @@ namespace HygroThermFEM
     ////////////////////////////////////////////////////////
     TARPConvectionBC::TARPConvectionBC(size_t index1,
                                        size_t index2,
-                                       const VariableBCHCCoefficients & varHCCoeff,
+                                       const VariableBCTARPHCCoefficients & varHCCoeff,
                                        const bool t_CalculateMoisture) :
         IConvectionBC(
           index1,
@@ -498,7 +498,7 @@ namespace HygroThermFEM
     MoistureBCTARPHc::MoistureBCTARPHc(size_t index1,
                                        size_t index2,
                                        const std::string & materialName,
-                                       const VariableBCHCCoefficients & varHCCoeff) :
+                                       const VariableBCTARPHCCoefficients & varHCCoeff) :
         IMoistureBC(
           index1,
           index2,

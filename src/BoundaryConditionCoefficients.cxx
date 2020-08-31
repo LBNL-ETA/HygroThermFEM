@@ -20,12 +20,13 @@ namespace HygroThermFEM
     {}
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
-    // VariableBCHCCoefficients
+    // VariableBCTARPHCCoefficients
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
-    VariableBCHCCoefficients::VariableBCHCCoefficients(const double airTemperature,
-                                                       const double airHumidity) :
-        AirTemperature(airTemperature), AirHumidity(airHumidity)
+    VariableBCTARPHCCoefficients::VariableBCTARPHCCoefficients(const double airTemperature,
+                                                               const double airHumidity,
+                                                               const double surfaceTilt) :
+        AirTemperature(airTemperature), AirHumidity(airHumidity), SurfaceTilt(surfaceTilt)
     {}
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -51,7 +52,7 @@ namespace HygroThermFEM
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
     BlackBodyRadiationBCCoefficients::BlackBodyRadiationBCCoefficients(const double emissivity,
-                                                     const double temperature) :
+                                                                       const double temperature) :
         Emissivity(emissivity), Temperature(temperature)
     {}
 }   // namespace HygroThermFEM

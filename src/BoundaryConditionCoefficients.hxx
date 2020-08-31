@@ -22,17 +22,38 @@ namespace HygroThermFEM
     };
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
-    // VariableBCHCCoefficients
+    /// VariableBCTARPHCCoefficients
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
-    //! \brief Structure to keep boundary condition coefficients for variable heat transfer
-    //! coefficients case
-    struct VariableBCHCCoefficients
+    //! \brief Structure to keep boundary condition coefficients for comprehensive natural
+    //! convection model
+    //!
+    //! It is simply the structure that holds all necessary variables that are needed to create
+    //! boundary condition for comprehensive natural convection model that is often named as TARP
+    struct VariableBCTARPHCCoefficients
     {
-        VariableBCHCCoefficients(double airTemperature, double airHumidity);
+        //! \brief Construction of variables for TARP convection model.
+        //!
+        //! \param airTemperature Air/Ambient temperature of exterior/interior environment
+        //! \param airHumidity Air humidity of the environment
+        //! \param surfaceTilt Tilt of the surface at which boundary is located
+        VariableBCTARPHCCoefficients(double airTemperature, double airHumidity, double surfaceTilt = 90);
 
-        double AirTemperature{0};
-        double AirHumidity{0};
+        double AirTemperature{0.0}; // Celsius
+        double AirHumidity{0.0}; // Humidity range is from 0 to 1
+        double SurfaceTilt{90.0}; // degrees
+    };
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+    /// VariableBCASHRAEInsideHCCoefficients
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+    struct VariableBCASHRAEInsideHCCoefficients
+    {
+
+        double AirTemperature{0.0}; // Celsius
+        double AirHumidity{0.0}; // Humidity range is from 0 to 1
+        double SurfaceHeight{0.0}; // meters
+        double SurfaceTilt{90.0}; // degrees
     };
 
     ///////////////////////////////////////////////////////////////////////////////////////////////

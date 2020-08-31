@@ -103,7 +103,7 @@ TEST_F(MoistureBC_2D_4, TestExample_1)
     const auto ambientTemperature = 20.0;
     const auto ambientHumidity = 0.2;
 
-    const HygroThermFEM::VariableBCHCCoefficients bcCoeff{ambientTemperature, ambientHumidity};
+    const HygroThermFEM::VariableBCTARPHCCoefficients bcCoeff{ambientTemperature, ambientHumidity};
 
     domain.createMoistureBCVariableHc(5, 6, bcCoeff);
 

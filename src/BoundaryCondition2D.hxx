@@ -246,7 +246,7 @@ namespace HygroThermFEM
     public:
         TARPConvectionBC(size_t index1,
                          size_t index2,
-                         const VariableBCHCCoefficients & varHCCoeff,
+                         const VariableBCTARPHCCoefficients & varHCCoeff,
                          bool t_CalculateMoisture = true);
     };
 
@@ -385,6 +385,8 @@ namespace HygroThermFEM
         double m_AirHumidity;
         double m_AirTemperature;
         const IMaterial & m_Material;
+
+        //! \brief Convective coefficients calculations can be performed with different algorithms
         std::unique_ptr<IConvectiveCoefficient> m_ConvectiveCoeffCalc;
     };
 
@@ -399,7 +401,7 @@ namespace HygroThermFEM
         MoistureBCTARPHc(size_t index1,
                          size_t index2,
                          const std::string & materialName,
-                         const VariableBCHCCoefficients & varHCCoeff);
+                         const VariableBCTARPHCCoefficients & varHCCoeff);
     };
 
     /////////////////////////////////////////////////////

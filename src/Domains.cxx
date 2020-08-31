@@ -236,20 +236,21 @@ namespace HygroThermFEM
         m_BCs.assignTimestepBCs(std::move(timestepBCs));
     }
 
-    void ThermalDomain::createConvectionBCVariableHc(const size_t index1,
-                                                     const size_t index2,
-                                                     const VariableBCHCCoefficients & varHCCoeff,
-                                                     const bool t_CalculateMoisture)
+    void ThermalDomain::createConvectionBCVariableTARPHc(
+      const size_t index1,
+      const size_t index2,
+      const VariableBCTARPHCCoefficients & varHCCoeff,
+      const bool t_CalculateMoisture)
     {
         m_BCs.assignBC(
           std::make_unique<TARPConvectionBC>(index1, index2, varHCCoeff, t_CalculateMoisture));
     }
 
-    void ThermalDomain::createConvectionBCVariableHc(
+    void ThermalDomain::createConvectionBCVariableTARPHc(
       size_t index1,
       size_t index2,
-      const std::vector<VariableBCHCCoefficients> & varHCCoeff,
-      const bool t_CalculateMoisture)
+      const std::vector<VariableBCTARPHCCoefficients> & varHCCoeff,
+      bool t_CalculateMoisture)
     {
         std::vector<std::unique_ptr<IBCLinear2D>> timestepBCs;
         std::for_each(varHCCoeff.begin(), varHCCoeff.end(), [&](const auto & bc) {
@@ -382,7 +383,7 @@ namespace HygroThermFEM
 
     void MoistureDomain::createMoistureBCVariableHc(const size_t index1,
                                                     const size_t index2,
-                                                    const VariableBCHCCoefficients & varHCCoeff)
+                                                    const VariableBCTARPHCCoefficients & varHCCoeff)
     {
         /// Need to pull material for current moisture boundary condition
         auto & Material = m_Elements.findElement(index1, index2)->getMaterial();
@@ -391,7 +392,7 @@ namespace HygroThermFEM
     }
 
     void MoistureDomain::createMoistureBCVariableHc(
-      size_t index1, size_t index2, const std::vector<VariableBCHCCoefficients> & varCoeff)
+      size_t index1, size_t index2, const std::vector<VariableBCTARPHCCoefficients> & varCoeff)
     {
         std::vector<std::unique_ptr<IBCLinear2D>> timestepBCs;
         auto & Material = m_Elements.findElement(index1, index2)->getMaterial();
