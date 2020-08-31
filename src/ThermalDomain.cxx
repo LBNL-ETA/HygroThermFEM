@@ -1,6 +1,7 @@
 #include "ThermalDomain.hxx"
 
 #include "BoundaryCondition2D.hxx"
+#include "BoundaryCondition2DThermal.hxx"
 #include "FEMunique.hxx"
 
 namespace HygroThermFEM
@@ -35,7 +36,7 @@ namespace HygroThermFEM
                                         const double surfaceTilt,
                                         const bool simulateVaporFluxEnergy)
     {
-        m_BCs.assignBC(std::make_unique<TARPConvectionBC>(
+        m_BCs.assignBC(std::make_unique<ThermalTARPConvectionBC>(
           index1, index2, varHCCoeff, surfaceTilt, simulateVaporFluxEnergy));
     }
 
@@ -46,10 +47,11 @@ namespace HygroThermFEM
                                         bool simulateVaporFluxEnergy)
     {
         std::vector<std::unique_ptr<IBCLinear2D>> timestepBCs;
-        std::for_each(varHCCoeff.begin(), varHCCoeff.end(), [&](const auto & bc) {
-            timestepBCs.push_back(std::make_unique<TARPConvectionBC>(
-              index1, index2, bc, surfaceTilt, simulateVaporFluxEnergy));
-        });
+        for(const auto & coeff: varHCCoeff)
+        {
+            timestepBCs.push_back(std::make_unique<ThermalTARPConvectionBC>(
+              index1, index2, coeff, surfaceTilt, simulateVaporFluxEnergy));
+        }
         m_BCs.assignTimestepBCs(std::move(timestepBCs));
     }
 

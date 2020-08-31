@@ -1,6 +1,7 @@
 #include "MoistureDomain.hxx"
 
 #include "BoundaryCondition2D.hxx"
+#include "BoundaryCondition2DMoisture.hxx"
 
 namespace HygroThermFEM
 {

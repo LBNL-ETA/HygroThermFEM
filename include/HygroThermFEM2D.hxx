@@ -13,6 +13,8 @@
 #include "../src/LineLocal1D.hxx"
 #include "../src/NodePool.hxx"
 #include "../src/BoundaryCondition2D.hxx"
+#include "../src/BoundaryCondition2DThermal.hxx"
+#include "../src/BoundaryCondition2DMoisture.hxx"
 #include "../src/BoundaryConditions2D.hxx"
 #include "../src/SquareMatrix.hxx"
 #include "../src/VectorOperators.hxx"
