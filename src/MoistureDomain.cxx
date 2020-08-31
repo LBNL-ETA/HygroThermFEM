@@ -41,6 +41,33 @@ namespace HygroThermFEM
         m_BCs.assignTimestepBCs(std::move(timestepBCs));
     }
 
+    void MoistureDomain::createBC_ASHRAEInsideHc(size_t index1,
+        size_t index2,
+        const ASHRAEInsideCoefficients & coeff,
+        double surfaceHeight,
+        double surfaceTilt)
+    {
+        const auto & Material = m_Elements.findElement(index1, index2)->getMaterial();
+        m_BCs.assignBC(std::make_unique<MoistureBCASHRAEInside>(
+          index1, index2, Material.name(), coeff, surfaceHeight, surfaceTilt));
+    }
+
+    void MoistureDomain::createBC_ASHRAEInsideHc(size_t index1,
+        size_t index2,
+        const std::vector<ASHRAEInsideCoefficients> & coeff,
+        double surfaceHeight,
+        double surfaceTilt)
+    {
+        std::vector<std::unique_ptr<IBCLinear2D>> timestepBCs;
+        const auto & Material = m_Elements.findElement(index1, index2)->getMaterial();
+        for(const auto & cf : coeff)
+        {
+            timestepBCs.push_back(std::make_unique<MoistureBCASHRAEInside>(
+              index1, index2, Material.name(), cf, surfaceHeight, surfaceTilt));
+        }
+        m_BCs.assignTimestepBCs(std::move(timestepBCs));
+    }
+
     void MoistureDomain::createBC_FixedHc(const size_t index1,
                                           const size_t index2,
                                           const FixedBCHCCoefficients & fixedBchcCoefficients)

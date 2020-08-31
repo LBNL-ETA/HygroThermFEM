@@ -114,7 +114,7 @@ TEST_F(MultiDomain_2D_LinearizedRadiation_MultiTimestepBC, TestExample_1)
                                                                                  {3.7, 18},
                                                                                  {4.7, 19}};
 
-    domain.createLinearizedRadiationBC(1, 2, linCoeff);
+    domain.createBC_LinearizedRadiation(1, 2, linCoeff);
 
     const auto dTime = 3600;
     const auto nSteps = 10;

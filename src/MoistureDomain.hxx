@@ -32,6 +32,32 @@ namespace HygroThermFEM
                              const std::vector<TARPCoefficients> & varCoeff,
                              double surfaceTilt = 90);
 
+        //! \brief Creation of ASHRAE inside convection boundary condition
+        //! @param index1 Node 1 index
+        //! @param index2 Node 2 index
+        //! @param coeff Structure to hold variable convection coefficients that are variable
+        //! through timesteps
+        //! @param surfaceHeight Surface height at the boundary [meters]
+        //! @param surfaceTilt Surface tilt at the boundary [degrees]
+        void createBC_ASHRAEInsideHc(size_t index1,
+                                     size_t index2,
+                                     const ASHRAEInsideCoefficients & coeff,
+                                     double surfaceHeight,
+                                     double surfaceTilt = 90);
+
+        //! \brief Creation of ASHRAE inside convection boundary condition
+        //! @param index1 Node 1 index
+        //! @param index2 Node 2 index
+        //! @param coeff Structure to hold variable convection coefficients that are variable
+        //! through timesteps
+        //! @param surfaceHeight Surface height at the boundary [meters]
+        //! @param surfaceTilt Surface tilt at the boundary [degrees]
+        void createBC_ASHRAEInsideHc(size_t index1,
+                                     size_t index2,
+                                     const std::vector<ASHRAEInsideCoefficients> & coeff,
+                                     double surfaceHeight,
+                                     double surfaceTilt = 90);
+
         //! \brief Creation of convection boundary condition
         //! @param index1 Node 1 index
         //! @param index2 Node 2 index

@@ -96,8 +96,8 @@ TEST_F(ConvectionBC_2D_SteadyState, TestExample_1)
 
     const HygroThermFEM::FixedBCHCCoefficients bcCoeff2{temperatureAir2, hc2, humidity2};
 
-    domain.createMoistureBCFixedHc(1, 2, bcCoeff1);
-    domain.createMoistureBCFixedHc(6, 5, bcCoeff2);
+    domain.createBC_FixedHc(1, 2, bcCoeff1);
+    domain.createBC_FixedHc(6, 5, bcCoeff2);
 
     const auto solution = domain.steadyState();
     auto temperature = solution.temperature;

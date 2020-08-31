@@ -7,7 +7,8 @@ namespace HygroThermFEM
     /// MoistureBCTARPHc
     /////////////////////////////////////////////////////
 
-    //! \brief Moisture boundary condition that calculates convective coefficient.
+    //! \brief Moisture boundary condition that calculates convective coefficient with TARP
+    //! algorithm.
     class MoistureBCTARPHc : public IMoistureBC
     {
     public:
@@ -29,6 +30,32 @@ namespace HygroThermFEM
     };
 
     /////////////////////////////////////////////////////
+    /// MoistureBCASHRAEInside
+    /////////////////////////////////////////////////////
+
+    //! \brief Moisture boundary condition that calculates convective coefficient based on ASHRAE
+    //! inside algorithm during one timestep or steady-state.
+    class MoistureBCASHRAEInside : public IMoistureBC
+    {
+    public:
+        //! \brief Moisture boundary condition that calculates convective coefficient based on
+        //! ASHRAE inside algorithm
+        //!
+        //! @param index1 Node 1 index
+        //! @param index2 Node 2 index
+        //! @param materialName Material that is adjacent to the boundary
+        //! @param coeffs Coefficients that are necessary for ASHRAE inside convection heat transfer
+        //! coefficient calculation Structure only contain coefficients that are variable through
+        //! every timestep.
+        MoistureBCASHRAEInside(size_t index1,
+                               size_t index2,
+                               const std::string & materialName,
+                               const ASHRAEInsideCoefficients & coeffs,
+                               double surfaceHeight,
+                               double surfaceTilt = 90);
+    };
+
+    /////////////////////////////////////////////////////
     /// MoistureBCFixedHc
     /////////////////////////////////////////////////////
 
@@ -41,4 +68,4 @@ namespace HygroThermFEM
                           const std::string & materialName,
                           const FixedBCHCCoefficients & fixedBchcCoefficients);
     };
-}
+}   // namespace HygroThermFEM

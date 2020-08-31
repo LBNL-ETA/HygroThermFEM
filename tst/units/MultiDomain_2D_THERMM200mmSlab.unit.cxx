@@ -111,10 +111,10 @@ TEST_F(MultiDomain_2D_THERMM200mmSlab, TestExample_1)
       bcCoeff, bcCoeff, bcCoeff, bcCoeff, bcCoeff, bcCoeff, bcCoeff, bcCoeff, bcCoeff, bcCoeff,
       bcCoeff, bcCoeff, bcCoeff, bcCoeff, bcCoeff, bcCoeff, bcCoeff, bcCoeff, bcCoeff, bcCoeff};
 
-    domain.createMoistureBCFixedHc(15, 14, bcCoeffs);
-    domain.createMoistureBCFixedHc(14, 12, bcCoeffs);
-    domain.createMoistureBCFixedHc(1, 2, bcCoeffs);
-    domain.createMoistureBCFixedHc(2, 4, bcCoeffs);
+    domain.createBC_FixedHc(15, 14, bcCoeffs);
+    domain.createBC_FixedHc(14, 12, bcCoeffs);
+    domain.createBC_FixedHc(1, 2, bcCoeffs);
+    domain.createBC_FixedHc(2, 4, bcCoeffs);
 
     const auto dTime = 3600;
     const auto nSteps = 20;

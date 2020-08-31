@@ -19,6 +19,25 @@ namespace HygroThermFEM
                       m_Nodes, varHCCoeff.AirTemperature, surfaceTilt))
     {}
 
+    /////////////////////////////////////////////////////
+    /// MoistureBCASHRAEInside
+    /////////////////////////////////////////////////////
+    MoistureBCASHRAEInside::MoistureBCASHRAEInside(size_t index1,
+                                                   size_t index2,
+                                                   const std::string & materialName,
+                                                   const ASHRAEInsideCoefficients & coeffs,
+                                                   const double surfaceHeight,
+                                                   const double surfaceTilt) :
+        IMoistureBC(
+          index1,
+          index2,
+          materialName,
+          coeffs.AirHumidity,
+          coeffs.AirTemperature,
+          ConvectionModelFactory::createASHRAEInsideFilmCoefficient(
+            m_Nodes, coeffs.AirTemperature, surfaceTilt, surfaceHeight, coeffs.AirPressure))
+    {}
+
 
     /////////////////////////////////////////////////////
     /// MoistureBCFixedHc
@@ -35,4 +54,4 @@ namespace HygroThermFEM
                     ConvectionModelFactory::createFixedFilmCoefficient(
                       m_Nodes, fixedBchcCoefficients.ConvectionCoefficient))
     {}
-}
+}   // namespace HygroThermFEM
