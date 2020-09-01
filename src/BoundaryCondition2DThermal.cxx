@@ -75,6 +75,22 @@ namespace HygroThermFEM
     {}
 
     ////////////////////////////////////////////////////////
+    /// YazdanianKlemsConvectionBC
+    ////////////////////////////////////////////////////////
+    YazdanianKlemsConvectionBC::YazdanianKlemsConvectionBC(size_t index1,
+                                                           size_t index2,
+                                                           const YazdanianKlemsCoefficients & coeff,
+                                                           bool simulateVaporFluxEnergy) :
+        IConvectionBC(index1,
+                      index2,
+                      coeff.AirTemperature,
+                      ConvectionModelFactory::createYazdanianKlemsFilmCoefficient(
+                        m_Nodes, coeff.AirTemperature, coeff.WindSpeed, coeff.WindDir),
+                      coeff.AirHumidity,
+                      simulateVaporFluxEnergy)
+    {}
+
+    ////////////////////////////////////////////////////////
     /// TemperatureBC
     ////////////////////////////////////////////////////////
 
@@ -106,7 +122,8 @@ namespace HygroThermFEM
     ////////////////////////////////////////////////////////
 
     FluxBC::FluxBC(const size_t index1, const size_t index2, const double t_Flux) :
-        IBCLinear2D(index1, index2), m_Flux(t_Flux)
+        IBCLinear2D(index1, index2),
+        m_Flux(t_Flux)
     {}
 
     std::vector<double> FluxBC::R_Vector() const

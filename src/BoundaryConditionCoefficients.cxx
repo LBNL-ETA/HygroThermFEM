@@ -51,6 +51,20 @@ namespace HygroThermFEM
     {}
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
+    /// YazdanianKlemsCoefficients
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+
+    YazdanianKlemsCoefficients::YazdanianKlemsCoefficients(double airTemperature,
+                                                           double windSpeed,
+                                                           WindDirection windDirection,
+                                                           double airHumidity) :
+      AirTemperature(airTemperature),
+      WindSpeed(windSpeed),
+      WindDir(windDirection),
+      AirHumidity(airHumidity)
+    {}
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////
     // ConstantBCTemperatures
     ///////////////////////////////////////////////////////////////////////////////////////////////
 

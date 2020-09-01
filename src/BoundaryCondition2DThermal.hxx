@@ -39,10 +39,10 @@ namespace HygroThermFEM
         //! @param simulateVaporFluxEnergy Indicates whether or not moisture will be calculated at
         //! the boundary
         ThermalTARPConvectionBC(size_t index1,
-                         size_t index2,
-                         const TARPCoefficients & varHCCoeff,
-                         double surfaceTilt = 90,
-                         bool simulateVaporFluxEnergy = true);
+                                size_t index2,
+                                const TARPCoefficients & varHCCoeff,
+                                double surfaceTilt = 90,
+                                bool simulateVaporFluxEnergy = true);
     };
 
     ////////////////////////////////////////////////////////
@@ -58,9 +58,11 @@ namespace HygroThermFEM
         //! @param index1 Node 1 index
         //! @param index2 Node 2 index
         //! @param coeff Timestep coefficients that are used in ASHRAE Inside convection algorithm
-        //! @param surfaceHeight Surface height for which convection coefficient has been calculated [meters]
+        //! @param surfaceHeight Surface height for which convection coefficient has been calculated
+        //! [meters]
         //! @param surfaceTilt Surface tilt at the boundary [degrees]
-        //! @param simulateVaporFluxEnergy Indicates whether energy from vapor flow should be included in calculations.
+        //! @param simulateVaporFluxEnergy Indicates whether energy from vapor flow should be
+        //! included in calculations.
         ASHRAEInsideConvectionBC(size_t index1,
                                  size_t index2,
                                  const ASHRAEInsideCoefficients & coeff,
@@ -81,12 +83,34 @@ namespace HygroThermFEM
         //!
         //! \param index1 Node 1 index
         //! \param index2 Node 2 index
-        //! \param windSpeed wind speed at given boundary
-        //! \param simulateVaporFluxEnergy
+        //! \param coeff Coefficients for that are variable within timestep
+        //! \param simulateVaporFluxEnergy Flag to indicate whether or not to include energy from
+        //! vapor and water flux.
         ASHRAEOutsideConvectionBC(size_t index1,
                                   size_t index2,
                                   const ASHRAEOutsideCoefficients & coeff,
                                   bool simulateVaporFluxEnergy = true);
+    };
+
+    ////////////////////////////////////////////////////////
+    /// YazdanianKlemsConvectionBC
+    ////////////////////////////////////////////////////////
+
+    //! \brief Convection boundary condition with Yazdanian-Klems convection algorithm.
+    class YazdanianKlemsConvectionBC : public IConvectionBC
+    {
+    public:
+        //! \brief Construction of Yazdanian-Klems outside convection algorithm
+        //!
+        //! \param index1 Node 1 index
+        //! \param index2 Node 2 index
+        //! \param coeff Coefficients for that are variable within timestep
+        //! \param simulateVaporFluxEnergy Flag to indicate whether or not to include energy from
+        //! vapor and water flux.
+        YazdanianKlemsConvectionBC(size_t index1,
+                                   size_t index2,
+                                   const YazdanianKlemsCoefficients & coeff,
+                                   bool simulateVaporFluxEnergy = true);
     };
 
     ////////////////////////////////////////////////////////
@@ -194,4 +218,4 @@ namespace HygroThermFEM
         double m_RadiationCoefficient;
         double m_RadiationTemperature;
     };
-}
+}   // namespace HygroThermFEM

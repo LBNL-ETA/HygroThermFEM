@@ -106,6 +106,30 @@ namespace HygroThermFEM
         m_BCs.assignTimestepBCs(std::move(timestepBCs));
     }
 
+    void ThermalDomain::createBC_YazdanianKlemsHc(size_t index1,
+                                                 size_t index2,
+                                                 const YazdanianKlemsCoefficients & coeff,
+                                                 bool simulateVaporFluxEnergy)
+    {
+        m_BCs.assignBC(std::make_unique<YazdanianKlemsConvectionBC>(
+          index1, index2, coeff, simulateVaporFluxEnergy));
+    }
+
+    void ThermalDomain::createBC_YazdanianKlemsHc(
+      size_t index1,
+      size_t index2,
+      const std::vector<YazdanianKlemsCoefficients> & coeff,
+      bool simulateVaporFluxEnergy)
+    {
+        std::vector<std::unique_ptr<IBCLinear2D>> timestepBCs;
+        for(const auto & cf : coeff)
+        {
+            timestepBCs.push_back(std::make_unique<YazdanianKlemsConvectionBC>(
+              index1, index2, cf, simulateVaporFluxEnergy));
+        }
+        m_BCs.assignTimestepBCs(std::move(timestepBCs));
+    }
+
     void ThermalDomain::createBC_FixedTemperature(const size_t index1,
                                                   const size_t index2,
                                                   double t_Temp1,

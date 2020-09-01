@@ -76,6 +76,25 @@ namespace HygroThermFEM
                                       size_t index2,
                                       const std::vector<ASHRAEOutsideCoefficients> & coeff);
 
+        //! \brief Creation of Yazdanian-Klems convection boundary condition
+        //!
+        //! \param index1 Node 1 index
+        //! \param index2 Node 2 index
+        //! \param coeff Structure to hold coefficients that are variable at different timesteps
+
+        void createBC_YazdanianKlemsHc(size_t index1,
+                                       size_t index2,
+                                       const YazdanianKlemsCoefficients & coeff);
+
+        //! \brief Creation of Yazdanian-Klems convection boundary condition
+        //!
+        //! \param index1 Node 1 index
+        //! \param index2 Node 2 index
+        //! \param coeff Structure to hold coefficients that are variable at different timesteps
+        void createBC_YazdanianKlemsHc(size_t index1,
+                                       size_t index2,
+                                       const std::vector<YazdanianKlemsCoefficients> & coeff);
+
         //! \brief Creation of convection boundary condition
         //! @param index1 Node 1 index
         //! @param index2 Node 2 index
@@ -109,4 +128,4 @@ namespace HygroThermFEM
     protected:
         void postProcess(std::vector<double> & solution) override;
     };
-}
+}   // namespace HygroThermFEM

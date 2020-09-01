@@ -59,6 +59,8 @@ namespace HygroThermFEM
     /// MoistureBCASHRAEOutside
     /////////////////////////////////////////////////////
 
+    //! \brief Moisture boundary condition that calculates convective coefficient based on ASHRAE
+    //! outside algorithm during one timestep or steady-state.
     class MoistureBCASHRAEOutside : public IMoistureBC
     {
     public:
@@ -75,6 +77,30 @@ namespace HygroThermFEM
                                 size_t index2,
                                 const std::string & materialName,
                                 const ASHRAEOutsideCoefficients & coeffs);
+    };
+
+    /////////////////////////////////////////////////////
+    /// YazdanianKlemsBC
+    /////////////////////////////////////////////////////
+
+    //! \brief Moisture boundary condition that calculates convective coefficient based on ASHRAE
+    //! outside algorithm during one timestep or steady-state.
+    class MoistureYazdanianKlemsBC : public IMoistureBC
+    {
+    public:
+        //! \brief Moisture boundary condition that calculates convective coefficient based on
+        //! Yazdanian-Klems outside algorithm.
+        //!
+        //! \param index1 Node 1 index
+        //! \param index2 Node 2 index
+        //! \param materialName Material that is adjacent to the boundary
+        //! \param coeffs Coefficients that are necessary for Yazdanian-Klems outside convection
+        //! heat transfer coefficients calculation. Structure only contain coefficients that are
+        //! variable through timestep.
+        MoistureYazdanianKlemsBC(size_t index1,
+                                 size_t index2,
+                                 const std::string & materialName,
+                                 const YazdanianKlemsCoefficients & coeffs);
     };
 
     /////////////////////////////////////////////////////

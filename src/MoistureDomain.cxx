@@ -90,6 +90,28 @@ namespace HygroThermFEM
         m_BCs.assignTimestepBCs(std::move(timestepBCs));
     }
 
+    void MoistureDomain::createBC_YazdanianKlemsHc(size_t index1,
+                                                   size_t index2,
+                                                   const YazdanianKlemsCoefficients & coeff)
+    {
+        const auto & Material = m_Elements.findElement(index1, index2)->getMaterial();
+        m_BCs.assignBC(std::make_unique<MoistureYazdanianKlemsBC>(
+          index1, index2, Material.name(), coeff));
+    }
+
+    void MoistureDomain::createBC_YazdanianKlemsHc(
+      size_t index1, size_t index2, const std::vector<YazdanianKlemsCoefficients> & coeff)
+    {
+        std::vector<std::unique_ptr<IBCLinear2D>> timestepBCs;
+        const auto & Material = m_Elements.findElement(index1, index2)->getMaterial();
+        for(const auto & cf : coeff)
+        {
+            timestepBCs.push_back(std::make_unique<MoistureYazdanianKlemsBC>(
+              index1, index2, Material.name(), cf));
+        }
+        m_BCs.assignTimestepBCs(std::move(timestepBCs));
+    }
+
     void MoistureDomain::createBC_FixedHc(const size_t index1,
                                           const size_t index2,
                                           const FixedBCHCCoefficients & fixedBchcCoefficients)
