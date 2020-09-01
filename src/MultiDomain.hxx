@@ -164,6 +164,24 @@ namespace HygroThermFEM
                                      double surfaceHeight,
                                      double surfaceTilt = 90);
 
+        //! \brief Creation of ASHRAE outside convection boundary condition
+        //! @param index1 Node 1 index
+        //! @param index2 Node 2 index
+        //! @param coeff Structure to hold variable convection coefficients that are variable
+        //! through timesteps
+        void createBC_ASHRAEOutsideHc(size_t index1,
+                                     size_t index2,
+                                     const ASHRAEOutsideCoefficients & coeff);
+
+        //! \brief Creation of ASHRAE outside convection boundary condition
+        //! @param index1 Node 1 index
+        //! @param index2 Node 2 index
+        //! @param coeff Structure to hold variable convection coefficients that are variable
+        //! through timesteps
+        void createBC_ASHRAEOutsideHc(size_t index1,
+                                     size_t index2,
+                                     const std::vector<ASHRAEOutsideCoefficients> & coeff);
+
         //! \brief Sets fixed temperature boundary conditions
         //! @param index1 Node 1 index
         //! @param index2 Node 2 index

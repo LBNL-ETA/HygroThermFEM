@@ -70,6 +70,26 @@ namespace HygroThermFEM
     };
 
     ////////////////////////////////////////////////////////
+    /// ASHRAEOutsideConvectionBC
+    ////////////////////////////////////////////////////////
+
+    //! \brief Convection boundary condition with ASHRAE outside convection algorithm
+    class ASHRAEOutsideConvectionBC : public IConvectionBC
+    {
+    public:
+        //! \brief Construction of ASHRAE outside convection algorithm
+        //!
+        //! \param index1 Node 1 index
+        //! \param index2 Node 2 index
+        //! \param windSpeed wind speed at given boundary
+        //! \param simulateVaporFluxEnergy
+        ASHRAEOutsideConvectionBC(size_t index1,
+                                  size_t index2,
+                                  const ASHRAEOutsideCoefficients & coeff,
+                                  bool simulateVaporFluxEnergy = true);
+    };
+
+    ////////////////////////////////////////////////////////
     /// TemperatureBC
     ////////////////////////////////////////////////////////
 

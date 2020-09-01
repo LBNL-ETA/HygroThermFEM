@@ -38,6 +38,22 @@ namespace HygroThermFEM
             m_Nodes, coeffs.AirTemperature, surfaceTilt, surfaceHeight, coeffs.AirPressure))
     {}
 
+    /////////////////////////////////////////////////////
+    /// MoistureBCASHRAEInside
+    /////////////////////////////////////////////////////
+    MoistureBCASHRAEOutside::MoistureBCASHRAEOutside(size_t index1,
+                                                     size_t index2,
+                                                     const std::string & materialName,
+                                                     const ASHRAEOutsideCoefficients & coeffs) :
+        IMoistureBC(
+          index1,
+          index2,
+          materialName,
+          coeffs.AirHumidity,
+          coeffs.AirTemperature,
+          ConvectionModelFactory::createASHRAEOutsideFilmCoefficient(m_Nodes, coeffs.WindSpeed))
+    {}
+
 
     /////////////////////////////////////////////////////
     /// MoistureBCFixedHc

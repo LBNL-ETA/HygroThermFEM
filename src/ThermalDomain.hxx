@@ -91,6 +91,30 @@ namespace HygroThermFEM
                                      double surfaceTilt = 90,
                                      bool simulateVaporFluxEnergy = true);
 
+        //! \brief Creation of ASHRAE outside convection boundary condition
+        //!
+        //! \param index1 Node 1 index
+        //! \param index2 Node 2 index
+        //! \param coeff Structure to hold coefficients that are variable through timesteps
+        //! \param simulateVaporFluxEnergy Flag to indicate whether or not energy from vapor flux
+        //! will be calculated.
+        void createBC_ASHRAEOutsideHc(size_t index1,
+                                      size_t index2,
+                                      const ASHRAEOutsideCoefficients & coeff,
+                                      bool simulateVaporFluxEnergy = true);
+
+        //! \brief Creation of ASHRAE outside convection boundary condition
+        //!
+        //! \param index1 Node 1 index
+        //! \param index2 Node 2 index
+        //! \param coeff Structure to hold coefficients that are variable through timesteps
+        //! \param simulateVaporFluxEnergy Flag to indicate whether or not energy from vapor flux
+        //! will be calculated.
+        void createBC_ASHRAEOutsideHc(size_t index1,
+                                      size_t index2,
+                                      const std::vector<ASHRAEOutsideCoefficients> & coeff,
+                                      bool simulateVaporFluxEnergy = true);
+
         //! \brief Creation of temperature boundary condition
         //! @param index1 Node 1 index
         //! @param index2 Node 2 index
@@ -179,4 +203,4 @@ namespace HygroThermFEM
     protected:
         void postProcess(std::vector<double> & solution) override;
     };
-}
+}   // namespace HygroThermFEM

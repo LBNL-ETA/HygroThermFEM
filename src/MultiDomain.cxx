@@ -14,7 +14,8 @@ namespace HygroThermFEM
     // passing false to subdomains means that previous timestep values will not be automatically
     // updated. This mean that multidomain must update its values once solution converged.
     MultiDomain::MultiDomain(const bool performThermal, const bool performMoisture) :
-        m_SimulateThermal(performThermal), m_SimulateMoisture(performMoisture)
+        m_SimulateThermal(performThermal),
+        m_SimulateMoisture(performMoisture)
     {}
 
     Solution MultiDomain::transient(std::vector<double> & temperature,
@@ -206,11 +207,10 @@ namespace HygroThermFEM
     }
 
     void MultiDomain::createBC_FixedHc(const size_t index1,
-                                              const size_t index2,
-                                              const FixedBCHCCoefficients & fixedBchcCoefficients)
+                                       const size_t index2,
+                                       const FixedBCHCCoefficients & fixedBchcCoefficients)
     {
-        m_ThermalDomain.createBC_FixedHc(
-          index1, index2, fixedBchcCoefficients, m_SimulateMoisture);
+        m_ThermalDomain.createBC_FixedHc(index1, index2, fixedBchcCoefficients, m_SimulateMoisture);
 
         m_MoistureDomain.createBC_FixedHc(index1, index2, fixedBchcCoefficients);
     }
@@ -220,16 +220,14 @@ namespace HygroThermFEM
       size_t index2,
       const std::vector<FixedBCHCCoefficients> & fixedBchcCoefficients)
     {
-        m_ThermalDomain.createBC_FixedHc(
-          index1, index2, fixedBchcCoefficients, m_SimulateMoisture);
+        m_ThermalDomain.createBC_FixedHc(index1, index2, fixedBchcCoefficients, m_SimulateMoisture);
         m_MoistureDomain.createBC_FixedHc(index1, index2, fixedBchcCoefficients);
     }
 
-    void MultiDomain::createBC_TARPHc(
-        size_t index1,
-        size_t index2,
-        const TARPCoefficients & varHCCoeff,
-        double surfaceTilt)
+    void MultiDomain::createBC_TARPHc(size_t index1,
+                                      size_t index2,
+                                      const TARPCoefficients & varHCCoeff,
+                                      double surfaceTilt)
     {
         m_ThermalDomain.createBC_TARPHc(
           index1, index2, varHCCoeff, surfaceTilt, m_SimulateMoisture);
@@ -237,11 +235,10 @@ namespace HygroThermFEM
         m_MoistureDomain.createBC_TARPHc(index1, index2, varHCCoeff, surfaceTilt);
     }
 
-    void MultiDomain::createBC_TARPHc(
-        size_t index1,
-        size_t index2,
-        const std::vector<TARPCoefficients> & varHCCoeff,
-        double surfaceTilt)
+    void MultiDomain::createBC_TARPHc(size_t index1,
+                                      size_t index2,
+                                      const std::vector<TARPCoefficients> & varHCCoeff,
+                                      double surfaceTilt)
     {
         m_ThermalDomain.createBC_TARPHc(
           index1, index2, varHCCoeff, surfaceTilt, m_SimulateMoisture);
@@ -250,23 +247,41 @@ namespace HygroThermFEM
     }
 
     void MultiDomain::createBC_ASHRAEInsideHc(size_t index1,
-        size_t index2,
-        const ASHRAEInsideCoefficients & coeff,
-        double surfaceHeight,
-        double surfaceTilt)
+                                              size_t index2,
+                                              const ASHRAEInsideCoefficients & coeff,
+                                              double surfaceHeight,
+                                              double surfaceTilt)
     {
-        m_ThermalDomain.createBC_ASHRAEInsideHc(index1, index2, coeff, surfaceHeight, surfaceTilt, m_SimulateMoisture);
+        m_ThermalDomain.createBC_ASHRAEInsideHc(
+          index1, index2, coeff, surfaceHeight, surfaceTilt, m_SimulateMoisture);
         m_MoistureDomain.createBC_ASHRAEInsideHc(index1, index2, coeff, surfaceHeight, surfaceTilt);
     }
 
     void MultiDomain::createBC_ASHRAEInsideHc(size_t index1,
-        size_t index2,
-        const std::vector<ASHRAEInsideCoefficients> & coeff,
-        double surfaceHeight,
-        double surfaceTilt)
+                                              size_t index2,
+                                              const std::vector<ASHRAEInsideCoefficients> & coeff,
+                                              double surfaceHeight,
+                                              double surfaceTilt)
     {
-        m_ThermalDomain.createBC_ASHRAEInsideHc(index1, index2, coeff, surfaceHeight, surfaceTilt, m_SimulateMoisture);
+        m_ThermalDomain.createBC_ASHRAEInsideHc(
+          index1, index2, coeff, surfaceHeight, surfaceTilt, m_SimulateMoisture);
         m_MoistureDomain.createBC_ASHRAEInsideHc(index1, index2, coeff, surfaceHeight, surfaceTilt);
+    }
+
+    void MultiDomain::createBC_ASHRAEOutsideHc(size_t index1,
+                                              size_t index2,
+                                              const ASHRAEOutsideCoefficients & coeff)
+    {
+        m_ThermalDomain.createBC_ASHRAEOutsideHc(index1, index2, coeff, m_SimulateMoisture);
+        m_MoistureDomain.createBC_ASHRAEOutsideHc(index1, index2, coeff);
+    }
+
+    void MultiDomain::createBC_ASHRAEOutsideHc(size_t index1,
+                                              size_t index2,
+                                              const std::vector<ASHRAEOutsideCoefficients> & coeff)
+    {
+        m_ThermalDomain.createBC_ASHRAEOutsideHc(index1, index2, coeff, m_SimulateMoisture);
+        m_MoistureDomain.createBC_ASHRAEOutsideHc(index1, index2, coeff);
     }
 
     void MultiDomain::createBC_FixedTemperature(const size_t index1,
@@ -278,28 +293,29 @@ namespace HygroThermFEM
     }
 
     void MultiDomain::createBC_FixedTemperature(size_t index1,
-                                          size_t index2,
-                                          const std::vector<ConstantBCTemperatures> & temp)
+                                                size_t index2,
+                                                const std::vector<ConstantBCTemperatures> & temp)
     {
         m_ThermalDomain.createBC_FixedTemperature(index1, index2, temp);
     }
 
     void MultiDomain::createBC_FixedTemperature(const size_t index1,
-                                          const size_t index2,
-                                          const double t_Temp)
+                                                const size_t index2,
+                                                const double t_Temp)
     {
         m_ThermalDomain.createBC_FixedTemperature(index1, index2, t_Temp);
     }
 
-    void MultiDomain::createBC_FixedTemperature(size_t index1, size_t index2, std::vector<double> temp)
+    void
+      MultiDomain::createBC_FixedTemperature(size_t index1, size_t index2, std::vector<double> temp)
     {
         m_ThermalDomain.createBC_FixedTemperature(index1, index2, std::move(temp));
     }
 
     void MultiDomain::createBC_BodyRadiation(const size_t index1,
-                                                 const size_t index2,
-                                                 const double t_Emissivity,
-                                                 const double t_RadiationTemperature)
+                                             const size_t index2,
+                                             const double t_Emissivity,
+                                             const double t_RadiationTemperature)
     {
         m_ThermalDomain.createBC_BlackBodyRadiation(
           index1, index2, t_Emissivity, t_RadiationTemperature);

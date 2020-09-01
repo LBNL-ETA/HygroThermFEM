@@ -56,6 +56,28 @@ namespace HygroThermFEM
     };
 
     /////////////////////////////////////////////////////
+    /// MoistureBCASHRAEOutside
+    /////////////////////////////////////////////////////
+
+    class MoistureBCASHRAEOutside : public IMoistureBC
+    {
+    public:
+        //! \brief Moisture boundary condition that calculates convective coefficient based on
+        //! ASHRAE outside algorithm.
+        //!
+        //! \param index1 Node 1 index
+        //! \param index2 Node 2 index
+        //! \param materialName Material that is adjacent to the boundary
+        //! \param coeffs Coefficients that are necessary for ASHRAE outside convection heat
+        //! transfer coefficients calculation. Structure only contain coefficients that are variable
+        //! through timestep.
+        MoistureBCASHRAEOutside(size_t index1,
+                                size_t index2,
+                                const std::string & materialName,
+                                const ASHRAEOutsideCoefficients & coeffs);
+    };
+
+    /////////////////////////////////////////////////////
     /// MoistureBCFixedHc
     /////////////////////////////////////////////////////
 

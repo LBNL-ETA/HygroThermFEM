@@ -47,7 +47,7 @@ namespace HygroThermFEM
                                         bool simulateVaporFluxEnergy)
     {
         std::vector<std::unique_ptr<IBCLinear2D>> timestepBCs;
-        for(const auto & coeff: varHCCoeff)
+        for(const auto & coeff : varHCCoeff)
         {
             timestepBCs.push_back(std::make_unique<ThermalTARPConvectionBC>(
               index1, index2, coeff, surfaceTilt, simulateVaporFluxEnergy));
@@ -78,6 +78,30 @@ namespace HygroThermFEM
         {
             timestepBCs.push_back(std::make_unique<ASHRAEInsideConvectionBC>(
               index1, index2, cf, surfaceHeight, surfaceTilt, simulateVaporFluxEnergy));
+        }
+        m_BCs.assignTimestepBCs(std::move(timestepBCs));
+    }
+
+    void ThermalDomain::createBC_ASHRAEOutsideHc(size_t index1,
+                                                 size_t index2,
+                                                 const ASHRAEOutsideCoefficients & coeff,
+                                                 bool simulateVaporFluxEnergy)
+    {
+        m_BCs.assignBC(std::make_unique<ASHRAEOutsideConvectionBC>(
+          index1, index2, coeff, simulateVaporFluxEnergy));
+    }
+
+    void
+      ThermalDomain::createBC_ASHRAEOutsideHc(size_t index1,
+                                              size_t index2,
+                                              const std::vector<ASHRAEOutsideCoefficients> & coeff,
+                                              bool simulateVaporFluxEnergy)
+    {
+        std::vector<std::unique_ptr<IBCLinear2D>> timestepBCs;
+        for(const auto & cf : coeff)
+        {
+            timestepBCs.push_back(std::make_unique<ASHRAEOutsideConvectionBC>(
+              index1, index2, cf, simulateVaporFluxEnergy));
         }
         m_BCs.assignTimestepBCs(std::move(timestepBCs));
     }
@@ -196,4 +220,4 @@ namespace HygroThermFEM
     ThermalDomain::ThermalDomain(bool automaticUpdatePreviousTimestep) :
         IDomain(BaseVariable::temperature, automaticUpdatePreviousTimestep)
     {}
-}
+}   // namespace HygroThermFEM

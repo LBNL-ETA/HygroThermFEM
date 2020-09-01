@@ -50,8 +50,7 @@ namespace HygroThermFEM
     //! \brief Structure to keep boundary condition coefficients that are used in ASHRAE indoor
     //! model.
     //!
-    //! This structure will keep only coefficients that are variable between timesteps. Idea is that
-    //! this structure will be used to keep data in some kind of array.
+    //! This structure will keep only coefficients that are variable between timesteps.
     struct ASHRAEInsideCoefficients
     {
         //! \brief Simple constructor for the structure
@@ -60,6 +59,22 @@ namespace HygroThermFEM
         double AirTemperature{0.0};     // Celsius
         double AirPressure{101325.0};   // Pascals
         double AirHumidity{0.0};        // Humidity range is from 0 to 1
+    };
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+    /// ASHRAEOutsideCoefficients
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+
+    //! \brief Structure to keep boundary condition coefficients that are used in ASHRAE outdoor
+    //! model.
+    //!
+    //! This structure will keep only coefficients that are variable between timesteps.
+    struct ASHRAEOutsideCoefficients
+    {
+        ASHRAEOutsideCoefficients(double airTemperature, double windSpeed, double airHumidity);
+        double AirTemperature{0.0};
+        double WindSpeed{0.0};
+        double AirHumidity{0.0};
     };
 
     ///////////////////////////////////////////////////////////////////////////////////////////////

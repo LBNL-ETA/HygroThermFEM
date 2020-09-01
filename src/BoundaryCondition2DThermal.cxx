@@ -26,10 +26,10 @@ namespace HygroThermFEM
     /// ThermalTARPConvectionBC
     ////////////////////////////////////////////////////////
     ThermalTARPConvectionBC::ThermalTARPConvectionBC(size_t index1,
-                                       size_t index2,
-                                       const TARPCoefficients & varHCCoeff,
-                                       const double surfaceTilt,
-                                       const bool simulateVaporFluxEnergy) :
+                                                     size_t index2,
+                                                     const TARPCoefficients & varHCCoeff,
+                                                     const double surfaceTilt,
+                                                     const bool simulateVaporFluxEnergy) :
         IConvectionBC(index1,
                       index2,
                       varHCCoeff.AirTemperature,
@@ -47,14 +47,31 @@ namespace HygroThermFEM
                                                        const ASHRAEInsideCoefficients & coeff,
                                                        double surfaceHeight,
                                                        double surfaceTilt,
-                                                       bool simulateVaporFluxEnergy) : 
-      IConvectionBC(index1,
-                    index2,
-                    coeff.AirTemperature,
-                    ConvectionModelFactory::createASHRAEInsideFilmCoefficient(
-                      m_Nodes, coeff.AirTemperature, surfaceTilt, surfaceHeight, coeff.AirPressure),
-                    coeff.AirHumidity,
-                    simulateVaporFluxEnergy)
+                                                       bool simulateVaporFluxEnergy) :
+        IConvectionBC(
+          index1,
+          index2,
+          coeff.AirTemperature,
+          ConvectionModelFactory::createASHRAEInsideFilmCoefficient(
+            m_Nodes, coeff.AirTemperature, surfaceTilt, surfaceHeight, coeff.AirPressure),
+          coeff.AirHumidity,
+          simulateVaporFluxEnergy)
+    {}
+
+    ////////////////////////////////////////////////////////
+    /// ASHRAEOutsideConvectionBC
+    ////////////////////////////////////////////////////////
+    ASHRAEOutsideConvectionBC::ASHRAEOutsideConvectionBC(size_t index1,
+                                                         size_t index2,
+                                                         const ASHRAEOutsideCoefficients & coeff,
+                                                         bool simulateVaporFluxEnergy) :
+        IConvectionBC(
+          index1,
+          index2,
+          coeff.AirTemperature,
+          ConvectionModelFactory::createASHRAEOutsideFilmCoefficient(m_Nodes, coeff.WindSpeed),
+          coeff.AirHumidity,
+          simulateVaporFluxEnergy)
     {}
 
     ////////////////////////////////////////////////////////
@@ -163,4 +180,4 @@ namespace HygroThermFEM
     {
         return m_PsiPsiMatrix * m_RadiationCoefficient;
     }
-}
+}   // namespace HygroThermFEM
