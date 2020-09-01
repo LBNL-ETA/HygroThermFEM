@@ -299,6 +299,22 @@ namespace HygroThermFEM
         m_MoistureDomain.createBC_YazdanianKlemsHc(index1, index2, coeff);
     }
 
+    void MultiDomain::createBC_KimuraHc(size_t index1,
+                                        size_t index2,
+                                        const KimuraCoefficients & coeff)
+    {
+        m_ThermalDomain.createBC_KimuraHc(index1, index2, coeff, m_SimulateMoisture);
+        m_MoistureDomain.createBC_KimuraHc(index1, index2, coeff);
+    }
+
+    void MultiDomain::createBC_KimuraHc(size_t index1,
+                                        size_t index2,
+                                        const std::vector<KimuraCoefficients> & coeff)
+    {
+        m_ThermalDomain.createBC_KimuraHc(index1, index2, coeff, m_SimulateMoisture);
+        m_MoistureDomain.createBC_KimuraHc(index1, index2, coeff);
+    }
+
     void MultiDomain::createBC_FixedTemperature(const size_t index1,
                                                 const size_t index2,
                                                 const double t_Temp1,

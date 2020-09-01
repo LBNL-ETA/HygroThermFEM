@@ -100,6 +100,23 @@ namespace HygroThermFEM
     };
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
+    /// KimuraCoefficients
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+
+    //! \brief Structure to keep boundary condition coefficients that are used in Kimura model.
+    struct KimuraCoefficients
+    {
+        KimuraCoefficients(double airTemperature,
+                           double windSpeed,
+                           WindDirection windDir,
+                           double airHumidity);
+        double AirTemperature{0.0};
+        double WindSpeed{0.0};
+        WindDirection WindDir{WindDirection::Leeward};
+        double AirHumidity{0.0};
+    };
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////
     // ConstantBCTemperatures
     ///////////////////////////////////////////////////////////////////////////////////////////////
 

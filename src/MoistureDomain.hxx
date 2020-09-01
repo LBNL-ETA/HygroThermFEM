@@ -81,7 +81,6 @@ namespace HygroThermFEM
         //! \param index1 Node 1 index
         //! \param index2 Node 2 index
         //! \param coeff Structure to hold coefficients that are variable at different timesteps
-
         void createBC_YazdanianKlemsHc(size_t index1,
                                        size_t index2,
                                        const YazdanianKlemsCoefficients & coeff);
@@ -94,6 +93,23 @@ namespace HygroThermFEM
         void createBC_YazdanianKlemsHc(size_t index1,
                                        size_t index2,
                                        const std::vector<YazdanianKlemsCoefficients> & coeff);
+
+        //! \brief Creation of Kimura convection boundary condition
+        //!
+        //! \param index1 Node 1 index
+        //! \param index2 Node 2 index
+        //! \param coeff Structure to hold coefficients that are variable at different timesteps
+        void createBC_KimuraHc(size_t index1, size_t index2, const KimuraCoefficients & coeff);
+
+
+        //! \brief Creation of Kimura convection boundary condition
+        //!
+        //! \param index1 Node 1 index
+        //! \param index2 Node 2 index
+        //! \param coeff Structure to hold coefficients that are variable at different timesteps
+        void createBC_KimuraHc(size_t index1,
+                               size_t index2,
+                               const std::vector<KimuraCoefficients> & coeff);
 
         //! \brief Creation of convection boundary condition
         //! @param index1 Node 1 index

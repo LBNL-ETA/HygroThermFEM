@@ -139,6 +139,30 @@ namespace HygroThermFEM
                                       const std::vector<YazdanianKlemsCoefficients> & coeff,
                                       bool simulateVaporFluxEnergy = true);
 
+        //! \brief Creation of Kimura convection boundary condition
+        //!
+        //! \param index1 Node 1 index
+        //! \param index2 Node 2 index
+        //! \param coeff Structure to hold coefficients that are variable through timesteps
+        //! \param simulateVaporFluxEnergy Flag to indicate whether or not energy from vapor flux
+        //! will be calculated.
+        void createBC_KimuraHc(size_t index1,
+                                       size_t index2,
+                                       const KimuraCoefficients & coeff,
+                                       bool simulateVaporFluxEnergy = true);
+
+        //! \brief Creation of Kimura convection boundary condition
+        //!
+        //! \param index1 Node 1 index
+        //! \param index2 Node 2 index
+        //! \param coeff Structure to hold coefficients that are variable through timesteps
+        //! \param simulateVaporFluxEnergy Flag to indicate whether or not energy from vapor flux
+        //! will be calculated.
+        void createBC_KimuraHc(size_t index1,
+                               size_t index2,
+                               const std::vector<KimuraCoefficients> & coeff,
+                               bool simulateVaporFluxEnergy = true);
+
         //! \brief Creation of temperature boundary condition
         //! @param index1 Node 1 index
         //! @param index2 Node 2 index

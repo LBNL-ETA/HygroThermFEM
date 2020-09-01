@@ -200,6 +200,23 @@ namespace HygroThermFEM
                                        size_t index2,
                                        const std::vector<YazdanianKlemsCoefficients> & coeff);
 
+        //! \brief Creation of Kimura outside convection boundary condition
+        //! @param index1 Node 1 index
+        //! @param index2 Node 2 index
+        //! @param coeff Structure to hold variable convection coefficients that are variable
+        //! through timesteps
+        void createBC_KimuraHc(size_t index1,
+                               size_t index2,
+                               const std::vector<KimuraCoefficients> & coeff);
+
+        //! \brief Creation of Kimura outside convection boundary condition
+        //! @param index1 Node 1 index
+        //! @param index2 Node 2 index
+        //! @param coeff Structure to hold variable convection coefficients that are variable
+        //! through timesteps
+        void
+          createBC_KimuraHc(size_t index1, size_t index2, const KimuraCoefficients & coeff);
+
         //! \brief Sets fixed temperature boundary conditions
         //! @param index1 Node 1 index
         //! @param index2 Node 2 index

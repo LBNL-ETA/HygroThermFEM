@@ -104,13 +104,36 @@ namespace HygroThermFEM
         //!
         //! \param index1 Node 1 index
         //! \param index2 Node 2 index
-        //! \param coeff Coefficients for that are variable within timestep
-        //! \param simulateVaporFluxEnergy Flag to indicate whether or not to include energy from
-        //! vapor and water flux.
+        //! \param coeff Coefficients for Yazdanian-Klems convection algorithm that are variable
+        //! within timestep
+        //! \param simulateVaporFluxEnergy Flag to indicate whether or not to
+        //! include energy from vapor and water flux.
         YazdanianKlemsConvectionBC(size_t index1,
                                    size_t index2,
                                    const YazdanianKlemsCoefficients & coeff,
                                    bool simulateVaporFluxEnergy = true);
+    };
+
+    ////////////////////////////////////////////////////////
+    /// KimuraConvectionBC
+    ////////////////////////////////////////////////////////
+
+    //! \brief Convection boundary condition with Kimura convection algorithm.
+    class KimuraConvectionBC : public IConvectionBC
+    {
+    public:
+        //! \brief Construction of Kimura convection algorithm
+        //!
+        //! \param index1 Node 1 index
+        //! \param index2 Node 2 index
+        //! \param coeff Coefficients Coefficients for Kimura convection algorithm that are variable
+        //! within timestep
+        //! \param simulateVaporFluxEnergy Flag to indicate whether or not to include energy from
+        //! vapor and water flux.
+        KimuraConvectionBC(size_t index1,
+                           size_t index2,
+                           const KimuraCoefficients & coeff,
+                           bool simulateVaporFluxEnergy = true);
     };
 
     ////////////////////////////////////////////////////////

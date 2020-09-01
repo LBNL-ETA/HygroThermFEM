@@ -71,6 +71,17 @@ namespace HygroThermFEM
     {}
 
     /////////////////////////////////////////////////////
+    /// MoistureKimuraBC
+    /////////////////////////////////////////////////////
+    MoistureKimuraBC::MoistureKimuraBC(size_t index1,
+                                       size_t index2,
+                                       const std::string & materialName,
+                                       const KimuraCoefficients & coeffs) :
+    IMoistureBC(index1, index2, materialName, coeffs.AirHumidity, coeffs.AirTemperature,
+                    ConvectionModelFactory::createKimuraFilmCoefficient(m_Nodes, coeffs.WindSpeed, coeffs.WindDir))
+    {}
+
+    /////////////////////////////////////////////////////
     /// MoistureBCFixedHc
     /////////////////////////////////////////////////////
     MoistureBCFixedHc::MoistureBCFixedHc(size_t index1,

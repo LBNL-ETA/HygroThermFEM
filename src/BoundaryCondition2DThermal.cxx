@@ -91,6 +91,21 @@ namespace HygroThermFEM
     {}
 
     ////////////////////////////////////////////////////////
+    /// YazdanianKlemsConvectionBC
+    ////////////////////////////////////////////////////////
+    KimuraConvectionBC::KimuraConvectionBC(size_t index1,
+                                           size_t index2,
+                                           const KimuraCoefficients & coeff,
+                                           bool simulateVaporFluxEnergy) :
+        IConvectionBC(index1,
+                      index2,
+                      coeff.AirTemperature,
+                      ConvectionModelFactory::createKimuraFilmCoefficient(
+                        m_Nodes, coeff.WindSpeed, coeff.WindDir),
+                      simulateVaporFluxEnergy)
+    {}
+
+    ////////////////////////////////////////////////////////
     /// TemperatureBC
     ////////////////////////////////////////////////////////
 

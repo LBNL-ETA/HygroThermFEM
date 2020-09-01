@@ -103,6 +103,26 @@ namespace HygroThermFEM
                                  const YazdanianKlemsCoefficients & coeffs);
     };
 
+    //! \brief Moisture boundary condition that calculates convective coefficient based on Kimura
+    //! algorithm during one timestep or steady-state.
+    class MoistureKimuraBC : public IMoistureBC
+    {
+    public:
+        //! \brief Moisture boundary condition that calculates convective coefficient based on
+        //! Kimura model.
+        //!
+        //! \param index1 Node 1 index
+        //! \param index2 Node 2 index
+        //! \param materialName Material that is adjacent to the boundary
+        //! \param coeffs Coefficients that are necessary for Kmura outside convection heat transfer
+        //! coefficient calculation. Structure only contain coefficients that are variable through
+        //! timestep.
+        MoistureKimuraBC(size_t index1,
+                         size_t index2,
+                         const std::string & materialName,
+                         const KimuraCoefficients & coeffs);
+    };
+
     /////////////////////////////////////////////////////
     /// MoistureBCFixedHc
     /////////////////////////////////////////////////////

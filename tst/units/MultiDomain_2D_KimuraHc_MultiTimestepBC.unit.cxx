@@ -6,7 +6,7 @@
 using HygroThermFEM::NodePool;
 using HygroThermFEM::MaterialPool;
 
-class MultiDomain_2D_YazdanianKlemsHc_MultiTimestepBC : public testing::Test
+class MultiDomain_2D_KimuraHc_MultiTimestepBC : public testing::Test
 {
 protected:
     void SetUp() override
@@ -19,7 +19,7 @@ protected:
     }
 };
 
-TEST_F(MultiDomain_2D_YazdanianKlemsHc_MultiTimestepBC, TestExample_1)
+TEST_F(MultiDomain_2D_KimuraHc_MultiTimestepBC, TestExample_1)
 {
     // Enter nodes. Arguments are: node number, x-coordinate, y-coordinate
 
@@ -105,7 +105,7 @@ TEST_F(MultiDomain_2D_YazdanianKlemsHc_MultiTimestepBC, TestExample_1)
     using HygroThermFEM::WindDirection;
 
     // Variable boundary conditions (temperature, wind speed and humidity) over ten timesteps.
-    const std::vector<HygroThermFEM::YazdanianKlemsCoefficients> bcCoeff{
+    const std::vector<HygroThermFEM::KimuraCoefficients> bcCoeff{
       {20.0, 3, WindDirection::Windward, 0.6},
       {20.0, 3, WindDirection::Windward, 0.5},
       {20.0, 3, WindDirection::Windward, 0.4},
@@ -117,7 +117,7 @@ TEST_F(MultiDomain_2D_YazdanianKlemsHc_MultiTimestepBC, TestExample_1)
       {12.0, 5.5, WindDirection::Leeward, 0.2},
       {10.0, 5.9, WindDirection::Leeward, 0.2}};
 
-    domain.createBC_YazdanianKlemsHc(1, 2, bcCoeff);
+    domain.createBC_KimuraHc(1, 2, bcCoeff);
 
     const auto dTime = 3600;
     const auto nSteps = 10;
@@ -139,16 +139,16 @@ TEST_F(MultiDomain_2D_YazdanianKlemsHc_MultiTimestepBC, TestExample_1)
     }
 
     std::vector<std::vector<double>> correctWaterContentSolution{
-      {4.119317, 4.119317, 0.005434, 0.005434, 1.4e-05, 1.4e-05},
-      {6.250393, 6.250393, 0.014202, 0.014202, 5.7e-05, 5.7e-05},
-      {7.302342, 7.302342, 0.02489, 0.02489, 0.000144, 0.000144},
-      {6.784836, 6.784836, 0.036153, 0.036153, 0.000285, 0.000285},
-      {5.107654, 5.107654, 0.046459, 0.046459, 0.000479, 0.000479},
-      {4.352747, 4.352747, 0.055702, 0.055702, 0.000724, 0.000724},
-      {3.673172, 3.673172, 0.063756, 0.063756, 0.001013, 0.001013},
-      {3.107442, 3.107442, 0.070658, 0.070658, 0.001337, 0.001337},
-      {2.663355, 2.663355, 0.076545, 0.076545, 0.001687, 0.001687},
-      {2.333544, 2.333544, 0.081553, 0.081553, 0.002055, 0.002055}};
+      {4.630345, 4.630345, 0.007231, 0.007231, 2.1e-05, 2.1e-05},
+      {5.851888, 5.851888, 0.019015, 0.019015, 9.8e-05, 9.8e-05},
+      {4.915636, 4.915636, 0.032528, 0.032528, 0.000271, 0.000271},
+      {3.251349, 3.251349, 0.044297, 0.044297, 0.000574, 0.000574},
+      {1.761459, 1.761459, 0.052298, 0.052298, 0.001029, 0.001029},
+      {1.320202, 1.320202, 0.058951, 0.058951, 0.001628, 0.001628},
+      {1.0834, 1.0834, 0.064677, 0.064677, 0.002349, 0.002349},
+      {0.940131, 0.940131, 0.069671, 0.069671, 0.00316, 0.00316},
+      {0.847121, 0.847121, 0.074042, 0.074042, 0.004026, 0.004026},
+      {0.784377, 0.784377, 0.077867, 0.077867, 0.004913, 0.004913}};
 
     EXPECT_EQ(waterContentSolution.size(), correctWaterContentSolution.size());
 
@@ -161,16 +161,16 @@ TEST_F(MultiDomain_2D_YazdanianKlemsHc_MultiTimestepBC, TestExample_1)
     }
 
     std::vector<std::vector<double>> correctTemperatureSolution{
-      {6.290785, 6.290785, 3.267036, 3.267036, 2.445143, 2.445143},
-      {8.607262, 8.607262, 5.931511, 5.931511, 5.054433, 5.054433},
-      {9.762976, 9.762976, 7.804778, 7.804778, 7.112854, 7.112854},
-      {10.832759, 10.832759, 9.285138, 9.285138, 8.738631, 8.738631},
-      {11.490438, 11.490438, 10.35778, 10.35778, 9.950421, 9.950421},
-      {11.749038, 11.749038, 11.026077, 11.026077, 10.755444, 10.755444},
-      {11.894196, 11.894196, 11.440727, 11.440727, 11.2683, 11.2683},
-      {11.837921, 11.837921, 11.623755, 11.623755, 11.534303, 11.534303},
-      {11.567187, 11.567187, 11.582029, 11.582029, 11.569995, 11.569995},
-      {11.075398, 11.075398, 11.316698, 11.316698, 11.380395, 11.380395}};
+      {11.525284, 11.525284, 5.985203, 5.985203, 4.479496, 4.479496},
+      {16.118553, 16.118553, 11.048928, 11.048928, 9.396227, 9.396227},
+      {19.439666, 19.439666, 15.188898, 15.188898, 13.731587, 13.731587},
+      {23.656529, 23.656529, 19.395658, 19.395658, 17.970676, 17.970676},
+      {27.908635, 27.908635, 23.631663, 23.631663, 22.207435, 22.207435},
+      {28.64284, 28.64284, 26.048609, 26.048609, 25.082191, 25.082191},
+      {29.089923, 29.089923, 27.501981, 27.501981, 26.893145, 26.893145},
+      {28.97192, 28.97192, 28.185653, 28.185653, 27.860414, 27.860414},
+      {28.33519, 28.33519, 28.220333, 28.220333, 28.129715, 28.129715},
+      {27.262137, 27.262137, 27.710112, 27.710112, 27.81561, 27.81561}};
 
     EXPECT_EQ(temperatureSolution.size(), correctTemperatureSolution.size());
 
