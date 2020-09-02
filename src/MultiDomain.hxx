@@ -1,6 +1,8 @@
 #pragma once
 
-#include "Domains.hxx"
+#include "Domain.hxx"
+#include "ThermalDomain.hxx"
+#include "MoistureDomain.hxx"
 #include "MaterialMissingProperties.hxx"
 
 namespace Timesteps
@@ -98,9 +100,9 @@ namespace HygroThermFEM
         //! @param index2 Node 2 index
         //! @param fixedBchcCoefficients Structure with values that are used in fixed convection
         //! coefficient boundary condition calculations
-        void createMoistureBCFixedHc(size_t index1,
-                                     size_t index2,
-                                     const FixedBCHCCoefficients & fixedBchcCoefficients);
+        void createBC_FixedHc(size_t index1,
+                              size_t index2,
+                              const FixedBCHCCoefficients & fixedBchcCoefficients);
 
         //! \brief Creates set of boundary condition coefficients that are used during transient
         //! simulation
@@ -108,10 +110,9 @@ namespace HygroThermFEM
         //! @param index2 Node 2 index
         //! @param fixedBchcCoefficients Structure with values that are used in fixed convection
         //! coefficient boundary condition calculations
-        void
-          createMoistureBCFixedHc(size_t index1,
-                                  size_t index2,
-                                  const std::vector<FixedBCHCCoefficients> & fixedBchcCoefficients);
+        void createBC_FixedHc(size_t index1,
+                              size_t index2,
+                              const std::vector<FixedBCHCCoefficients> & fixedBchcCoefficients);
 
         //! \brief Creates boundary condition with coefficients that are identical during the entire
         //! transient simulation or in steady-state calculations
@@ -119,9 +120,11 @@ namespace HygroThermFEM
         //! @param index2 Node 2 index
         //! @param varHCCoeff Structure with values that are used in variable convection
         //! coefficient boundary condition calculations
-        void createMoistureBCVariableHc(size_t index1,
-                                        size_t index2,
-                                        const VariableBCHCCoefficients & varHCCoeff);
+        //! @param Surface tilt at the boundary [degrees]
+        void createBC_TARPHc(size_t index1,
+                             size_t index2,
+                             const TARPCoefficients & varHCCoeff,
+                             double surfaceTilt = 90);
 
         //! \brief Creates set of boundary condition coefficients that are used during transient
         //! simulation
@@ -129,37 +132,118 @@ namespace HygroThermFEM
         //! @param index2 Node 2 index
         //! @param varHCCoeff Structure with values that are used in variable convection
         //! coefficient boundary condition calculations
-        void createMoistureBCVariableHc(size_t index1,
-                                        size_t index2,
-                                        const std::vector<VariableBCHCCoefficients> & varHCCoeff);
+        //! @param Surface tilt at the boundary [degrees]
+        void createBC_TARPHc(size_t index1,
+                             size_t index2,
+                             const std::vector<TARPCoefficients> & varHCCoeff,
+                             double surfaceTilt = 90);
+
+        //! \brief Creation of ASHRAE inside convection boundary condition
+        //! @param index1 Node 1 index
+        //! @param index2 Node 2 index
+        //! @param coeff Structure to hold variable convection coefficients that are variable
+        //! through timesteps
+        //! @param surfaceHeight Surface height at the boundary [meters]
+        //! @param surfaceTilt Surface tilt at the boundary [degrees]
+        void createBC_ASHRAEInsideHc(size_t index1,
+                                     size_t index2,
+                                     const ASHRAEInsideCoefficients & coeff,
+                                     double surfaceHeight,
+                                     double surfaceTilt = 90);
+
+        //! \brief Creation of ASHRAE inside convection boundary condition
+        //! @param index1 Node 1 index
+        //! @param index2 Node 2 index
+        //! @param coeff Structure to hold variable convection coefficients that are variable
+        //! through timesteps
+        //! @param surfaceHeight Surface height at the boundary [meters]
+        //! @param surfaceTilt Surface tilt at the boundary [degrees]
+        void createBC_ASHRAEInsideHc(size_t index1,
+                                     size_t index2,
+                                     const std::vector<ASHRAEInsideCoefficients> & coeff,
+                                     double surfaceHeight,
+                                     double surfaceTilt = 90);
+
+        //! \brief Creation of ASHRAE outside convection boundary condition
+        //! @param index1 Node 1 index
+        //! @param index2 Node 2 index
+        //! @param coeff Structure to hold variable convection coefficients that are variable
+        //! through timesteps
+        void createBC_ASHRAEOutsideHc(size_t index1,
+                                      size_t index2,
+                                      const ASHRAEOutsideCoefficients & coeff);
+
+        //! \brief Creation of ASHRAE outside convection boundary condition
+        //! @param index1 Node 1 index
+        //! @param index2 Node 2 index
+        //! @param coeff Structure to hold variable convection coefficients that are variable
+        //! through timesteps
+        void createBC_ASHRAEOutsideHc(size_t index1,
+                                      size_t index2,
+                                      const std::vector<ASHRAEOutsideCoefficients> & coeff);
+
+        //! \brief Creation of Yazdanian-Klems outside convection boundary condition
+        //! @param index1 Node 1 index
+        //! @param index2 Node 2 index
+        //! @param coeff Structure to hold variable convection coefficients that are variable
+        //! through timesteps
+        void createBC_YazdanianKlemsHc(size_t index1,
+                                       size_t index2,
+                                       const YazdanianKlemsCoefficients & coeff);
+
+        //! \brief Creation of Yazdanian-Klems outside convection boundary condition
+        //! @param index1 Node 1 index
+        //! @param index2 Node 2 index
+        //! @param coeff Structure to hold variable convection coefficients that are variable
+        //! through timesteps
+        void createBC_YazdanianKlemsHc(size_t index1,
+                                       size_t index2,
+                                       const std::vector<YazdanianKlemsCoefficients> & coeff);
+
+        //! \brief Creation of Kimura outside convection boundary condition
+        //! @param index1 Node 1 index
+        //! @param index2 Node 2 index
+        //! @param coeff Structure to hold variable convection coefficients that are variable
+        //! through timesteps
+        void createBC_KimuraHc(size_t index1,
+                               size_t index2,
+                               const std::vector<KimuraCoefficients> & coeff);
+
+        //! \brief Creation of Kimura outside convection boundary condition
+        //! @param index1 Node 1 index
+        //! @param index2 Node 2 index
+        //! @param coeff Structure to hold variable convection coefficients that are variable
+        //! through timesteps
+        void
+          createBC_KimuraHc(size_t index1, size_t index2, const KimuraCoefficients & coeff);
 
         //! \brief Sets fixed temperature boundary conditions
         //! @param index1 Node 1 index
         //! @param index2 Node 2 index
         //! @param temp1 Temperature value that will be set at the node 1
         //! @param temp2 Temperature value that will be set at the node 2
-        void createTemperatureBC(size_t index1, size_t index2, double temp1, double temp2);
+        void createBC_FixedTemperature(size_t index1, size_t index2, double temp1, double temp2);
 
         //! \brief Sets fixed temperature boundary conditions
         //! @param index1 Node 1 index
         //! @param index2 Node 2 index
         //! @param temp Set of node temperatures for every given timstep (each node can have
         //! different temperature).
-        void createTemperatureBC(size_t index1,
-                                 size_t index2,
-                                 const std::vector<ConstantBCTemperatures> & temp);
+        void createBC_FixedTemperature(size_t index1,
+                                       size_t index2,
+                                       const std::vector<ConstantBCTemperatures> & temp);
 
         //! \brief Sets fixed temperature boundary conditions
         //! @param index1 Node 1 index
         //! @param index2 Node 2 index
         //! @param temp Temperature value that will be set at the nodes
-        void createTemperatureBC(size_t index1, size_t index2, double temp);
+        void createBC_FixedTemperature(size_t index1, size_t index2, double temp);
 
         //! \brief Sets fixed temperature boundary conditions at every timestep
         //! @param index1 Node 1 index
         //! @param index2 Node 2 index
         //! @param temp Temperature values at every timestep that will be set at the nodes
-        void createTemperatureBC(size_t index1, size_t index2, std::vector<double> temp);
+        void createBC_FixedTemperature(size_t index1, size_t index2, std::vector<double> temp);
 
         //! \brief Sets radiation boundary condition that is fixed during entire transient
         //! simulation or set for steady-state case
@@ -167,36 +251,36 @@ namespace HygroThermFEM
         //! @param index2 Node 2 index
         //! @param t_Emissivity Surface emissivity
         //! @param t_RadiationTemperature Environment radiation temperature
-        void createBlackBodyRadiationBC(size_t index1,
-                                        size_t index2,
-                                        double t_Emissivity,
-                                        double t_RadiationTemperature);
+        void createBC_BodyRadiation(size_t index1,
+                                    size_t index2,
+                                    double t_Emissivity,
+                                    double t_RadiationTemperature);
 
         //! \brief Sets radiation boundary condition that is fixed during entire transient
         //! simulation or set for steady-state case
         //! @param index1 Node 1 index
         //! @param index2 Node 2 index
         //! @param radCoeffs Radiation coefficients for every timestep
-        void createBlackBodyRadiationBC(
-          size_t index1,
-          size_t index2,
-          const std::vector<BlackBodyRadiationBCCoefficients> & radCoeffs);
+        void
+          createBC_BodyRadiation(size_t index1,
+                                 size_t index2,
+                                 const std::vector<BlackBodyRadiationBCCoefficients> & radCoeffs);
 
         //! \brief Sets radiation boundary condition that is fixed during entire transient
         //! simulation or set for steady-state case
         //! @param index1 Node 1 index
         //! @param index2 Node 2 index
         //! @param radCoeffs Radiation coefficients for entire transient simulation or steady-state
-        void createLinearizedRadiationBC(size_t index1,
-                                         size_t index2,
-                                         const LinearizedRadiationBCCoefficients & linearRadBC);
+        void createBC_LinearizedRadiation(size_t index1,
+                                          size_t index2,
+                                          const LinearizedRadiationBCCoefficients & linearRadBC);
 
         //! \brief Sets radiation boundary condition that is fixed during entire transient
         //! simulation or set for steady-state case
         //! @param index1 Node 1 index
         //! @param index2 Node 2 index
         //! @param radCoeffs Radiation coefficients for every timestep
-        void createLinearizedRadiationBC(
+        void createBC_LinearizedRadiation(
           size_t index1,
           size_t index2,
           const std::vector<LinearizedRadiationBCCoefficients> & linearRadBC);
@@ -208,41 +292,41 @@ namespace HygroThermFEM
 
         //! \brief Assign observer to thermal part of the engine.
         //!
-        //! \param observer
+        //! @param observer observer that will be notified about each timestep
         void subscribeThermal(Timesteps::TimestepObserver * observer);
 
         //! \brief Unsubscribe from thermal notifications
         //!
-        //! \param observer
+        //! @param observer observer that will be notified about each timestep
         void unsubscribeThermal(Timesteps::TimestepObserver * observer);
 
         //! \brief Assign observer to moisture part of the engine.
         //!
-        //! \param observer
+        //! @param observer observer that will be notified about each timestep
         void subscribeMoisture(Timesteps::TimestepObserver * observer);
 
         //! \brief Unsubscribe from moisture notifications
         //!
-        //! \param observer
+        //! @param observer observer that will be notified about each timestep
         void unsubscribeMoisture(Timesteps::TimestepObserver * observer);
 
-        //! \brief Deletes Geometry and boundary conditions
+        //! @brief Deletes Geometry and boundary conditions
         void clearModel();
 
 
     private:
         //! \brief Checks validity of materials for transient simulation
-        MaterialsErrorCheckVector checkMaterialsForTransientSimulation() const;
+        [[nodiscard]] MaterialsErrorCheckVector checkMaterialsForTransientSimulation() const;
 
         //! \brief Checks validity of materials for transient simulation
-        MaterialsErrorCheckVector checkMaterialsForSteadyStateSimulation() const;
+        [[nodiscard]] MaterialsErrorCheckVector checkMaterialsForSteadyStateSimulation() const;
 
         static double normError(const std::vector<double> & vec1, const std::vector<double> & vec2);
 
         ThermalDomain m_ThermalDomain;
         MoistureDomain m_MoistureDomain;
-        bool m_PerformThermal;
-        bool m_PerformMoisture;
+        bool m_SimulateThermal;
+        bool m_SimulateMoisture;
     };
 
 }   // namespace HygroThermFEM

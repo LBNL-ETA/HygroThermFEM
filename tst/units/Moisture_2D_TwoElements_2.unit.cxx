@@ -1,0 +1,315 @@
+#include <memory>
+#include <gtest/gtest.h>
+
+#include "HygroThermFEM2D.hxx"
+
+using HygroThermFEM::NodePool;
+using HygroThermFEM::MaterialPool;
+using HygroThermFEM::State;
+
+class Moisture_2D_TwoElements_2 : public testing::Test
+{
+protected:
+    void SetUp() override
+    {}
+
+    void TearDown() override
+    {
+        NodePool::Instance().clear();
+        MaterialPool::Instance().clear();
+    }
+};
+
+TEST_F(Moisture_2D_TwoElements_2, TestExample_1)
+{
+    SCOPED_TRACE("Begin Test: Simple two elements example with moisture transfer.");
+
+    const auto initialTemperature = 20;
+    const auto initialHumidity = 0.5;
+    const auto initialPressure = 101325.0;
+    const auto liquidPercent = 1.0;
+
+    const State state(initialTemperature, initialHumidity, initialPressure, liquidPercent);
+
+    NodePool::Instance().createNode(1, 0.15, 0.05, state);
+    NodePool::Instance().createNode(2, 0.15, 0, state);
+    NodePool::Instance().createNode(3, 0.05, 0.05, state);
+    NodePool::Instance().createNode(4, 0.05, 0, state);
+    NodePool::Instance().createNode(5, 0, 0.05, state);
+    NodePool::Instance().createNode(6, 0, 0, state);
+
+    // Material Properties (Cottaer Sandstone)
+    const double thermalConductivityDry{1.8};
+    const double density{2050.0};
+    const double porosity{0.22};
+    const double specificHeatCapacityDry{850.0};
+    const double diffusionResistanceFactor{15.0};
+    const std::vector<FenestrationCommon::point> thermalConductivityMoistureDependent = {
+      {0.0, 1.8}, {180, 1.8}};
+    const double thermalConductivityMeasuredAtTemperature{0};
+    const std::vector<FenestrationCommon::point> thermalConductivityTemperatureDependent = {
+      {0.0, 1.8}, {1, 1.8}};
+    const double thermalConductivityMeasuredAtHumidity{0};
+    const std::vector<FenestrationCommon::point> liquidTransportationCurve = {{0, 0},
+                                                                              {27, 1E-8},
+                                                                              {45, 1.1E-8},
+                                                                              {90, 2E-8},
+                                                                              {126, 3.5E-8},
+                                                                              {144, 5E-8},
+                                                                              {162, 1E-7},
+                                                                              {171, 2E-7},
+                                                                              {180, 7E-7}};
+
+    const std::vector<FenestrationCommon::point> moistureStorageFunction = {{0, 0},
+                                                                            {0.5, 5.3},
+                                                                            {0.65, 8.4},
+                                                                            {0.8, 12},
+                                                                            {0.93, 17},
+                                                                            {0.95, 25},
+                                                                            {0.99, 63},
+                                                                            {0.995, 83},
+                                                                            {0.999, 120},
+                                                                            {1, 180}};
+
+    auto & material =
+      MaterialPool::Instance().createSolidMaterial("Cottaer Sandstone",
+                                                   thermalConductivityDry,
+                                                   density,
+                                                   porosity,
+                                                   specificHeatCapacityDry,
+                                                   diffusionResistanceFactor,
+                                                   thermalConductivityMoistureDependent,
+                                                   thermalConductivityMeasuredAtTemperature,
+                                                   thermalConductivityTemperatureDependent,
+                                                   thermalConductivityMeasuredAtHumidity,
+                                                   liquidTransportationCurve,
+                                                   moistureStorageFunction);
+
+    HygroThermFEM::MoistureDomain domain;
+
+    /// Create elements
+    domain.createElement(3, 4, 2, 1, material.name());
+    domain.createElement(6, 4, 3, 5, material.name());
+
+    // Create Boundary Conditions
+    const auto airTemperature = 0.0;
+    const auto airHumidity = 0.0;
+    const auto hc = 10.0;
+
+    const HygroThermFEM::FixedBCHCCoefficients bcCoeff{airTemperature, hc, airHumidity};
+
+    domain.createBC_FixedHc(5, 6, bcCoeff);
+
+    const auto dTime = 3600;
+    const auto nSteps = 24;
+
+    auto humidities = NodePool::Instance().properties(HygroThermFEM::Variable::humidity);
+    std::vector<double> timesteps;
+    std::vector<std::vector<double>> waterContentSolution;
+    std::vector<std::vector<HygroThermFEM::NodeFlux>> fluxSolution;
+
+    for(unsigned i = 0; i < nSteps; ++i)
+    {
+        auto solution = domain.transient(humidities, dTime);
+        humidities = solution.solution;
+        timesteps.push_back(solution.dTime);
+        auto waterContent = NodePool::Instance().properties(HygroThermFEM::Variable::water);
+        waterContentSolution.push_back(waterContent);
+        fluxSolution.push_back(domain.flux());
+    }
+
+    std::vector<double> correctTimesteps{3600, 3600, 3600, 3600, 3600, 3600, 3600, 3600,
+                                         3600, 3600, 3600, 3600, 3600, 3600, 3600, 3600,
+                                         3600, 3600, 3600, 3600, 3600, 3600, 3600, 3600};
+
+    std::vector<std::vector<double>> correctWaterContentSolution{
+      {5.299994348, 5.299994348, 5.294981923, 5.294981923, 2.034979107, 2.034979107},
+      {5.299980897, 5.299980897, 5.288055232, 5.288055232, 0.7898496603, 0.7898496603},
+      {5.29995884, 5.29995884, 5.280406189, 5.280406189, 0.3150789192, 0.3150789192},
+      {5.299927879, 5.299927879, 5.27248751, 5.27248751, 0.1340687975, 0.1340687975},
+      {5.29988791, 5.29988791, 5.264471971, 5.264471971, 0.065057739, 0.065057739},
+      {5.299838904, 5.299838904, 5.256425502, 5.256425502, 0.03873899753, 0.03873899753},
+      {5.299780861, 5.299780861, 5.248373256, 5.248373256, 0.02869063493, 0.02869063493},
+      {5.299713792, 5.299713792, 5.240324829, 5.240324829, 0.02484179304, 0.02484179304},
+      {5.299637711, 5.299637711, 5.232283883, 5.232283883, 0.02335469416, 0.02335469416},
+      {5.299552634, 5.299552634, 5.224251813, 5.224251813, 0.02276714663, 0.02276714663},
+      {5.299458578, 5.299458578, 5.216229153, 5.216229153, 0.02252217018, 0.02252217018},
+      {5.29935556, 5.29935556, 5.208216107, 5.208216107, 0.02240764247, 0.02240764247},
+      {5.299243596, 5.299243596, 5.200212754, 5.200212754, 0.02234279465, 0.02234279465},
+      {5.299122703, 5.299122703, 5.192219123, 5.192219123, 0.022296879, 0.022296879},
+      {5.298992899, 5.298992899, 5.184235227, 5.184235227, 0.02225819266, 0.02225819266},
+      {5.2988542, 5.2988542, 5.176261073, 5.176261073, 0.02222228229, 0.02222228229},
+      {5.298706623, 5.298706623, 5.168296662, 5.168296662, 0.02218745362, 0.02218745362},
+      {5.298550185, 5.298550185, 5.160341997, 5.160341997, 0.02215306219, 0.02215306219},
+      {5.298384903, 5.298384903, 5.152397078, 5.152397078, 0.02211886292, 0.02211886292},
+      {5.298210792, 5.298210792, 5.144461908, 5.144461908, 0.02208476261, 0.02208476261},
+      {5.298027871, 5.298027871, 5.136536487, 5.136536487, 0.02205072586, 0.02205072586},
+      {5.297836156, 5.297836156, 5.128620816, 5.128620816, 0.02201673919, 0.02201673919},
+      {5.297635662, 5.297635662, 5.120714897, 5.120714897, 0.0219827975, 0.0219827975},
+      {5.297426408, 5.297426408, 5.11281873, 5.11281873, 0.02194889886, 0.02194889886}};
+
+    std::vector<std::vector<HygroThermFEM::NodeFlux>> correctFluxSolution{
+      {{-1.35833108e-10, 0.0},
+       {-1.35833108e-10, 0.0},
+       {-8.841164064e-08, 0.0},
+       {-8.841164064e-08, 0.0},
+       {-1.766874482e-07, 0.0},
+       {-1.766874482e-07, 0.0}},
+      {{-3.231769177e-10, 0.0},
+       {-3.231769177e-10, 0.0},
+       {-1.220597138e-07, 0.0},
+       {-1.220597138e-07, 0.0},
+       {-2.437962508e-07, 0.0},
+       {-2.437962508e-07, 0.0}},
+      {{-5.298627485e-10, 0.0},
+       {-5.298627485e-10, 0.0},
+       {-1.348217177e-07, 0.0},
+       {-1.348217177e-07, 0.0},
+       {-2.691135727e-07, 0.0},
+       {-2.691135727e-07, 0.0}},
+      {{-7.436141864e-10, 0.0},
+       {-7.436141864e-10, 0.0},
+       {-1.396192467e-07, 0.0},
+       {-1.396192467e-07, 0.0},
+       {-2.784948791e-07, 0.0},
+       {-2.784948791e-07, 0.0}},
+      {{-9.597463703e-10, 0.0},
+       {-9.597463703e-10, 0.0},
+       {-1.413802473e-07, 0.0},
+       {-1.413802473e-07, 0.0},
+       {-2.818007483e-07, 0.0},
+       {-2.818007483e-07, 0.0}},
+      {{-1.176471874e-09, 0.0},
+       {-1.176471874e-09, 0.0},
+       {-1.419837754e-07, 0.0},
+       {-1.419837754e-07, 0.0},
+       {-2.82791079e-07, 0.0},
+       {-2.82791079e-07, 0.0}},
+      {{-1.393109018e-09, 0.0},
+       {-1.393109018e-09, 0.0},
+       {-1.421461873e-07, 0.0},
+       {-1.421461873e-07, 0.0},
+       {-2.828992657e-07, 0.0},
+       {-2.828992657e-07, 0.0}},
+      {{-1.609398041e-09, 0.0},
+       {-1.609398041e-09, 0.0},
+       {-1.421405261e-07, 0.0},
+       {-1.421405261e-07, 0.0},
+       {-2.826716542e-07, 0.0},
+       {-2.826716542e-07, 0.0}},
+      {{-1.825240142e-09, 0.0},
+       {-1.825240142e-09, 0.0},
+       {-1.420708427e-07, 0.0},
+       {-1.420708427e-07, 0.0},
+       {-2.823164452e-07, 0.0},
+       {-2.823164452e-07, 0.0}},
+      {{-2.040597912e-09, 0.0},
+       {-2.040597912e-09, 0.0},
+       {-1.419767804e-07, 0.0},
+       {-1.419767804e-07, 0.0},
+       {-2.819129628e-07, 0.0},
+       {-2.819129628e-07, 0.0}},
+      {{-2.255457353e-09, 0.0},
+       {-2.255457353e-09, 0.0},
+       {-1.418734405e-07, 0.0},
+       {-1.418734405e-07, 0.0},
+       {-2.814914236e-07, 0.0},
+       {-2.814914236e-07, 0.0}},
+      {{-2.469813394e-09, 0.0},
+       {-2.469813394e-09, 0.0},
+       {-1.417665743e-07, 0.0},
+       {-1.417665743e-07, 0.0},
+       {-2.810633353e-07, 0.0},
+       {-2.810633353e-07, 0.0}},
+      {{-2.683664366e-09, 0.0},
+       {-2.683664366e-09, 0.0},
+       {-1.416583721e-07, 0.0},
+       {-1.416583721e-07, 0.0},
+       {-2.806330797e-07, 0.0},
+       {-2.806330797e-07, 0.0}},
+      {{-2.897009894e-09, 0.0},
+       {-2.897009894e-09, 0.0},
+       {-1.415496675e-07, 0.0},
+       {-1.415496675e-07, 0.0},
+       {-2.80202325e-07, 0.0},
+       {-2.80202325e-07, 0.0}},
+      {{-3.109850101e-09, 0.0},
+       {-3.109850101e-09, 0.0},
+       {-1.414407781e-07, 0.0},
+       {-1.414407781e-07, 0.0},
+       {-2.797717062e-07, 0.0},
+       {-2.797717062e-07, 0.0}},
+      {{-3.322185293e-09, 0.0},
+       {-3.322185293e-09, 0.0},
+       {-1.41331825e-07, 0.0},
+       {-1.41331825e-07, 0.0},
+       {-2.793414648e-07, 0.0},
+       {-2.793414648e-07, 0.0}},
+      {{-3.534015851e-09, 0.0},
+       {-3.534015851e-09, 0.0},
+       {-1.412228544e-07, 0.0},
+       {-1.412228544e-07, 0.0},
+       {-2.789116929e-07, 0.0},
+       {-2.789116929e-07, 0.0}},
+      {{-3.745342182e-09, 0.0},
+       {-3.745342182e-09, 0.0},
+       {-1.411138838e-07, 0.0},
+       {-1.411138838e-07, 0.0},
+       {-2.784824255e-07, 0.0},
+       {-2.784824255e-07, 0.0}},
+      {{-3.956164701e-09, 0.0},
+       {-3.956164701e-09, 0.0},
+       {-1.410049203e-07, 0.0},
+       {-1.410049203e-07, 0.0},
+       {-2.780536759e-07, 0.0},
+       {-2.780536759e-07, 0.0}},
+      {{-4.16648383e-09, 0.0},
+       {-4.16648383e-09, 0.0},
+       {-1.408959666e-07, 0.0},
+       {-1.408959666e-07, 0.0},
+       {-2.776254493e-07, 0.0},
+       {-2.776254493e-07, 0.0}},
+      {{-4.376299989e-09, 0.0},
+       {-4.376299989e-09, 0.0},
+       {-1.407870238e-07, 0.0},
+       {-1.407870238e-07, 0.0},
+       {-2.771977477e-07, 0.0},
+       {-2.771977477e-07, 0.0}},
+      {{-4.585613601e-09, 0.0},
+       {-4.585613601e-09, 0.0},
+       {-1.406780927e-07, 0.0},
+       {-1.406780927e-07, 0.0},
+       {-2.767705718e-07, 0.0},
+       {-2.767705718e-07, 0.0}},
+      {{-4.794425086e-09, 0.0},
+       {-4.794425086e-09, 0.0},
+       {-1.405691735e-07, 0.0},
+       {-1.405691735e-07, 0.0},
+       {-2.76343922e-07, 0.0},
+       {-2.76343922e-07, 0.0}},
+      {{-5.002734866e-09, 0.0},
+       {-5.002734866e-09, 0.0},
+       {-1.404602666e-07, 0.0},
+       {-1.404602666e-07, 0.0},
+       {-2.759177984e-07, 0.0},
+       {-2.759177984e-07, 0.0}}};
+
+    EXPECT_EQ(correctTimesteps.size(), timesteps.size());
+
+    for(size_t i = 0u; i < correctTimesteps.size(); ++i)
+    {
+        EXPECT_NEAR(correctTimesteps[i], timesteps[i], 1e-6);
+    }
+
+    EXPECT_EQ(correctWaterContentSolution.size(), waterContentSolution.size());
+
+    for(auto i = 0u; i < waterContentSolution.size(); ++i)
+    {
+        for(auto j = 0u; j < waterContentSolution[i].size(); ++j)
+        {
+            EXPECT_NEAR(correctWaterContentSolution[i][j], waterContentSolution[i][j], 1e-6);
+            EXPECT_NEAR(correctFluxSolution[i][j].x, fluxSolution[i][j].x, 1e-12);
+            EXPECT_NEAR(correctFluxSolution[i][j].y, fluxSolution[i][j].y, 1e-12);
+        }
+    }
+}

@@ -36,10 +36,10 @@ namespace HygroThermFEM
         );
 
         //! Returns node indexes
-        std::vector<std::size_t> getNodeIndexes() const;
+        [[nodiscard]] std::vector<std::size_t> getNodeIndexes() const;
 
         //! Returns node with given index.
-        Node2D & getNode(std::size_t index) const;
+        INode2D & getNode(std::size_t index) const;
 
         //! Virtual function that will calculate vector from the boundary condition.
         //! Any inherited boundary condition must define its own vector calculations.

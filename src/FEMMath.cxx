@@ -12,4 +12,14 @@ namespace HygroThermFEM
 
         return std::pow(result, 0.5);
     }
+
+    double radians(const double d)
+    {
+        return d * HTFEM_PI / 180;
+    }
+
+    double degrees(const double r)
+    {
+        return r * 180 / HTFEM_PI;
+    }
 }   // namespace HygroThermFEM

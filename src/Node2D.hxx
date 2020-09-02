@@ -45,33 +45,42 @@ namespace HygroThermFEM
     //! \brief Main enumeration for accessing calculated or master properties.
     enum class Variable
     {
-        temperature,     //!< Temperature
-        humidity,        //!< Humidity
-        pressure,        //!< Pressure
-        liquidPercent,   //!< Percentage of water in liquid state.
-        water,           //!< Water content
-        liquid,          //!< Water content in liquid state.
-        vapor,           //!< Water content in vapor state.
-        ice              //!< Water content in frozen state.
+        temperature,
+        //!< Temperature
+        humidity,
+        //!< Humidity
+        pressure,
+        //!< Pressure
+        liquidPercent,
+        //!< Percentage of water in liquid state.
+        water,
+        //!< Water content
+        liquid,
+        //!< Water content in liquid state.
+        vapor,
+        //!< Water content in vapor state.
+        ice //!< Water content in frozen state.
     };
 
     //! \brief Enumerator for timestep count
     enum class Timestep
     {
-        Current,   //!< Current timestep
-        Previous   //!< Previous timestep
+        Current,
+        //!< Current timestep
+        Previous //!< Previous timestep
     };
 
     //! Simple Node2D interface
     class INode2D
     {
     public:
-        INode2D() = default;
+        INode2D() = delete;
+        INode2D(std::size_t t_NodeNumber, double t_x, double t_y);
         virtual ~INode2D() = default;
         INode2D(const INode2D &) = default;
-        virtual size_t getNodeNumber() const = 0;
-        virtual double X() const = 0;
-        virtual double Y() const = 0;
+        [[nodiscard]] size_t getNodeNumber() const;
+        double X() const;
+        double Y() const;
 
         virtual void assignMaterial(const std::string & t_Material,
                                     double weightingCoefficient) = 0;
@@ -82,6 +91,14 @@ namespace HygroThermFEM
         virtual void setStateProperty(BaseVariable t_Property,
                                       double t_value,
                                       bool updatePreviousValue = true) = 0;
+
+        friend bool operator==(const INode2D & first, const INode2D & second);
+        friend bool operator!=(const INode2D & first, const INode2D & second);
+
+    protected:
+        std::size_t m_NodeNumber{0};
+        double m_x{0};
+        double m_y{0};
     };
 
     ////////////////////////////////////////////////////////////////////////////
@@ -99,59 +116,55 @@ namespace HygroThermFEM
     public:
         //! Base constructor of the node.
         Node2D(
-          std::size_t t_NodeNumber,   //!< Node index. Must be unique in entire finite element model
-          double t_x,                 //!< Node's x coordinate
-          double t_y,                 //!< Node's y coordinate
-          const State & t_State       //!< State of variables in the node
-        );
+            std::size_t t_NodeNumber,
+            //!< Node index. Must be unique in entire finite element model
+            double t_x,
+            //!< Node's x coordinate
+            double t_y,
+            //!< Node's y coordinate
+            const State & t_State //!< State of variables in the node
+            );
 
         Node2D(const Node2D & t_Node) = default;
         Node2D(Node2D && t_Node) = default;
         ~Node2D() = default;
         Node2D & operator=(const Node2D & other) = default;
-        Node2D & operator=(Node2D && other) = default;
-        friend bool operator==(const Node2D & first, const Node2D & second);
-        friend bool operator!=(const Node2D & first, const Node2D & second);
-
-        //! Node index
-        size_t getNodeNumber() const override;
-
-        //! Node's x coordinate
-        double X() const override;
-
-        //! Node's y coordinate
-        double Y() const override;
+        Node2D & operator=(Node2D && other) = default;        
 
         //! Assigning material to current node.
         void assignMaterial(
-          const std::string &
-            t_Material,   //!< SolidMaterial name. It must be assigned to MaterialPool first.
-          double weightingCoefficient   //!< Weighting coefficient that represents influence of the
+            const std::string &
+            t_Material,
+            //!< SolidMaterial name. It must be assigned to MaterialPool first.
+            double weightingCoefficient //!< Weighting coefficient that represents influence of the
                                         //!< material to current node.
-        ) override;
+            ) override;
 
         std::vector<std::string> getSolidMaterialNames() const;
 
         //! Returns back property of state variable. Variable can be from basic state (temperature,
         //! humidity or pressure) or water content
         double property(
-          Variable property,                       //!< Variable for which value will be returned
-          Timestep iteration = Timestep::Current   //!< Timestep for which value will be returned
-          ) const override;
+            Variable property,
+            //!< Variable for which value will be returned
+            Timestep iteration = Timestep::Current //!< Timestep for which value will be returned
+            ) const override;
 
         //! Sets the value of basic state property (temperature, humidity, pressure or liquid water
         //! percentage)
         void setStateProperty(
-          BaseVariable t_Property,   //!< Base state property for which value will be set
-          double t_value,            //!< New value that property will be set to.
-          bool updatePreviousValue =
-            true   //!< Indicates wheter previous timestep value should be updated or not.
-        ) override;
+            BaseVariable t_Property,
+            //!< Base state property for which value will be set
+            double t_value,
+            //!< New value that property will be set to.
+            bool updatePreviousValue =
+                true //!< Indicates wheter previous timestep value should be updated or not.
+            ) override;
 
     private:
         //! Returns value of water content
-        double waterContent(WaterContent content   //!< Water content property
-                            ) const;
+        double waterContent(WaterContent content //!< Water content property
+            ) const;
 
         //! Performs water content calculations and store it locally (This speeds up engine
         //! calculation)
@@ -159,10 +172,6 @@ namespace HygroThermFEM
 
         //! Update water content for every state (liquid, vapor and ice)
         void updateWaterContent();
-
-        std::size_t m_NodeNumber{0};
-        double m_x{0};
-        double m_y{0};
 
         std::map<Timestep, State> m_State;
 
@@ -205,22 +214,22 @@ namespace HygroThermFEM
         INodes() = default;
 
         //! Construction of nodes storage from initializer list.
-        INodes(std::initializer_list<std::reference_wrapper<Node2D>> t_Nodes);
+        INodes(std::initializer_list<std::reference_wrapper<INode2D>> t_Nodes);
 
         //! Returns properties for all nodes in the storage.
-        std::vector<double>
-          properties(Variable property   //!< Variable for which node values will be calculated.
-                     ) const;
+        [[nodiscard]] std::vector<double>
+            properties(Variable property //!< Variable for which node values will be calculated.
+                ) const;
 
         //! Simple operator[] overload for access to nodes storage by index.
-        Node2D & operator[](std::size_t index   //!< Node index
-                            ) const;
+        INode2D & operator[](std::size_t index //!< Node index
+            ) const;
 
         //! Returns node indexes.
-        std::vector<std::size_t> getNodeIndexes() const;
+        [[nodiscard]] std::vector<std::size_t> getNodeIndexes() const;
 
         //! Returns number of nodes.
-        std::size_t size() const;
+        [[nodiscard]] std::size_t size() const;
 
     protected:
         //! Construction of node storage for boundary conditions.
@@ -229,7 +238,7 @@ namespace HygroThermFEM
         //! Construction of node storage for element.
         INodes(Node2D & node1, Node2D & node2, Node2D & node3, Node2D & node4);
 
-        std::vector<std::reference_wrapper<Node2D>> m_Nodes;
+        std::vector<std::reference_wrapper<INode2D>> m_Nodes;
     };
 
     ////////////////////////////////////////////////////////////////////////////
@@ -258,5 +267,4 @@ namespace HygroThermFEM
                              Node2D & t_Node3,
                              Node2D & t_Node4);
     };
-
-}   // namespace HygroThermFEM
+} // namespace HygroThermFEM

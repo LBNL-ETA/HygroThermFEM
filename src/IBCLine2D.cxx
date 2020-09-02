@@ -52,7 +52,7 @@ namespace HygroThermFEM
         return m_Linear;
     }
 
-    Node2D & IBCLinear2D::getNode(const std::size_t index) const
+    INode2D & IBCLinear2D::getNode(const std::size_t index) const
     {
         if(index > numOfBCNodes)
         {

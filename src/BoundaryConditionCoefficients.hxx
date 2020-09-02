@@ -1,5 +1,7 @@
 #pragma once
 
+#include "ConvectiveCoefficient.hxx"
+
 namespace HygroThermFEM
 {
     ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -22,17 +24,96 @@ namespace HygroThermFEM
     };
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
-    // VariableBCHCCoefficients
+    /// TARPCoefficients
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
-    //! \brief Structure to keep boundary condition coefficients for variable heat transfer
-    //! coefficients case
-    struct VariableBCHCCoefficients
+    //! \brief Structure to keep boundary condition coefficients for comprehensive natural
+    //! convection model
+    //!
+    //! It is simply the structure that holds all necessary variables that are needed to create
+    //! boundary condition for comprehensive natural convection model that is often named as TARP
+    struct TARPCoefficients
     {
-        VariableBCHCCoefficients(double airTemperature, double airHumidity);
+        //! \brief Construction of variables for TARP convection model.
+        //! This structure holds only values that vary through every timestep.
+        //!
+        //! \param airTemperature Air/Ambient temperature of exterior/interior environment
+        //! \param airHumidity Air humidity of the environment
+        TARPCoefficients(double airTemperature, double airHumidity);
 
-        double AirTemperature{0};
-        double AirHumidity{0};
+        double AirTemperature{0.0};   // Celsius
+        double AirHumidity{0.0};      // Humidity range is from 0 to 1
+    };
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+    /// ASHRAEInsideCoefficients
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+
+    //! \brief Structure to keep boundary condition coefficients that are used in ASHRAE indoor
+    //! model.
+    //!
+    //! This structure will keep only coefficients that are variable between timesteps.
+    struct ASHRAEInsideCoefficients
+    {
+        //! \brief Simple constructor for the structure
+        ASHRAEInsideCoefficients(double air_temperature, double air_pressure, double air_humidity);
+
+        double AirTemperature{0.0};     // Celsius
+        double AirPressure{101325.0};   // Pascals
+        double AirHumidity{0.0};        // Humidity range is from 0 to 1
+    };
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+    /// ASHRAEOutsideCoefficients
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+
+    //! \brief Structure to keep boundary condition coefficients that are used in ASHRAE outdoor
+    //! model.
+    //!
+    //! This structure will keep only coefficients that are variable between timesteps.
+    struct ASHRAEOutsideCoefficients
+    {
+        ASHRAEOutsideCoefficients(double airTemperature, double windSpeed, double airHumidity);
+        double AirTemperature{0.0};
+        double WindSpeed{0.0};
+        double AirHumidity{0.0};
+    };
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+    /// YazdanianKlemsCoefficients
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+
+    //! \brief Structure to keep boundary condition coefficients that are used in Yazdanian-Klems
+    //! model.
+    //!
+    //! This structure will keep only coefficients that are variable between timesteps.
+    struct YazdanianKlemsCoefficients
+    {
+        YazdanianKlemsCoefficients(double airTemperature,
+                                   double windSpeed,
+                                   HygroThermFEM::WindDirection windDirection,
+                                   double airHumidity);
+        double AirTemperature{0.0};
+        double WindSpeed{0.0};
+        WindDirection WindDir{WindDirection::Leeward};
+        double AirHumidity{0.0};
+    };
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+    /// KimuraCoefficients
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+
+    //! \brief Structure to keep boundary condition coefficients that are used in Kimura model.
+    struct KimuraCoefficients
+    {
+        KimuraCoefficients(double airTemperature,
+                           double windSpeed,
+                           WindDirection windDir,
+                           double airHumidity);
+        double AirTemperature{0.0};
+        double WindSpeed{0.0};
+        WindDirection WindDir{WindDirection::Leeward};
+        double AirHumidity{0.0};
     };
 
     ///////////////////////////////////////////////////////////////////////////////////////////////

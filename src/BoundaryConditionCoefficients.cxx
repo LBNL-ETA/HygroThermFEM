@@ -20,12 +20,62 @@ namespace HygroThermFEM
     {}
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
-    // VariableBCHCCoefficients
+    // TARPCoefficients
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
-    VariableBCHCCoefficients::VariableBCHCCoefficients(const double airTemperature,
-                                                       const double airHumidity) :
+    TARPCoefficients::TARPCoefficients(const double airTemperature,
+                                                               const double airHumidity) :
         AirTemperature(airTemperature), AirHumidity(airHumidity)
+    {}
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+    /// ASHRAEInsideCoefficients
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+    
+    ASHRAEInsideCoefficients::ASHRAEInsideCoefficients(double air_temperature,
+                                                       double air_pressure,
+                                                       double air_humidity):
+        AirTemperature(air_temperature),
+        AirPressure(air_pressure),
+        AirHumidity(air_humidity)
+    {}
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+    /// ASHRAEOutsideCoefficients
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+
+    ASHRAEOutsideCoefficients::ASHRAEOutsideCoefficients(double airTemperature,
+                                                         double windSpeed,
+                                                         double airHumidity) :
+      AirTemperature(airTemperature), WindSpeed(windSpeed), AirHumidity(airHumidity)
+    {}
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+    /// YazdanianKlemsCoefficients
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+
+    YazdanianKlemsCoefficients::YazdanianKlemsCoefficients(double airTemperature,
+                                                           double windSpeed,
+                                                           WindDirection windDirection,
+                                                           double airHumidity) :
+      AirTemperature(airTemperature),
+      WindSpeed(windSpeed),
+      WindDir(windDirection),
+      AirHumidity(airHumidity)
+    {}
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+    /// KimuraCoefficients
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+
+    KimuraCoefficients::KimuraCoefficients(double airTemperature,
+                                           double windSpeed,
+                                           WindDirection windDir,
+                                           double airHumidity) :
+      AirTemperature(airTemperature),
+      WindSpeed(windSpeed),
+      WindDir(windDir),
+      AirHumidity(airHumidity)
     {}
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -51,7 +101,7 @@ namespace HygroThermFEM
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
     BlackBodyRadiationBCCoefficients::BlackBodyRadiationBCCoefficients(const double emissivity,
-                                                     const double temperature) :
+                                                                       const double temperature) :
         Emissivity(emissivity), Temperature(temperature)
     {}
 }   // namespace HygroThermFEM

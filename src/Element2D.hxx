@@ -156,7 +156,7 @@ namespace HygroThermFEM
 
         std::vector<NodeFlux> flux() const;
 
-        Node2D & getNode(std::size_t index) const;
+        INode2D & getNode(std::size_t index) const;
 
         //! Returns true of element have both nodes. This is used to test if certain boundary
         //! condition is part of the element.
@@ -342,7 +342,7 @@ namespace HygroThermFEM
         {
         public:
             explicit CircularNodesVector(
-              const std::initializer_list<std::reference_wrapper<Node2D>> & __l) :
+              const std::initializer_list<std::reference_wrapper<INode2D>> & __l) :
                 INodes(__l)
             {}
 
@@ -356,18 +356,18 @@ namespace HygroThermFEM
                 INodes(node1, node2, node3, node4)
             {}
 
-            std::vector<std::reference_wrapper<Node2D>>::const_iterator begin() const
+            [[nodiscard]] std::vector<std::reference_wrapper<INode2D>>::const_iterator begin() const
             {
                 return m_Nodes.begin();
             }
 
-            std::vector<std::reference_wrapper<Node2D>>::const_iterator end() const
+            [[nodiscard]] std::vector<std::reference_wrapper<INode2D>>::const_iterator end() const
             {
                 return m_Nodes.end();
             }
 
             /// Keeps iterating over unique elements of the vector
-            const Node2D & current()
+            const INode2D & current()
             {
                 return m_Nodes[currentIndex];
             }
@@ -377,7 +377,7 @@ namespace HygroThermFEM
                 return passedLast;
             }
 
-            const Node2D & previous()
+            const INode2D & previous()
             {
                 auto validIndex = checkPrevIndex(currentIndex);
 
@@ -389,7 +389,7 @@ namespace HygroThermFEM
                 return m_Nodes[validIndex];
             }
 
-            const Node2D & next()
+            const INode2D & next()
             {
                 auto validIndex = checkNextIndex(currentIndex);
                 while(m_Nodes[validIndex] == m_Nodes[currentIndex])
