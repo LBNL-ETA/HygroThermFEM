@@ -102,17 +102,17 @@ TEST_F(MultiDomain_2D_ASHRAEOutsideHc_MultiTimestepBC, TestExample_1)
 
     /// Create Boundary Conditions
 
-    // Variable boundary conditions (temperature, wind speed and humidity) over ten timesteps.
-    const std::vector<HygroThermFEM::ASHRAEOutsideCoefficients> bcCoeff{{20.0, 3, 0.6},
-                                                                       {20.0, 3, 0.5},
-                                                                       {20.0, 3, 0.4},
-                                                                       {20.0, 4, 0.3},
-                                                                       {20.0, 4.2, 0.2},
-                                                                       {18.0, 4.6, 0.2},
-                                                                       {16.0, 5, 0.2},
-                                                                       {14.0, 5.3, 0.2},
-                                                                       {12.0, 5.5, 0.2},
-                                                                       {10.0, 5.9, 0.2}};
+    // Variable boundary conditions (temperature, humidity and wind speed) over ten timesteps.
+    const std::vector<HygroThermFEM::ASHRAEOutsideCoefficients> bcCoeff{{20.0, 0.6, 3},
+                                                                       {20.0, 0.5, 3},
+                                                                       {20.0, 0.4, 3},
+                                                                       {20.0, 0.3, 4},
+                                                                       {20.0, 0.2, 4.2},
+                                                                       {18.0, 0.2, 4.6},
+                                                                       {16.0, 0.2, 5},
+                                                                       {14.0, 0.2, 5.3},
+                                                                       {12.0, 0.2, 5.5},
+                                                                       {10.0, 0.2, 5.9}};
 
     domain.createBC_ASHRAEOutsideHc(1, 2, bcCoeff);
 

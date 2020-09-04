@@ -56,11 +56,21 @@ namespace HygroThermFEM
     struct ASHRAEInsideCoefficients
     {
         //! \brief Simple constructor for the structure
-        ASHRAEInsideCoefficients(double air_temperature, double air_pressure, double air_humidity);
+        //!
+        //! \param air_temperature Air/Ambient temperature
+        //! \param air_humidity Air/Ambient humidity
+        //! \param air_pressure Air/Ambient pressure
+        ASHRAEInsideCoefficients(double air_temperature,
+                                 double air_humidity,
+                                 double air_pressure = defaultAirPressure);
 
-        double AirTemperature{0.0};     // Celsius
-        double AirPressure{101325.0};   // Pascals
-        double AirHumidity{0.0};        // Humidity range is from 0 to 1
+        double AirTemperature{0.0};               // Celsius
+        double AirHumidity{0.0};                  // Humidity range is from 0 to 1
+        double AirPressure{defaultAirPressure};   // Pascals
+
+    private:
+        //! Default air pressure to be used in other places
+        constexpr static const double defaultAirPressure{101325.0};   // Pascals
     };
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -73,10 +83,10 @@ namespace HygroThermFEM
     //! This structure will keep only coefficients that are variable between timesteps.
     struct ASHRAEOutsideCoefficients
     {
-        ASHRAEOutsideCoefficients(double airTemperature, double windSpeed, double airHumidity);
+        ASHRAEOutsideCoefficients(double airTemperature, double airHumidity, double windSpeed);
         double AirTemperature{0.0};
-        double WindSpeed{0.0};
         double AirHumidity{0.0};
+        double WindSpeed{0.0};
     };
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -90,13 +100,13 @@ namespace HygroThermFEM
     struct YazdanianKlemsCoefficients
     {
         YazdanianKlemsCoefficients(double airTemperature,
+                                   double airHumidity,
                                    double windSpeed,
-                                   HygroThermFEM::WindDirection windDirection,
-                                   double airHumidity);
+                                   HygroThermFEM::WindDirection windDirection);
         double AirTemperature{0.0};
-        double WindSpeed{0.0};
-        WindDirection WindDir{WindDirection::Leeward};
         double AirHumidity{0.0};
+        double WindSpeed{0.0};
+        WindDirection WindDir{WindDirection::Leeward};        
     };
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -107,13 +117,13 @@ namespace HygroThermFEM
     struct KimuraCoefficients
     {
         KimuraCoefficients(double airTemperature,
+                           double airHumidity,
                            double windSpeed,
-                           WindDirection windDir,
-                           double airHumidity);
+                           WindDirection windDir);
         double AirTemperature{0.0};
+        double AirHumidity{0.0};
         double WindSpeed{0.0};
         WindDirection WindDir{WindDirection::Leeward};
-        double AirHumidity{0.0};
     };
 
     ///////////////////////////////////////////////////////////////////////////////////////////////

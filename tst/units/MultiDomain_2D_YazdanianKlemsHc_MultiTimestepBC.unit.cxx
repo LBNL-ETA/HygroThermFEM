@@ -104,18 +104,18 @@ TEST_F(MultiDomain_2D_YazdanianKlemsHc_MultiTimestepBC, TestExample_1)
 
     using HygroThermFEM::WindDirection;
 
-    // Variable boundary conditions (temperature, wind speed and humidity) over ten timesteps.
+    // Variable boundary conditions (temperature, humidity, wind speed and wind direction) over ten timesteps.
     const std::vector<HygroThermFEM::YazdanianKlemsCoefficients> bcCoeff{
-      {20.0, 3, WindDirection::Windward, 0.6},
-      {20.0, 3, WindDirection::Windward, 0.5},
-      {20.0, 3, WindDirection::Windward, 0.4},
-      {20.0, 4, WindDirection::Windward, 0.3},
-      {20.0, 4.2, WindDirection::Windward, 0.2},
-      {18.0, 4.6, WindDirection::Leeward, 0.2},
-      {16.0, 5, WindDirection::Leeward, 0.2},
-      {14.0, 5.3, WindDirection::Leeward, 0.2},
-      {12.0, 5.5, WindDirection::Leeward, 0.2},
-      {10.0, 5.9, WindDirection::Leeward, 0.2}};
+      {20.0, 0.6, 3.0, WindDirection::Windward},
+      {20.0, 0.5, 3.0, WindDirection::Windward},
+      {20.0, 0.4, 3.0, WindDirection::Windward},
+      {20.0, 0.3, 4.0, WindDirection::Windward},
+      {20.0, 0.2, 4.2, WindDirection::Windward},
+      {18.0, 0.2, 4.6, WindDirection::Leeward},
+      {16.0, 0.2, 5.0, WindDirection::Leeward},
+      {14.0, 0.2, 5.3, WindDirection::Leeward},
+      {12.0, 0.2, 5.5, WindDirection::Leeward},
+      {10.0, 0.2, 5.9, WindDirection::Leeward}};
 
     domain.createBC_YazdanianKlemsHc(1, 2, bcCoeff);
 

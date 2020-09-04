@@ -103,16 +103,16 @@ TEST_F(MultiDomain_2D_ASHRAEInsideHc_MultiTimestepBC, TestExample_1)
     /// Create Boundary Conditions
 
     // Variable boundary conditions (temperature, pressure and humidity) over ten timesteps.
-    const std::vector<HygroThermFEM::ASHRAEInsideCoefficients> bcCoeff{{20.0, 101325.0, 0.6},
-                                                                       {20.0, 101325.0, 0.5},
-                                                                       {20.0, 101325.0, 0.4},
-                                                                       {20.0, 101325.0, 0.3},
-                                                                       {20.0, 101325.0, 0.2},
-                                                                       {18.0, 101325.0, 0.2},
-                                                                       {16.0, 101325.0, 0.2},
-                                                                       {14.0, 101325.0, 0.2},
-                                                                       {12.0, 101325.0, 0.2},
-                                                                       {10.0, 101325.0, 0.2}};
+    const std::vector<HygroThermFEM::ASHRAEInsideCoefficients> bcCoeff{{20.0, 0.6, 101325.0},
+                                                                       {20.0, 0.5, 101325.0},
+                                                                       {20.0, 0.4, 101325.0},
+                                                                       {20.0, 0.3, 101325.0},
+                                                                       {20.0, 0.2, 101325.0},
+                                                                       {18.0, 0.2, 101325.0},
+                                                                       {16.0, 0.2, 101325.0},
+                                                                       {14.0, 0.2, 101325.0},
+                                                                       {12.0, 0.2, 101325.0},
+                                                                       {10.0, 0.2, 101325.0}};
 
     const auto surfaceTilt{90.0};    // degrees
     const auto surfaceHeight{1.0};   // meters

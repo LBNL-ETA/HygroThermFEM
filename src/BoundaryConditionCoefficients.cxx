@@ -33,11 +33,11 @@ namespace HygroThermFEM
     ///////////////////////////////////////////////////////////////////////////////////////////////
     
     ASHRAEInsideCoefficients::ASHRAEInsideCoefficients(double air_temperature,
-                                                       double air_pressure,
-                                                       double air_humidity):
+                                                       double air_humidity,
+                                                       double air_pressure):
         AirTemperature(air_temperature),
-        AirPressure(air_pressure),
-        AirHumidity(air_humidity)
+        AirHumidity(air_humidity),
+        AirPressure(air_pressure)
     {}
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -45,9 +45,9 @@ namespace HygroThermFEM
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
     ASHRAEOutsideCoefficients::ASHRAEOutsideCoefficients(double airTemperature,
-                                                         double windSpeed,
-                                                         double airHumidity) :
-      AirTemperature(airTemperature), WindSpeed(windSpeed), AirHumidity(airHumidity)
+                                                         double airHumidity,
+                                                         double windSpeed) :
+      AirTemperature(airTemperature), AirHumidity(airHumidity), WindSpeed(windSpeed)
     {}
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -55,13 +55,13 @@ namespace HygroThermFEM
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
     YazdanianKlemsCoefficients::YazdanianKlemsCoefficients(double airTemperature,
+                                                           double airHumidity,
                                                            double windSpeed,
-                                                           WindDirection windDirection,
-                                                           double airHumidity) :
+                                                           WindDirection windDirection) :
       AirTemperature(airTemperature),
+      AirHumidity(airHumidity),
       WindSpeed(windSpeed),
-      WindDir(windDirection),
-      AirHumidity(airHumidity)
+      WindDir(windDirection)
     {}
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -69,13 +69,13 @@ namespace HygroThermFEM
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
     KimuraCoefficients::KimuraCoefficients(double airTemperature,
+                                           double airHumidity,
                                            double windSpeed,
-                                           WindDirection windDir,
-                                           double airHumidity) :
+                                           WindDirection windDir) :
       AirTemperature(airTemperature),
+      AirHumidity(airHumidity),
       WindSpeed(windSpeed),
-      WindDir(windDir),
-      AirHumidity(airHumidity)
+      WindDir(windDir)
     {}
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
