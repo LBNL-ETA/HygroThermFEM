@@ -343,16 +343,16 @@ namespace HygroThermFEM
         m_ThermalDomain.createBC_FixedTemperature(index1, index2, std::move(temp));
     }
 
-    void MultiDomain::createBC_BodyRadiation(const size_t index1,
-                                             const size_t index2,
-                                             const double t_Emissivity,
-                                             const double t_RadiationTemperature)
+    void MultiDomain::createBC_BlackBodyRadiation(size_t index1,
+                                                  size_t index2,
+                                             double t_Emissivity,
+                                             double t_RadiationTemperature)
     {
         m_ThermalDomain.createBC_BlackBodyRadiation(
           index1, index2, t_Emissivity, t_RadiationTemperature);
     }
 
-    void MultiDomain::createBC_BodyRadiation(
+    void MultiDomain::createBC_BlackBodyRadiation(
       size_t index1, size_t index2, const std::vector<BlackBodyRadiationBCCoefficients> & radCoeffs)
     {
         m_ThermalDomain.createBC_BlackBodyRadiation(index1, index2, radCoeffs);

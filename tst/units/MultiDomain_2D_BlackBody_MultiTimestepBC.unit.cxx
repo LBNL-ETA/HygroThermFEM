@@ -114,7 +114,7 @@ TEST_F(MultiDomain_2D_BlackBody_MultiTimestepBC, TestExample_1)
                                                                                    {0.7, 18},
                                                                                    {0.7, 19}};
 
-    domain.createBC_BodyRadiation(1, 2, bcBlackBody);
+    domain.createBC_BlackBodyRadiation(1, 2, bcBlackBody);
 
     const auto dTime = 3600;
     const auto nSteps = 10;

@@ -251,7 +251,7 @@ namespace HygroThermFEM
         //! @param index2 Node 2 index
         //! @param t_Emissivity Surface emissivity
         //! @param t_RadiationTemperature Environment radiation temperature
-        void createBC_BodyRadiation(size_t index1,
+        void createBC_BlackBodyRadiation(size_t index1,
                                     size_t index2,
                                     double t_Emissivity,
                                     double t_RadiationTemperature);
@@ -261,8 +261,7 @@ namespace HygroThermFEM
         //! @param index1 Node 1 index
         //! @param index2 Node 2 index
         //! @param radCoeffs Radiation coefficients for every timestep
-        void
-          createBC_BodyRadiation(size_t index1,
+        void createBC_BlackBodyRadiation(size_t index1,
                                  size_t index2,
                                  const std::vector<BlackBodyRadiationBCCoefficients> & radCoeffs);
 
