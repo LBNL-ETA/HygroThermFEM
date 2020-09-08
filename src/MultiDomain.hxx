@@ -214,8 +214,7 @@ namespace HygroThermFEM
         //! @param index2 Node 2 index
         //! @param coeff Structure to hold variable convection coefficients that are variable
         //! through timesteps
-        void
-          createBC_KimuraHc(size_t index1, size_t index2, const KimuraCoefficients & coeff);
+        void createBC_KimuraHc(size_t index1, size_t index2, const KimuraCoefficients & coeff);
 
         //! \brief Sets fixed temperature boundary conditions
         //! @param index1 Node 1 index
@@ -252,18 +251,19 @@ namespace HygroThermFEM
         //! @param t_Emissivity Surface emissivity
         //! @param t_RadiationTemperature Environment radiation temperature
         void createBC_BlackBodyRadiation(size_t index1,
-                                    size_t index2,
-                                    double t_Emissivity,
-                                    double t_RadiationTemperature);
+                                         size_t index2,
+                                         double t_Emissivity,
+                                         double t_RadiationTemperature);
 
         //! \brief Sets radiation boundary condition that is fixed during entire transient
         //! simulation or set for steady-state case
         //! @param index1 Node 1 index
         //! @param index2 Node 2 index
         //! @param radCoeffs Radiation coefficients for every timestep
-        void createBC_BlackBodyRadiation(size_t index1,
-                                 size_t index2,
-                                 const std::vector<BlackBodyRadiationBCCoefficients> & radCoeffs);
+        void createBC_BlackBodyRadiation(
+          size_t index1,
+          size_t index2,
+          const std::vector<BlackBodyRadiationBCCoefficients> & radCoeffs);
 
         //! \brief Sets radiation boundary condition that is fixed during entire transient
         //! simulation or set for steady-state case
