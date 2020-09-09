@@ -160,6 +160,28 @@ namespace HygroThermFEM
         m_BCs.assignTimestepBCs(std::move(timestepBCs));
     }
 
+    void MoistureDomain::createBC_FixedHumidity(size_t index1,
+        size_t index2,
+        const TemperatureAndHumidity & values)
+    {
+        auto & Material = m_Elements.findElement(index1, index2)->getMaterial();
+        m_BCs.assignBC(std::make_unique<MoistureBCFixedHumidity>(
+          index1, index2, Material.name(), values));
+    }
+
+    void MoistureDomain::createBC_FixedHumidity(size_t index1,
+        size_t index2,
+        const std::vector<TemperatureAndHumidity> & values)
+    {
+        std::vector<std::unique_ptr<IBCLinear2D>> timestepBCs{values.size()};
+        auto & Material = m_Elements.findElement(index1, index2)->getMaterial();
+        for(size_t i = 0u; i < values.size(); ++i)
+        {
+            timestepBCs[i] = std::make_unique<MoistureBCFixedHumidity>(index1, index2, Material.name(), values[i]);
+        }
+        m_BCs.assignTimestepBCs(std::move(timestepBCs));
+    }
+
     MoistureDomain::MoistureDomain(bool automaticUpdatePreviousTimestep) :
         IDomain(BaseVariable::humidity, automaticUpdatePreviousTimestep)
     {}

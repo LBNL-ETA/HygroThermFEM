@@ -20,24 +20,30 @@ namespace HygroThermFEM
     {}
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
+    // TemperatureAndHumidity
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+
+    TemperatureAndHumidity::TemperatureAndHumidity(const double temperature,
+                                                   const double humidity) :
+        Temperature(temperature), Humidity(humidity)
+    {}
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////
     // TARPCoefficients
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
-    TARPCoefficients::TARPCoefficients(const double airTemperature,
-                                                               const double airHumidity) :
+    TARPCoefficients::TARPCoefficients(const double airTemperature, const double airHumidity) :
         AirTemperature(airTemperature), AirHumidity(airHumidity)
     {}
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
     /// ASHRAEInsideCoefficients
     ///////////////////////////////////////////////////////////////////////////////////////////////
-    
+
     ASHRAEInsideCoefficients::ASHRAEInsideCoefficients(double air_temperature,
                                                        double air_humidity,
-                                                       double air_pressure):
-        AirTemperature(air_temperature),
-        AirHumidity(air_humidity),
-        AirPressure(air_pressure)
+                                                       double air_pressure) :
+        AirTemperature(air_temperature), AirHumidity(air_humidity), AirPressure(air_pressure)
     {}
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -47,7 +53,7 @@ namespace HygroThermFEM
     ASHRAEOutsideCoefficients::ASHRAEOutsideCoefficients(double airTemperature,
                                                          double airHumidity,
                                                          double windSpeed) :
-      AirTemperature(airTemperature), AirHumidity(airHumidity), WindSpeed(windSpeed)
+        AirTemperature(airTemperature), AirHumidity(airHumidity), WindSpeed(windSpeed)
     {}
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -58,10 +64,10 @@ namespace HygroThermFEM
                                                            double airHumidity,
                                                            double windSpeed,
                                                            WindDirection windDirection) :
-      AirTemperature(airTemperature),
-      AirHumidity(airHumidity),
-      WindSpeed(windSpeed),
-      WindDir(windDirection)
+        AirTemperature(airTemperature),
+        AirHumidity(airHumidity),
+        WindSpeed(windSpeed),
+        WindDir(windDirection)
     {}
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -72,10 +78,10 @@ namespace HygroThermFEM
                                            double airHumidity,
                                            double windSpeed,
                                            WindDirection windDir) :
-      AirTemperature(airTemperature),
-      AirHumidity(airHumidity),
-      WindSpeed(windSpeed),
-      WindDir(windDir)
+        AirTemperature(airTemperature),
+        AirHumidity(airHumidity),
+        WindSpeed(windSpeed),
+        WindDir(windDir)
     {}
 
     ///////////////////////////////////////////////////////////////////////////////////////////////

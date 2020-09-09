@@ -184,10 +184,11 @@ namespace HygroThermFEM
                                                   size_t index2,
                                                   std::vector<double> temp)
     {
-        std::vector<std::unique_ptr<IBCLinear2D>> timestepBCs;
-        std::for_each(temp.begin(), temp.end(), [&](const auto & temperature) {
-            timestepBCs.push_back(std::make_unique<TemperatureBC>(index1, index2, temperature));
-        });
+        std::vector<std::unique_ptr<IBCLinear2D>> timestepBCs{temp.size()};
+        for(size_t i = 0u; i < temp.size(); ++i)
+        {
+            timestepBCs[i] = std::make_unique<TemperatureBC>(index1, index2, temp[i]);
+        }
         m_BCs.assignTimestepBCs(std::move(timestepBCs));
     }
 

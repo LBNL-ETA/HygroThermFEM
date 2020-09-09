@@ -136,4 +136,26 @@ namespace HygroThermFEM
                           const std::string & materialName,
                           const FixedBCHCCoefficients & fixedBchcCoefficients);
     };
+
+    /////////////////////////////////////////////////////
+    /// MoistureBCFixedHc
+    /////////////////////////////////////////////////////
+
+    class MoistureBCFixedHumidity : public MoistureBCFixedHc
+    {
+    public:
+        MoistureBCFixedHumidity(size_t index1,
+                                size_t index2,
+                                const std::string & materialName,
+                                TemperatureAndHumidity values) :
+            MoistureBCFixedHc(index1,
+                              index2,
+                              materialName,
+                              {values.Temperature, hugeFilmCoefficient, values.Humidity})
+        {}
+
+    private:
+        inline static const double hugeFilmCoefficient{1e18};
+    };
+
 }   // namespace HygroThermFEM

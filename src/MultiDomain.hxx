@@ -244,6 +244,20 @@ namespace HygroThermFEM
         //! @param temp Temperature values at every timestep that will be set at the nodes
         void createBC_FixedTemperature(size_t index1, size_t index2, std::vector<double> temp);
 
+        //! \brief Sets constant temperature and humidity at the boundary
+        //!
+        //! @param index1 Node 1 index
+        //! @param index2 Node 2 index
+        //! @param values Temperature and humidity values that will be set at the nodes
+        void createBC_FixedTemperatureAndHumidity(size_t index1, size_t index2, const TemperatureAndHumidity & values);
+
+        //! \brief Sets constant temperature and humidity at the boundary
+        //!
+        //! @param index1 Node 1 index
+        //! @param index2 Node 2 index
+        //! @param values Temperature and humidity values that will be set at the nodes
+        void createBC_FixedTemperatureAndHumidity(size_t index1, size_t index2, const std::vector<TemperatureAndHumidity> & values);
+
         //! \brief Sets radiation boundary condition that is fixed during entire transient
         //! simulation or set for steady-state case
         //! @param index1 Node 1 index
