@@ -199,6 +199,16 @@ namespace HygroThermFEM
         m_BCs.assignBC(fem::make_unique<FluxBC>(index1, index2, t_Flux));
     }
 
+    void ThermalDomain::createBC_FixedFlux(size_t index1, size_t index2, std::vector<double> t_Flux)
+    {
+        std::vector<std::unique_ptr<IBCLinear2D>> timestepBCs{t_Flux.size()};
+        for(size_t i = 0u; i < t_Flux.size(); ++i)
+        {
+            timestepBCs[i] = std::make_unique<TemperatureBC>(index1, index2, t_Flux[i]);
+        }
+        m_BCs.assignTimestepBCs(std::move(timestepBCs));
+    }
+
     void ThermalDomain::createBC_BlackBodyRadiation(const size_t index1,
                                                     const size_t index2,
                                                     const double t_Emissivity,

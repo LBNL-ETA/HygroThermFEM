@@ -361,6 +361,17 @@ namespace HygroThermFEM
         m_MoistureDomain.createBC_FixedHumidity(index1, index2, values);
     }
 
+    void MultiDomain::createBC_FixedHeatFlux(size_t index1, size_t index2, double t_Flux)
+    {
+        m_ThermalDomain.createBC_FixedFlux(index1, index2, t_Flux);
+    }
+
+    void
+      MultiDomain::createBC_FixedHeatFlux(size_t index1, size_t index2, std::vector<double> t_Flux)
+    {
+        m_ThermalDomain.createBC_FixedFlux(index1, index2, t_Flux);
+    }
+
     void MultiDomain::createBC_BlackBodyRadiation(size_t index1,
                                                   size_t index2,
                                                   double t_Emissivity,

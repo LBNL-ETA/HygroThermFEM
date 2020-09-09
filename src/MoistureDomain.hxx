@@ -139,7 +139,7 @@ namespace HygroThermFEM
         //! @param index1 Node 1 index
         //! @param index2 Node 2 index
         //! @param values structure to hold fixed temperature and humidity for every timestep
-        void createBC_FixedHumidity(size_t index1, size_t index2, const std::vector<TemperatureAndHumidity> & values);
+        void createBC_FixedHumidity(size_t index1, size_t index2, const std::vector<TemperatureAndHumidity> & values);        
 
         //! \brief Creates and adds element into domain.
         //! @param index1 Node 1 index
