@@ -112,7 +112,7 @@ namespace HygroThermFEM
     TemperatureBC::TemperatureBC(const size_t index1,
                                  const size_t index2,
                                  const double t_NodeTemperatures) :
-        ConstantConvectionBC(index1, index2, {t_NodeTemperatures, 1e18})
+        ConstantConvectionBC(index1, index2, {t_NodeTemperatures, hugeFilmCoefficient})
     {
         auto & node1 = NodePool::Instance().getNode(index1);
         auto & node2 = NodePool::Instance().getNode(index2);
@@ -124,7 +124,7 @@ namespace HygroThermFEM
                                  const size_t index2,
                                  const double t_Temp1,
                                  const double t_Temp2) :
-        ConstantConvectionBC(index1, index2, {(t_Temp1 + t_Temp2) / 2, 1e18})
+        ConstantConvectionBC(index1, index2, {(t_Temp1 + t_Temp2) / 2, hugeFilmCoefficient})
     {
         auto & node1 = NodePool::Instance().getNode(index1);
         auto & node2 = NodePool::Instance().getNode(index2);

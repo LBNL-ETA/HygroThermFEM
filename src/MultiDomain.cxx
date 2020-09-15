@@ -14,8 +14,7 @@ namespace HygroThermFEM
     // passing false to subdomains means that previous timestep values will not be automatically
     // updated. This mean that multidomain must update its values once solution converged.
     MultiDomain::MultiDomain(const bool performThermal, const bool performMoisture) :
-        m_SimulateThermal(performThermal),
-        m_SimulateMoisture(performMoisture)
+        m_SimulateThermal(performThermal), m_SimulateMoisture(performMoisture)
     {}
 
     Solution MultiDomain::transient(std::vector<double> & temperature,
@@ -299,9 +298,8 @@ namespace HygroThermFEM
         m_MoistureDomain.createBC_YazdanianKlemsHc(index1, index2, coeff);
     }
 
-    void MultiDomain::createBC_KimuraHc(size_t index1,
-                                        size_t index2,
-                                        const KimuraCoefficients & coeff)
+    void
+      MultiDomain::createBC_KimuraHc(size_t index1, size_t index2, const KimuraCoefficients & coeff)
     {
         m_ThermalDomain.createBC_KimuraHc(index1, index2, coeff, m_SimulateMoisture);
         m_MoistureDomain.createBC_KimuraHc(index1, index2, coeff);
@@ -343,10 +341,41 @@ namespace HygroThermFEM
         m_ThermalDomain.createBC_FixedTemperature(index1, index2, std::move(temp));
     }
 
+    void MultiDomain::createBC_FixedTemperatureAndHumidity(size_t index1,
+                                                           size_t index2,
+                                                           const TemperatureAndHumidity & values)
+    {
+        m_ThermalDomain.createBC_FixedTemperature(index1, index2, values.Temperature);
+        m_MoistureDomain.createBC_FixedHumidity(index1, index2, values);
+    }
+
+    void MultiDomain::createBC_FixedTemperatureAndHumidity(
+      size_t index1, size_t index2, const std::vector<TemperatureAndHumidity> & values)
+    {
+        std::vector<double> temperatures(values.size());
+        for(size_t i = 0u; i < values.size(); ++i)
+        {
+            temperatures[i] = values[i].Temperature;
+        }
+        m_ThermalDomain.createBC_FixedTemperature(index1, index2, temperatures);
+        m_MoistureDomain.createBC_FixedHumidity(index1, index2, values);
+    }
+
+    void MultiDomain::createBC_FixedHeatFlux(size_t index1, size_t index2, double t_Flux)
+    {
+        m_ThermalDomain.createBC_FixedFlux(index1, index2, t_Flux);
+    }
+
+    void
+      MultiDomain::createBC_FixedHeatFlux(size_t index1, size_t index2, std::vector<double> t_Flux)
+    {
+        m_ThermalDomain.createBC_FixedFlux(index1, index2, t_Flux);
+    }
+
     void MultiDomain::createBC_BlackBodyRadiation(size_t index1,
                                                   size_t index2,
-                                             double t_Emissivity,
-                                             double t_RadiationTemperature)
+                                                  double t_Emissivity,
+                                                  double t_RadiationTemperature)
     {
         m_ThermalDomain.createBC_BlackBodyRadiation(
           index1, index2, t_Emissivity, t_RadiationTemperature);

@@ -199,6 +199,12 @@ namespace HygroThermFEM
         //! @param t_Flux Constant flux in both nodes
         void createBC_FixedFlux(size_t index1, size_t index2, double t_Flux);
 
+        //! \brief Creation of flux boundary condition
+        //! @param index1 Node 1 index
+        //! @param index2 Node 2 index
+        //! @param t_Flux Constant flux in both nodes at every timestep
+        void createBC_FixedFlux(size_t index1, size_t index2, std::vector<double> t_Flux);
+
         //! \brief Creation of black body radiation
         //! @param index1 Node 1 index
         //! @param index2 Node 2 index

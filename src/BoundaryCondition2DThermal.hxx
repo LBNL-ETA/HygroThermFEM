@@ -161,6 +161,8 @@ namespace HygroThermFEM
                       double t_Temp1,   //!< Temperature at node 1
                       double t_Temp2    //!< Temperature at node 2
         );
+    private:
+        inline static const double hugeFilmCoefficient{1e18};
     };
 
     ////////////////////////////////////////////////////////
