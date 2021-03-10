@@ -4,8 +4,8 @@ include(ExternalProject)
 
 ExternalProject_Add(KeffCavity
     GIT_REPOSITORY https://github.com/LBNL-ETA/KeffCavity.git
-    GIT_TAG "Version_1.0.5"
-    #GIT_TAG "master"
+    GIT_TAG "Version_1.0.9"
+    #GIT_TAG "main"
     
     UPDATE_COMMAND ""
     PATCH_COMMAND ""
