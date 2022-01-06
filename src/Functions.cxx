@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <utility>
 #include <vector>
+#include <stdexcept>
 
 #include "Functions.hxx"
 #include "Node2D.hxx"

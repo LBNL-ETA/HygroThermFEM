@@ -1,3 +1,5 @@
+#include <stdexcept>
+
 #include "MaterialPool.hxx"
 
 namespace HygroThermFEM

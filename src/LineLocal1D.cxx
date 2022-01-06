@@ -1,4 +1,5 @@
 #include <memory>
+#include <stdexcept>
 
 #include "LineLocal1D.hxx"
 

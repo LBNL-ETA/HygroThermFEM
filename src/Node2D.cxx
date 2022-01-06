@@ -1,3 +1,5 @@
+#include <stdexcept>
+
 #include "Node2D.hxx"
 #include "MaterialPool.hxx"
 

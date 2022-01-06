@@ -1,3 +1,5 @@
+#include <stdexcept>
+
 #include "QuadrilateralLocal2D.hxx"
 #include "Node2D.hxx"
 #include "IntegrationPoints.hxx"
