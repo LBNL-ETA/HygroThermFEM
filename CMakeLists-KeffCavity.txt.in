@@ -4,7 +4,7 @@ include(ExternalProject)
 
 ExternalProject_Add(KeffCavity
     GIT_REPOSITORY https://github.com/LBNL-ETA/KeffCavity.git
-    GIT_TAG "Version_1.0.12"
+    GIT_TAG "GasesRefactoring"
     
     UPDATE_COMMAND ""
     PATCH_COMMAND ""
