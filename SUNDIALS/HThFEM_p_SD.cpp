@@ -80,6 +80,7 @@ int residual(realtype tres, N_Vector yy, N_Vector yp, N_Vector rr, void *user_da
     for (int i=0; i<neq; i++) {
       yvec.push_back(yval[i]);
     }
+    updateNodeValues(yvec, false);
     NodePool::Instance().updateNodeValues(yvec, HygroThermFEM::BaseVariable::humidity, false);
 
   return(0);
@@ -219,6 +220,7 @@ int main(int, char**){
 
     int retval; // IDA functions return 0 (good) or something less than zero (Bad)
 
+// Initalize Solver
     // SUNContext object is the orchestra conductor
     SUNContext ctx;
     retval = SUNContext_Create(NULL, &ctx);
@@ -276,6 +278,7 @@ int main(int, char**){
     N_VConst(abstol,vatol);
     //retval = IDASVtolerances(mem, reltol, vatol);
 
+    // Chose the solver (Still in initialize)
     SUNLinearSolver LS;
     
      /* Create banded SUNMatrix for use in linear solves */
@@ -294,7 +297,7 @@ int main(int, char**){
     std::vector<double> waterContent = {0.0,0.0,0.0,0.0,0.0,0.0};
     
 
-
+    // This is transient solver
     for(unsigned i = 0; i < nSteps; ++i)
     {
         t = (i+1)*dTime;
