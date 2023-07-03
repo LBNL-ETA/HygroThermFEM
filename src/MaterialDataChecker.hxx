@@ -8,6 +8,7 @@
 namespace HygroThermFEM
 {
     struct MultiDomain;
+    using MaterialsErrorCheckVector = std::vector<MaterialMissingProperties>;
 
     //! \brief Checks validity of materials for any simulation
     //!

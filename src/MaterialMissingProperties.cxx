@@ -63,32 +63,15 @@ namespace HygroThermFEM
                || ThermalConductivityMoistureAndTemperatureDependent;
     }
 
-    //////////////////////////////////////////////////////////////////////////
-    ///  MaterialsErrorCheckVector
-    //////////////////////////////////////////////////////////////////////////
-
-    MaterialMissingProperties MaterialsErrorCheckVector::operator[](const size_t Index) const
-    {
-        return m_MaterialMissingProperties[Index];
-    }
-
-    bool MaterialsErrorCheckVector::isMaterialLibraryCorrect() const
+    bool isMaterialLibraryCorrect(
+      const std::vector<MaterialMissingProperties> & missingProperties)
     {
         bool isCorrect{true};
-        for(const auto & mat : m_MaterialMissingProperties)
+        for(const auto & mat : missingProperties)
         {
             isCorrect = isCorrect && !mat.isMissingAnyProperty();
         }
         return isCorrect;
     }
 
-    void MaterialsErrorCheckVector::push_back(MaterialMissingProperties missingProperties)
-    {
-        m_MaterialMissingProperties.push_back(std::move(missingProperties));
-    }
-
-    size_t MaterialsErrorCheckVector::size() const
-    {
-        return m_MaterialMissingProperties.size();
-    }
 }   // namespace HygroThermFEM

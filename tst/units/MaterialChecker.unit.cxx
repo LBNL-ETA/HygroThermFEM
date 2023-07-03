@@ -37,7 +37,7 @@ TEST_F(TestMaterialChecker, TestExample_1)
     const auto matCheckTransient{
       checkForMaterialsValidity(domain, HygroThermFEM::SimulationType::Transient)};
     EXPECT_EQ(matCheckTransient.size(), 1u);
-    EXPECT_EQ(matCheckTransient.isMaterialLibraryCorrect(), false);
+    EXPECT_EQ(isMaterialLibraryCorrect(matCheckTransient), false);
 
     // Series of test means following. Material property is missing for given simulation properties
     // and therefore it is set to true. If material property is not needed for given simulation
@@ -57,7 +57,7 @@ TEST_F(TestMaterialChecker, TestExample_1)
     const auto matCheckSteadyState{
       checkForMaterialsValidity(domain, HygroThermFEM::SimulationType::SteadyState)};
     EXPECT_EQ(matCheckSteadyState.size(), 1u);
-    EXPECT_EQ(matCheckSteadyState.isMaterialLibraryCorrect(), false);
+    EXPECT_EQ(isMaterialLibraryCorrect(matCheckSteadyState), false);
     EXPECT_EQ(matCheckSteadyState[0].Density, false);
     EXPECT_EQ(matCheckSteadyState[0].Emissivity, true);
     EXPECT_EQ(matCheckSteadyState[0].Porosity, true);
@@ -87,7 +87,7 @@ TEST_F(TestMaterialChecker, TestExample_2)
     const auto matCheckTransient{
       checkForMaterialsValidity(domain, HygroThermFEM::SimulationType::Transient)};
     EXPECT_EQ(matCheckTransient.size(), 1u);
-    EXPECT_EQ(matCheckTransient.isMaterialLibraryCorrect(), false);
+    EXPECT_EQ(isMaterialLibraryCorrect(matCheckTransient), false);
 
     // Series of test means following. Material property is missing for given simulation properties
     // and therefore it is set to true. If material property is not needed for given simulation
@@ -107,7 +107,7 @@ TEST_F(TestMaterialChecker, TestExample_2)
     const auto matCheckSteadyState{
       checkForMaterialsValidity(domain, HygroThermFEM::SimulationType::SteadyState)};
     EXPECT_EQ(matCheckSteadyState.size(), 1u);
-    EXPECT_EQ(matCheckSteadyState.isMaterialLibraryCorrect(), false);
+    EXPECT_EQ(isMaterialLibraryCorrect(matCheckSteadyState), false);
     EXPECT_EQ(matCheckSteadyState[0].Density, false);
     EXPECT_EQ(matCheckSteadyState[0].Emissivity, true);
     EXPECT_EQ(matCheckSteadyState[0].Porosity, false);
@@ -137,7 +137,7 @@ TEST_F(TestMaterialChecker, TestExample_3)
     const auto matCheckTransient{
       checkForMaterialsValidity(domain, HygroThermFEM::SimulationType::Transient)};
     EXPECT_EQ(matCheckTransient.size(), 1u);
-    EXPECT_EQ(matCheckTransient.isMaterialLibraryCorrect(), false);
+    EXPECT_EQ(isMaterialLibraryCorrect(matCheckTransient), false);
 
     // Series of test means following. Material property is missing for given simulation properties
     // and therefore it is set to true. If material property is not needed for given simulation
@@ -157,7 +157,7 @@ TEST_F(TestMaterialChecker, TestExample_3)
     const auto matCheckSteadyState{
       checkForMaterialsValidity(domain, HygroThermFEM::SimulationType::SteadyState)};
     EXPECT_EQ(matCheckSteadyState.size(), 1u);
-    EXPECT_EQ(matCheckSteadyState.isMaterialLibraryCorrect(), false);
+    EXPECT_EQ(isMaterialLibraryCorrect(matCheckSteadyState), false);
     EXPECT_EQ(matCheckSteadyState[0].Density, false);
     EXPECT_EQ(matCheckSteadyState[0].Emissivity, false);
     EXPECT_EQ(matCheckSteadyState[0].Porosity, true);
@@ -203,7 +203,7 @@ TEST_F(TestMaterialChecker, TestExample_4)
     const auto matCheckTransient{
       checkForMaterialsValidity(domain, HygroThermFEM::SimulationType::Transient)};
     EXPECT_EQ(matCheckTransient.size(), 1u);
-    EXPECT_EQ(matCheckTransient.isMaterialLibraryCorrect(), false);
+    EXPECT_EQ(isMaterialLibraryCorrect(matCheckTransient), false);
 
     // Series of test means following. Material property is missing for given simulation properties
     // and therefore it is set to true. If material property is not needed for given simulation
@@ -223,7 +223,7 @@ TEST_F(TestMaterialChecker, TestExample_4)
     const auto matCheckSteadyState{
       checkForMaterialsValidity(domain, HygroThermFEM::SimulationType::SteadyState)};
     EXPECT_EQ(matCheckSteadyState.size(), 1u);
-    EXPECT_EQ(matCheckSteadyState.isMaterialLibraryCorrect(), false);
+    EXPECT_EQ(isMaterialLibraryCorrect(matCheckSteadyState), false);
     EXPECT_EQ(matCheckSteadyState[0].Density, false);
     EXPECT_EQ(matCheckSteadyState[0].Emissivity, true);
     EXPECT_EQ(matCheckSteadyState[0].Porosity, true);
@@ -269,7 +269,7 @@ TEST_F(TestMaterialChecker, TestExample_5)
     const auto matCheckTransient{
       checkForMaterialsValidity(domain, HygroThermFEM::SimulationType::Transient)};
     EXPECT_EQ(matCheckTransient.size(), 1u);
-    EXPECT_EQ(matCheckTransient.isMaterialLibraryCorrect(), false);
+    EXPECT_EQ(isMaterialLibraryCorrect(matCheckTransient), false);
 
     // Series of test means following. Material property is missing for given simulation properties
     // and therefore it is set to true. If material property is not needed for given simulation
@@ -289,7 +289,7 @@ TEST_F(TestMaterialChecker, TestExample_5)
     const auto matCheckSteadyState{
       checkForMaterialsValidity(domain, HygroThermFEM::SimulationType::SteadyState)};
     EXPECT_EQ(matCheckSteadyState.size(), 1u);
-    EXPECT_EQ(matCheckSteadyState.isMaterialLibraryCorrect(), false);
+    EXPECT_EQ(isMaterialLibraryCorrect(matCheckSteadyState), false);
     EXPECT_EQ(matCheckSteadyState[0].Density, false);
     EXPECT_EQ(matCheckSteadyState[0].Emissivity, true);
     EXPECT_EQ(matCheckSteadyState[0].Porosity, false);

@@ -26,23 +26,6 @@ namespace HygroThermFEM
         [[nodiscard]] bool isMissingAnyProperty() const;
     };
 
-    //////////////////////////////////////////////////////////////////////////
-    ///  MaterialsErrorCheckVector
-    //////////////////////////////////////////////////////////////////////////
+    [[nodiscard]] bool isMaterialLibraryCorrect(const std::vector<MaterialMissingProperties> & missingProperties);
 
-    //! \brief Simple class that holds info about error data in materials.
-    class MaterialsErrorCheckVector
-    {
-    public:
-        MaterialMissingProperties operator[](size_t Index) const;
-
-        [[nodiscard]] bool isMaterialLibraryCorrect() const;
-
-        void push_back(MaterialMissingProperties missingProperties);
-
-        [[nodiscard]] size_t size() const;
-
-    private:
-        std::vector<MaterialMissingProperties> m_MaterialMissingProperties;
-    };
 }   // namespace HygroThermFEM
