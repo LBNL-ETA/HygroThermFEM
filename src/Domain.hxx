@@ -8,17 +8,10 @@
 #include "BoundaryConditionCoefficients.hxx"
 #include "TimestepNotifier.hxx"
 #include "TimestepObserver.hxx"
+#include "Solver.hxx"
 
 namespace HygroThermFEM
 {
-    //! \brief Class to hold solution from single timestep.
-    struct SingleSolution
-    {
-        std::vector<double> solution;   //!< Solution from single transient step
-        double dTime;   //!< Timestep for which solution has been performed. Engine can adopt new
-                        //!< timestep for which solution will converge.
-    };
-
     //! \brief Interface that will keep all elements and boundary conditions together.
     //!
     //! One domain will solve single differential equation and therefore, single domain will

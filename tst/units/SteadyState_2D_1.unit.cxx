@@ -89,7 +89,6 @@ TEST_F(SteadyState_2D_1, TestExample_1)
 
     const HygroThermFEM::FixedBCHCCoefficients bcCoeff1{temperatureAir1, hc1, humidity1};
 
-    // const auto hc2 = 2.4;
     const auto hc2 = 1e20;
     const auto humidity2 = 1.0;
     const auto temperatureAir2 = 20.0;
@@ -99,7 +98,7 @@ TEST_F(SteadyState_2D_1, TestExample_1)
     createBC_FixedHc(domain, 1, 2, bcCoeff1);
     createBC_FixedHc(domain, 6, 5, bcCoeff2);
 
-    const auto solution = domain.steadyState();
+    const auto solution = steadyState(domain);
     const auto & temperature = solution.temperature;
     const auto & humidity = solution.humidity;
 

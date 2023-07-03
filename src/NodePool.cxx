@@ -75,4 +75,8 @@ namespace HygroThermFEM
         m_Nodes.clear();
     }
 
+    std::vector<double> properties(Variable t_Property)
+    {
+        return NodePool::Instance().properties(t_Property);
+    }
 }   // namespace HygroThermFEM

@@ -63,4 +63,6 @@ namespace HygroThermFEM
         std::vector<Node2D> m_Nodes;
     };
 
+    std::vector<double> properties(Variable t_Property);
+
 }   // namespace HygroThermFEM

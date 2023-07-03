@@ -126,7 +126,7 @@ TEST_F(SteadyState_2D_ExcludeVaporDiffusion_1, TestExample_1)
     createBC_FixedHc(domain, 1, 2, bcCoeff1);
     createBC_FixedHc(domain, 6, 5, bcCoeff2);
 
-    const auto solution = domain.steadyState();
+    const auto solution{steadyState(domain)};
     const auto & temperature = solution.temperature;
     const auto & humidity = solution.humidity;
 
