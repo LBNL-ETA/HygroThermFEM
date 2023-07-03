@@ -65,4 +65,8 @@ namespace HygroThermFEM
 
     std::vector<double> properties(Variable t_Property);
 
+    void updateNodeValues(const std::vector<double> & t_values,
+                          BaseVariable t_property,
+                          bool updatePreviousTimestep);
+
 }   // namespace HygroThermFEM

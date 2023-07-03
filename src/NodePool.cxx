@@ -79,4 +79,11 @@ namespace HygroThermFEM
     {
         return NodePool::Instance().properties(t_Property);
     }
+
+    void updateNodeValues(const std::vector<double> & t_values,
+                          const BaseVariable t_property,
+                          bool updatePreviousTimestep)
+    {
+        NodePool::Instance().updateNodeValues(t_values, t_property, updatePreviousTimestep);
+    }
 }   // namespace HygroThermFEM

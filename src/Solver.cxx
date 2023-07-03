@@ -141,8 +141,7 @@ namespace HygroThermFEM
 
             if(domain.simulateMoisture)
             {
-                NodePool::Instance().updateNodeValues(
-                  temperatureSolution.solution, BaseVariable::temperature, false);
+                updateNodeValues(temperatureSolution.solution, BaseVariable::temperature, false);
                 std::tie(humiditySolution, humidityError, currentHumidity) =
                   executeMoistureSimulation(
                     domain, currentHumidity, previousTimestepHumidity, dTime, timestepIndex);
@@ -150,8 +149,7 @@ namespace HygroThermFEM
 
             if(domain.simulateThermal)
             {
-                NodePool::Instance().updateNodeValues(
-                  humiditySolution.solution, BaseVariable::humidity, false);
+                updateNodeValues(humiditySolution.solution, BaseVariable::humidity, false);
                 std::tie(temperatureSolution, temperatureError, currentTemperature) =
                   executeThermalSimulation(
                     domain, currentTemperature, previousTimestepTemperature, dTime, timestepIndex);
@@ -219,8 +217,7 @@ namespace HygroThermFEM
             if(domain.simulateThermal)
             {
                 temperature = domain.thermalDomain.steadyState();
-                temperatureError =
-                  HygroThermFEM::errorNorm(temperature, previousTemperature);
+                temperatureError = HygroThermFEM::errorNorm(temperature, previousTemperature);
                 previousTemperature = temperature;
                 NodePool::Instance().updateNodeValues(temperature, BaseVariable::temperature);
             }
@@ -232,8 +229,8 @@ namespace HygroThermFEM
         } while(temperatureError > ConvergenceError || humidityError > ConvergenceError
                 || currentIteration > MaxIterations);
 
-        NodePool::Instance().updateNodeValues(humidity, BaseVariable::humidity, true);
-        NodePool::Instance().updateNodeValues(temperature, BaseVariable::temperature, true);
+        updateNodeValues(humidity, BaseVariable::humidity, true);
+        updateNodeValues(temperature, BaseVariable::temperature, true);
 
         const auto waterContent = properties(Variable::water);
         const auto liquidContent = properties(Variable::liquid);
