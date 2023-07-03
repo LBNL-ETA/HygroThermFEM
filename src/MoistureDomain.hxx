@@ -5,7 +5,7 @@
 namespace HygroThermFEM
 {
     //! \brief Domain class for solving humidity distribution.
-    class MoistureDomain : public IDomain
+    class MoistureDomain : public SingleDomain
     {
     public:
         //! Simple constructor

@@ -23,13 +23,13 @@ namespace HygroThermFEM
     //!
     //! One domain will solve single differential equation and therefore, single domain will
     //! represent thermal, moisture or pressure separately.
-    class IDomain : public Timesteps::TimestepNotifier
+    class SingleDomain : public Timesteps::TimestepNotifier
     {
     public:
-        virtual ~IDomain() = default;
+        virtual ~SingleDomain() = default;
         //! Domain construction. It is necessary to set up base variable that will be considered
         //! unknown.
-        explicit IDomain(
+        explicit SingleDomain(
           BaseVariable property,   //!< State variable which will be considered unknown.
           bool automaticUpdateOfPreviousTimestep =
             true   //!< When solver finds solution, previous timestep will be automatically updated
@@ -72,7 +72,7 @@ namespace HygroThermFEM
         void clearModel();
 
     protected:
-        friend class MultiDomain;
+        friend struct MultiDomain;
 
         //! Forms left hand side matrix in steady state solution.
         SquareMatrix steadyStateLeftHandSide();

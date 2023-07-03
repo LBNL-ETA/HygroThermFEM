@@ -105,7 +105,7 @@ TEST_F(MultiDomain_2D_ConstantTemp_MultiTimestepBC, TestExample_1)
     // Variable boundary conditions (temperature and humidity) over ten timesteps.
     const std::vector<double> bcTemperatures{20, 19, 18, 17, 16, 15, 16, 17, 18, 19};
 
-    domain.createBC_FixedTemperature(1, 2, bcTemperatures);
+    createBC_FixedTemperature(domain, 1, 2, bcTemperatures);
 
     const auto dTime = 3600;
     const auto nSteps = 10;

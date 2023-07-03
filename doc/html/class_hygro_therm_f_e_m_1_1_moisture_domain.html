@@ -84,7 +84,7 @@ Inheritance diagram for HygroThermFEM::MoistureDomain:</div>
  <div class="center">
   <img src="class_hygro_therm_f_e_m_1_1_moisture_domain.png" usemap="#HygroThermFEM::MoistureDomain_map" alt=""/>
   <map id="HygroThermFEM::MoistureDomain_map" name="HygroThermFEM::MoistureDomain_map">
-<area href="class_hygro_therm_f_e_m_1_1_i_domain.html" title="Interface that will keep all elements and boundary conditions together. " alt="HygroThermFEM::IDomain" shape="rect" coords="0,0,206,24"/>
+<area href="class_hygro_therm_f_e_m_1_1_i_domain.html" title="Interface that will keep all elements and boundary conditions together. " alt="HygroThermFEM::SingleDomain" shape="rect" coords="0,0,206,24"/>
 </map>
  </div></div>
 <table class="memberdecls">
@@ -103,8 +103,8 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a91c96cfe3627163260f4b53e962e979f"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_hygro_therm_f_e_m_1_1_moisture_domain.html#a91c96cfe3627163260f4b53e962e979f">createElement</a> (size_t index1, size_t index2, size_t index3, size_t index4, const std::string &amp;materialName) override</td></tr>
 <tr class="memdesc:a91c96cfe3627163260f4b53e962e979f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates and adds element into domain.  <a href="#a91c96cfe3627163260f4b53e962e979f">More...</a><br /></td></tr>
 <tr class="separator:a91c96cfe3627163260f4b53e962e979f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="inherit_header pub_methods_class_hygro_therm_f_e_m_1_1_i_domain"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_class_hygro_therm_f_e_m_1_1_i_domain')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="class_hygro_therm_f_e_m_1_1_i_domain.html">HygroThermFEM::IDomain</a></td></tr>
-<tr class="memitem:a92d318d8ea0736420db49b541afba6b4 inherit pub_methods_class_hygro_therm_f_e_m_1_1_i_domain"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_hygro_therm_f_e_m_1_1_i_domain.html#a92d318d8ea0736420db49b541afba6b4">IDomain</a> (<a class="el" href="namespace_hygro_therm_f_e_m.html#a7faadf02a2406ecb3f8c59faf6612182">BaseVariable</a> property, bool automaticUpdateOfPreviousTimestep=true)</td></tr>
+<tr class="inherit_header pub_methods_class_hygro_therm_f_e_m_1_1_i_domain"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_class_hygro_therm_f_e_m_1_1_i_domain')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="class_hygro_therm_f_e_m_1_1_i_domain.html">HygroThermFEM::SingleDomain</a></td></tr>
+<tr class="memitem:a92d318d8ea0736420db49b541afba6b4 inherit pub_methods_class_hygro_therm_f_e_m_1_1_i_domain"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_hygro_therm_f_e_m_1_1_i_domain.html#a92d318d8ea0736420db49b541afba6b4">SingleDomain</a> (<a class="el" href="namespace_hygro_therm_f_e_m.html#a7faadf02a2406ecb3f8c59faf6612182">BaseVariable</a> property, bool automaticUpdateOfPreviousTimestep=true)</td></tr>
 <tr class="separator:a92d318d8ea0736420db49b541afba6b4 inherit pub_methods_class_hygro_therm_f_e_m_1_1_i_domain"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a66b2eb5b725acc13c01a78d95833e8cf inherit pub_methods_class_hygro_therm_f_e_m_1_1_i_domain"><td class="memItemLeft" align="right" valign="top"><a id="a66b2eb5b725acc13c01a78d95833e8cf"></a>
 std::vector&lt; double &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_hygro_therm_f_e_m_1_1_i_domain.html#a66b2eb5b725acc13c01a78d95833e8cf">steadyState</a> ()</td></tr>
@@ -122,7 +122,7 @@ std::vector&lt; <a class="el" href="struct_hygro_therm_f_e_m_1_1_node_flux.html"
 Protected Member Functions</h2></td></tr>
 <tr class="memitem:a2bed4b3e9a9746d33b84fe4fdaded398"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_hygro_therm_f_e_m_1_1_moisture_domain.html#a2bed4b3e9a9746d33b84fe4fdaded398">postProcess</a> (std::vector&lt; double &gt; &amp;solution) const override</td></tr>
 <tr class="separator:a2bed4b3e9a9746d33b84fe4fdaded398"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="inherit_header pro_methods_class_hygro_therm_f_e_m_1_1_i_domain"><td colspan="2" onclick="javascript:toggleInherit('pro_methods_class_hygro_therm_f_e_m_1_1_i_domain')"><img src="closed.png" alt="-"/>&#160;Protected Member Functions inherited from <a class="el" href="class_hygro_therm_f_e_m_1_1_i_domain.html">HygroThermFEM::IDomain</a></td></tr>
+<tr class="inherit_header pro_methods_class_hygro_therm_f_e_m_1_1_i_domain"><td colspan="2" onclick="javascript:toggleInherit('pro_methods_class_hygro_therm_f_e_m_1_1_i_domain')"><img src="closed.png" alt="-"/>&#160;Protected Member Functions inherited from <a class="el" href="class_hygro_therm_f_e_m_1_1_i_domain.html">HygroThermFEM::SingleDomain</a></td></tr>
 <tr class="memitem:a0e8abdf716e31be49d94e23e2ff6c404 inherit pro_methods_class_hygro_therm_f_e_m_1_1_i_domain"><td class="memItemLeft" align="right" valign="top"><a id="a0e8abdf716e31be49d94e23e2ff6c404"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_hygro_therm_f_e_m_1_1_i_domain.html#a0e8abdf716e31be49d94e23e2ff6c404">updateNodeValues</a> (const std::vector&lt; double &gt; &amp;values, <a class="el" href="namespace_hygro_therm_f_e_m.html#a7faadf02a2406ecb3f8c59faf6612182">BaseVariable</a> property, bool updatePreviousValues=true)</td></tr>
 <tr class="memdesc:a0e8abdf716e31be49d94e23e2ff6c404 inherit pro_methods_class_hygro_therm_f_e_m_1_1_i_domain"><td class="mdescLeft">&#160;</td><td class="mdescRight">Helper class that will update property at nodes from new timestep values. <br /></td></tr>
@@ -152,7 +152,7 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="clas
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="inherited"></a>
 Additional Inherited Members</h2></td></tr>
-<tr class="inherit_header pro_attribs_class_hygro_therm_f_e_m_1_1_i_domain"><td colspan="2" onclick="javascript:toggleInherit('pro_attribs_class_hygro_therm_f_e_m_1_1_i_domain')"><img src="closed.png" alt="-"/>&#160;Protected Attributes inherited from <a class="el" href="class_hygro_therm_f_e_m_1_1_i_domain.html">HygroThermFEM::IDomain</a></td></tr>
+<tr class="inherit_header pro_attribs_class_hygro_therm_f_e_m_1_1_i_domain"><td colspan="2" onclick="javascript:toggleInherit('pro_attribs_class_hygro_therm_f_e_m_1_1_i_domain')"><img src="closed.png" alt="-"/>&#160;Protected Attributes inherited from <a class="el" href="class_hygro_therm_f_e_m_1_1_i_domain.html">HygroThermFEM::SingleDomain</a></td></tr>
 <tr class="memitem:a0d67948d8ac24fd3851023e27d762141 inherit pro_attribs_class_hygro_therm_f_e_m_1_1_i_domain"><td class="memItemLeft" align="right" valign="top"><a id="a0d67948d8ac24fd3851023e27d762141"></a>
 <a class="el" href="namespace_hygro_therm_f_e_m.html#a7faadf02a2406ecb3f8c59faf6612182">BaseVariable</a>&#160;</td><td class="memItemRight" valign="bottom"><b>m_Property</b></td></tr>
 <tr class="separator:a0d67948d8ac24fd3851023e27d762141 inherit pro_attribs_class_hygro_therm_f_e_m_1_1_i_domain"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -233,7 +233,7 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><b>m_AutomaticUpdatePrev
   </dd>
 </dl>
 
-<p>Implements <a class="el" href="class_hygro_therm_f_e_m_1_1_i_domain.html#af7064e003e111293e879fa3d128a86a6">HygroThermFEM::IDomain</a>.</p>
+<p>Implements <a class="el" href="class_hygro_therm_f_e_m_1_1_i_domain.html#af7064e003e111293e879fa3d128a86a6">HygroThermFEM::SingleDomain</a>.</p>
 
 </div>
 </div>
@@ -354,7 +354,7 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><b>m_AutomaticUpdatePrev
 </div><div class="memdoc">
 <p>Some domains require post-processing of results. Good example is moisture domain where humidity cannot go over 1.0 or lower than one. With certain set of boundary conditions and long enough time-step, solution can achieve such state and post processing should prevent it. </p>
 
-<p>Reimplemented from <a class="el" href="class_hygro_therm_f_e_m_1_1_i_domain.html#a82a3a89e447d5fa0618d5085fe93b97a">HygroThermFEM::IDomain</a>.</p>
+<p>Reimplemented from <a class="el" href="class_hygro_therm_f_e_m_1_1_i_domain.html#a82a3a89e447d5fa0618d5085fe93b97a">HygroThermFEM::SingleDomain</a>.</p>
 
 </div>
 </div>

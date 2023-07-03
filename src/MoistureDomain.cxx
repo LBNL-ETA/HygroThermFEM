@@ -183,12 +183,12 @@ namespace HygroThermFEM
     }
 
     MoistureDomain::MoistureDomain(bool automaticUpdatePreviousTimestep) :
-        IDomain(BaseVariable::humidity, automaticUpdatePreviousTimestep)
+        SingleDomain(BaseVariable::humidity, automaticUpdatePreviousTimestep)
     {}
 
     void MoistureDomain::postProcess(std::vector<double> & solution)
     {
-        IDomain::postProcess(solution);
+        SingleDomain::postProcess(solution);
         for(auto & val : solution)
         {
             if(val > 1)

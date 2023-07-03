@@ -40,60 +40,60 @@ namespace HygroThermFEM
 
         // Used in thermal equation only in case of transient simulation
         missing.Density =
-          isTransientSimulation && !material.hasDensity() && multiDomain.isThermalSimulationON();
+          isTransientSimulation && !material.hasDensity() && multiDomain.simulateThermal;
 
         // Emissivity will be required always
-        missing.Emissivity = !material.hasEmissivity() && multiDomain.isThermalSimulationON();
+        missing.Emissivity = !material.hasEmissivity() && multiDomain.simulateThermal;
 
         // Porosity is indirectly required when calculating liquid content
-        missing.Porosity = !material.hasPorosity() && multiDomain.isMoistureSimulationON();
+        missing.Porosity = !material.hasPorosity() && multiDomain.simulateMoisture;
 
         // Used only in case of transient thermal simulation
         missing.SpecificHeatCapacityDry = isTransientSimulation && !material.hasHeatCapacity()
-                                          && multiDomain.isThermalSimulationON();
+                                          && multiDomain.simulateThermal;
 
         // Thermal conductivity dry (single value) is required only in thermal simulation. Also, in
         // case when thermal conductivity moisture and temperature dependent is used, then this is
         // not required property.
         missing.ThermalConductivityDry =
-          !material.hasThermalConductivityDry() && multiDomain.isThermalSimulationON()
+          !material.hasThermalConductivityDry() && multiDomain.simulateThermal
           && !SimulationProperties::Instance().thermalConductivityTemperatureAndMoistureDependent();
 
         // Water vapor diffusion is required in moisture always and in thermal only in case heat of
         // evaporation calculation is on
         missing.WaterVaporDiffusionResistanceFactor =
-          (!material.hasDiffusionResistanceFactor() && multiDomain.isMoistureSimulationON())
+          (!material.hasDiffusionResistanceFactor() && multiDomain.simulateMoisture)
           || (!material.hasDiffusionResistanceFactor()
               && !SimulationProperties::Instance().excludeHeatOfEvaporation()
-              && multiDomain.isThermalSimulationON());
+              && multiDomain.simulateThermal);
 
         // Three options in case of Sorption Curve:
         //  1. Thermal simulation includes capillary conduction.
         //  2. Moisture simulation include capillary transportation.
         //  3. Moisture simulation is transient.
         missing.MoistureStorageFunction =
-          (!material.hasSorptionCurve() && multiDomain.isThermalSimulationON()
+          (!material.hasSorptionCurve() && multiDomain.simulateThermal
            && !SimulationProperties::Instance().excludeCapillaryConduction())
-          || (!material.hasSorptionCurve() && multiDomain.isMoistureSimulationON()
+          || (!material.hasSorptionCurve() && multiDomain.simulateMoisture
               && !SimulationProperties::Instance().excludeWaterLiquidTransportation())
           || (!material.hasSorptionCurve() && isTransientSimulation
-              && multiDomain.isMoistureSimulationON());
+              && multiDomain.simulateMoisture);
 
 
         // Two options in case of Liquid Transportation Curve
         //  1. Thermal simulation includes capillary conduction.
         //  2. Moisture simulation include capillary transportation.
         missing.LiquidTransportationSuction =
-          (!material.hasLiquidTransportationCurve() && multiDomain.isThermalSimulationON()
+          (!material.hasLiquidTransportationCurve() && multiDomain.simulateThermal
            && !SimulationProperties::Instance().excludeCapillaryConduction())
-          || (!material.hasLiquidTransportationCurve() && multiDomain.isMoistureSimulationON()
+          || (!material.hasLiquidTransportationCurve() && multiDomain.simulateMoisture
               && !SimulationProperties::Instance().excludeWaterLiquidTransportation());
 
         // missing.LiquidTransportationRedistribution =
 
         missing.ThermalConductivityMoistureAndTemperatureDependent =
           !material.hasThermalConductivityMoistureAndTemperatureDependent()
-          && multiDomain.isThermalSimulationON()
+          && multiDomain.simulateThermal
           && SimulationProperties::Instance().thermalConductivityTemperatureAndMoistureDependent();
 
         return missing;

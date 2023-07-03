@@ -96,12 +96,12 @@ TEST_F(SteadyState_2D_1, TestExample_1)
 
     const HygroThermFEM::FixedBCHCCoefficients bcCoeff2{temperatureAir2, hc2, humidity2};
 
-    domain.createBC_FixedHc(1, 2, bcCoeff1);
-    domain.createBC_FixedHc(6, 5, bcCoeff2);
+    createBC_FixedHc(domain, 1, 2, bcCoeff1);
+    createBC_FixedHc(domain, 6, 5, bcCoeff2);
 
     const auto solution = domain.steadyState();
-    const auto temperature = solution.temperature;
-    const auto humidity = solution.humidity;
+    const auto & temperature = solution.temperature;
+    const auto & humidity = solution.humidity;
 
     std::vector<double> correctTemperature{0, 0, 10.658980, 10.658980, 20, 20};
 

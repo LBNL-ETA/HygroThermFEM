@@ -111,10 +111,10 @@ TEST_F(MultiDomain_2D_THERMM200mmSlab, TestExample_1)
       bcCoeff, bcCoeff, bcCoeff, bcCoeff, bcCoeff, bcCoeff, bcCoeff, bcCoeff, bcCoeff, bcCoeff,
       bcCoeff, bcCoeff, bcCoeff, bcCoeff, bcCoeff, bcCoeff, bcCoeff, bcCoeff, bcCoeff, bcCoeff};
 
-    domain.createBC_FixedHc(15, 14, bcCoeffs);
-    domain.createBC_FixedHc(14, 12, bcCoeffs);
-    domain.createBC_FixedHc(1, 2, bcCoeffs);
-    domain.createBC_FixedHc(2, 4, bcCoeffs);
+    createBC_FixedHc(domain, 15, 14, bcCoeffs);
+    createBC_FixedHc(domain, 14, 12, bcCoeffs);
+    createBC_FixedHc(domain, 1, 2, bcCoeffs);
+    createBC_FixedHc(domain, 2, 4, bcCoeffs);
 
     const auto dTime = 3600;
     const auto nSteps = 20;

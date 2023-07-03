@@ -116,7 +116,7 @@ TEST_F(MultiDomain_2D_VariableTARPHc_MultiTimestepBC, TestExample_1)
 
     const auto surfaceTilt{90.0};
 
-    domain.createBC_TARPHc(1, 2, bcCoeff, surfaceTilt);
+    createBC_TARPHc(domain, 1, 2, bcCoeff, surfaceTilt);
 
     const auto dTime = 3600;
     const auto nSteps = 10;

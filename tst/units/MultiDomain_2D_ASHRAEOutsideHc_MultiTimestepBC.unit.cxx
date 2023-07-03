@@ -114,7 +114,7 @@ TEST_F(MultiDomain_2D_ASHRAEOutsideHc_MultiTimestepBC, TestExample_1)
                                                                        {12.0, 0.2, 5.5},
                                                                        {10.0, 0.2, 5.9}};
 
-    domain.createBC_ASHRAEOutsideHc(1, 2, bcCoeff);
+    createBC_ASHRAEOutsideHc(domain, 1, 2, bcCoeff);
 
     const auto dTime = 3600;
     const auto nSteps = 10;

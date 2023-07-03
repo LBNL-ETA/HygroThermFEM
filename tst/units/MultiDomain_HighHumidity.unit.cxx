@@ -134,7 +134,7 @@ TEST_F(MultiDomain_HighHumidity, TestExample_1)
 
     const HygroThermFEM::FixedBCHCCoefficients bcCoeff{airTemperature, hc, airHumidity};
 
-    domain.createBC_FixedHc(5, 6, bcCoeff);
+    createBC_FixedHc(domain, 5, 6, bcCoeff);
 
     const auto dTime = 3600;
     const auto nSteps = 2;

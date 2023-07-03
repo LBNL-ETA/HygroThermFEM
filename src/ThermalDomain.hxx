@@ -5,7 +5,7 @@
 namespace HygroThermFEM
 {
     //! \brief Domain class for solving temperature solution.
-    class ThermalDomain : public IDomain
+    class ThermalDomain : public SingleDomain
     {
     public:
         //! Simple constructor
@@ -203,7 +203,7 @@ namespace HygroThermFEM
         //! @param index1 Node 1 index
         //! @param index2 Node 2 index
         //! @param t_Flux Constant flux in both nodes at every timestep
-        void createBC_FixedFlux(size_t index1, size_t index2, std::vector<double> t_Flux);
+        void createBC_FixedFlux(size_t index1, size_t index2, const std::vector<double> & t_Flux);
 
         //! \brief Creation of black body radiation
         //! @param index1 Node 1 index

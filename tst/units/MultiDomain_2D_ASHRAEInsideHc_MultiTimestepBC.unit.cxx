@@ -117,7 +117,7 @@ TEST_F(MultiDomain_2D_ASHRAEInsideHc_MultiTimestepBC, TestExample_1)
     const auto surfaceTilt{90.0};    // degrees
     const auto surfaceHeight{1.0};   // meters
 
-    domain.createBC_ASHRAEInsideHc(1, 2, bcCoeff, surfaceHeight, surfaceTilt);
+    createBC_ASHRAEInsideHc(domain, 1, 2, bcCoeff, surfaceHeight, surfaceTilt);
 
     const auto dTime = 3600;
     const auto nSteps = 10;

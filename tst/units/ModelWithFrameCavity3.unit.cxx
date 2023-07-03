@@ -131,7 +131,7 @@ TEST_F(TestModelWithFrameCavity3, TestSingleFrameCavity)
     // Now build boundary condition on left edge of domain rectangle
     for(size_t i = 1u; i < bcnodes.size(); ++i)
     {
-        domain.createBC_FixedHc(bcnodes[i - 1u], bcnodes[i], bcCoeff);
+        createBC_FixedHc(domain, bcnodes[i - 1u], bcnodes[i], bcCoeff);
     }
 
     // Now perform transient calculation in order to make frame cavity update over the simulation

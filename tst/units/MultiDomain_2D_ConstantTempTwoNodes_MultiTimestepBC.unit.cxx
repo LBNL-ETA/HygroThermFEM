@@ -114,7 +114,7 @@ TEST_F(MultiDomain_2D_ConstantTempTwoNodes_MultiTimestepBC, TestExample_1)
                                                                             {18, 18},
                                                                             {19, 19}};
 
-    domain.createBC_FixedTemperature(1, 2, bcTemperatures);
+    createBC_FixedTemperature(domain, 1, 2, bcTemperatures);
 
     const auto dTime = 3600;
     const auto nSteps = 10;

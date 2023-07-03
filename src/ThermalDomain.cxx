@@ -199,7 +199,8 @@ namespace HygroThermFEM
         m_BCs.assignBC(fem::make_unique<FluxBC>(index1, index2, t_Flux));
     }
 
-    void ThermalDomain::createBC_FixedFlux(size_t index1, size_t index2, std::vector<double> t_Flux)
+    void ThermalDomain::createBC_FixedFlux(size_t index1, size_t index2,
+                                           const std::vector<double> & t_Flux)
     {
         std::vector<std::unique_ptr<IBCLinear2D>> timestepBCs{t_Flux.size()};
         for(size_t i = 0u; i < t_Flux.size(); ++i)
@@ -261,7 +262,7 @@ namespace HygroThermFEM
 
     void ThermalDomain::postProcess(std::vector<double> & solution)
     {
-        IDomain::postProcess(solution);
+        SingleDomain::postProcess(solution);
         for(auto & val : solution)
         {
             if(val < Constants::ABSOLUTEZERO)
@@ -276,6 +277,6 @@ namespace HygroThermFEM
     }
 
     ThermalDomain::ThermalDomain(bool automaticUpdatePreviousTimestep) :
-        IDomain(BaseVariable::temperature, automaticUpdatePreviousTimestep)
+        SingleDomain(BaseVariable::temperature, automaticUpdatePreviousTimestep)
     {}
 }   // namespace HygroThermFEM

@@ -6,7 +6,7 @@
 
 namespace HygroThermFEM
 {
-    class MultiDomain;
+    struct MultiDomain;
     class IMaterial;
 
     //////////////////////////////////////////////////////////////////////////

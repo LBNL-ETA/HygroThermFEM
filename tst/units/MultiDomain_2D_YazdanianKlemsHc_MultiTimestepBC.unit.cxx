@@ -117,7 +117,7 @@ TEST_F(MultiDomain_2D_YazdanianKlemsHc_MultiTimestepBC, TestExample_1)
       {12.0, 0.2, 5.5, WindDirection::Leeward},
       {10.0, 0.2, 5.9, WindDirection::Leeward}};
 
-    domain.createBC_YazdanianKlemsHc(1, 2, bcCoeff);
+    createBC_YazdanianKlemsHc(domain, 1, 2, bcCoeff);
 
     const auto dTime = 3600;
     const auto nSteps = 10;

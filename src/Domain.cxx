@@ -14,7 +14,7 @@
 
 namespace HygroThermFEM
 {
-    SquareMatrix IDomain::steadyStateLeftHandSide()
+    SquareMatrix SingleDomain::steadyStateLeftHandSide()
     {
         auto condMat = m_Elements.conductanceMatrix();
         const auto h = m_BCs.HMatrix();
@@ -23,12 +23,12 @@ namespace HygroThermFEM
         return condMat;
     }
 
-    std::vector<double> IDomain::steadyStateRightHandSide() const
+    std::vector<double> SingleDomain::steadyStateRightHandSide() const
     {
         return m_BCs.RVector();
     }
 
-    SquareMatrix IDomain::transientM_K_H_Matrix(const double t_DTime, const size_t timestepIndex)
+    SquareMatrix SingleDomain::transientM_K_H_Matrix(const double t_DTime, const size_t timestepIndex)
     {
         const auto M = m_Elements.getLumpedMass(t_DTime);
         auto M_K_H = m_Elements.conductanceMatrix();
@@ -39,7 +39,7 @@ namespace HygroThermFEM
     }
 
     std::vector<double>
-      IDomain::transientMT_R_Vector(const std::vector<double> & t_PreviousSolution,
+      SingleDomain::transientMT_R_Vector(const std::vector<double> & t_PreviousSolution,
                                     const double t_DTime,
                                     const size_t timestepIndex)
     {
@@ -51,15 +51,14 @@ namespace HygroThermFEM
         return B;
     }
 
-    std::vector<double> IDomain::steadyState()
+    std::vector<double> SingleDomain::steadyState()
     {
         const auto B = steadyStateRightHandSide();
         const auto A = steadyStateLeftHandSide();
-        // const auto test = A.toVector();
         return CLinearSolver::solveEigen(A, B);
     }
 
-    SingleSolution IDomain::transient(const std::vector<double> & currentStateValues,
+    SingleSolution SingleDomain::transient(const std::vector<double> & currentStateValues,
                                       const double t_DTime,
                                       const size_t timestepIndex)
     {
@@ -98,7 +97,7 @@ namespace HygroThermFEM
     }
 
     std::pair<std::vector<double>, bool>
-      IDomain::transientTimestep(const std::vector<double> & currentStateValues,
+      SingleDomain::transientTimestep(const std::vector<double> & currentStateValues,
                                  const double t_DTime,
                                  const size_t timestepIndex)
     {
@@ -166,23 +165,23 @@ namespace HygroThermFEM
         return std::make_pair(solution, converged);
     }
 
-    bool IDomain::isLinear() const
+    bool SingleDomain::isLinear() const
     {
         return m_BCs.isLinear() && m_Elements.isLinear();
     }
 
-    IDomain::IDomain(const BaseVariable property, bool automaticUpdateOfPreviousTimestep) :
+    SingleDomain::SingleDomain(const BaseVariable property, bool automaticUpdateOfPreviousTimestep) :
         m_Property(property),
         gasCavities(nullptr),
         m_AutomaticUpdatePreviousTimestep(automaticUpdateOfPreviousTimestep)
     {}
 
-    std::vector<NodeFlux> IDomain::flux() const
+    std::vector<NodeFlux> SingleDomain::flux() const
     {
         return m_Elements.flux();
     }
 
-    void IDomain::postProcess(std::vector<double> &)
+    void SingleDomain::postProcess(std::vector<double> &)
     {
         if(gasCavities == nullptr)
         {
@@ -192,7 +191,7 @@ namespace HygroThermFEM
         gasCavities->update();
     }
 
-    void IDomain::setGravityVector(const FenestrationCommon::GravityVector & gravityVector)
+    void SingleDomain::setGravityVector(const FenestrationCommon::GravityVector & gravityVector)
     {
         m_GravityVector = gravityVector;
         if(gasCavities != nullptr)
@@ -201,7 +200,7 @@ namespace HygroThermFEM
         }
     }
 
-    void IDomain::clearModel()
+    void SingleDomain::clearModel()
     {
         NodePool::Instance().clear();
         MaterialPool::Instance().clear();
