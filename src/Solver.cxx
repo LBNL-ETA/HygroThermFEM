@@ -2,6 +2,7 @@
 #include "SimulationProperties.hxx"
 #include "NodePool.hxx"
 #include "MultiDomain.hxx"
+#include "FEMMath.hxx"
 
 namespace HygroThermFEM
 {
@@ -45,8 +46,8 @@ namespace HygroThermFEM
             }
             auto newTemperatureSolution =
               domain.thermalDomain.transient(previousTimestepTemperature, dTime, timestepIndex);
-            auto newTemperatureError = HygroThermFEM::MultiDomain::errorNorm(
-              newTemperatureSolution.solution, currentTemperature);
+            auto newTemperatureError =
+              HygroThermFEM::errorNorm(newTemperatureSolution.solution, currentTemperature);
             auto newCurrentTemperature = newTemperatureSolution.solution;
             return std::make_tuple(
               newTemperatureSolution, newTemperatureError, newCurrentTemperature);
@@ -67,7 +68,7 @@ namespace HygroThermFEM
             auto newHumiditySolution =
               domain.moistureDomain.transient(previousTimestepHumidity, dTime, timestepIndex);
             auto newHumidityError =
-              HygroThermFEM::MultiDomain::errorNorm(newHumiditySolution.solution, currentHumidity);
+              HygroThermFEM::errorNorm(newHumiditySolution.solution, currentHumidity);
             auto newCurrentHumidity = newHumiditySolution.solution;
             return std::make_tuple(newHumiditySolution, newHumidityError, newCurrentHumidity);
         }
@@ -207,7 +208,7 @@ namespace HygroThermFEM
             if(domain.simulateMoisture)
             {
                 humidity = domain.moistureDomain.steadyState();
-                humidityError = HygroThermFEM::MultiDomain::errorNorm(humidity, previousHumidity);
+                humidityError = HygroThermFEM::errorNorm(humidity, previousHumidity);
                 previousHumidity = humidity;
                 NodePool::Instance().updateNodeValues(humidity, BaseVariable::humidity);
             }
@@ -218,7 +219,8 @@ namespace HygroThermFEM
             if(domain.simulateThermal)
             {
                 temperature = domain.thermalDomain.steadyState();
-                temperatureError = HygroThermFEM::MultiDomain::errorNorm(temperature, previousTemperature);
+                temperatureError =
+                  HygroThermFEM::errorNorm(temperature, previousTemperature);
                 previousTemperature = temperature;
                 NodePool::Instance().updateNodeValues(temperature, BaseVariable::temperature);
             }
@@ -233,10 +235,10 @@ namespace HygroThermFEM
         NodePool::Instance().updateNodeValues(humidity, BaseVariable::humidity, true);
         NodePool::Instance().updateNodeValues(temperature, BaseVariable::temperature, true);
 
-        const auto waterContent = NodePool::Instance().properties(Variable::water);
-        const auto liquidContent = NodePool::Instance().properties(Variable::liquid);
-        const auto vaporContent = NodePool::Instance().properties(Variable::vapor);
-        const auto iceContent = NodePool::Instance().properties(Variable::ice);
+        const auto waterContent = properties(Variable::water);
+        const auto liquidContent = properties(Variable::liquid);
+        const auto vaporContent = properties(Variable::vapor);
+        const auto iceContent = properties(Variable::ice);
 
         const auto heatFlux = domain.thermalDomain.flux();
         const auto waterFlux = domain.moistureDomain.flux();

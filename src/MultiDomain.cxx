@@ -21,23 +21,6 @@ namespace HygroThermFEM
         moistureDomain.createElement(index1, index2, index3, index4, materialName);
     }
 
-    double MultiDomain::errorNorm(const std::vector<double> & vec1,
-                                  const std::vector<double> & vec2)
-    {
-        auto norm1 = norm(vec1);
-        auto norm2 = norm(vec2);
-        if(norm1 == 0)
-        {
-            norm1 = 1e-10;
-            if(norm2 == 0)
-            {
-                norm2 = norm1;
-            }
-        }
-
-        return std::abs(norm1 - norm2) / norm1;
-    }
-
     std::vector<double> MultiDomain::property(Variable property)
     {
         return NodePool::Instance().properties(property);

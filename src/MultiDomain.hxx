@@ -72,8 +72,6 @@ namespace HygroThermFEM
         //! \brief Checks validity of materials for transient simulation
         [[nodiscard]] MaterialsErrorCheckVector checkMaterialsForSteadyStateSimulation() const;
 
-        static double errorNorm(const std::vector<double> & vec1, const std::vector<double> & vec2);
-
         ThermalDomain thermalDomain;
         MoistureDomain moistureDomain;
         bool simulateThermal{true};
