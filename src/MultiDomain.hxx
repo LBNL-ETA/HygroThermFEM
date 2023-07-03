@@ -50,9 +50,9 @@ namespace HygroThermFEM
         //! \param humidity vector of nodal humidity from previous timestep
         //! \param t_DTime time between two timestep
         //! \param timestepIndex current timestep index used in variable boundary conditions case
-        Solution transient(std::vector<double> & temperature,
-                           std::vector<double> & humidity,
-                           double t_DTime,
+        Solution transient(const std::vector<double> & temperature,
+                           const std::vector<double> & humidity,
+                           const double t_DTime,
                            size_t timestepIndex = 0);
 
         //! Calculates steady state solution for multiple domains.
@@ -348,6 +348,31 @@ namespace HygroThermFEM
         [[nodiscard]] MaterialsErrorCheckVector checkMaterialsForSteadyStateSimulation() const;
 
         static double normError(const std::vector<double> & vec1, const std::vector<double> & vec2);
+
+        std::tuple<SingleSolution, double, std::vector<double>>
+          executeThermalSimulation(const std::vector<double> & currentTemperature,
+                                   const std::vector<double> & temperature,
+                                   const double dTime,
+                                   size_t timestepIndex);
+
+        std::tuple<SingleSolution, double, std::vector<double>>
+          executeMoistureSimulation(const std::vector<double> & currentHumidity,
+                                    const std::vector<double> & humidity,
+                                    const double dTime,
+                                    size_t timestepIndex);
+
+        void MultiDomain::executeTransientIteration(const std::vector<double> &temperature,
+                                                    const std::vector<double> &humidity,
+                                                    double &temperatureError,
+                                                    double &humidityError,
+                                                    std::vector<double> &currentTemperature,
+                                                    std::vector<double> &currentHumidity,
+                                                    SingleSolution &temperatureSolution,
+                                                    SingleSolution &humiditySolution,
+                                                    const double dTime,
+                                                    size_t timestepIndex,
+                                                    const double ConvergenceError,
+                                                    const size_t MaxIterations);
 
         ThermalDomain m_ThermalDomain;
         MoistureDomain m_MoistureDomain;
