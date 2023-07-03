@@ -109,19 +109,16 @@ TEST_F(SteadyState_2D_ExcludeLiquidTransport_1, TestExample_1)
 
     HygroThermFEM::MultiDomain domain{simulateThermal, simulateMoisture};
 
-    domain.createElement(3, 4, 2, 1, material.name());
-    domain.createElement(6, 4, 3, 5, material.name());
+    createElement(domain, 3, 4, 2, 1, material.name());
+    createElement(domain, 6, 4, 3, 5, material.name());
 
     // Create Boundary Conditions
-    // const auto hc1 = 20.0;
     const auto hc1 = 1e20;
     const auto humidity1 = 0.8;
-    // const auto temperatureAir1 = -18.0;
     const auto temperatureAir1 = 0.0;
 
     const HygroThermFEM::FixedBCHCCoefficients bcCoeff1{temperatureAir1, hc1, humidity1};
 
-    // const auto hc2 = 2.4;
     const auto hc2 = 1e20;
     const auto humidity2 = 0.0;
     const auto temperatureAir2 = 20.0;

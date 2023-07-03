@@ -109,8 +109,8 @@ TEST_F(SteadyState_2D_ExcludeVaporDiffusion_1, TestExample_1)
 
     HygroThermFEM::MultiDomain domain{simulateThermal, simulateMoisture};
 
-    domain.createElement(3, 4, 2, 1, material.name());
-    domain.createElement(6, 4, 3, 5, material.name());
+    createElement(domain, 3, 4, 2, 1, material.name());
+    createElement(domain, 6, 4, 3, 5, material.name());
 
     // Create Boundary Conditions
     const auto hc1 = 1e20;

@@ -92,7 +92,7 @@ TEST_F(MultiDomain_2D_NoMoistureStorageFunction, TestExample_1)
         const auto node2 = 2u * i + 2u;
         const auto node3 = 2u * i;
         const auto node4 = 2u * i - 1u;
-        domain.createElement(node1, node2, node3, node4, material.name());
+        createElement(domain, node1, node2, node3, node4, material.name());
     }
 
     /// Create Boundary Conditions
@@ -108,8 +108,8 @@ TEST_F(MultiDomain_2D_NoMoistureStorageFunction, TestExample_1)
     const auto dTime = 3600;
     const auto nSteps = 4;
 
-    auto temperatures = NodePool::Instance().properties(HygroThermFEM::Variable::temperature);
-    auto humidities = NodePool::Instance().properties(HygroThermFEM::Variable::humidity);
+    auto temperatures{properties(HygroThermFEM::Variable::temperature)};
+    auto humidities{properties(HygroThermFEM::Variable::humidity)};
     std::vector<std::vector<double>> temperatureSolution;
     std::vector<std::vector<double>> waterContentSolution;
 

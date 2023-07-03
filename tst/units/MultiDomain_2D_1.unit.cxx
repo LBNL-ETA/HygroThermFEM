@@ -119,7 +119,7 @@ TEST_F(MultiDomain_2D_1, TestExample_1)
         const auto node2 = 2u * i + 2u;
         const auto node3 = 2u * i;
         const auto node4 = 2u * i - 1u;
-        domain.createElement(node1, node2, node3, node4, material.name());
+        createElement(domain, node1, node2, node3, node4, material.name());
     }
 
     const auto dTime = 360;
@@ -280,14 +280,14 @@ TEST_F(MultiDomain_2D_1, TestExample_1_Repeat)
         const auto node2 = 2u * i + 2u;
         const auto node3 = 2u * i;
         const auto node4 = 2u * i - 1u;
-        domain.createElement(node1, node2, node3, node4, material.name());
+        createElement(domain, node1, node2, node3, node4, material.name());
     }
 
     const auto dTime = 360;
     const auto nSteps = 10;
 
-    auto temperatures = NodePool::Instance().properties(HygroThermFEM::Variable::temperature);
-    auto humidities = NodePool::Instance().properties(HygroThermFEM::Variable::humidity);
+    auto temperatures{properties(HygroThermFEM::Variable::temperature)};
+    auto humidities{NodePool::Instance().properties(HygroThermFEM::Variable::humidity)};
     std::vector<std::vector<double>> temperatureSolution;
     std::vector<std::vector<double>> waterContentSolution;
 

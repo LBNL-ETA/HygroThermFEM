@@ -11,27 +11,6 @@
 
 namespace HygroThermFEM
 {
-    void MultiDomain::createElement(const size_t index1,
-                                    const size_t index2,
-                                    const size_t index3,
-                                    const size_t index4,
-                                    const std::string & materialName)
-    {
-        thermalDomain.createElement(index1, index2, index3, index4, materialName);
-        moistureDomain.createElement(index1, index2, index3, index4, materialName);
-    }
-
-    void MultiDomain::setGravityVector(const FenestrationCommon::GravityVector & gravityVector)
-    {
-        thermalDomain.setGravityVector(gravityVector);
-    }
-
-    void MultiDomain::clearModel()
-    {
-        thermalDomain.clearModel();
-        moistureDomain.clearModel();
-    }
-
     MultiDomain::MultiDomain(bool performThermal, bool performMoisture) :
         simulateThermal(performThermal), simulateMoisture(performMoisture)
     {}

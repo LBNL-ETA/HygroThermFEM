@@ -80,8 +80,8 @@ TEST_F(ConvectionBC_2D_SteadyState, TestExample_1)
 
     HygroThermFEM::MultiDomain domain;
 
-    domain.createElement(3, 4, 2, 1, material.name());
-    domain.createElement(6, 4, 3, 5, material.name());
+    createElement(domain, 3, 4, 2, 1, material.name());
+    createElement(domain, 6, 4, 3, 5, material.name());
 
     // Create Boundary Conditions
     const auto hc1 = 20.0;

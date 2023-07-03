@@ -35,3 +35,5 @@
 #include "../src/ConvectiveCoefficient.hxx"
 #include "../src/MaterialDataChecker.hxx"
 #include "../src/SimulationObserver.hxx"
+#include "../src/ModelUtilities.hxx"
+#include "../src/GravityVector.hxx"

@@ -132,8 +132,8 @@ TEST_F(TwoElementsTwoMaterials_2, NodeInTwoMaterials)
 
     MultiDomain domain(false, false);
 
-    domain.createElement(1, 1, 2, 3, material1.name());
-    domain.createElement(2, 4, 5, 3, material2.name());
+    createElement(domain, 1, 1, 2, 3, material1.name());
+    createElement(domain, 2, 4, 5, 3, material2.name());
 
     auto iceContent = properties(HygroThermFEM::Variable::ice);
     auto vaporContent = properties(HygroThermFEM::Variable::vapor);

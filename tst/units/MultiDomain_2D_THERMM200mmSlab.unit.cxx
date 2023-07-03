@@ -92,14 +92,14 @@ TEST_F(MultiDomain_2D_THERMM200mmSlab, TestExample_1)
     HygroThermFEM::MultiDomain domain;
 
     /// Create elements
-    domain.createElement(3, 1, 2, 5, material.name());
-    domain.createElement(2, 4, 7, 5, material.name());
-    domain.createElement(6, 3, 5, 8, material.name());
-    domain.createElement(5, 7, 10, 8, material.name());
-    domain.createElement(9, 6, 8, 11, material.name());
-    domain.createElement(11, 14, 12, 9, material.name());
-    domain.createElement(11, 8, 10, 13, material.name());
-    domain.createElement(11, 13, 15, 14, material.name());
+    createElement(domain, 3, 1, 2, 5, material.name());
+    createElement(domain, 2, 4, 7, 5, material.name());
+    createElement(domain, 6, 3, 5, 8, material.name());
+    createElement(domain, 5, 7, 10, 8, material.name());
+    createElement(domain, 9, 6, 8, 11, material.name());
+    createElement(domain, 11, 14, 12, 9, material.name());
+    createElement(domain, 11, 8, 10, 13, material.name());
+    createElement(domain, 11, 13, 15, 14, material.name());
 
     /// Create Boundary Conditions
     const auto hc = 2.0;
@@ -119,8 +119,8 @@ TEST_F(MultiDomain_2D_THERMM200mmSlab, TestExample_1)
     const auto dTime = 3600;
     const auto nSteps = 20;
 
-    auto temperatures = NodePool::Instance().properties(HygroThermFEM::Variable::temperature);
-    auto humidities = NodePool::Instance().properties(HygroThermFEM::Variable::humidity);
+    auto temperatures{properties(HygroThermFEM::Variable::temperature)};
+    auto humidities{properties(HygroThermFEM::Variable::humidity)};
     std::vector<std::vector<double>> temperatureSolution;
     std::vector<std::vector<double>> humiditySolution;
     size_t timestepIndex{0u};
