@@ -17,19 +17,19 @@ namespace HygroThermFEM
         m_SimulateThermal(performThermal), m_SimulateMoisture(performMoisture)
     {}
 
-    Solution MultiDomain::transient(const std::vector<double> & temperature,
-                                    const std::vector<double> & humidity,
-                                    const double t_DTime,
+    Solution MultiDomain::transient(const std::vector<double> & previousTimestepTemperature,
+                                    const std::vector<double> & previousTimestepHumidity,
+                                    double t_DTime,
                                     size_t timestepIndex)
     {
         const auto ConvergenceError{SimulationProperties::Instance().errorTolerance()};
         auto temperatureError{std::numeric_limits<double>::max()};
         auto humidityError{std::numeric_limits<double>::max()};
-        auto currentTemperature{temperature};
-        auto currentHumidity{humidity};
+        auto currentTemperature{previousTimestepTemperature};
+        auto currentHumidity{previousTimestepHumidity};
         double dTime{t_DTime};
-        SingleSolution temperatureSolution{temperature, t_DTime};
-        SingleSolution humiditySolution{humidity, t_DTime};
+        SingleSolution temperatureSolution{previousTimestepTemperature, t_DTime};
+        SingleSolution humiditySolution{previousTimestepHumidity, t_DTime};
 
         const auto MaxIterations = SimulationProperties::Instance().maxNumberOfIterations();
 
@@ -39,8 +39,8 @@ namespace HygroThermFEM
         // data for next iteration.
         do
         {
-            executeTransientIteration(temperature,
-                                      humidity,
+            executeTransientIteration(previousTimestepTemperature,
+                                      previousTimestepHumidity,
                                       temperatureError,
                                       humidityError,
                                       currentTemperature,
@@ -57,7 +57,7 @@ namespace HygroThermFEM
                 NodePool::Instance().updateNodeValues(
                   temperatureSolution.solution, BaseVariable::temperature, false);
                 std::tie(humiditySolution, humidityError, currentHumidity) =
-                  executeMoistureSimulation(currentHumidity, humidity, dTime, timestepIndex);
+                  executeMoistureSimulation(currentHumidity, previousTimestepHumidity, dTime, timestepIndex);
             }
 
             if(m_SimulateThermal)
@@ -65,7 +65,7 @@ namespace HygroThermFEM
                 NodePool::Instance().updateNodeValues(
                   humiditySolution.solution, BaseVariable::humidity, false);
                 std::tie(temperatureSolution, temperatureError, currentTemperature) =
-                  executeThermalSimulation(currentTemperature, temperature, dTime, timestepIndex);
+                  executeThermalSimulation(currentTemperature, previousTimestepTemperature, dTime, timestepIndex);
             }
 
             ++currentIteration;
@@ -478,7 +478,7 @@ namespace HygroThermFEM
     }
     std::tuple<SingleSolution, double, std::vector<double>>
       MultiDomain::executeThermalSimulation(const std::vector<double> & currentTemperature,
-                                            const std::vector<double> & temperature,
+                                            const std::vector<double> & previousTimestepTemperature,
                                             const double dTime,
                                             size_t timestepIndex)
     {
@@ -486,7 +486,7 @@ namespace HygroThermFEM
         {
             return std::make_tuple(SingleSolution{currentTemperature, dTime}, 0.0, currentTemperature);
         }
-        auto newTemperatureSolution = m_ThermalDomain.transient(temperature, dTime, timestepIndex);
+        auto newTemperatureSolution = m_ThermalDomain.transient(previousTimestepTemperature, dTime, timestepIndex);
         auto newTemperatureError = normError(newTemperatureSolution.solution, currentTemperature);
         auto newCurrentTemperature = newTemperatureSolution.solution;
         return std::make_tuple(newTemperatureSolution, newTemperatureError, newCurrentTemperature);
@@ -494,7 +494,7 @@ namespace HygroThermFEM
 
     std::tuple<SingleSolution, double, std::vector<double>>
       MultiDomain::executeMoistureSimulation(const std::vector<double> & currentHumidity,
-                                             const std::vector<double> & humidity,
+                                             const std::vector<double> & previousTimestepHumidity,
                                              const double dTime,
                                              size_t timestepIndex)
     {
@@ -502,33 +502,35 @@ namespace HygroThermFEM
         {
             return std::make_tuple(SingleSolution{currentHumidity, dTime}, 0.0, currentHumidity);
         }
-        auto newHumiditySolution = m_MoistureDomain.transient(humidity, dTime, timestepIndex);
+        auto newHumiditySolution = m_MoistureDomain.transient(previousTimestepHumidity, dTime, timestepIndex);
         auto newHumidityError = normError(newHumiditySolution.solution, currentHumidity);
         auto newCurrentHumidity = newHumiditySolution.solution;
         return std::make_tuple(newHumiditySolution, newHumidityError, newCurrentHumidity);
     }
 
-    void MultiDomain::executeTransientIteration(const std::vector<double> & temperature,
-                                                const std::vector<double> & humidity,
-                                                double & temperatureError,
-                                                double & humidityError,
-                                                std::vector<double> & currentTemperature,
-                                                std::vector<double> & currentHumidity,
-                                                SingleSolution & temperatureSolution,
-                                                SingleSolution & humiditySolution,
-                                                const double dTime,
-                                                size_t timestepIndex,
-                                                const double ConvergenceError,
-                                                const size_t MaxIterations)
+    void MultiDomain::executeTransientIteration(
+      const std::vector<double> & previousTimestepTemperature,
+      const std::vector<double> & previousTimestepHumidity,
+      double & temperatureError,
+      double & humidityError,
+      std::vector<double> & currentTemperature,
+      std::vector<double> & currentHumidity,
+      SingleSolution & temperatureSolution,
+      SingleSolution & humiditySolution,
+      const double dTime,
+      size_t timestepIndex,
+      const double ConvergenceError,
+      const size_t MaxIterations)
     {
         size_t localIterCounter{0};
         while(humidityError > ConvergenceError && temperatureError > ConvergenceError
               && localIterCounter <= MaxIterations)
         {
-            std::tie(humiditySolution, humidityError, currentHumidity) =
-              executeMoistureSimulation(currentHumidity, humidity, dTime, timestepIndex);
+            std::tie(humiditySolution, humidityError, currentHumidity) = executeMoistureSimulation(
+              currentHumidity, previousTimestepHumidity, dTime, timestepIndex);
             std::tie(temperatureSolution, temperatureError, currentTemperature) =
-              executeThermalSimulation(currentTemperature, temperature, dTime, timestepIndex);
+              executeThermalSimulation(
+                currentTemperature, previousTimestepTemperature, dTime, timestepIndex);
             ++localIterCounter;
         }
     }

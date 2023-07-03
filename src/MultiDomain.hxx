@@ -46,13 +46,13 @@ namespace HygroThermFEM
         MultiDomain(bool performThermal = true, bool performMoisture = true);
 
         //! \brief Calculates next timestep value from current values
-        //! \param temperature vector of nodal temperatures from previous timestep
-        //! \param humidity vector of nodal humidity from previous timestep
+        //! \param previousTimestepTemperature vector of nodal temperatures from previous timestep
+        //! \param previousTimestepHumidity vector of nodal humidity from previous timestep
         //! \param t_DTime time between two timestep
         //! \param timestepIndex current timestep index used in variable boundary conditions case
-        Solution transient(const std::vector<double> & temperature,
-                           const std::vector<double> & humidity,
-                           const double t_DTime,
+        Solution transient(const std::vector<double> & previousTimestepTemperature,
+                           const std::vector<double> & previousTimestepHumidity,
+                           double t_DTime,
                            size_t timestepIndex = 0);
 
         //! Calculates steady state solution for multiple domains.
@@ -71,7 +71,7 @@ namespace HygroThermFEM
         void performMoistureSimulation(bool val);
 
         //! \brief Checks if moisture simulation is ON
-        bool isMoistureSimulationON() const;
+        [[nodiscard]] bool isMoistureSimulationON() const;
 
         //! \brief Sets if thermal simulation will be performed
         //!
@@ -79,7 +79,7 @@ namespace HygroThermFEM
         void performThermalSimulation(bool val);
 
         //! \brief Checks if thermal simulation is ON
-        bool isThermalSimulationON() const;
+        [[nodiscard]] bool isThermalSimulationON() const;
 
         static std::vector<double> property(Variable property);
 
@@ -339,7 +339,6 @@ namespace HygroThermFEM
         //! @brief Deletes Geometry and boundary conditions
         void clearModel();
 
-
     private:
         //! \brief Checks validity of materials for transient simulation
         [[nodiscard]] MaterialsErrorCheckVector checkMaterialsForTransientSimulation() const;
@@ -351,28 +350,28 @@ namespace HygroThermFEM
 
         std::tuple<SingleSolution, double, std::vector<double>>
           executeThermalSimulation(const std::vector<double> & currentTemperature,
-                                   const std::vector<double> & temperature,
-                                   const double dTime,
+                                   const std::vector<double> & previousTimestepTemperature,
+                                   double dTime,
                                    size_t timestepIndex);
 
         std::tuple<SingleSolution, double, std::vector<double>>
           executeMoistureSimulation(const std::vector<double> & currentHumidity,
-                                    const std::vector<double> & humidity,
-                                    const double dTime,
+                                    const std::vector<double> & previousTimestepHumidity,
+                                    double dTime,
                                     size_t timestepIndex);
 
-        void MultiDomain::executeTransientIteration(const std::vector<double> &temperature,
-                                                    const std::vector<double> &humidity,
-                                                    double &temperatureError,
-                                                    double &humidityError,
-                                                    std::vector<double> &currentTemperature,
-                                                    std::vector<double> &currentHumidity,
-                                                    SingleSolution &temperatureSolution,
-                                                    SingleSolution &humiditySolution,
-                                                    const double dTime,
-                                                    size_t timestepIndex,
-                                                    const double ConvergenceError,
-                                                    const size_t MaxIterations);
+        void executeTransientIteration(const std::vector<double> & previousTimestepTemperature,
+                                       const std::vector<double> & previousTimestepHumidity,
+                                       double & temperatureError,
+                                       double & humidityError,
+                                       std::vector<double> & currentTemperature,
+                                       std::vector<double> & currentHumidity,
+                                       SingleSolution & temperatureSolution,
+                                       SingleSolution & humiditySolution,
+                                       const double dTime,
+                                       size_t timestepIndex,
+                                       const double ConvergenceError,
+                                       const size_t MaxIterations);
 
         ThermalDomain m_ThermalDomain;
         MoistureDomain m_MoistureDomain;

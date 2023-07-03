@@ -77,9 +77,7 @@ namespace HygroThermFEM
         while(totalTime < t_DTime)
         {
             notify(currentDivisionLevel, unsigned(totalTime / currentDTime));
-            const auto current = transientTimestep(stateVariables, currentDTime, timestepIndex);
-            solution = current.first;
-            converged = current.second;
+            std::tie(solution, converged) = transientTimestep(stateVariables, currentDTime, timestepIndex);
             if(!converged)
             {
                 currentDTime = currentDTime / numberOfSubtimesteps;
