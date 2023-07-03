@@ -4,7 +4,7 @@ set(Sundials_INCLUDE_DIRS "${CMAKE_BINARY_DIR}/include")
 
 include_directories(${Sundials_INCLUDE_DIRS})
 
-set(BUILD_ARCODE OFF)
+set(BUILD_ARKODE OFF)
 set(BUILD_BENCHMARKS OFF)
 set(BUILD_CVODE OFF)
 set(BUILD_CVODES OFF)
@@ -16,11 +16,29 @@ set(BUILD_SHARED_LIBS OFF)
 set(BUILD_STATIC_LIBS ON)
 set(BUILD_TESTING OFF)
 set(CMAKE_C_EXTENSIONS OFF)
+set(EXAMPLES_ENABLE_C OFF)
+set(EXAMPLES_ENABLE_CXX OFF)
+set(EXAMPLES_INSTALL OFF)
 
 configure_file(CMakeLists-Sundials.txt.in ${CMAKE_BINARY_DIR}/Sundials-download/CMakeLists.txt)
 execute_process(COMMAND ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}" .
   WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/Sundials-download)
 execute_process(COMMAND ${CMAKE_COMMAND} --build .
   WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/Sundials-download)
- 
+
+set(CMAKE_C_FLAGS_BACKUP "${CMAKE_C_FLAGS}")
+set(CMAKE_CXX_FLAGS_BACKUP "${CMAKE_CXX_FLAGS}")
+
+if(MSVC)
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /W0")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W0")
+else()
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -w")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -w")
+endif()
+
 add_subdirectory(${CMAKE_BINARY_DIR}/Sundials-src "${CMAKE_CURRENT_BINARY_DIR}/Sundials-src")
+
+# Restore the original flags
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS_BACKUP}")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS_BACKUP}")
