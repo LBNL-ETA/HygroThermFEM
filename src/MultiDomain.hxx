@@ -62,7 +62,8 @@ namespace HygroThermFEM
         //!
         //! \param simulationType Enumerator for simulation type (SteadyState or Transient)
         //! \return Information about materials with all missing properties.
-        MaterialsErrorCheckVector checkForMaterialsValidity(SimulationType simulationType) const;
+        [[nodiscard]] MaterialsErrorCheckVector
+          checkForMaterialsValidity(SimulationType simulationType) const;
 
         //! \brief Sets if moisture simulation will be performed
         //!

@@ -40,8 +40,8 @@ namespace HygroThermFEM
         do
         {
             size_t localIterCounter{0};
-            while(humidityError > ConvergenceError && localIterCounter <= MaxIterations
-                  && temperatureError > ConvergenceError && localIterCounter <= MaxIterations)
+            while(humidityError > ConvergenceError && temperatureError > ConvergenceError
+                  && localIterCounter <= MaxIterations)
             {
                 if(m_SimulateMoisture)
                 {
