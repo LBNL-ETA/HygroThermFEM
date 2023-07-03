@@ -1,6 +1,6 @@
 #include <cmath>
 
-#include "Domain.hxx"
+#include "SingleDomain.hxx"
 #include "FEMunique.hxx"
 #include "LinearSolver.hxx"
 #include "Common.hxx"
