@@ -112,10 +112,10 @@ TEST_F(MultiDomain_HighHumidity, TestExample_1)
     HygroThermFEM::MultiDomain domain;
 
     ObserveSimulationProgrees progressThermal;
-    domain.subscribeThermal(&progressThermal);
+    subscribeThermal(domain, &progressThermal);
 
     ObserveSimulationProgrees progressMoisture;
-    domain.subscribeMoisture(&progressMoisture);
+    subscribeMoisture(domain, &progressMoisture);
 
     /// Create elements
     for(size_t i = 1; i <= (NodePool::Instance().maxIndex() - 2) / 2; ++i)
