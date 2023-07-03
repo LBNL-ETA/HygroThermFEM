@@ -3,36 +3,16 @@
 #include <vector>
 
 #include "MaterialMissingProperties.hxx"
+#include "Common.hxx"
 
 namespace HygroThermFEM
 {
     struct MultiDomain;
-    class IMaterial;
 
-    //////////////////////////////////////////////////////////////////////////
-    ///  MaterialDataChecker
-    //////////////////////////////////////////////////////////////////////////
-
-    class MaterialDataChecker
-    {
-    public:
-        explicit MaterialDataChecker(const MultiDomain & multiDomain);
-
-        //! \brief Check all material properties against current engine settings.
-        //!
-        //! \param isTransientSimulation Different checks are needed for different simulation types.
-        //! \return All missing properties for every material.
-        MaterialsErrorCheckVector checkMaterialProperties(bool isTransientSimulation);
-
-    private:
-        //! \brief Check single material properties against current engine settings
-        //!
-        //! \param material Material that needs to be checked.
-        //! \param isTransientSimulation True if simulation is transient, False if steady-state.
-        //! \return Missing properties for given material.
-        MaterialMissingProperties checkMaterial(const IMaterial & material,
-                                                bool isTransientSimulation) const;
-
-        const MultiDomain & multiDomain;
-    };
+    //! \brief Checks validity of materials for any simulation
+    //!
+    //! \param simulationType Enumerator for simulation type (SteadyState or Transient)
+    //! \return Information about materials with all missing properties.
+    [[nodiscard]] MaterialsErrorCheckVector
+      checkForMaterialsValidity(const MultiDomain & domain, SimulationType simulationType);
 }   // namespace HygroThermFEM

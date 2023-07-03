@@ -17,13 +17,6 @@ namespace HygroThermFEM
         MultiDomain() = default;
         MultiDomain(bool performThermal, bool performMoisture);
 
-        //! \brief Checks validity of materials for any simulation
-        //!
-        //! \param simulationType Enumerator for simulation type (SteadyState or Transient)
-        //! \return Information about materials with all missing properties.
-        [[nodiscard]] MaterialsErrorCheckVector
-          checkForMaterialsValidity(SimulationType simulationType) const;
-
         static std::vector<double> property(Variable property);
 
         //! \brief Creates element with material reference
@@ -65,12 +58,6 @@ namespace HygroThermFEM
 
         //! @brief Deletes Geometry and boundary conditions
         void clearModel();
-
-        //! \brief Checks validity of materials for transient simulation
-        [[nodiscard]] MaterialsErrorCheckVector checkMaterialsForTransientSimulation() const;
-
-        //! \brief Checks validity of materials for transient simulation
-        [[nodiscard]] MaterialsErrorCheckVector checkMaterialsForSteadyStateSimulation() const;
 
         ThermalDomain thermalDomain;
         MoistureDomain moistureDomain;

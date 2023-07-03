@@ -33,3 +33,4 @@
 #include "../src/BoundaryConditionCoefficients.hxx"
 #include "../src/TimestepObserver.hxx"
 #include "../src/ConvectiveCoefficient.hxx"
+#include "../src/MaterialDataChecker.hxx"

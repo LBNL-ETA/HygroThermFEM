@@ -51,36 +51,6 @@ namespace HygroThermFEM
         moistureDomain.unsubscribe(observer);
     }
 
-    MaterialsErrorCheckVector MultiDomain::checkMaterialsForTransientSimulation() const
-    {
-        MaterialDataChecker dataChecker{*this};
-        return dataChecker.checkMaterialProperties(true);
-    }
-
-    MaterialsErrorCheckVector MultiDomain::checkMaterialsForSteadyStateSimulation() const
-    {
-        MaterialDataChecker dataChecker{*this};
-        return dataChecker.checkMaterialProperties(false);
-    }
-
-    MaterialsErrorCheckVector
-      MultiDomain::checkForMaterialsValidity(const SimulationType simulationType) const
-    {
-        MaterialsErrorCheckVector result;
-        switch(simulationType)
-        {
-            case SimulationType::SteadyState:
-                result = checkMaterialsForSteadyStateSimulation();
-                break;
-            case SimulationType::Transient:
-                result = checkMaterialsForTransientSimulation();
-                break;
-            default:
-                throw std::runtime_error("Incorrect selection of simulation type.");
-        }
-        return result;
-    }
-
     void MultiDomain::clearModel()
     {
         thermalDomain.clearModel();

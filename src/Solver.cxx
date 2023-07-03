@@ -161,18 +161,16 @@ namespace HygroThermFEM
         while((temperatureError > ConvergenceError && humidityError > ConvergenceError)
               || currentIteration > MaxIterations);
 
-        NodePool::Instance().updateNodeValues(
-          temperatureSolution.solution, BaseVariable::temperature, true);
-        NodePool::Instance().updateNodeValues(
-          humiditySolution.solution, BaseVariable::humidity, true);
+        updateNodeValues(temperatureSolution.solution, BaseVariable::temperature, true);
+        updateNodeValues(humiditySolution.solution, BaseVariable::humidity, true);
 
-        NodePool::Instance().updateNodeValues(currentHumidity, BaseVariable::humidity, true);
-        NodePool::Instance().updateNodeValues(currentTemperature, BaseVariable::temperature, true);
+        updateNodeValues(currentHumidity, BaseVariable::humidity, true);
+        updateNodeValues(currentTemperature, BaseVariable::temperature, true);
 
-        const auto waterContent = NodePool::Instance().properties(Variable::water);
-        const auto liquidContent = NodePool::Instance().properties(Variable::liquid);
-        const auto vaporContent = NodePool::Instance().properties(Variable::vapor);
-        const auto iceContent = NodePool::Instance().properties(Variable::ice);
+        const auto waterContent{properties(Variable::water)};
+        const auto liquidContent{properties(Variable::liquid)};
+        const auto vaporContent{properties(Variable::vapor)};
+        const auto iceContent{properties(Variable::ice)};
 
         const auto heatFlux = domain.thermalDomain.flux();
         const auto waterFlux = domain.moistureDomain.flux();
