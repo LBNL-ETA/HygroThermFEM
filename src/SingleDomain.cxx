@@ -35,11 +35,39 @@ namespace HygroThermFEM
              index1, index2, index3, index4, materialName);
        }}};
 
+    // Define a map from SingleDomainType to PostProcessFunc.
+    std::map<DomainType, PostProcessFunc> postProcessFuncMap = {
+      {DomainType::Thermal,
+       [](std::vector<double> & solution) {
+           for(auto & val : solution)
+           {
+               if(val < Constants::ABSOLUTEZERO)
+               {
+                   val = Constants::ABSOLUTEZERO + 1e-6;
+               }
+               if(val > 1000)
+               {
+                   val = 1000;
+               }
+           }
+       }},
+      {DomainType::Moisture, [](std::vector<double> & solution) {
+           for(auto & val : solution)
+           {
+               if(val > 1)
+               {
+                   val = 1;
+               }
+               if(val < 0)
+               {
+                   val = 0;
+               }
+           }
+       }}};
+
     SingleDomain::SingleDomain(DomainType type,
-                               const BaseVariable property,
                                bool automaticUpdateOfPreviousTimestep) :
         domainType(type),
-        m_Property(property),
         gasCavities(nullptr),
         m_AutomaticUpdatePreviousTimestep(automaticUpdateOfPreviousTimestep)
     {}
@@ -56,7 +84,7 @@ namespace HygroThermFEM
         return m_Elements.flux();
     }
 
-    void SingleDomain::postProcess(std::vector<double> &)
+    void SingleDomain::postProcess(std::vector<double> & solution)
     {
         if(gasCavities == nullptr)
         {
@@ -64,6 +92,9 @@ namespace HygroThermFEM
             gasCavities->setGravityVector(m_GravityVector);
         }
         gasCavities->update();
+
+        // Domain-specific processing.
+        postProcessFuncMap[domainType](solution);
     }
 
     void SingleDomain::setGravityVector(const FenestrationCommon::GravityVector & gravityVector)
@@ -75,4 +106,12 @@ namespace HygroThermFEM
         }
     }
 
+    BaseVariable baseVariable(SingleDomain & domain)
+    {
+        const std::map<DomainType, BaseVariable> baseVariableMap = {
+          {DomainType::Thermal, BaseVariable::temperature},
+          {DomainType::Moisture, BaseVariable::humidity}};
+
+        return baseVariableMap.at(domain.domainType);
+    }
 }   // namespace HygroThermFEM

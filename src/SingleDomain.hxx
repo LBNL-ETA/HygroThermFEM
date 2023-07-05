@@ -25,21 +25,22 @@ namespace HygroThermFEM
                                                       const size_t index4,
                                                       const std::string & materialName)>;
 
+    using PostProcessFunc = std::function<void(std::vector<double> &)>;
+
     //! \brief Interface that will keep all elements and boundary conditions together.
     //!
     //! One domain will solve single differential equation and therefore, single domain will
     //! represent thermal, moisture or pressure separately.
     struct SingleDomain : public Timesteps::TimestepNotifier
     {
-        virtual ~SingleDomain() = default;
         //! Domain construction. It is necessary to set up base variable that will be considered
         //! unknown.
-        //! @param property State variable which will be considered unknown.
+        //! @param type Type of domain that will be solved for (Thermal or Moisture).
         //! @param automaticUpdateOfPreviousTimestep When solver finds solution, previous timestep
         //! will be automatically updated by default. This should be set to false is Domain is used
         //! in outside iterations for solving more complex problems in which case previous timestep
         //! should not be updated till convergence is achieved.
-        explicit SingleDomain(DomainType type, BaseVariable property, bool automaticUpdateOfPreviousTimestep = true);
+        explicit SingleDomain(DomainType type, bool automaticUpdateOfPreviousTimestep = true);
 
         //! Returns flux in x and y direction
         [[nodiscard]] std::vector<NodeFlux> flux() const;
@@ -65,10 +66,9 @@ namespace HygroThermFEM
         //! moisture domain where humidity cannot go over 1.0 or lower than one.
         //! With certain set of boundary conditions and long enough time-step,
         //! solution can achieve such state and post processing should prevent it.
-        virtual void postProcess(std::vector<double> & solution);
+        void postProcess(std::vector<double> & solution);
 
         DomainType domainType;
-        BaseVariable m_Property;
 
         ElementsLinear2D m_Elements;
         BoundaryConditions2D m_BCs;
@@ -83,5 +83,7 @@ namespace HygroThermFEM
         // remain constant during iterations.
         bool m_AutomaticUpdatePreviousTimestep;
     };
+
+    BaseVariable baseVariable(SingleDomain & domain);
 
 }   // namespace HygroThermFEM

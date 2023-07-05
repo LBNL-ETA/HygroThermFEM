@@ -82,7 +82,7 @@ TEST_F(Analytical_ConvectionBC_Transient, TestExample_1)
                                                  liquidTransportationCurve,
                                                  moistureStorageFunction);
 
-    HygroThermFEM::ThermalDomain domain;
+    HygroThermFEM::SingleDomain domain{HygroThermFEM::DomainType::Thermal};
 
     /// Create elements
     for(size_t i = 1u; i <= (NodePool::Instance().maxIndex() - 2) / 2; ++i)

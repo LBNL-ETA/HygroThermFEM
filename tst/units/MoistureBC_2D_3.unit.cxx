@@ -86,7 +86,8 @@ TEST_F(MoistureBC_2D_3, TestExample_1)
                                                    liquidTransportationCurve,
                                                    moistureStorageFunction);
 
-    HygroThermFEM::MoistureDomain domain;
+
+    HygroThermFEM::SingleDomain domain{HygroThermFEM::DomainType::Moisture};
 
     /// Create elements
     for(size_t i = 1; i <= (NodePool::Instance().maxIndex() - 2) / 2; ++i)

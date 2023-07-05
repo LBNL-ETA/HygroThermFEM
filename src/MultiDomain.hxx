@@ -1,7 +1,6 @@
 #pragma once
 
-#include "ThermalDomain.hxx"
-#include "MoistureDomain.hxx"
+#include "SingleDomain.hxx"
 
 namespace HygroThermFEM
 {
@@ -10,8 +9,8 @@ namespace HygroThermFEM
         MultiDomain() = default;
         MultiDomain(bool performThermal, bool performMoisture);
 
-        ThermalDomain thermalDomain;
-        MoistureDomain moistureDomain;
+        SingleDomain thermalDomain{DomainType::Thermal};
+        SingleDomain moistureDomain{DomainType::Moisture};
         bool simulateThermal{true};
         bool simulateMoisture{true};
     };

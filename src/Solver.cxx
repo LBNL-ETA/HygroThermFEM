@@ -157,7 +157,7 @@ namespace HygroThermFEM
                 ++numOfIterations;
 
                 NodePool::Instance().updateNodeValues(
-                  solution, domain.m_Property, domain.m_AutomaticUpdatePreviousTimestep);
+                  solution, baseVariable(domain), domain.m_AutomaticUpdatePreviousTimestep);
 
                 A = transientM_K_H_Matrix(domain, t_DTime, timestepIndex);
                 B =
@@ -170,7 +170,7 @@ namespace HygroThermFEM
             }
         }
 
-        updateNodeValues(solution, domain.m_Property, domain.m_AutomaticUpdatePreviousTimestep);
+        updateNodeValues(solution, baseVariable(domain), domain.m_AutomaticUpdatePreviousTimestep);
 
         return std::make_pair(solution, converged);
     }
