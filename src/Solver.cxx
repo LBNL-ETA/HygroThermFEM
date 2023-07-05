@@ -36,7 +36,59 @@ namespace HygroThermFEM
         humidityError(humidityError)
     {}
 
-    std::vector<double> HygroThermFEM::steadyState(SingleDomain & domain)
+    namespace
+    {
+        /// Post processing for iterative solver. This needs to be connected with a specific solver
+        /// and it is not necessary to keep it for other solvers.
+
+        using PostProcessFunc = std::function<void(std::vector<double> &)>;
+
+        // Define a map from SingleDomainType to PostProcessFunc.
+        std::map<DomainType, PostProcessFunc> postProcessFuncMap = {
+          {DomainType::Thermal,
+           [](std::vector<double> & solution) {
+               for(auto & val : solution)
+               {
+                   if(val < Constants::ABSOLUTEZERO)
+                   {
+                       val = Constants::ABSOLUTEZERO + 1e-6;
+                   }
+                   if(val > 1000)
+                   {
+                       val = 1000;
+                   }
+               }
+           }},
+          {DomainType::Moisture, [](std::vector<double> & solution) {
+               for(auto & val : solution)
+               {
+                   if(val > 1)
+                   {
+                       val = 1;
+                   }
+                   if(val < 0)
+                   {
+                       val = 0;
+                   }
+               }
+           }}};
+
+        void postProcess(SingleDomain & domain, std::vector<double> & solution)
+        {
+            if(!domain.gasCavities.has_value())
+            {
+                domain.gasCavities.emplace(domain.m_Elements);
+                domain.gasCavities->setGravityVector(domain.m_GravityVector);
+            }
+            domain.gasCavities->update();
+
+            // Domain-specific processing.
+            postProcessFuncMap[domain.domainType](solution);
+        }
+    }   // namespace
+
+
+    std::vector<double> steadyState(SingleDomain & domain)
     {
         const auto B{steadyStateRightHandSide(domain)};
         const auto A{steadyStateLeftHandSide(domain)};
@@ -126,7 +178,7 @@ namespace HygroThermFEM
         if(isLinear(domain))
         {
             solution = CLinearSolver::solveEigen(A, B);
-            domain.postProcess(solution);
+            postProcess(domain, solution);
             converged = true;
         }
         else
@@ -149,8 +201,8 @@ namespace HygroThermFEM
                 solution = solution + dU * RelaxParameter;
                 normSolution = solution + dU;
 
-                domain.postProcess(solution);
-                domain.postProcess(normSolution);
+                postProcess(domain, solution);
+                postProcess(domain, normSolution);
 
                 currentNorm = norm(normSolution);
 
@@ -174,10 +226,10 @@ namespace HygroThermFEM
         return std::make_pair(solution, converged);
     }
 
-    SingleTimestepSolution HygroThermFEM::transient(SingleDomain & domain,
-                                                    const std::vector<double> & currentStateValues,
-                                                    double t_DTime,
-                                                    size_t timestepIndex)
+    SingleTimestepSolution transient(SingleDomain & domain,
+                                     const std::vector<double> & currentStateValues,
+                                     double t_DTime,
+                                     size_t timestepIndex)
     {
         std::vector<double> solution;
         bool converged{false};
@@ -313,16 +365,22 @@ namespace HygroThermFEM
             {
                 updateNodeValues(temperatureSolution.solution, BaseVariable::temperature, false);
                 std::tie(humiditySolution, humidityError, currentHumidity) =
-                  executeSimulation(
-                    domain.moistureDomain, currentHumidity, previousTimestepHumidity, dTime, timestepIndex);
+                  executeSimulation(domain.moistureDomain,
+                                    currentHumidity,
+                                    previousTimestepHumidity,
+                                    dTime,
+                                    timestepIndex);
             }
 
             if(domain.simulateThermal)
             {
                 updateNodeValues(humiditySolution.solution, BaseVariable::humidity, false);
                 std::tie(temperatureSolution, temperatureError, currentTemperature) =
-                  executeSimulation(
-                    domain.thermalDomain, currentTemperature, previousTimestepTemperature, dTime, timestepIndex);
+                  executeSimulation(domain.thermalDomain,
+                                    currentTemperature,
+                                    previousTimestepTemperature,
+                                    dTime,
+                                    timestepIndex);
             }
 
             ++currentIteration;

@@ -19,8 +19,6 @@ namespace HygroThermFEM
         Moisture
     };
 
-    using PostProcessFunc = std::function<void(std::vector<double> &)>;
-
     //! \brief Interface that will keep all elements and boundary conditions together.
     //!
     //! One domain will solve single differential equation and therefore, single domain will
@@ -39,12 +37,6 @@ namespace HygroThermFEM
         //!
         //! @param gravityVector Direction of gravity
         void setGravityVector(const FenestrationCommon::GravityVector & gravityVector);
-
-        //! Some domains require post-processing of results. Good example is
-        //! moisture domain where humidity cannot go over 1.0 or lower than one.
-        //! With certain set of boundary conditions and long enough time-step,
-        //! solution can achieve such state and post processing should prevent it.
-        void postProcess(std::vector<double> & solution);
 
         DomainType domainType;
 
