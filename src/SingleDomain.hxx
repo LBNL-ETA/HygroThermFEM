@@ -40,10 +40,10 @@ namespace HygroThermFEM
 
         DomainType domainType;
 
-        ElementsLinear2D m_Elements;
-        BoundaryConditions2D m_BCs;
+        ElementsLinear2D elements;
+        BoundaryConditions2D boundaryConditions;
 
-        FenestrationCommon::GravityVector m_GravityVector{0, -1, 0};
+        FenestrationCommon::GravityVector gravityVector{0, -1, 0};
 
         //! Storage for gas cavities recalculation
         std::optional<EquivalentGasCavities> gasCavities{std::nullopt};

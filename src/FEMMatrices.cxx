@@ -6,23 +6,23 @@ namespace HygroThermFEM
 {
     SquareMatrix steadyStateLeftHandSide(SingleDomain & domain)
     {
-        auto K = domain.m_Elements.conductanceMatrix();
-        K += domain.m_BCs.HMatrix(0);
+        auto K = domain.elements.conductanceMatrix();
+        K += domain.boundaryConditions.HMatrix(0);
 
         return K;
     }
 
     std::vector<double> steadyStateRightHandSide(SingleDomain & domain)
     {
-        return domain.m_BCs.RVector();
+        return domain.boundaryConditions.RVector();
     }
 
     SquareMatrix transientM_K_H_Matrix(SingleDomain & domain, double t_DTime, size_t timestepIndex)
     {
-        const auto M = domain.m_Elements.getLumpedMass(t_DTime);
-        auto M_K_H = domain.m_Elements.conductanceMatrix();
+        const auto M = domain.elements.getLumpedMass(t_DTime);
+        auto M_K_H = domain.elements.conductanceMatrix();
         M_K_H = M_K_H.addDiagonal(M);
-        M_K_H += domain.m_BCs.HMatrix(timestepIndex);
+        M_K_H += domain.boundaryConditions.HMatrix(timestepIndex);
 
         return M_K_H;
     }
@@ -32,8 +32,8 @@ namespace HygroThermFEM
                                              double t_DTime,
                                              size_t timestepIndex)
     {
-        const auto M{domain.m_Elements.getLumpedMass(t_DTime)};
-        const auto R{domain.m_BCs.RVector(timestepIndex) + domain.m_Elements.RVector()};
+        const auto M{domain.elements.getLumpedMass(t_DTime)};
+        const auto R{domain.boundaryConditions.RVector(timestepIndex) + domain.elements.RVector()};
 
         return t_PreviousTimestepValues * M + R;
     }

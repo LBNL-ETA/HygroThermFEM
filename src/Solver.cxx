@@ -77,8 +77,8 @@ namespace HygroThermFEM
         {
             if(!domain.gasCavities.has_value())
             {
-                domain.gasCavities.emplace(domain.m_Elements);
-                domain.gasCavities->setGravityVector(domain.m_GravityVector);
+                domain.gasCavities.emplace(domain.elements);
+                domain.gasCavities->setGravityVector(domain.gravityVector);
             }
             domain.gasCavities->update();
 

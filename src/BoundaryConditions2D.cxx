@@ -5,8 +5,8 @@ namespace HygroThermFEM
 {
     /// BoundaryConditions2D::BoundaryConditions2D(
     /// 		std::vector< std::reference_wrapper< IBCLinear2D > > & t_BCs ) :
-    /// 		m_BCs( t_BCs ), m_Linear( true ) {
-    /// 	for ( const auto & aBc : m_BCs ) {
+    /// 		boundaryConditions( t_BCs ), m_Linear( true ) {
+    /// 	for ( const auto & aBc : boundaryConditions ) {
     /// 		m_Linear = m_Linear && aBc.get().isLinear();
     /// 	}
     /// }

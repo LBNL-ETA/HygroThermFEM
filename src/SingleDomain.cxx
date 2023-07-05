@@ -20,12 +20,12 @@ namespace HygroThermFEM
 
     std::vector<NodeFlux> SingleDomain::flux() const
     {
-        return m_Elements.flux();
+        return elements.flux();
     }
 
-    void SingleDomain::setGravityVector(const FenestrationCommon::GravityVector & gravityVector)
+    void SingleDomain::setGravityVector(const FenestrationCommon::GravityVector & aGravityVector)
     {
-        m_GravityVector = gravityVector;
+        gravityVector = aGravityVector;
         if(gasCavities.has_value())
         {
             gasCavities->setGravityVector(gravityVector);

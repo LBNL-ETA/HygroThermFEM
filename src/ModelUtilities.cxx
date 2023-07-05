@@ -34,7 +34,7 @@ namespace HygroThermFEM
                        size_t index4,
                        const std::string & materialName)
     {
-        domain.m_Elements.assignElement(
+        domain.elements.assignElement(
           elementFactoryMap[domain.domainType](index1, index2, index3, index4, materialName));
     }
 
@@ -51,15 +51,15 @@ namespace HygroThermFEM
 
     bool isLinear(SingleDomain & domain)
     {
-        return domain.m_Elements.isLinear() && domain.m_BCs.isLinear();
+        return domain.elements.isLinear() && domain.boundaryConditions.isLinear();
     }
 
     void HygroThermFEM::clearModel(SingleDomain & domain)
     {
         NodePool::Instance().clear();
         MaterialPool::Instance().clear();
-        domain.m_BCs.clear();
-        domain.m_Elements.clearElements();
+        domain.boundaryConditions.clear();
+        domain.elements.clearElements();
     }
 
     void clearModel(MultiDomain & domain)

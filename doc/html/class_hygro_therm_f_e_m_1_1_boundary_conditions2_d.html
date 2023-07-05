@@ -106,7 +106,7 @@ void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="clas
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pro-attribs"></a>
 Protected Attributes</h2></td></tr>
 <tr class="memitem:a4361914f142432ed9667529a54ec999a"><td class="memItemLeft" align="right" valign="top"><a id="a4361914f142432ed9667529a54ec999a"></a>
-std::vector&lt; std::unique_ptr&lt; <a class="el" href="class_hygro_therm_f_e_m_1_1_i_b_c_linear2_d.html">IBCLinear2D</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>m_BCs</b></td></tr>
+std::vector&lt; std::unique_ptr&lt; <a class="el" href="class_hygro_therm_f_e_m_1_1_i_b_c_linear2_d.html">IBCLinear2D</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>boundaryConditions</b></td></tr>
 <tr class="separator:a4361914f142432ed9667529a54ec999a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac8890a4ce3bec1102be396c2b2dd9174"><td class="memItemLeft" align="right" valign="top"><a id="ac8890a4ce3bec1102be396c2b2dd9174"></a>
 bool&#160;</td><td class="memItemRight" valign="bottom"><b>m_Linear</b></td></tr>
@@ -160,7 +160,7 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><b>m_Linear</b></td></tr
 </div><div class="memdoc">
 
 <p>Assembled H matrix from all boundary conditions. </p>
-<p><a class="el" href="class_hygro_therm_f_e_m_1_1_boundary_conditions2_d.html#a0c26c8ac8f8852b495c412fcb19160c2" title="Simple constructor. ">BoundaryConditions2D::BoundaryConditions2D</a>( std::vector&lt; std::reference_wrapper&lt; IBCLinear2D &gt; &gt; &amp; t_BCs ) : m_BCs( t_BCs ), m_Linear( true ) { for ( const auto &amp; aBc : m_BCs ) { m_Linear = m_Linear &amp;&amp; aBc.get().<a class="el" href="class_hygro_therm_f_e_m_1_1_boundary_conditions2_d.html#af10eecd7d0887353ddc1791030a642de">isLinear()</a>; } } </p>
+<p><a class="el" href="class_hygro_therm_f_e_m_1_1_boundary_conditions2_d.html#a0c26c8ac8f8852b495c412fcb19160c2" title="Simple constructor. ">BoundaryConditions2D::BoundaryConditions2D</a>( std::vector&lt; std::reference_wrapper&lt; IBCLinear2D &gt; &gt; &amp; t_BCs ) : boundaryConditions( t_BCs ), m_Linear( true ) { for ( const auto &amp; aBc : boundaryConditions ) { m_Linear = m_Linear &amp;&amp; aBc.get().<a class="el" href="class_hygro_therm_f_e_m_1_1_boundary_conditions2_d.html#af10eecd7d0887353ddc1791030a642de">isLinear()</a>; } } </p>
 
 </div>
 </div>
@@ -214,7 +214,7 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><b>m_Linear</b></td></tr
       </table>
 </div><div class="memdoc">
 <p>Used to update new values to nodes once solver finds new solution for any state variable.</p>
-<p>FenestrationCommon::SquareMatrix&lt; double &gt; BoundaryConditions2D::DHMatrix() const { FenestrationCommon::SquareMatrix&lt; double &gt; HDMatrix{ <a class="el" href="class_hygro_therm_f_e_m_1_1_node_pool.html#a2c7dfe2eec3fdc2c9d32346b5063ad21" title="Access to NodePool singleton. ">NodePool::Instance()</a>.maxIndex() }; for ( const auto &amp; aBc : m_BCs ) { const auto &amp; bc = aBc.get(); auto indexes = bc.getNodeIndexes(); auto matDH = bc.D_HMatrix(); for ( size_t i = 0; i &lt; numOfBCNodes; ++i ) { for ( size_t j = 0; j &lt; numOfBCNodes; ++j ) { HDMatrix[ indexes[ i ] - 1 ][ indexes[ j ] - 1 ] += matDH[ i ][ j ]; } } } return HDMatrix; } </p>
+<p>FenestrationCommon::SquareMatrix&lt; double &gt; BoundaryConditions2D::DHMatrix() const { FenestrationCommon::SquareMatrix&lt; double &gt; HDMatrix{ <a class="el" href="class_hygro_therm_f_e_m_1_1_node_pool.html#a2c7dfe2eec3fdc2c9d32346b5063ad21" title="Access to NodePool singleton. ">NodePool::Instance()</a>.maxIndex() }; for ( const auto &amp; aBc : boundaryConditions ) { const auto &amp; bc = aBc.get(); auto indexes = bc.getNodeIndexes(); auto matDH = bc.D_HMatrix(); for ( size_t i = 0; i &lt; numOfBCNodes; ++i ) { for ( size_t j = 0; j &lt; numOfBCNodes; ++j ) { HDMatrix[ indexes[ i ] - 1 ][ indexes[ j ] - 1 ] += matDH[ i ][ j ]; } } } return HDMatrix; } </p>
 
 </div>
 </div>

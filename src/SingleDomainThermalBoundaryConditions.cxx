@@ -10,7 +10,7 @@ namespace HygroThermFEM::Thermal
                           const FixedBCHCCoefficients & fixedBCHCCoefficients,
                           bool t_CalculateMoisture)
     {
-        domain.m_BCs.assignBC(std::make_unique<ConstantConvectionBC>(
+        domain.boundaryConditions.assignBC(std::make_unique<ConstantConvectionBC>(
           index1, index2, fixedBCHCCoefficients, t_CalculateMoisture));
     }
 
@@ -26,7 +26,7 @@ namespace HygroThermFEM::Thermal
               timestepBCs.push_back(
                 std::make_unique<ConstantConvectionBC>(index1, index2, bc, calculateMoisture));
           });
-        domain.m_BCs.assignTimestepBCs(std::move(timestepBCs));
+        domain.boundaryConditions.assignTimestepBCs(std::move(timestepBCs));
     }
 
     void createBC_TARPHc(HygroThermFEM::SingleDomain & domain,
@@ -36,7 +36,7 @@ namespace HygroThermFEM::Thermal
                          double surfaceTilt,
                          bool simulateVaporFluxEnergy)
     {
-        domain.m_BCs.assignBC(std::make_unique<ThermalTARPConvectionBC>(
+        domain.boundaryConditions.assignBC(std::make_unique<ThermalTARPConvectionBC>(
           index1, index2, varHCCoeff, surfaceTilt, simulateVaporFluxEnergy));
     }
 
@@ -54,7 +54,7 @@ namespace HygroThermFEM::Thermal
             timestepBCs.push_back(std::make_unique<ThermalTARPConvectionBC>(
               index1, index2, coeff, surfaceTilt, simulateVaporFluxEnergy));
         }
-        domain.m_BCs.assignTimestepBCs(std::move(timestepBCs));
+        domain.boundaryConditions.assignTimestepBCs(std::move(timestepBCs));
     }
 
     void createBC_ASHRAEInsideHc(HygroThermFEM::SingleDomain & domain,
@@ -65,7 +65,7 @@ namespace HygroThermFEM::Thermal
                                  double surfaceTilt,
                                  bool simulateVaporFluxEnergy)
     {
-        domain.m_BCs.assignBC(std::make_unique<ASHRAEInsideConvectionBC>(
+        domain.boundaryConditions.assignBC(std::make_unique<ASHRAEInsideConvectionBC>(
           index1, index2, coeff, surfaceHeight, surfaceTilt, simulateVaporFluxEnergy));
     }
 
@@ -84,7 +84,7 @@ namespace HygroThermFEM::Thermal
             timestepBCs.push_back(std::make_unique<ASHRAEInsideConvectionBC>(
               index1, index2, cf, surfaceHeight, surfaceTilt, simulateVaporFluxEnergy));
         }
-        domain.m_BCs.assignTimestepBCs(std::move(timestepBCs));
+        domain.boundaryConditions.assignTimestepBCs(std::move(timestepBCs));
     }
 
     void createBC_ASHRAEOutsideHc(HygroThermFEM::SingleDomain & domain,
@@ -93,7 +93,7 @@ namespace HygroThermFEM::Thermal
                                   const ASHRAEOutsideCoefficients & coeff,
                                   bool simulateVaporFluxEnergy)
     {
-        domain.m_BCs.assignBC(std::make_unique<ASHRAEOutsideConvectionBC>(
+        domain.boundaryConditions.assignBC(std::make_unique<ASHRAEOutsideConvectionBC>(
           index1, index2, coeff, simulateVaporFluxEnergy));
     }
 
@@ -110,7 +110,7 @@ namespace HygroThermFEM::Thermal
             timestepBCs.push_back(std::make_unique<ASHRAEOutsideConvectionBC>(
               index1, index2, cf, simulateVaporFluxEnergy));
         }
-        domain.m_BCs.assignTimestepBCs(std::move(timestepBCs));
+        domain.boundaryConditions.assignTimestepBCs(std::move(timestepBCs));
     }
 
     void createBC_YazdanianKlemsHc(HygroThermFEM::SingleDomain & domain,
@@ -119,7 +119,7 @@ namespace HygroThermFEM::Thermal
                                    const YazdanianKlemsCoefficients & coeff,
                                    bool simulateVaporFluxEnergy)
     {
-        domain.m_BCs.assignBC(std::make_unique<YazdanianKlemsConvectionBC>(
+        domain.boundaryConditions.assignBC(std::make_unique<YazdanianKlemsConvectionBC>(
           index1, index2, coeff, simulateVaporFluxEnergy));
     }
 
@@ -136,7 +136,7 @@ namespace HygroThermFEM::Thermal
             timestepBCs.push_back(std::make_unique<YazdanianKlemsConvectionBC>(
               index1, index2, cf, simulateVaporFluxEnergy));
         }
-        domain.m_BCs.assignTimestepBCs(std::move(timestepBCs));
+        domain.boundaryConditions.assignTimestepBCs(std::move(timestepBCs));
     }
 
     void createBC_KimuraHc(HygroThermFEM::SingleDomain & domain,
@@ -145,7 +145,7 @@ namespace HygroThermFEM::Thermal
                            const KimuraCoefficients & coeff,
                            bool simulateVaporFluxEnergy)
     {
-        domain.m_BCs.assignBC(
+        domain.boundaryConditions.assignBC(
           std::make_unique<KimuraConvectionBC>(index1, index2, coeff, simulateVaporFluxEnergy));
     }
 
@@ -162,7 +162,7 @@ namespace HygroThermFEM::Thermal
             timestepBCs.push_back(
               std::make_unique<KimuraConvectionBC>(index1, index2, cf, simulateVaporFluxEnergy));
         }
-        domain.m_BCs.assignTimestepBCs(std::move(timestepBCs));
+        domain.boundaryConditions.assignTimestepBCs(std::move(timestepBCs));
     }
 
     void createBC_FixedTemperature(HygroThermFEM::SingleDomain & domain,
@@ -171,7 +171,7 @@ namespace HygroThermFEM::Thermal
                                    double t_Temp1,
                                    double t_Temp2)
     {
-        domain.m_BCs.assignBC(std::make_unique<TemperatureBC>(index1, index2, t_Temp1, t_Temp2));
+        domain.boundaryConditions.assignBC(std::make_unique<TemperatureBC>(index1, index2, t_Temp1, t_Temp2));
     }
 
     void createBC_FixedTemperature(HygroThermFEM::SingleDomain & domain,
@@ -184,7 +184,7 @@ namespace HygroThermFEM::Thermal
             timestepBCs.push_back(
               std::make_unique<TemperatureBC>(index1, index2, bc.Temperature1, bc.Temperature2));
         });
-        domain.m_BCs.assignTimestepBCs(std::move(timestepBCs));
+        domain.boundaryConditions.assignTimestepBCs(std::move(timestepBCs));
     }
 
     void createBC_FixedTemperature(HygroThermFEM::SingleDomain & domain,
@@ -192,7 +192,7 @@ namespace HygroThermFEM::Thermal
                                    size_t index2,
                                    double t_Temp)
     {
-        domain.m_BCs.assignBC(std::make_unique<TemperatureBC>(index1, index2, t_Temp));
+        domain.boundaryConditions.assignBC(std::make_unique<TemperatureBC>(index1, index2, t_Temp));
     }
 
     void createBC_FixedTemperature(HygroThermFEM::SingleDomain & domain,
@@ -205,7 +205,7 @@ namespace HygroThermFEM::Thermal
         {
             timestepBCs[i] = std::make_unique<TemperatureBC>(index1, index2, t_Temp[i]);
         }
-        domain.m_BCs.assignTimestepBCs(std::move(timestepBCs));
+        domain.boundaryConditions.assignTimestepBCs(std::move(timestepBCs));
     }
 
     void createBC_FixedFlux(HygroThermFEM::SingleDomain & domain,
@@ -213,7 +213,7 @@ namespace HygroThermFEM::Thermal
                             size_t index2,
                             double t_Flux)
     {
-        domain.m_BCs.assignBC(std::make_unique<FluxBC>(index1, index2, t_Flux));
+        domain.boundaryConditions.assignBC(std::make_unique<FluxBC>(index1, index2, t_Flux));
     }
 
     void createBC_FixedFlux(HygroThermFEM::SingleDomain & domain,
@@ -226,7 +226,7 @@ namespace HygroThermFEM::Thermal
         {
             timestepBCs[i] = std::make_unique<TemperatureBC>(index1, index2, t_Flux[i]);
         }
-        domain.m_BCs.assignTimestepBCs(std::move(timestepBCs));
+        domain.boundaryConditions.assignTimestepBCs(std::move(timestepBCs));
     }
 
     void createBC_BlackBodyRadiation(HygroThermFEM::SingleDomain & domain,
@@ -235,7 +235,7 @@ namespace HygroThermFEM::Thermal
                                      double t_Emissivity,
                                      double t_RadiationTemperature)
     {
-        domain.m_BCs.assignBC(std::make_unique<BlackBodyRadiationBC>(
+        domain.boundaryConditions.assignBC(std::make_unique<BlackBodyRadiationBC>(
           index1, index2, t_Emissivity, t_RadiationTemperature));
     }
 
@@ -250,7 +250,7 @@ namespace HygroThermFEM::Thermal
             timestepBCs.push_back(std::make_unique<BlackBodyRadiationBC>(
               index1, index2, bc.Emissivity, bc.Temperature));
         });
-        domain.m_BCs.assignTimestepBCs(std::move(timestepBCs));
+        domain.boundaryConditions.assignTimestepBCs(std::move(timestepBCs));
     }
 
     void createBC_LinearizedRadiation(HygroThermFEM::SingleDomain & domain,
@@ -258,7 +258,7 @@ namespace HygroThermFEM::Thermal
                                       size_t index2,
                                       const LinearizedRadiationBCCoefficients & linearRadBC)
     {
-        domain.m_BCs.assignBC(std::make_unique<LinearizedRadiationBC>(index1, index2, linearRadBC));
+        domain.boundaryConditions.assignBC(std::make_unique<LinearizedRadiationBC>(index1, index2, linearRadBC));
     }
 
     void createBC_LinearizedRadiation(
@@ -271,6 +271,6 @@ namespace HygroThermFEM::Thermal
         std::for_each(linearRadBC.begin(), linearRadBC.end(), [&](const auto & bc) {
             timestepBCs.push_back(std::make_unique<LinearizedRadiationBC>(index1, index2, bc));
         });
-        domain.m_BCs.assignTimestepBCs(std::move(timestepBCs));
+        domain.boundaryConditions.assignTimestepBCs(std::move(timestepBCs));
     }
 }   // namespace HygroThermFEM::Thermal

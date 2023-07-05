@@ -39,7 +39,7 @@ namespace HygroThermFEM
                       });
 
 #else
-        for(const auto & element : m_Elements)
+        for(const auto & element : elements)
         {
             auto indexes = element->nodeIndexes();
             auto conductance = element->DDuMatrices();
@@ -85,7 +85,7 @@ namespace HygroThermFEM
                           mtx.unlock();
                       });
 #else
-        for(const auto & element : m_Elements)
+        for(const auto & element : elements)
         {
             auto indexes = element->nodeIndexes();
             auto capacitance = element->capacitanceMatrices();
@@ -142,7 +142,7 @@ namespace HygroThermFEM
                       });
 
 #else
-        for(const auto & element : m_Elements)
+        for(const auto & element : elements)
         {
             auto indexes = element->nodeIndexes();
             auto capacitance = element->capacitanceMatrices();
@@ -214,7 +214,7 @@ namespace HygroThermFEM
                       });
 
 #else
-        for(const auto & element : m_Elements)
+        for(const auto & element : elements)
         {
             const auto indexes = element->nodeIndexes();
             const auto vecR = element->rightSideVector();
@@ -253,7 +253,7 @@ namespace HygroThermFEM
                       });
 
 #else
-        for(const auto & element : m_Elements)
+        for(const auto & element : elements)
         {
             const auto indexes = element->nodeIndexes();
             const auto flux = element->flux();
