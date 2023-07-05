@@ -40,7 +40,7 @@ namespace HygroThermFEM
         //! will be automatically updated by default. This should be set to false is Domain is used
         //! in outside iterations for solving more complex problems in which case previous timestep
         //! should not be updated till convergence is achieved.
-        explicit SingleDomain(DomainType type, bool automaticUpdateOfPreviousTimestep = true);
+        explicit SingleDomain(DomainType type);
 
         //! Returns flux in x and y direction
         [[nodiscard]] std::vector<NodeFlux> flux() const;
@@ -77,11 +77,6 @@ namespace HygroThermFEM
 
         //! Storage for gas cavities recalculation
         std::unique_ptr<EquivalentGasCavities> gasCavities;
-
-        // Indicates if transient timestep will automatically update previous timestep solution.
-        // This should be turned off if used in multidomain because previous timestep should
-        // remain constant during iterations.
-        bool m_AutomaticUpdatePreviousTimestep;
     };
 
     BaseVariable baseVariable(SingleDomain & domain);

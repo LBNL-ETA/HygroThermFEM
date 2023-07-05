@@ -65,11 +65,9 @@ namespace HygroThermFEM
            }
        }}};
 
-    SingleDomain::SingleDomain(DomainType type,
-                               bool automaticUpdateOfPreviousTimestep) :
+    SingleDomain::SingleDomain(DomainType type) :
         domainType(type),
-        gasCavities(nullptr),
-        m_AutomaticUpdatePreviousTimestep(automaticUpdateOfPreviousTimestep)
+        gasCavities(nullptr)
     {}
 
     void SingleDomain::createElement(
