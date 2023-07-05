@@ -19,13 +19,6 @@ namespace HygroThermFEM
         Moisture
     };
 
-    using ElementFactory =
-      std::function<std::unique_ptr<IElementLinear2D>(const size_t index1,
-                                                      const size_t index2,
-                                                      const size_t index3,
-                                                      const size_t index4,
-                                                      const std::string & materialName)>;
-
     using PostProcessFunc = std::function<void(std::vector<double> &)>;
 
     //! \brief Interface that will keep all elements and boundary conditions together.
@@ -37,26 +30,10 @@ namespace HygroThermFEM
         //! Domain construction. It is necessary to set up base variable that will be considered
         //! unknown.
         //! @param type Type of domain that will be solved for (Thermal or Moisture).
-        //! @param automaticUpdateOfPreviousTimestep When solver finds solution, previous timestep
-        //! will be automatically updated by default. This should be set to false is Domain is used
-        //! in outside iterations for solving more complex problems in which case previous timestep
-        //! should not be updated till convergence is achieved.
         explicit SingleDomain(DomainType type);
 
         //! Returns flux in x and y direction
         [[nodiscard]] std::vector<NodeFlux> flux() const;
-
-        //! Adds element into domain
-        //!< Node 1 index
-        //!< Node 2 index
-        //!< Node 3 index
-        //!< Node 4 index
-        //!< SolidMaterial that will be assigned to the element
-        void createElement(size_t index1,
-                           size_t index2,
-                           size_t index3,
-                           size_t index4,
-                           const std::string & materialName);
 
         //! \brief Sets new gravity vector and performs new calculations
         //!

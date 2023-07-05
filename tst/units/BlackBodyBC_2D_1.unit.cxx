@@ -93,8 +93,8 @@ TEST_F(BlackBodyBC_2D_1, TestExample_1)
 
     HygroThermFEM::SingleDomain domain{HygroThermFEM::DomainType::Thermal};
 
-    domain.createElement(3, 4, 2, 1, material.name());
-    domain.createElement(6, 4, 3, 5, material.name());
+    createElement(domain, 3, 4, 2, 1, material.name());
+    createElement(domain, 6, 4, 3, 5, material.name());
 
     // Create Boundary Conditions
     const auto tRadiation = 20.0;

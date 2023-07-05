@@ -89,7 +89,7 @@ TEST_F(Analytical_TemperatureBC_Transient, TestExample_1)
         const auto node3 = 2u * i + 2u;
         const auto node4 = 2u * i;
 
-        domain.createElement(node1, node2, node3, node4, material.name());
+        createElement(domain, node1, node2, node3, node4, material.name());
     }
 
     // Create Boundary Conditions

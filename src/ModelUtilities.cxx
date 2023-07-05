@@ -6,6 +6,38 @@
 
 namespace HygroThermFEM
 {
+    // Define a map from SingleDomainType to ElementFactory.
+    std::map<DomainType, ElementFactory> elementFactoryMap = {
+      {DomainType::Thermal,
+       [](const size_t index1,
+          const size_t index2,
+          const size_t index3,
+          const size_t index4,
+          const std::string & materialName) {
+           return std::make_unique<ElementThermalLinear2D>(
+             index1, index2, index3, index4, materialName);
+       }},
+      {DomainType::Moisture,
+       [](const size_t index1,
+          const size_t index2,
+          const size_t index3,
+          const size_t index4,
+          const std::string & materialName) {
+           return std::make_unique<ElementMoistureLinear2D>(
+             index1, index2, index3, index4, materialName);
+       }}};
+
+    void createElement(SingleDomain & domain,
+                       size_t index1,
+                       size_t index2,
+                       size_t index3,
+                       size_t index4,
+                       const std::string & materialName)
+    {
+        domain.m_Elements.assignElement(
+          elementFactoryMap[domain.domainType](index1, index2, index3, index4, materialName));
+    }
+
     void createElement(MultiDomain & domain,
                        const size_t index1,
                        const size_t index2,
@@ -13,8 +45,8 @@ namespace HygroThermFEM
                        const size_t index4,
                        const std::string & materialName)
     {
-        domain.thermalDomain.createElement(index1, index2, index3, index4, materialName);
-        domain.moistureDomain.createElement(index1, index2, index3, index4, materialName);
+        createElement(domain.thermalDomain, index1, index2, index3, index4, materialName);
+        createElement(domain.moistureDomain, index1, index2, index3, index4, materialName);
     }
 
     bool isLinear(SingleDomain & domain)

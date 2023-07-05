@@ -95,7 +95,7 @@ TEST_F(ConvectionBC_2D_TransientNoChanges, TestExample_1)
         const auto index2 = 2u * i + 2u;
         const auto index3 = 2u * i;
         const auto index4 = 2u * i - 1u;
-        domain.createElement(index1, index2, index3, index4, material.name());
+        createElement(domain, index1, index2, index3, index4, material.name());
     }
 
     // Create Boundary Conditions

@@ -96,7 +96,7 @@ TEST_F(MoistureBC_2D_4, TestExample_1)
         const auto node2 = 2u * i + 2u;
         const auto node3 = 2u * i;
         const auto node4 = 2u * i - 1u;
-        domain.createElement(node2, node3, node4, node1, material.name());
+        createElement(domain, node2, node3, node4, node1, material.name());
     }
 
     // Create Boundary Conditions

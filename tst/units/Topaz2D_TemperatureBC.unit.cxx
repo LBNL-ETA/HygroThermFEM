@@ -93,8 +93,8 @@ TEST_F(Topaz2D_TemperatureBC, TestExample_1)
 
     HygroThermFEM::SingleDomain domain{HygroThermFEM::DomainType::Thermal};
 
-    domain.createElement(1, 2, 4, 3, material.name());
-    domain.createElement(5, 3, 4, 6, material.name());
+    createElement(domain, 1, 2, 4, 3, material.name());
+    createElement(domain, 5, 3, 4, 6, material.name());
 
     // Create Boundary Conditions
     const auto tSurface = 12.0;

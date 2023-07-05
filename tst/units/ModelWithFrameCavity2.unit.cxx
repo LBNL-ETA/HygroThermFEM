@@ -116,7 +116,7 @@ TEST_F(TestModelWithFrameCavity2, TestDoubleFrameCavity)
                 {
                     materialName = solidMaterial.name();
                 }
-                domain.createElement(node1, node2, node3, node4, materialName);
+                createElement(domain, node1, node2, node3, node4, materialName);
             }
         }
     }
