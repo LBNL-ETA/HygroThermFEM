@@ -12,6 +12,19 @@
 
 namespace HygroThermFEM
 {
+    enum class DomainType
+    {
+        Thermal,
+        Moisture
+    };
+
+    using ElementFactory =
+      std::function<std::unique_ptr<IElementLinear2D>(const size_t index1,
+                                                      const size_t index2,
+                                                      const size_t index3,
+                                                      const size_t index4,
+                                                      const std::string & materialName)>;
+
     //! \brief Interface that will keep all elements and boundary conditions together.
     //!
     //! One domain will solve single differential equation and therefore, single domain will
@@ -26,21 +39,22 @@ namespace HygroThermFEM
         //! will be automatically updated by default. This should be set to false is Domain is used
         //! in outside iterations for solving more complex problems in which case previous timestep
         //! should not be updated till convergence is achieved.
-        explicit SingleDomain(
-          BaseVariable property,
-          bool automaticUpdateOfPreviousTimestep = true);
+        explicit SingleDomain(DomainType type, BaseVariable property, bool automaticUpdateOfPreviousTimestep = true);
 
         //! Returns flux in x and y direction
         [[nodiscard]] std::vector<NodeFlux> flux() const;
 
         //! Adds element into domain
-        virtual void createElement(
-          size_t index1,                     //!< Node 1 index
-          size_t index2,                     //!< Node 2 index
-          size_t index3,                     //!< Node 3 index
-          size_t index4,                     //!< Node 4 index
-          const std::string & materialName   //!< SolidMaterial that will be assigned to the element
-          ) = 0;
+        //!< Node 1 index
+        //!< Node 2 index
+        //!< Node 3 index
+        //!< Node 4 index
+        //!< SolidMaterial that will be assigned to the element
+        void createElement(size_t index1,
+                           size_t index2,
+                           size_t index3,
+                           size_t index4,
+                           const std::string & materialName);
 
         //! \brief Sets new gravity vector and performs new calculations
         //!
@@ -53,7 +67,9 @@ namespace HygroThermFEM
         //! solution can achieve such state and post processing should prevent it.
         virtual void postProcess(std::vector<double> & solution);
 
+        DomainType domainType;
         BaseVariable m_Property;
+
         ElementsLinear2D m_Elements;
         BoundaryConditions2D m_BCs;
 
@@ -66,6 +82,6 @@ namespace HygroThermFEM
         // This should be turned off if used in multidomain because previous timestep should
         // remain constant during iterations.
         bool m_AutomaticUpdatePreviousTimestep;
-    };    
+    };
 
 }   // namespace HygroThermFEM

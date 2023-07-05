@@ -14,11 +14,42 @@
 
 namespace HygroThermFEM
 {
-    SingleDomain::SingleDomain(const BaseVariable property, bool automaticUpdateOfPreviousTimestep) :
+    // Define a map from SingleDomainType to ElementFactory.
+    std::map<DomainType, ElementFactory> elementFactoryMap = {
+      {DomainType::Thermal,
+       [](const size_t index1,
+          const size_t index2,
+          const size_t index3,
+          const size_t index4,
+          const std::string & materialName) {
+           return std::make_unique<ElementThermalLinear2D>(
+             index1, index2, index3, index4, materialName);
+       }},
+      {DomainType::Moisture,
+       [](const size_t index1,
+          const size_t index2,
+          const size_t index3,
+          const size_t index4,
+          const std::string & materialName) {
+           return std::make_unique<ElementMoistureLinear2D>(
+             index1, index2, index3, index4, materialName);
+       }}};
+
+    SingleDomain::SingleDomain(DomainType type,
+                               const BaseVariable property,
+                               bool automaticUpdateOfPreviousTimestep) :
+        domainType(type),
         m_Property(property),
         gasCavities(nullptr),
         m_AutomaticUpdatePreviousTimestep(automaticUpdateOfPreviousTimestep)
     {}
+
+    void SingleDomain::createElement(
+      size_t index1, size_t index2, size_t index3, size_t index4, const std::string & materialName)
+    {
+        m_Elements.assignElement(
+          elementFactoryMap[domainType](index1, index2, index3, index4, materialName));
+    }
 
     std::vector<NodeFlux> SingleDomain::flux() const
     {
