@@ -348,9 +348,6 @@ namespace HygroThermFEM
         updateNodeValues(temperatureSolution.solution, BaseVariable::temperature, true);
         updateNodeValues(humiditySolution.solution, BaseVariable::humidity, true);
 
-        updateNodeValues(currentHumidity, BaseVariable::humidity, true);
-        updateNodeValues(currentTemperature, BaseVariable::temperature, true);
-
         const auto waterContent{properties(Variable::water)};
         const auto liquidContent{properties(Variable::liquid)};
         const auto vaporContent{properties(Variable::vapor)};
