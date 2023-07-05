@@ -102,14 +102,14 @@ TEST_F(Moisture_2D_TwoElements_1, TestExample_1)
     const auto dTime = 3600;
     const auto nSteps = 24;
 
-    auto humidities = NodePool::Instance().properties(HygroThermFEM::Variable::humidity);
+    auto humidities = properties(HygroThermFEM::Variable::humidity);
     std::vector<double> timesteps;
     std::vector<std::vector<double>> waterContentSolution;
     std::vector<std::vector<HygroThermFEM::NodeFlux>> fluxSolution;
 
     for(unsigned i = 0; i < nSteps; ++i)
     {
-        auto solution = domain.transient(humidities, dTime);
+        auto solution = transient(domain, humidities, dTime);
         humidities = solution.solution;
         timesteps.push_back(solution.dTime);
         auto waterContent = NodePool::Instance().properties(HygroThermFEM::Variable::water);

@@ -1,5 +1,8 @@
 #include "ModelUtilities.hxx"
+#include "SingleDomain.hxx"
 #include "MultiDomain.hxx"
+#include "NodePool.hxx"
+#include "MaterialPool.hxx"
 
 namespace HygroThermFEM
 {
@@ -14,15 +17,28 @@ namespace HygroThermFEM
         domain.moistureDomain.createElement(index1, index2, index3, index4, materialName);
     }
 
-    void setGravityVector(MultiDomain & domain,
-                          const FenestrationCommon::GravityVector & gravityVector)
+    bool isLinear(SingleDomain & domain)
     {
-        domain.thermalDomain.setGravityVector(gravityVector);
+        return domain.m_Elements.isLinear() && domain.m_BCs.isLinear();
+    }
+
+    void HygroThermFEM::clearModel(SingleDomain & domain)
+    {
+        NodePool::Instance().clear();
+        MaterialPool::Instance().clear();
+        domain.m_BCs.clear();
+        domain.m_Elements.clearElements();
     }
 
     void clearModel(MultiDomain & domain)
     {
-        domain.thermalDomain.clearModel();
-        domain.moistureDomain.clearModel();
+        clearModel(domain.thermalDomain);
+        clearModel(domain.moistureDomain);
+    }
+
+    void setGravityVector(MultiDomain & domain,
+                          const FenestrationCommon::GravityVector & gravityVector)
+    {
+        domain.thermalDomain.setGravityVector(gravityVector);
     }
 }   // namespace HygroThermFEM

@@ -100,14 +100,14 @@ TEST_F(ConvectionBC_2D_Transient_MultiBC, TestExample_1)
     const auto dTime = 3600;
     const auto nSteps = 4;
 
-    auto temperatures = NodePool::Instance().properties(HygroThermFEM::Variable::temperature);
+    auto temperatures = properties(HygroThermFEM::Variable::temperature);
     std::vector<std::vector<double>> temperaturesSolution;
     std::vector<std::vector<HygroThermFEM::NodeFlux>> fluxSolution;
     size_t timestepIndex{0};
 
     for(unsigned i = 0; i < nSteps; ++i)
     {
-        temperatures = domain.transient(temperatures, dTime, timestepIndex).solution;
+        temperatures = transient(domain, temperatures, dTime, timestepIndex).solution;
         temperaturesSolution.push_back(temperatures);
         fluxSolution.push_back(domain.flux());
         ++timestepIndex;

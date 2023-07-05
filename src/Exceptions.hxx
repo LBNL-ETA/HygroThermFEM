@@ -9,4 +9,11 @@ namespace HygroThermFEM
     public:
         InvalidSimulationTypeException();
     };
-}
+
+    class SolutionFailedToConvergeException : public std::runtime_error
+    {
+    public:
+        SolutionFailedToConvergeException();
+    };
+
+}   // namespace HygroThermFEM

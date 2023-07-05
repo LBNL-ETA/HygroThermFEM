@@ -20,14 +20,13 @@ namespace Timesteps
     private:
         std::vector<TimestepObserver *> observers;
 
-    protected:
+    public:
         //! \brief Notification to observers of current statue of the simulation
         //!
         //! \param divisionLevel - Current timestep division level
         //! \param timestepNumber - Current timestep index in current division
         void notify(unsigned divisionLevel, unsigned timestepNumber);
 
-    public:
         //! \brief Subscribe for notifications.
         //!
         //! \param observer - Observer that needs to be notified about simulation changes

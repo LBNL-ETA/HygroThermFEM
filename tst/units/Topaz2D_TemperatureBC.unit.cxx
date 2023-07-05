@@ -105,12 +105,12 @@ TEST_F(Topaz2D_TemperatureBC, TestExample_1)
     const auto nSteps = 4;
 
 
-    auto temperatures = NodePool::Instance().properties(HygroThermFEM::Variable::temperature);
+    auto temperatures = properties(HygroThermFEM::Variable::temperature);
     std::vector<std::vector<double>> solution;
 
     for(unsigned i = 0; i < nSteps; ++i)
     {
-        temperatures = domain.transient(temperatures, dTime).solution;
+        temperatures = transient(domain, temperatures, dTime).solution;
         solution.push_back(temperatures);
     }
 

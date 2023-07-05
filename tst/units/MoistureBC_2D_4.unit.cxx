@@ -111,12 +111,12 @@ TEST_F(MoistureBC_2D_4, TestExample_1)
     const auto dTime = 36000;
     const auto nSteps = 4;
 
-    auto humidities = NodePool::Instance().properties(HygroThermFEM::Variable::humidity);
+    auto humidities = properties(HygroThermFEM::Variable::humidity);
     std::vector<std::vector<double>> solution;
 
     for(size_t i = 0u; i < nSteps; ++i)
     {
-        humidities = domain.transient(humidities, dTime).solution;
+        humidities = transient(domain, humidities, dTime).solution;
         auto waterContent = NodePool::Instance().properties(HygroThermFEM::Variable::water);
         solution.push_back(waterContent);
     }

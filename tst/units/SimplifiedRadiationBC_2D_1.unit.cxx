@@ -102,7 +102,7 @@ TEST_F(SimplifiedRadiationBC_2D_1, TestExample_1)
 
     for(unsigned i = 0; i < nSteps; ++i)
     {
-        temperatures = domain.transient(temperatures, dTime).solution;
+        temperatures = transient(domain, temperatures, dTime).solution;
         solution.push_back(temperatures);
     }
 

@@ -97,7 +97,7 @@ TEST_F(ConvectionBC_2D_SteadyStateThermalDomain, TestExample_1)
     domain.createBC_FixedHc(1, 2, bcCoeff1);
     domain.createBC_FixedHc(6, 5, bcCoeff2);
 
-    auto solution = domain.steadyState();
+    auto solution = steadyState(domain);
 
     std::vector<double> correctSolution{
       -17.87392241, -17.87392241, 7.341594828, 7.341594828, 19.94935345, 19.94935345};

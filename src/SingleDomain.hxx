@@ -16,33 +16,19 @@ namespace HygroThermFEM
     //!
     //! One domain will solve single differential equation and therefore, single domain will
     //! represent thermal, moisture or pressure separately.
-    class SingleDomain : public Timesteps::TimestepNotifier
+    struct SingleDomain : public Timesteps::TimestepNotifier
     {
-    public:
         virtual ~SingleDomain() = default;
         //! Domain construction. It is necessary to set up base variable that will be considered
         //! unknown.
+        //! @param property State variable which will be considered unknown.
+        //! @param automaticUpdateOfPreviousTimestep When solver finds solution, previous timestep
+        //! will be automatically updated by default. This should be set to false is Domain is used
+        //! in outside iterations for solving more complex problems in which case previous timestep
+        //! should not be updated till convergence is achieved.
         explicit SingleDomain(
-          BaseVariable property,   //!< State variable which will be considered unknown.
-          bool automaticUpdateOfPreviousTimestep =
-            true   //!< When solver finds solution, previous timestep will be automatically updated
-                   //!< by default. This should be set to false is Domain is used in outside
-                   //!< iterations for solving more complex problems in which case previous timestep
-                   //!< should not be updated till convergence is achieved.
-        );
-
-        //! Calculates steady state for given data
-        std::vector<double> steadyState();
-
-        //! \brief Calculates next timestep values from current (initial) values
-        //! @param currentStateValues Current values of state variable or initial condition
-        //! @param t_DTime Timestep in transient solution
-        //! @param timestepIndex Index for current timestep. Used in variable boundary conditions
-        //! case. It is defaulted to zero in case of non-variable boundary condition calculations
-        //! are requested.
-        SingleSolution transient(const std::vector<double> & currentStateValues,
-                                 double t_DTime,
-                                 size_t timestepIndex = 0);
+          BaseVariable property,
+          bool automaticUpdateOfPreviousTimestep = true);
 
         //! Returns flux in x and y direction
         [[nodiscard]] std::vector<NodeFlux> flux() const;
@@ -61,51 +47,11 @@ namespace HygroThermFEM
         //! @param gravityVector Direction of gravity
         void setGravityVector(const FenestrationCommon::GravityVector & gravityVector);
 
-        //! \brief Deletes geometry and clears up boundary conditions.
-        void clearModel();
-
-    protected:
-        friend struct MultiDomain;
-
-        //! Forms left hand side matrix in steady state solution.
-        SquareMatrix steadyStateLeftHandSide();
-
-        //! Form right hand side vector in stead state solution.
-        [[nodiscard]] std::vector<double> steadyStateRightHandSide() const;
-
-        //! \brief Forms mass, conductance and H (from boundary condition) matrices.
-        //! @param t_DTime Time between two timestep for which calculates are being performed
-        //! @param timestepIndex Timestep index used in case of variable timestep input boundary
-        //! conditions.
-        SquareMatrix transientM_K_H_Matrix(double t_DTime, size_t timestepIndex);
-
-        //! \brief This function retrieves M*U+R vector (where U is state variable)
-        //! @param t_PreviousSolution Solution from previous timestep
-        //! @param t_DTime Time between two timestep for which calculates are being performed
-        //! @param timestepIndex Timestep index used in case of variable timestep input boundary
-        //! conditions.
-        std::vector<double> transientMT_R_Vector(const std::vector<double> & t_PreviousSolution,
-                                                 double t_DTime,
-                                                 size_t timestepIndex);
-
-        //! Returns if domain problem is linear.
-        [[nodiscard]] bool isLinear() const;
-
         //! Some domains require post-processing of results. Good example is
         //! moisture domain where humidity cannot go over 1.0 or lower than one.
         //! With certain set of boundary conditions and long enough time-step,
         //! solution can achieve such state and post processing should prevent it.
         virtual void postProcess(std::vector<double> & solution);
-
-        //! \brief Calling timestep calculations
-        //! @param currentStateValues Current state values from previous timestep
-        //! @param t_DTime Time different for between timesteps
-        //! @param timestepIndex Current timestep index used in variable boundary conditions
-        std::pair<std::vector<double>, bool> transientTimestep(
-          const std::vector<double> &
-            currentStateValues,   //!< Current values of state variable or initial condition
-          double t_DTime,         //!< Timestep in transient solution
-          size_t timestepIndex);
 
         BaseVariable m_Property;
         ElementsLinear2D m_Elements;

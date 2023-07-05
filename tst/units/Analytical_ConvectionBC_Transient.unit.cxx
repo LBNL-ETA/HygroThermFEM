@@ -103,12 +103,12 @@ TEST_F(Analytical_TemperatureBC_Transient, TestExample_1)
     const auto dTime = 0.001;
     const auto nSteps = 1000;
 
-    auto temperatures = NodePool::Instance().properties(HygroThermFEM::Variable::temperature);
+    auto temperatures = properties(HygroThermFEM::Variable::temperature);
     std::vector<std::vector<double>> solution;
 
     for(unsigned i = 0; i < nSteps; ++i)
     {
-        temperatures = domain.transient(temperatures, dTime).solution;
+        temperatures = transient(domain, temperatures, dTime).solution;
         solution.push_back(temperatures);
     }
 
