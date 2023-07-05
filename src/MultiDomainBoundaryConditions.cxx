@@ -1,6 +1,7 @@
 #include "MultiDomainBoundaryConditions.hxx"
 #include "MultiDomain.hxx"
 #include "SingleDomainThermalBoundaryConditions.hxx"
+#include "SingleDomainMoistureBoundaryConditions.hxx"
 
 namespace HygroThermFEM
 {
@@ -11,7 +12,7 @@ namespace HygroThermFEM
     {
         HygroThermFEM::Thermal::createBC_FixedHc(
           domain.thermalDomain, index1, index2, fixedBchcCoefficients, domain.simulateMoisture);
-        domain.moistureDomain.createBC_FixedHc(index1, index2, fixedBchcCoefficients);
+        HygroThermFEM::Moisture::createBC_FixedHc(domain.moistureDomain, index1, index2, fixedBchcCoefficients);
     }
 
     void createBC_FixedHc(MultiDomain & domain,
@@ -21,7 +22,7 @@ namespace HygroThermFEM
     {
         HygroThermFEM::Thermal::createBC_FixedHc(
           domain.thermalDomain, index1, index2, fixedBchcCoefficients, domain.simulateMoisture);
-        domain.moistureDomain.createBC_FixedHc(index1, index2, fixedBchcCoefficients);
+        HygroThermFEM::Moisture::createBC_FixedHc(domain.moistureDomain, index1, index2, fixedBchcCoefficients);
     }
 
     void createBC_TARPHc(MultiDomain & domain,
@@ -33,7 +34,7 @@ namespace HygroThermFEM
         HygroThermFEM::Thermal::createBC_TARPHc(
           domain.thermalDomain, index1, index2, varHCCoeff, surfaceTilt, domain.simulateMoisture);
 
-        domain.moistureDomain.createBC_TARPHc(index1, index2, varHCCoeff, surfaceTilt);
+        HygroThermFEM::Moisture::createBC_TARPHc(domain.moistureDomain, index1, index2, varHCCoeff, surfaceTilt);
     }
 
     void createBC_TARPHc(MultiDomain & domain,
@@ -45,7 +46,7 @@ namespace HygroThermFEM
         HygroThermFEM::Thermal::createBC_TARPHc(
           domain.thermalDomain, index1, index2, varHCCoeff, surfaceTilt, domain.simulateMoisture);
 
-        domain.moistureDomain.createBC_TARPHc(index1, index2, varHCCoeff, surfaceTilt);
+        HygroThermFEM::Moisture::createBC_TARPHc(domain.moistureDomain, index1, index2, varHCCoeff, surfaceTilt);
     }
 
     void createBC_ASHRAEInsideHc(MultiDomain & domain,
@@ -62,7 +63,7 @@ namespace HygroThermFEM
                                                         surfaceHeight,
                                                         surfaceTilt,
                                                         domain.simulateMoisture);
-        domain.moistureDomain.createBC_ASHRAEInsideHc(
+        HygroThermFEM::Moisture::createBC_ASHRAEInsideHc(domain.moistureDomain,
           index1, index2, coeff, surfaceHeight, surfaceTilt);
     }
 
@@ -80,7 +81,7 @@ namespace HygroThermFEM
                                                         surfaceHeight,
                                                         surfaceTilt,
                                                         domain.simulateMoisture);
-        domain.moistureDomain.createBC_ASHRAEInsideHc(
+        HygroThermFEM::Moisture::createBC_ASHRAEInsideHc(domain.moistureDomain,
           index1, index2, coeff, surfaceHeight, surfaceTilt);
     }
 
@@ -91,7 +92,7 @@ namespace HygroThermFEM
     {
         HygroThermFEM::Thermal::createBC_ASHRAEOutsideHc(
           domain.thermalDomain, index1, index2, coeff, domain.simulateMoisture);
-        domain.moistureDomain.createBC_ASHRAEOutsideHc(index1, index2, coeff);
+        HygroThermFEM::Moisture::createBC_ASHRAEOutsideHc(domain.moistureDomain, index1, index2, coeff);
     }
 
     void createBC_ASHRAEOutsideHc(MultiDomain & domain,
@@ -101,7 +102,7 @@ namespace HygroThermFEM
     {
         HygroThermFEM::Thermal::createBC_ASHRAEOutsideHc(
           domain.thermalDomain, index1, index2, coeff, domain.simulateMoisture);
-        domain.moistureDomain.createBC_ASHRAEOutsideHc(index1, index2, coeff);
+        HygroThermFEM::Moisture::createBC_ASHRAEOutsideHc(domain.moistureDomain, index1, index2, coeff);
     }
 
     void createBC_YazdanianKlemsHc(MultiDomain & domain,
@@ -111,7 +112,7 @@ namespace HygroThermFEM
     {
         HygroThermFEM::Thermal::createBC_YazdanianKlemsHc(
           domain.thermalDomain, index1, index2, coeff, domain.simulateMoisture);
-        domain.moistureDomain.createBC_YazdanianKlemsHc(index1, index2, coeff);
+        HygroThermFEM::Moisture::createBC_YazdanianKlemsHc(domain.moistureDomain, index1, index2, coeff);
     }
 
     void createBC_YazdanianKlemsHc(MultiDomain & domain,
@@ -121,7 +122,7 @@ namespace HygroThermFEM
     {
         HygroThermFEM::Thermal::createBC_YazdanianKlemsHc(
           domain.thermalDomain, index1, index2, coeff, domain.simulateMoisture);
-        domain.moistureDomain.createBC_YazdanianKlemsHc(index1, index2, coeff);
+        HygroThermFEM::Moisture::createBC_YazdanianKlemsHc(domain.moistureDomain, index1, index2, coeff);
     }
 
     void createBC_KimuraHc(MultiDomain & domain,
@@ -131,7 +132,7 @@ namespace HygroThermFEM
     {
         HygroThermFEM::Thermal::createBC_KimuraHc(
           domain.thermalDomain, index1, index2, coeff, domain.simulateMoisture);
-        domain.moistureDomain.createBC_KimuraHc(index1, index2, coeff);
+        HygroThermFEM::Moisture::createBC_KimuraHc(domain.moistureDomain, index1, index2, coeff);
     }
 
     void createBC_KimuraHc(MultiDomain & domain,
@@ -141,7 +142,7 @@ namespace HygroThermFEM
     {
         HygroThermFEM::Thermal::createBC_KimuraHc(
           domain.thermalDomain, index1, index2, coeff, domain.simulateMoisture);
-        domain.moistureDomain.createBC_KimuraHc(index1, index2, coeff);
+        HygroThermFEM::Moisture::createBC_KimuraHc(domain.moistureDomain, index1, index2, coeff);
     }
 
     void createBC_FixedTemperature(MultiDomain & domain,
@@ -188,7 +189,7 @@ namespace HygroThermFEM
     {
         HygroThermFEM::Thermal::createBC_FixedTemperature(
           domain.thermalDomain, index1, index2, values.Temperature);
-        domain.moistureDomain.createBC_FixedHumidity(index1, index2, values);
+        HygroThermFEM::Moisture::createBC_FixedHumidity(domain.moistureDomain, index1, index2, values);
     }
 
     void createBC_FixedTemperatureAndHumidity(MultiDomain & domain,
@@ -203,7 +204,7 @@ namespace HygroThermFEM
         }
         HygroThermFEM::Thermal::createBC_FixedTemperature(
           domain.thermalDomain, index1, index2, temperatures);
-        domain.moistureDomain.createBC_FixedHumidity(index1, index2, values);
+        HygroThermFEM::Moisture::createBC_FixedHumidity(domain.moistureDomain, index1, index2, values);
     }
 
     void createBC_FixedHeatFlux(MultiDomain & domain, size_t index1, size_t index2, double t_Flux)

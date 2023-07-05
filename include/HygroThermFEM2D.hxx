@@ -28,6 +28,7 @@
 #include "../src/MultiDomain.hxx"
 #include "../src/MultiDomainBoundaryConditions.hxx"
 #include "../src/SingleDomainThermalBoundaryConditions.hxx"
+#include "../src/SingleDomainMoistureBoundaryConditions.hxx"
 #include "../src/Common.hxx"
 #include "../src/GasCavities.hxx"
 #include "../src/SimulationProperties.hxx"

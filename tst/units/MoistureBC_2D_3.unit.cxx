@@ -105,7 +105,7 @@ TEST_F(MoistureBC_2D_3, TestExample_1)
 
     const HygroThermFEM::TARPCoefficients bcCoeff{ambientTemperature, ambientHumidity};
 
-    domain.createBC_TARPHc(1, 2, bcCoeff, surfaceTilt);
+    HygroThermFEM::Moisture::createBC_TARPHc(domain, 1, 2, bcCoeff, surfaceTilt);
 
     const auto dTime = 36000;
     const auto nSteps = 4;

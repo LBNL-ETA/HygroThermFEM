@@ -97,7 +97,7 @@ TEST_F(Moisture_2D_TwoElements_3, TestExample_1)
 
     const HygroThermFEM::TemperatureAndHumidity bcCoeff{airTemperature, airHumidity};
 
-    domain.createBC_FixedHumidity(5, 6, bcCoeff);
+    HygroThermFEM::Moisture::createBC_FixedHumidity(domain, 5, 6, bcCoeff);
 
     const auto dTime = 3600;
     const auto nSteps = 24;
