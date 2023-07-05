@@ -66,8 +66,7 @@ namespace HygroThermFEM
        }}};
 
     SingleDomain::SingleDomain(DomainType type) :
-        domainType(type),
-        gasCavities(nullptr)
+        domainType(type)
     {}
 
     void SingleDomain::createElement(
@@ -84,9 +83,9 @@ namespace HygroThermFEM
 
     void SingleDomain::postProcess(std::vector<double> & solution)
     {
-        if(gasCavities == nullptr)
+        if(!gasCavities.has_value())
         {
-            gasCavities = std::make_unique<EquivalentGasCavities>(m_Elements);
+            gasCavities.emplace(m_Elements);
             gasCavities->setGravityVector(m_GravityVector);
         }
         gasCavities->update();
@@ -98,7 +97,7 @@ namespace HygroThermFEM
     void SingleDomain::setGravityVector(const FenestrationCommon::GravityVector & gravityVector)
     {
         m_GravityVector = gravityVector;
-        if(gasCavities != nullptr)
+        if(gasCavities.has_value())
         {
             gasCavities->setGravityVector(gravityVector);
         }

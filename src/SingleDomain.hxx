@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <optional>
 
 #include "Elements2D.hxx"
 #include "BoundaryConditions2D.hxx"
@@ -76,7 +77,7 @@ namespace HygroThermFEM
         FenestrationCommon::GravityVector m_GravityVector{0, -1, 0};
 
         //! Storage for gas cavities recalculation
-        std::unique_ptr<EquivalentGasCavities> gasCavities;
+        std::optional<EquivalentGasCavities> gasCavities{std::nullopt};
     };
 
     BaseVariable baseVariable(SingleDomain & domain);
