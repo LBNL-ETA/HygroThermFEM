@@ -98,7 +98,7 @@ TEST_F(Analytical_TemperatureBC_Transient, TestExample_1)
 
     const HygroThermFEM::FixedBCHCCoefficients bcCoeff{tAir, hc};
 
-    domain.createBC_FixedHc(21, 22, bcCoeff);
+    HygroThermFEM::Thermal::createBC_FixedHc(domain, 21, 22, bcCoeff);
 
     const auto dTime = 0.001;
     const auto nSteps = 1000;

@@ -104,7 +104,7 @@ TEST_F(ConvectionBC_2D_TransientNoChanges, TestExample_1)
 
     const HygroThermFEM::FixedBCHCCoefficients bcCoeff{tSurface, hc};
 
-    domain.createBC_FixedHc(1, 2, bcCoeff);
+    HygroThermFEM::Thermal::createBC_FixedHc(domain, 1, 2, bcCoeff);
 
     const auto dTime = 36000;
     const auto nSteps = 4;

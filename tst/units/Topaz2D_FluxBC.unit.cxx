@@ -91,7 +91,7 @@ TEST_F(Topaz2D_FluxBC, TestExample_1)
     // Positive flux means outside flow.
     const auto surfaceFlux = -12.0;
 
-    domain.createBC_FixedFlux(5, 6, surfaceFlux);
+    HygroThermFEM::Thermal::createBC_FixedFlux(domain, 5, 6, surfaceFlux);
 
     const auto dTime = 3600;
     const auto nSteps = 4;

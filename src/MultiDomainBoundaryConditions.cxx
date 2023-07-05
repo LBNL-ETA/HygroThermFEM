@@ -1,5 +1,6 @@
 #include "MultiDomainBoundaryConditions.hxx"
 #include "MultiDomain.hxx"
+#include "SingleDomainThermalBoundaryConditions.hxx"
 
 namespace HygroThermFEM
 {
@@ -8,8 +9,8 @@ namespace HygroThermFEM
                           const size_t index2,
                           const FixedBCHCCoefficients & fixedBchcCoefficients)
     {
-        domain.thermalDomain.createBC_FixedHc(
-          index1, index2, fixedBchcCoefficients, domain.simulateMoisture);
+        HygroThermFEM::Thermal::createBC_FixedHc(
+          domain.thermalDomain, index1, index2, fixedBchcCoefficients, domain.simulateMoisture);
         domain.moistureDomain.createBC_FixedHc(index1, index2, fixedBchcCoefficients);
     }
 
@@ -18,8 +19,8 @@ namespace HygroThermFEM
                           size_t index2,
                           const std::vector<FixedBCHCCoefficients> & fixedBchcCoefficients)
     {
-        domain.thermalDomain.createBC_FixedHc(
-          index1, index2, fixedBchcCoefficients, domain.simulateMoisture);
+        HygroThermFEM::Thermal::createBC_FixedHc(
+          domain.thermalDomain, index1, index2, fixedBchcCoefficients, domain.simulateMoisture);
         domain.moistureDomain.createBC_FixedHc(index1, index2, fixedBchcCoefficients);
     }
 
@@ -29,8 +30,8 @@ namespace HygroThermFEM
                          const TARPCoefficients & varHCCoeff,
                          double surfaceTilt)
     {
-        domain.thermalDomain.createBC_TARPHc(
-          index1, index2, varHCCoeff, surfaceTilt, domain.simulateMoisture);
+        HygroThermFEM::Thermal::createBC_TARPHc(
+          domain.thermalDomain, index1, index2, varHCCoeff, surfaceTilt, domain.simulateMoisture);
 
         domain.moistureDomain.createBC_TARPHc(index1, index2, varHCCoeff, surfaceTilt);
     }
@@ -41,8 +42,8 @@ namespace HygroThermFEM
                          const std::vector<TARPCoefficients> & varHCCoeff,
                          double surfaceTilt)
     {
-        domain.thermalDomain.createBC_TARPHc(
-          index1, index2, varHCCoeff, surfaceTilt, domain.simulateMoisture);
+        HygroThermFEM::Thermal::createBC_TARPHc(
+          domain.thermalDomain, index1, index2, varHCCoeff, surfaceTilt, domain.simulateMoisture);
 
         domain.moistureDomain.createBC_TARPHc(index1, index2, varHCCoeff, surfaceTilt);
     }
@@ -54,8 +55,13 @@ namespace HygroThermFEM
                                  double surfaceHeight,
                                  double surfaceTilt)
     {
-        domain.thermalDomain.createBC_ASHRAEInsideHc(
-          index1, index2, coeff, surfaceHeight, surfaceTilt, domain.simulateMoisture);
+        HygroThermFEM::Thermal::createBC_ASHRAEInsideHc(domain.thermalDomain,
+                                                        index1,
+                                                        index2,
+                                                        coeff,
+                                                        surfaceHeight,
+                                                        surfaceTilt,
+                                                        domain.simulateMoisture);
         domain.moistureDomain.createBC_ASHRAEInsideHc(
           index1, index2, coeff, surfaceHeight, surfaceTilt);
     }
@@ -67,8 +73,13 @@ namespace HygroThermFEM
                                  double surfaceHeight,
                                  double surfaceTilt)
     {
-        domain.thermalDomain.createBC_ASHRAEInsideHc(
-          index1, index2, coeff, surfaceHeight, surfaceTilt, domain.simulateMoisture);
+        HygroThermFEM::Thermal::createBC_ASHRAEInsideHc(domain.thermalDomain,
+                                                        index1,
+                                                        index2,
+                                                        coeff,
+                                                        surfaceHeight,
+                                                        surfaceTilt,
+                                                        domain.simulateMoisture);
         domain.moistureDomain.createBC_ASHRAEInsideHc(
           index1, index2, coeff, surfaceHeight, surfaceTilt);
     }
@@ -78,8 +89,8 @@ namespace HygroThermFEM
                                   size_t index2,
                                   const ASHRAEOutsideCoefficients & coeff)
     {
-        domain.thermalDomain.createBC_ASHRAEOutsideHc(
-          index1, index2, coeff, domain.simulateMoisture);
+        HygroThermFEM::Thermal::createBC_ASHRAEOutsideHc(
+          domain.thermalDomain, index1, index2, coeff, domain.simulateMoisture);
         domain.moistureDomain.createBC_ASHRAEOutsideHc(index1, index2, coeff);
     }
 
@@ -88,8 +99,8 @@ namespace HygroThermFEM
                                   size_t index2,
                                   const std::vector<ASHRAEOutsideCoefficients> & coeff)
     {
-        domain.thermalDomain.createBC_ASHRAEOutsideHc(
-          index1, index2, coeff, domain.simulateMoisture);
+        HygroThermFEM::Thermal::createBC_ASHRAEOutsideHc(
+          domain.thermalDomain, index1, index2, coeff, domain.simulateMoisture);
         domain.moistureDomain.createBC_ASHRAEOutsideHc(index1, index2, coeff);
     }
 
@@ -98,8 +109,8 @@ namespace HygroThermFEM
                                    size_t index2,
                                    const YazdanianKlemsCoefficients & coeff)
     {
-        domain.thermalDomain.createBC_YazdanianKlemsHc(
-          index1, index2, coeff, domain.simulateMoisture);
+        HygroThermFEM::Thermal::createBC_YazdanianKlemsHc(
+          domain.thermalDomain, index1, index2, coeff, domain.simulateMoisture);
         domain.moistureDomain.createBC_YazdanianKlemsHc(index1, index2, coeff);
     }
 
@@ -108,8 +119,8 @@ namespace HygroThermFEM
                                    size_t index2,
                                    const std::vector<YazdanianKlemsCoefficients> & coeff)
     {
-        domain.thermalDomain.createBC_YazdanianKlemsHc(
-          index1, index2, coeff, domain.simulateMoisture);
+        HygroThermFEM::Thermal::createBC_YazdanianKlemsHc(
+          domain.thermalDomain, index1, index2, coeff, domain.simulateMoisture);
         domain.moistureDomain.createBC_YazdanianKlemsHc(index1, index2, coeff);
     }
 
@@ -118,7 +129,8 @@ namespace HygroThermFEM
                            size_t index2,
                            const KimuraCoefficients & coeff)
     {
-        domain.thermalDomain.createBC_KimuraHc(index1, index2, coeff, domain.simulateMoisture);
+        HygroThermFEM::Thermal::createBC_KimuraHc(
+          domain.thermalDomain, index1, index2, coeff, domain.simulateMoisture);
         domain.moistureDomain.createBC_KimuraHc(index1, index2, coeff);
     }
 
@@ -127,7 +139,8 @@ namespace HygroThermFEM
                            size_t index2,
                            const std::vector<KimuraCoefficients> & coeff)
     {
-        domain.thermalDomain.createBC_KimuraHc(index1, index2, coeff, domain.simulateMoisture);
+        HygroThermFEM::Thermal::createBC_KimuraHc(
+          domain.thermalDomain, index1, index2, coeff, domain.simulateMoisture);
         domain.moistureDomain.createBC_KimuraHc(index1, index2, coeff);
     }
 
@@ -137,7 +150,8 @@ namespace HygroThermFEM
                                    const double t_Temp1,
                                    const double t_Temp2)
     {
-        domain.thermalDomain.createBC_FixedTemperature(index1, index2, t_Temp1, t_Temp2);
+        HygroThermFEM::Thermal::createBC_FixedTemperature(
+          domain.thermalDomain, index1, index2, t_Temp1, t_Temp2);
     }
 
     void createBC_FixedTemperature(MultiDomain & domain,
@@ -145,7 +159,8 @@ namespace HygroThermFEM
                                    size_t index2,
                                    const std::vector<ConstantBCTemperatures> & temp)
     {
-        domain.thermalDomain.createBC_FixedTemperature(index1, index2, temp);
+        HygroThermFEM::Thermal::createBC_FixedTemperature(
+          domain.thermalDomain, index1, index2, temp);
     }
 
     void createBC_FixedTemperature(MultiDomain & domain,
@@ -153,7 +168,8 @@ namespace HygroThermFEM
                                    const size_t index2,
                                    const double t_Temp)
     {
-        domain.thermalDomain.createBC_FixedTemperature(index1, index2, t_Temp);
+        HygroThermFEM::Thermal::createBC_FixedTemperature(
+          domain.thermalDomain, index1, index2, t_Temp);
     }
 
     void createBC_FixedTemperature(MultiDomain & domain,
@@ -161,7 +177,8 @@ namespace HygroThermFEM
                                    size_t index2,
                                    std::vector<double> temp)
     {
-        domain.thermalDomain.createBC_FixedTemperature(index1, index2, std::move(temp));
+        HygroThermFEM::Thermal::createBC_FixedTemperature(
+          domain.thermalDomain, index1, index2, std::move(temp));
     }
 
     void createBC_FixedTemperatureAndHumidity(MultiDomain & domain,
@@ -169,7 +186,8 @@ namespace HygroThermFEM
                                               size_t index2,
                                               const TemperatureAndHumidity & values)
     {
-        domain.thermalDomain.createBC_FixedTemperature(index1, index2, values.Temperature);
+        HygroThermFEM::Thermal::createBC_FixedTemperature(
+          domain.thermalDomain, index1, index2, values.Temperature);
         domain.moistureDomain.createBC_FixedHumidity(index1, index2, values);
     }
 
@@ -183,13 +201,14 @@ namespace HygroThermFEM
         {
             temperatures[i] = values[i].Temperature;
         }
-        domain.thermalDomain.createBC_FixedTemperature(index1, index2, temperatures);
+        HygroThermFEM::Thermal::createBC_FixedTemperature(
+          domain.thermalDomain, index1, index2, temperatures);
         domain.moistureDomain.createBC_FixedHumidity(index1, index2, values);
     }
 
     void createBC_FixedHeatFlux(MultiDomain & domain, size_t index1, size_t index2, double t_Flux)
     {
-        domain.thermalDomain.createBC_FixedFlux(index1, index2, t_Flux);
+        HygroThermFEM::Thermal::createBC_FixedFlux(domain.thermalDomain, index1, index2, t_Flux);
     }
 
     void createBC_FixedHeatFlux(MultiDomain & domain,
@@ -197,7 +216,7 @@ namespace HygroThermFEM
                                 size_t index2,
                                 const std::vector<double> & t_Flux)
     {
-        domain.thermalDomain.createBC_FixedFlux(index1, index2, t_Flux);
+        HygroThermFEM::Thermal::createBC_FixedFlux(domain.thermalDomain, index1, index2, t_Flux);
     }
 
     void createBC_BlackBodyRadiation(MultiDomain & domain,
@@ -206,8 +225,8 @@ namespace HygroThermFEM
                                      double t_Emissivity,
                                      double t_RadiationTemperature)
     {
-        domain.thermalDomain.createBC_BlackBodyRadiation(
-          index1, index2, t_Emissivity, t_RadiationTemperature);
+        HygroThermFEM::Thermal::createBC_BlackBodyRadiation(
+          domain.thermalDomain, index1, index2, t_Emissivity, t_RadiationTemperature);
     }
 
     void
@@ -216,7 +235,8 @@ namespace HygroThermFEM
                                   size_t index2,
                                   const std::vector<BlackBodyRadiationBCCoefficients> & radCoeffs)
     {
-        domain.thermalDomain.createBC_BlackBodyRadiation(index1, index2, radCoeffs);
+        HygroThermFEM::Thermal::createBC_BlackBodyRadiation(
+          domain.thermalDomain, index1, index2, radCoeffs);
     }
 
     void createBC_LinearizedRadiation(MultiDomain & domain,
@@ -224,7 +244,8 @@ namespace HygroThermFEM
                                       const size_t index2,
                                       const LinearizedRadiationBCCoefficients & linearRadBC)
     {
-        domain.thermalDomain.createBC_LinearizedRadiation(index1, index2, linearRadBC);
+        HygroThermFEM::Thermal::createBC_LinearizedRadiation(
+          domain.thermalDomain, index1, index2, linearRadBC);
     }
 
     void createBC_LinearizedRadiation(
@@ -233,6 +254,7 @@ namespace HygroThermFEM
       size_t index2,
       const std::vector<LinearizedRadiationBCCoefficients> & linearRadBC)
     {
-        domain.thermalDomain.createBC_LinearizedRadiation(index1, index2, linearRadBC);
+        HygroThermFEM::Thermal::createBC_LinearizedRadiation(
+          domain.thermalDomain, index1, index2, linearRadBC);
     }
 }   // namespace HygroThermFEM

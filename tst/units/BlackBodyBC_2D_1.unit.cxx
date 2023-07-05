@@ -100,7 +100,8 @@ TEST_F(BlackBodyBC_2D_1, TestExample_1)
     const auto tRadiation = 20.0;
     const auto surfaceEmissivity = 0.84;
 
-    domain.createBC_BlackBodyRadiation(5, 6, surfaceEmissivity, tRadiation);
+    HygroThermFEM::Thermal::createBC_BlackBodyRadiation(
+      domain, 5, 6, surfaceEmissivity, tRadiation);
 
     const auto dTime = 3600;
     const auto nSteps = 4;

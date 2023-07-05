@@ -99,7 +99,7 @@ TEST_F(Topaz2D_TemperatureBC, TestExample_1)
     // Create Boundary Conditions
     const auto tSurface = 12.0;
 
-    domain.createBC_FixedTemperature(5, 6, tSurface);
+    HygroThermFEM::Thermal::createBC_FixedTemperature(domain, 5, 6, tSurface);
 
     const auto dTime = 3600;
     const auto nSteps = 4;
