@@ -113,7 +113,7 @@ TEST_F(Moisture_2D_TwoElements_2, TestExample_1)
         auto solution = HygroThermFEM::Substitution::transient(domain, humidities, dTime);
         humidities = solution.solution;
         timesteps.push_back(solution.dTime);
-        auto waterContent = NodePool::Instance().properties(HygroThermFEM::Variable::water);
+        auto waterContent = properties(HygroThermFEM::Variable::water);
         waterContentSolution.push_back(waterContent);
         fluxSolution.push_back(domain.flux());
     }

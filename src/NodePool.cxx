@@ -39,10 +39,11 @@ namespace HygroThermFEM
         return aNode.getNodeNumber();
     }
 
-    std::vector<double> NodePool::properties(const Variable t_Property)
+    std::vector<double> properties(const Variable t_Property)
     {
+        NodePool & pool = NodePool::Instance();   // get the singleton instance
         std::vector<double> aVector;
-        for(Node2D & aNode : m_Nodes)
+        for(Node2D & aNode : pool.m_Nodes)
         {
             aVector.push_back(aNode.property(t_Property));
         }
@@ -77,10 +78,5 @@ namespace HygroThermFEM
     void NodePool::clear()
     {
         m_Nodes.clear();
-    }
-
-    std::vector<double> properties(Variable t_Property)
-    {
-        return NodePool::Instance().properties(t_Property);
     }
 }   // namespace HygroThermFEM

@@ -78,9 +78,9 @@ namespace HygroThermFEM::Substitution
         auto humidityError{std::numeric_limits<double>::max()};
         const auto MaxIterations = SimulationProperties::Instance().maxNumberOfIterations();
         size_t currentIteration{0};
-        auto humidity = NodePool::Instance().properties(Variable::humidity);
+        auto humidity = HygroThermFEM::properties(Variable::humidity);
         auto previousHumidity = humidity;
-        auto temperature = NodePool::Instance().properties(Variable::temperature);
+        auto temperature = HygroThermFEM::properties(Variable::temperature);
         auto previousTemperature = temperature;
         do
         {

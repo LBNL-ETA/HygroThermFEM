@@ -138,8 +138,8 @@ TEST_F(TestModelWithFrameCavity3, TestSingleFrameCavity)
     const auto dTime = 36000;
     const auto nSteps = 10;
 
-    auto temperatures = NodePool::Instance().properties(HygroThermFEM::Variable::temperature);
-    auto humidities = NodePool::Instance().properties(HygroThermFEM::Variable::humidity);
+    auto temperatures = properties(HygroThermFEM::Variable::temperature);
+    auto humidities = properties(HygroThermFEM::Variable::humidity);
     std::vector<std::vector<double>> temperatureSolution;
     std::vector<std::vector<double>> waterContentSolution;
 

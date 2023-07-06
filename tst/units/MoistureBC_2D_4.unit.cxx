@@ -117,7 +117,7 @@ TEST_F(MoistureBC_2D_4, TestExample_1)
     for(size_t i = 0u; i < nSteps; ++i)
     {
         humidities = HygroThermFEM::Substitution::transient(domain, humidities, dTime).solution;
-        auto waterContent = NodePool::Instance().properties(HygroThermFEM::Variable::water);
+        auto waterContent = properties(HygroThermFEM::Variable::water);
         solution.push_back(waterContent);
     }
 

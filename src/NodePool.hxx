@@ -37,11 +37,6 @@ namespace HygroThermFEM
         //! Returns maximum node index from pool of nodes.
         [[nodiscard]] std::size_t maxIndex() const;
 
-        //! Returns state values (temperature, water content or pressure) at all nodes.
-        std::vector<double>
-          properties(Variable t_Property   //!< Variable for which values are obtained.
-          );
-
         //! Delete all nodes from NodePool.
         void clear();
 
@@ -59,10 +54,12 @@ namespace HygroThermFEM
                                      BaseVariable t_property,
                                      bool updatePreviousTimestep = false);
 
+        //! Returns state values (temperature, water content or pressure) at all nodes.
+        //!< Variable for which values are obtained.
+        friend std::vector<double> properties(Variable t_Property);
+
         //! Storage for nodes in NodePool.
         std::vector<Node2D> m_Nodes;
     };
-
-    std::vector<double> properties(Variable t_Property);
 
 }   // namespace HygroThermFEM

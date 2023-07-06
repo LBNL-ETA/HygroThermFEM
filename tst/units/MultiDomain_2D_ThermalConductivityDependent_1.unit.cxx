@@ -133,8 +133,8 @@ TEST_F(MultiDomain_2D_ThermalConductivityDependent_1, TestExample_1)
     const auto dTime = 3600;
     const auto nSteps = 24;
 
-    auto temperatures = NodePool::Instance().properties(HygroThermFEM::Variable::temperature);
-    auto humidities = NodePool::Instance().properties(HygroThermFEM::Variable::humidity);
+    auto temperatures = HygroThermFEM::properties(HygroThermFEM::Variable::temperature);
+    auto humidities = HygroThermFEM::properties(HygroThermFEM::Variable::humidity);
     std::vector<std::vector<double>> temperatureSolution;
     std::vector<std::vector<double>> waterContentSolution;
 

@@ -125,8 +125,8 @@ TEST_F(MultiDomain_2D_1, TestExample_1)
     const auto dTime = 360;
     const auto nSteps = 10;
 
-    auto temperatures = NodePool::Instance().properties(HygroThermFEM::Variable::temperature);
-    auto humidities = NodePool::Instance().properties(HygroThermFEM::Variable::humidity);
+    auto temperatures = properties(HygroThermFEM::Variable::temperature);
+    auto humidities = properties(HygroThermFEM::Variable::humidity);
     std::vector<std::vector<double>> temperatureSolution;
     std::vector<std::vector<double>> waterContentSolution;
 
@@ -287,7 +287,7 @@ TEST_F(MultiDomain_2D_1, TestExample_1_Repeat)
     const auto nSteps = 10;
 
     auto temperatures{properties(HygroThermFEM::Variable::temperature)};
-    auto humidities{NodePool::Instance().properties(HygroThermFEM::Variable::humidity)};
+    auto humidities{properties(HygroThermFEM::Variable::humidity)};
     std::vector<std::vector<double>> temperatureSolution;
     std::vector<std::vector<double>> waterContentSolution;
 
