@@ -1,5 +1,6 @@
 #include <memory>
 #include <gtest/gtest.h>
+#include <chrono>
 
 #include "HygroThermFEM2D.hxx"
 
@@ -105,7 +106,7 @@ TEST_F(SingleDomain_HighHumidity_Sundials, TestExample_1)
     // Create Boundary Conditions
     const auto hc = 10.0;
     const auto airTemperature = 20.0;
-    const auto airHumidity = 1.0;
+    const auto airHumidity = 0.0;
 
     const HygroThermFEM::FixedBCHCCoefficients bcCoeff{airTemperature, hc, airHumidity};
 
@@ -122,7 +123,13 @@ TEST_F(SingleDomain_HighHumidity_Sundials, TestExample_1)
     std::vector<double> humidityError;
     size_t timestepIndex{0};
 
+    // Time the transient call
+    const auto start = std::chrono::steady_clock::now();
     auto aSolution = Sundials::transient(domain, humidities, dTime);
+    const auto end = std::chrono::steady_clock::now();
+    const auto diff = end - start;
+    std::cout << "Time to solve transient: "
+              << std::chrono::duration<double, std::milli>(diff).count() << " ms\n";
 
     const std::vector<double> correctHumidityError{4.131868e-07, 1.509739e-06};
     const std::vector<std::vector<double>> correctWaterContentSolution{

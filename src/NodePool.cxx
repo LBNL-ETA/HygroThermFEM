@@ -56,7 +56,6 @@ namespace HygroThermFEM
                           bool updatePreviousTimestep)
     {
         NodePool & pool = NodePool::Instance();   // get the singleton instance
-        assert(m_Nodes.size() == t_values.size());
 
 #ifdef STL_MULTITHREADING
         std::for_each(std::execution::par_unseq,

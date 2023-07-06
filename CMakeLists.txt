@@ -69,7 +69,8 @@ add_library(${target_name} STATIC ${SOURCES})
 set_target_properties(${target_name} PROPERTIES LINKER_LANGUAGE CXX)
 
 target_link_libraries( ${target_name} PUBLIC KeffCavity)
-target_link_libraries( ${target_name} PUBLIC sundials_ida_obj_static)
+target_link_libraries( ${target_name} PUBLIC sundials_generic_static)
+target_link_libraries( ${target_name} PUBLIC sundials_ida_static)
 
 if (BUILD_HTFEM_TESTING)
     include_directories(include)

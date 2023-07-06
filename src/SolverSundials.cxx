@@ -22,6 +22,7 @@ namespace Sundials
         N_VDestroy(ud);
         N_VDestroy(rr);
         N_VDestroy(data.data->pp);
+        free(data.data->solution);
         free(data.data);
         SUNContext_Free(&ctx);
     }
@@ -65,16 +66,18 @@ namespace Sundials
             for(int j = 0; j < neq; j++)
             {
                 LHS += C_eig(i, j) * ypval[j] + K_eig(i, j) * yval[j];
+                LHS += C_eig(i, j) * ypval[j] + K_eig(i, j) * yval[j];
             }
             rval[i] = LHS - RHS[i];
         }
 
         // convert solution vector to format HygroThermFEM can understand and update nodal solutions
 
-        data->solution.clear();
+        data->solution->clear();
         for(int i = 0; i < neq; i++)
         {
-            data->solution.push_back(yval[i]);
+            auto test{yval[i]};
+            data->solution->push_back(yval[i]);
         }
 
         return (0);
@@ -151,6 +154,7 @@ namespace Sundials
         data->domain = &domain;
         // data->dTime = dTime;
         data->timestepIndex = 0;
+        data->solution = new std::vector<double>();
         // this pp vector is a carryover from making a user defined preconditioner... see **_messy
         data->pp = nullptr;
         data->pp = N_VClone(uu);
@@ -203,9 +207,9 @@ namespace Sundials
                 double t_DTime)
     {
         std::vector<HygroThermFEM::SingleTimestepSolution> solution;
-        auto sunInit{initializeSolver(0.99, domain)};
+        auto sunInit{initializeSolver(0.999, domain)};
         auto currentTime{0.0};
-        const auto nSteps{10u};
+        const auto nSteps{1000u};
         for(auto i = 0u; i < nSteps; ++i)
         {
             auto retval =
@@ -214,7 +218,7 @@ namespace Sundials
                 {
                     throw HygroThermFEM::SolutionFailedToConvergeException();;
                 }
-            solution.emplace_back(sunInit.data.data->solution, currentTime);
+            solution.emplace_back(*sunInit.data.data->solution, currentTime);
         }
 
         return solution;

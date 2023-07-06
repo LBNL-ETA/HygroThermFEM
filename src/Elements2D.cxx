@@ -118,30 +118,29 @@ namespace HygroThermFEM
 
     SquareMatrix ElementsLinear2D::getCMatrix()
     {
-        const auto numOfNodes{HygroThermFEM::maxNodeIndex()};
-        std::vector<std::vector<double>> Capacitance(numOfNodes,
-                                                     std::vector<double>(numOfNodes, 0));
+        SquareMatrix Capacitance{HygroThermFEM::maxNodeIndex()};
 
 #ifdef STL_MULTITHREADING
-        std::mutex mtx;
 
+        std::mutex mtx;
         std::for_each(std::execution::par_unseq,
                       std::begin(m_Elements),
                       std::end(m_Elements),
                       [&](auto && aElement) {
                           auto indexes = aElement->nodeIndexes();
                           auto capacitance = aElement->capacitanceMatrices();
-                          // auto capTest = capacitance.toVector();
                           mtx.lock();
                           for(size_t i = 0; i < numOfQuadrilateralNodes; ++i)
                           {
                               for(size_t j = 0; j < numOfQuadrilateralNodes; ++j)
                               {
-                                  Capacitance[indexes[i] - 1][indexes[j] - 1] += capacitance(i, j);
+                                  Capacitance(indexes[i] - 1, indexes[j] - 1) +=
+                                    capacitance(i, j);
                               }
                           }
                           mtx.unlock();
                       });
+
 #else
         for(const auto & element : m_Elements)
         {
@@ -151,12 +150,25 @@ namespace HygroThermFEM
             {
                 for(size_t j = 0; j < numOfQuadrilateralNodes; ++j)
                 {
-                    Capacitance[indexes[i] - 1][indexes[j] - 1] += capacitance(i, j);
+                    Capacitance(indexes[i] - 1, indexes[j] - 1) += capacitance(i, j);
                 }
             }
         }
 #endif
-        return SquareMatrix{Capacitance};
+
+        // Creates lump matrix
+        SquareMatrix Mlump(HygroThermFEM::maxNodeIndex());
+        Mlump.setZeros();
+        for(size_t i = 0; i < HygroThermFEM::maxNodeIndex(); ++i)
+        {
+            for(size_t j = 0; j < HygroThermFEM::maxNodeIndex(); ++j)
+            {
+                Mlump(i,i) += Capacitance(i,j);
+            }
+        }
+
+        //return SquareMatrix{Capacitance};
+        return SquareMatrix{Mlump};
     }
 
     SquareMatrix ElementsLinear2D::getMassMatrix(const double DTime)

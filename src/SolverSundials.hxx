@@ -22,7 +22,7 @@ namespace Sundials
         HygroThermFEM::SingleDomain * domain;
         size_t timestepIndex{0};
         N_Vector pp;
-        std::vector<double> solution;
+        std::vector<double> * solution;
     } * UserData;
 
     int residual(realtype tres, N_Vector yy, N_Vector yp, N_Vector rr, void * user_data);
