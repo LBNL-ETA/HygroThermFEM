@@ -39,3 +39,4 @@
 #include "../src/SimulationObserver.hxx"
 #include "../src/ModelUtilities.hxx"
 #include "../src/GravityVector.hxx"
+#include "../src/SolutionVariables.hxx"

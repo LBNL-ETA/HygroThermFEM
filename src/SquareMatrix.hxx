@@ -16,28 +16,29 @@ namespace HygroThermFEM
     class SquareMatrix
     {
     public:
-    	//! Construction of empty square matrix with given size.
-        explicit SquareMatrix(
-        	std::size_t m_size //!< Matrix size
-        	);
+        //! Construction of empty square matrix with given size.
+        //! \param m_size Matrix size
+        explicit SquareMatrix(std::size_t m_size);
+
         //! Constructor with triplets should be used for huge matrices. For example
         //! 100,000 x 100,000 will not fit into memory of vector<vector<double>>
-        explicit SquareMatrix(
-        	std::size_t m_size, //!< Matrix size
-        	const std::vector<Eigen::Triplet<double>> & tripletList //!< triplet list used to fill matrix data
-        	);
+        //! but it will fit into triplets.
+        //! \param m_size Matrix size
+        //! \param tripletList List of triplets that will be used to create matrix
+        explicit SquareMatrix(std::size_t m_size,
+                              const std::vector<Eigen::Triplet<double>> & tripletList);
 
         //! Creating matrix from initializer list.
-        explicit SquareMatrix(const std::initializer_list<std::vector<double>> & tInput);
+        SquareMatrix(const std::initializer_list<std::vector<double>> & tInput);
 
         //! Creating matrix from standard vector of vectors.
         explicit SquareMatrix(const std::vector<std::vector<double>> & tInput);
 
-		//! Creating matrix from standard vector of vectors.
+        //! Creating matrix from standard vector of vectors.
         explicit SquareMatrix(const std::vector<std::vector<double>> && tInput);
 
         //! Returns matrix size
-        std::size_t size() const;
+        [[nodiscard]] std::size_t size() const;
 
         //! Set all elements of the matrix to zeros.
         void setZeros();
@@ -46,17 +47,15 @@ namespace HygroThermFEM
         void setIdentity();
 
         //! Set diagonal elements from vector.
-        void setDiagonal(
-        	const std::vector<double> & tInput //!< Vector contain values that will be stored into diagonal
-        	);
+        //! \param tInput Vector contain values that will be stored into diagonal
+        void setDiagonal(const std::vector<double> & tInput);
 
         //! Adds values from diagonal with elements from vector
-        SquareMatrix addDiagonal(
-        	const std::vector<double> & tInput //!< Values that will be added to matrix diagonal
-        	) const;
+        //! \param tInput Vector contain values that will be added to diagonal
+        [[nodiscard]] SquareMatrix addDiagonal(const std::vector<double> & tInput) const;
 
         //! Calculates and returns inverse matrix
-        SquareMatrix inverse() const;
+        [[nodiscard]] SquareMatrix inverse() const;
 
         //! Operator to access element of matrix
         double operator()(std::size_t i, std::size_t j) const;
@@ -65,15 +64,15 @@ namespace HygroThermFEM
         double & operator()(std::size_t i, std::size_t j);
 
         //! Every row in matrix is multiplied with values in vector (element by element).
-        SquareMatrix mmultRows(const std::vector<double> & tInput) const;
+        [[nodiscard]] SquareMatrix mmultRows(const std::vector<double> & tInput) const;
 
         //! Returns eigen sparse matrix
-        Eigen::SparseMatrix<double> getSparseMatrix() const;
+        [[nodiscard]] Eigen::SparseMatrix<double> getSparseMatrix() const;
 
         //! Operator to multiply every element of matrix with single double value.
         SquareMatrix operator*(double value) const;
 
-		//! Operator to multiply every element of matrix with single double value.
+        //! Operator to multiply every element of matrix with single double value.
         friend SquareMatrix operator*(double value, const SquareMatrix & other);
 
         //! Two matrices multiplication
@@ -103,14 +102,13 @@ namespace HygroThermFEM
 
         //! Convert matrix to standard vector of vectors. Function is only used for debugging
         //! purposes.
-        std::vector<std::vector<double>> toVector() const;
+        [[nodiscard]] std::vector<std::vector<double>> toVector() const;
 
     private:
         //! Creation of square matrix from sparse matrix.
         explicit SquareMatrix(Eigen::SparseMatrix<double> && tMatrix);
         std::size_t m_size;
         Eigen::SparseMatrix<double> m_Matrix;
-        // Eigen::MatrixXd m_Matrix;
     };
 
 }   // namespace HygroThermFEM

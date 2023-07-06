@@ -12,30 +12,6 @@
 
 namespace HygroThermFEM
 {
-    Solution::Solution(const double dtime,
-                       std::vector<double> temperature,
-                       std::vector<double> humidity,
-                       std::vector<double> waterContent,
-                       std::vector<double> liquidWaterContent,
-                       std::vector<double> vaporContent,
-                       std::vector<double> iceContent,
-                       std::vector<NodeFlux> heatFlux,
-                       std::vector<NodeFlux> waterFlux,
-                       const double temperatureError,
-                       const double humidityError) :
-        dTime(dtime),
-        temperature(std::move(temperature)),
-        humidity(std::move(humidity)),
-        waterContent(std::move(waterContent)),
-        liquidWaterContent(std::move(liquidWaterContent)),
-        vaporContent(std::move(vaporContent)),
-        iceContent(std::move(iceContent)),
-        heatFlux(std::move(heatFlux)),
-        waterFlux(std::move(waterFlux)),
-        temperatureError(temperatureError),
-        humidityError(humidityError)
-    {}
-
     namespace
     {
         /// Post processing for iterative solver. This needs to be connected with a specific solver
@@ -158,76 +134,84 @@ namespace HygroThermFEM
                         humidityError};
     }
 
-    std::pair<std::vector<double>, bool>
-      transientTimestep(SingleDomain & domain,
-                        const std::vector<double> & previousTimestepStateValues,
-                        double t_DTime,
-                        size_t timestepIndex)
+    namespace
     {
-        const auto RelaxParameter = SimulationProperties::Instance().relaxationParamter();
-        const auto ConvergenceError = SimulationProperties::Instance().errorTolerance();
-        const auto MaxIterations = SimulationProperties::Instance().maxNumberOfIterations();
-
-        auto A = transientM_K_H_Matrix(domain, t_DTime, timestepIndex);
-        auto B = transientMT_R_Vector(domain, previousTimestepStateValues, t_DTime, timestepIndex);
-
-        std::vector<double> solution;
-        bool converged{false};
-        bool stopIterations{false};
-
-        if(isLinear(domain))
+        //! \brief Calling timestep calculations
+        //! @param previousTimestepStateValues Current state values from previous timestep
+        //! @param t_DTime Time different for between timesteps
+        //! @param timestepIndex Current timestep index used in variable boundary conditions
+        std::pair<std::vector<double>, bool>
+          transientTimestep(SingleDomain & domain,
+                            const std::vector<double> & previousTimestepStateValues,
+                            double t_DTime,
+                            size_t timestepIndex)
         {
-            solution = CLinearSolver::solveEigen(A, B);
-            postProcess(domain, solution);
-            converged = true;
-        }
-        else
-        {
-            solution = previousTimestepStateValues;
-            std::vector<double> normSolution{previousTimestepStateValues};
+            const auto RelaxParameter = SimulationProperties::Instance().relaxationParamter();
+            const auto ConvergenceError = SimulationProperties::Instance().errorTolerance();
+            const auto MaxIterations = SimulationProperties::Instance().maxNumberOfIterations();
 
-            auto currentNorm = norm(solution);
+            auto A = transientM_K_H_Matrix(domain, t_DTime, timestepIndex);
+            auto B =
+              transientMT_R_Vector(domain, previousTimestepStateValues, t_DTime, timestepIndex);
 
-            size_t numOfIterations = 0;
+            std::vector<double> solution;
+            bool converged{false};
+            bool stopIterations{false};
 
-            while(!stopIterations && !converged)
+            if(isLinear(domain))
             {
-                const double previousNorm = currentNorm;
-                auto temp = A * solution;
-                temp = B - temp;
-
-                auto dU = CLinearSolver::solveEigen(A, temp);
-
-                solution = solution + dU * RelaxParameter;
-                normSolution = solution + dU;
-
+                solution = CLinearSolver::solveEigen(A, B);
                 postProcess(domain, solution);
-                postProcess(domain, normSolution);
-
-                currentNorm = norm(normSolution);
-
-                ++numOfIterations;
-
-                updateNodeValues(solution, baseVariable(domain), true);
-
-                A = transientM_K_H_Matrix(domain, t_DTime, timestepIndex);
-                B =
-                  transientMT_R_Vector(domain, previousTimestepStateValues, t_DTime, timestepIndex);
-
-                converged = (std::abs(previousNorm - currentNorm) / (currentNorm + 1e-12))
-                            <= ConvergenceError;
-
-                stopIterations = numOfIterations > MaxIterations;
+                converged = true;
             }
+            else
+            {
+                solution = previousTimestepStateValues;
+                std::vector<double> normSolution{previousTimestepStateValues};
+
+                auto currentNorm = norm(solution);
+
+                size_t numOfIterations = 0;
+
+                while(!stopIterations && !converged)
+                {
+                    const double previousNorm = currentNorm;
+                    auto temp = A * solution;
+                    temp = B - temp;
+
+                    auto dU = CLinearSolver::solveEigen(A, temp);
+
+                    solution = solution + dU * RelaxParameter;
+                    normSolution = solution + dU;
+
+                    postProcess(domain, solution);
+                    postProcess(domain, normSolution);
+
+                    currentNorm = norm(normSolution);
+
+                    ++numOfIterations;
+
+                    updateNodeValues(solution, baseVariable(domain), true);
+
+                    A = transientM_K_H_Matrix(domain, t_DTime, timestepIndex);
+                    B = transientMT_R_Vector(
+                      domain, previousTimestepStateValues, t_DTime, timestepIndex);
+
+                    converged = (std::abs(previousNorm - currentNorm) / (currentNorm + 1e-12))
+                                <= ConvergenceError;
+
+                    stopIterations = numOfIterations > MaxIterations;
+                }
+            }
+
+            updateNodeValues(solution, baseVariable(domain), true);
+
+            return std::make_pair(solution, converged);
         }
-
-        updateNodeValues(solution, baseVariable(domain), true);
-
-        return std::make_pair(solution, converged);
-    }
+    }   // namespace
 
     SingleTimestepSolution transient(SingleDomain & domain,
-                                     const std::vector<double> & currentStateValues,
+                                     const std::vector<double> & previousTimestepValues,
                                      double t_DTime,
                                      size_t timestepIndex)
     {
@@ -237,7 +221,7 @@ namespace HygroThermFEM
         auto maxDivisionLevel{Timesteps::Settings::Instance().getMaxDivisions()};
         double currentDTime{t_DTime};
         double totalTime{0};
-        auto stateVariables{currentStateValues};
+        auto stateVariables{previousTimestepValues};
         unsigned numberOfSubtimesteps{Timesteps::Settings::Instance().getNumberOfSubtimesteps()};
 
         // In case program failed to converge, it will cut down step to smaller one and will perform

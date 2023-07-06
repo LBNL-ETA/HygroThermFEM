@@ -8,13 +8,13 @@
 
 namespace HygroThermFEM
 {
-    SquareMatrix::SquareMatrix(const std::size_t size) : m_size(size), m_Matrix(size, size)
+    SquareMatrix::SquareMatrix(const std::size_t size) : m_size(size), m_Matrix(static_cast<int>(m_size), static_cast<int>(m_size))
     {}
 
     SquareMatrix::SquareMatrix(const std::size_t tSize,
                                const std::vector<Eigen::Triplet<double>> & tripletList) :
         m_size(tSize),
-        m_Matrix(m_size, m_size)
+        m_Matrix(static_cast<int>(m_size), static_cast<int>(m_size))
     {
         m_Matrix.setFromTriplets(tripletList.begin(), tripletList.end());
         m_size = m_Matrix.innerSize();
@@ -22,7 +22,7 @@ namespace HygroThermFEM
 
     SquareMatrix::SquareMatrix(const std::initializer_list<std::vector<double>> & tInput) :
         m_size(tInput.size()),
-        m_Matrix(m_size, m_size)
+        m_Matrix(static_cast<int>(m_size), static_cast<int>(m_size))
     {
         // std::vector<Eigen::Triplet<double>> tripletList;
         auto i = 0u;
@@ -31,7 +31,7 @@ namespace HygroThermFEM
             for(auto j = 0u; j < vec.size(); ++j)
             {
                 // tripletList.emplace_back(i, j, vec[j]);
-                m_Matrix.coeffRef(i, j) = vec[j];
+                m_Matrix.coeffRef(static_cast<int>(i), static_cast<int>(j)) = vec[j];
             }
             ++i;
         }
@@ -40,7 +40,7 @@ namespace HygroThermFEM
 
     SquareMatrix::SquareMatrix(const std::vector<std::vector<double>> & tInput) :
         m_size(tInput.size()),
-        m_Matrix(m_size, m_size)
+        m_Matrix(static_cast<int>(m_size), static_cast<int>(m_size))
     {
         // std::vector<Eigen::Triplet<double>> tripletList;
         for(auto i = 0u; i < tInput.size(); ++i)
@@ -50,7 +50,7 @@ namespace HygroThermFEM
                 if(tInput[i][j] != 0)
                 {
                     // tripletList.emplace_back(i, j, tInput[i][j]);
-                    m_Matrix.coeffRef(i, j) = tInput[i][j];
+                    m_Matrix.coeffRef(static_cast<int>(i), static_cast<int>(j)) = tInput[i][j];
                 }
             }
         }
@@ -59,7 +59,7 @@ namespace HygroThermFEM
 
     SquareMatrix::SquareMatrix(const std::vector<std::vector<double>> && tInput) :
         m_size(tInput.size()),
-        m_Matrix(m_size, m_size)
+        m_Matrix(static_cast<int>(m_size), static_cast<int>(m_size))
     {
         // std::vector<Eigen::Triplet<double>> tripletList;
         for(auto i = 0u; i < tInput.size(); ++i)
@@ -69,7 +69,7 @@ namespace HygroThermFEM
                 if(tInput[i][j] != 0)
                 {
                     // tripletList.emplace_back(i, j, tInput[i][j]);
-                    m_Matrix.coeffRef(i, j) = tInput[i][j];
+                    m_Matrix.coeffRef(static_cast<int>(i), static_cast<int>(j)) = tInput[i][j];
                 }
             }
         }
@@ -133,7 +133,7 @@ namespace HygroThermFEM
 
     double SquareMatrix::operator()(const std::size_t i, const std::size_t j) const
     {
-        return m_Matrix.coeff(i, j);
+        return m_Matrix.coeff(static_cast<int>(i), static_cast<int>(j));
     }
 
     double & SquareMatrix::operator()(const std::size_t i, const std::size_t j)
@@ -186,7 +186,7 @@ namespace HygroThermFEM
     {
         const Eigen::VectorXd vec = Eigen::VectorXd::Map(tVec.data(), tVec.size());
         Eigen::VectorXd res = m_Matrix * vec;
-        return std::vector<double>(res.data(), res.data() + res.rows() * res.cols());
+        return {res.data(), res.data() + res.rows() * res.cols()};
     }
 
     SquareMatrix operator*(const double value, const SquareMatrix & other)
@@ -204,7 +204,7 @@ namespace HygroThermFEM
     {
         Eigen::VectorXd vec = Eigen::VectorXd::Map(first.data(), first.size());
         Eigen::VectorXd res = vec.transpose() * second.m_Matrix;
-        return std::vector<double>(res.data(), res.data() + res.rows() * res.cols());
+        return {res.data(), res.data() + res.rows() * res.cols()};
     }
 
     Eigen::SparseMatrix<double> SquareMatrix::getSparseMatrix() const
@@ -219,7 +219,7 @@ namespace HygroThermFEM
         {
             for(size_t j = 0u; j < m_size; ++j)
             {
-                result[i][j] = m_Matrix.coeff(i, j);
+                result[i][j] = m_Matrix.coeff(static_cast<int>(i), static_cast<int>(j));
             }
         }
         return result;
