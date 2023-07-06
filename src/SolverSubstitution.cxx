@@ -89,7 +89,7 @@ namespace HygroThermFEM::Substitution
                 humidity = steadyState(domain.moistureDomain);
                 humidityError = HygroThermFEM::errorNorm(humidity, previousHumidity);
                 previousHumidity = humidity;
-                NodePool::Instance().updateNodeValues(humidity, BaseVariable::humidity);
+                HygroThermFEM::updateNodeValues(humidity, BaseVariable::humidity, false);
             }
             else
             {
@@ -100,7 +100,7 @@ namespace HygroThermFEM::Substitution
                 temperature = steadyState(domain.thermalDomain);
                 temperatureError = HygroThermFEM::errorNorm(temperature, previousTemperature);
                 previousTemperature = temperature;
-                NodePool::Instance().updateNodeValues(temperature, BaseVariable::temperature);
+                HygroThermFEM::updateNodeValues(temperature, BaseVariable::temperature, false);
             }
             else
             {

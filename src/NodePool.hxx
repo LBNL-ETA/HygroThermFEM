@@ -35,22 +35,12 @@ namespace HygroThermFEM
         Node2D & getNode(std::size_t Index);
 
         //! Returns maximum node index from pool of nodes.
-        std::size_t maxIndex() const;
+        [[nodiscard]] std::size_t maxIndex() const;
 
         //! Returns state values (temperature, water content or pressure) at all nodes.
         std::vector<double>
           properties(Variable t_Property   //!< Variable for which values are obtained.
           );
-
-        //! Update all node values for given state property.
-        //!
-        //! @param t_values Vector of new values for given BaseVariable property.
-        //! @param t_property Property for which new values will be applied to
-        //! @param updatePreviousTimestep Indicates if old value should be stored as previous
-        //! timestep value.
-        void updateNodeValues(const std::vector<double> & t_values,
-                              BaseVariable t_property,
-                              bool updatePreviousTimestep = false);
 
         //! Delete all nodes from NodePool.
         void clear();
@@ -59,14 +49,20 @@ namespace HygroThermFEM
         NodePool() = default;
         ~NodePool() = default;
 
+        //! Update all node values for given state property.
+        //!
+        //! @param t_values Vector of new values for given BaseVariable property.
+        //! @param t_property Property for which new values will be applied to
+        //! @param updatePreviousTimestep Indicates if old value should be stored as previous
+        //! timestep value.
+        friend void updateNodeValues(const std::vector<double> & t_values,
+                                     BaseVariable t_property,
+                                     bool updatePreviousTimestep = false);
+
         //! Storage for nodes in NodePool.
         std::vector<Node2D> m_Nodes;
     };
 
     std::vector<double> properties(Variable t_Property);
-
-    void updateNodeValues(const std::vector<double> & t_values,
-                          BaseVariable t_property,
-                          bool updatePreviousTimestep);
 
 }   // namespace HygroThermFEM
