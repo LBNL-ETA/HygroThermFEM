@@ -11,7 +11,7 @@ namespace HygroThermFEM
 {
     SquareMatrix ElementsLinear2D::conductanceMatrix()
     {
-        SquareMatrix result{NodePool::Instance().maxIndex()};
+        SquareMatrix result{HygroThermFEM::maxNodeIndex()};
 
 #ifdef STL_MULTITHREADING
 
@@ -60,7 +60,7 @@ namespace HygroThermFEM
 
     std::vector<double> ElementsLinear2D::getLumpedMass(const double DTime)
     {
-        const auto numOfNodes{NodePool::Instance().maxIndex()};
+        const auto numOfNodes{HygroThermFEM::maxNodeIndex()};
         std::vector<std::vector<double>> Capacitance(numOfNodes,
                                                      std::vector<double>(numOfNodes, 0));
 
@@ -116,9 +116,52 @@ namespace HygroThermFEM
         return M;
     }
 
+    SquareMatrix ElementsLinear2D::getCMatrix()
+    {
+        const auto numOfNodes{HygroThermFEM::maxNodeIndex()};
+        std::vector<std::vector<double>> Capacitance(numOfNodes,
+                                                     std::vector<double>(numOfNodes, 0));
+
+#ifdef STL_MULTITHREADING
+        std::mutex mtx;
+
+        std::for_each(std::execution::par_unseq,
+                      std::begin(m_Elements),
+                      std::end(m_Elements),
+                      [&](auto && aElement) {
+                          auto indexes = aElement->nodeIndexes();
+                          auto capacitance = aElement->capacitanceMatrices();
+                          // auto capTest = capacitance.toVector();
+                          mtx.lock();
+                          for(size_t i = 0; i < numOfQuadrilateralNodes; ++i)
+                          {
+                              for(size_t j = 0; j < numOfQuadrilateralNodes; ++j)
+                              {
+                                  Capacitance[indexes[i] - 1][indexes[j] - 1] += capacitance(i, j);
+                              }
+                          }
+                          mtx.unlock();
+                      });
+#else
+        for(const auto & element : m_Elements)
+        {
+            auto indexes = element->nodeIndexes();
+            auto capacitance = element->capacitanceMatrices();
+            for(size_t i = 0; i < numOfQuadrilateralNodes; ++i)
+            {
+                for(size_t j = 0; j < numOfQuadrilateralNodes; ++j)
+                {
+                    Capacitance[indexes[i] - 1][indexes[j] - 1] += capacitance(i, j);
+                }
+            }
+        }
+#endif
+        return SquareMatrix{Capacitance};
+    }
+
     SquareMatrix ElementsLinear2D::getMassMatrix(const double DTime)
     {
-        SquareMatrix Capacitance{NodePool::Instance().maxIndex()};
+        SquareMatrix Capacitance{HygroThermFEM::maxNodeIndex()};
 
 #ifdef STL_MULTITHREADING
 
@@ -193,7 +236,7 @@ namespace HygroThermFEM
 
     std::vector<double> ElementsLinear2D::RVector() const
     {
-        std::vector<double> result(NodePool::Instance().maxIndex(), 0);
+        std::vector<double> result(HygroThermFEM::maxNodeIndex(), 0);
 
 #ifdef STL_MULTITHREADING
 
@@ -230,9 +273,9 @@ namespace HygroThermFEM
 
     std::vector<NodeFlux> ElementsLinear2D::flux() const
     {
-        std::vector<NodeFlux> result(NodePool::Instance().maxIndex(), {0, 0});
+        std::vector<NodeFlux> result(HygroThermFEM::maxNodeIndex(), {0, 0});
 
-        std::vector<std::vector<NodeFlux>> fluxes(NodePool::Instance().maxIndex(),
+        std::vector<std::vector<NodeFlux>> fluxes(HygroThermFEM::maxNodeIndex(),
                                                   std::vector<NodeFlux>());
 
 #ifdef STL_MULTITHREADING

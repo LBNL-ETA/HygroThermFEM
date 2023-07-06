@@ -214,7 +214,7 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><b>m_Linear</b></td></tr
       </table>
 </div><div class="memdoc">
 <p>Used to update new values to nodes once solver finds new solution for any state variable.</p>
-<p>FenestrationCommon::SquareMatrix&lt; double &gt; BoundaryConditions2D::DHMatrix() const { FenestrationCommon::SquareMatrix&lt; double &gt; HDMatrix{ <a class="el" href="class_hygro_therm_f_e_m_1_1_node_pool.html#a2c7dfe2eec3fdc2c9d32346b5063ad21" title="Access to NodePool singleton. ">NodePool::Instance()</a>.maxIndex() }; for ( const auto &amp; aBc : boundaryConditions ) { const auto &amp; bc = aBc.get(); auto indexes = bc.getNodeIndexes(); auto matDH = bc.D_HMatrix(); for ( size_t i = 0; i &lt; numOfBCNodes; ++i ) { for ( size_t j = 0; j &lt; numOfBCNodes; ++j ) { HDMatrix[ indexes[ i ] - 1 ][ indexes[ j ] - 1 ] += matDH[ i ][ j ]; } } } return HDMatrix; } </p>
+<p>FenestrationCommon::SquareMatrix&lt; double &gt; BoundaryConditions2D::DHMatrix() const { FenestrationCommon::SquareMatrix&lt; double &gt; HDMatrix{ <a class="el" href="class_hygro_therm_f_e_m_1_1_node_pool.html#a2c7dfe2eec3fdc2c9d32346b5063ad21" title="Access to NodePool singleton. ">NodePool::Instance()</a>.maxNodeIndex() }; for ( const auto &amp; aBc : boundaryConditions ) { const auto &amp; bc = aBc.get(); auto indexes = bc.getNodeIndexes(); auto matDH = bc.D_HMatrix(); for ( size_t i = 0; i &lt; numOfBCNodes; ++i ) { for ( size_t j = 0; j &lt; numOfBCNodes; ++j ) { HDMatrix[ indexes[ i ] - 1 ][ indexes[ j ] - 1 ] += matDH[ i ][ j ]; } } } return HDMatrix; } </p>
 
 </div>
 </div>

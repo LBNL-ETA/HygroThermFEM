@@ -14,7 +14,7 @@ namespace HygroThermFEM
     SquareMatrix BoundaryConditions2D::HMatrix(const size_t timestepIndex) const
     {
         std::vector<std::vector<double>> result{
-          NodePool::Instance().maxIndex(), std::vector<double>(NodePool::Instance().maxIndex(), 0)};
+          HygroThermFEM::maxNodeIndex(), std::vector<double>(HygroThermFEM::maxNodeIndex(), 0)};
         for(const std::unique_ptr<IBCLinear2D> & aBc : m_BCs)
         {
             auto indexes = aBc->getNodeIndexes();
@@ -52,7 +52,7 @@ namespace HygroThermFEM
 
     std::vector<double> BoundaryConditions2D::RVector(const size_t timestepIndex) const
     {
-        std::vector<double> result(NodePool::Instance().maxIndex(), 0);
+        std::vector<double> result(HygroThermFEM::maxNodeIndex(), 0);
         // Create full size matrices
         for(const std::unique_ptr<IBCLinear2D> & aBc : m_BCs)
         {

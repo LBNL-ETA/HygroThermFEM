@@ -22,6 +22,11 @@ namespace HygroThermFEM
         //! \return Vector of mass values in nodes.
         std::vector<double> getLumpedMass(double DTime);
 
+
+        // TODO: This is the same as getLumpedMass but witout DTime division. Refactor this into single usage.
+        // Probably just getCMatrix / DTime and then remove getLumpedMass
+        SquareMatrix getCMatrix();
+
         //! Mass matrix in full form (not lumped)
         //!
         //! \param DTime Timestep value for which matrix will be evaluated.

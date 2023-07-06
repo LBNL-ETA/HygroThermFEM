@@ -3,10 +3,7 @@
 
 #include "HygroThermFEM2D.hxx"
 
-using HygroThermFEM::NodePool;
-using HygroThermFEM::MaterialPool;
-
-class MoistureBC_2D_3 : public testing::Test
+class SingleDomain_HighHumidity_Sundials : public testing::Test
 {
 protected:
     void SetUp() override
@@ -14,29 +11,36 @@ protected:
 
     void TearDown() override
     {
+        using HygroThermFEM::NodePool;
+        using HygroThermFEM::MaterialPool;
+
         NodePool::Instance().clear();
         MaterialPool::Instance().clear();
     }
 };
 
-TEST_F(MoistureBC_2D_3, TestExample_1)
+TEST_F(SingleDomain_HighHumidity_Sundials, TestExample_1)
 {
+    using HygroThermFEM::NodePool;
+    using HygroThermFEM::MaterialPool;
+
     SCOPED_TRACE("Begin Test: Simple two elements example with moisture transfer.");
 
-    std::vector<double> gridXCoordinates{0, 0.05, 0.1, 0.15};
+    std::vector<double> gridXCoordinates{0.15, 0.05, 0.00};
 
-    const double initialTemperature = 20;
-    const double initialMoistureContent = 0;
-    const double initialPressure = 0;
+    const auto domainTemperature = 0.0;
+    const auto domainHumidity = 0.999;
+    const auto domainPressure = 101325.0;
+    const auto liquidPercent = 1.0;
 
-    HygroThermFEM::State state(initialTemperature, initialMoistureContent, initialPressure, 0);
+    HygroThermFEM::State state(domainTemperature, domainHumidity, domainPressure, liquidPercent);
     size_t nodeIndex = 0;
     for(auto val : gridXCoordinates)
     {
         ++nodeIndex;
-        NodePool::Instance().createNode(nodeIndex, val, 0.00, state);
-        ++nodeIndex;
         NodePool::Instance().createNode(nodeIndex, val, 0.05, state);
+        ++nodeIndex;
+        NodePool::Instance().createNode(nodeIndex, val, 0.00, state);
     }
 
     // Material Properties (Cottaer Sandstone)
@@ -86,7 +90,6 @@ TEST_F(MoistureBC_2D_3, TestExample_1)
                                                    liquidTransportationCurve,
                                                    moistureStorageFunction);
 
-
     HygroThermFEM::SingleDomain domain{HygroThermFEM::DomainType::Moisture};
 
     /// Create elements
@@ -96,44 +99,44 @@ TEST_F(MoistureBC_2D_3, TestExample_1)
         const auto node2 = 2u * i + 2u;
         const auto node3 = 2u * i;
         const auto node4 = 2u * i - 1u;
-        createElement(domain, node1, node2, node3, node4, material.name());
+        createElement(domain, node2, node3, node4, node1, material.name());
     }
 
     // Create Boundary Conditions
-    const auto ambientTemperature = 20.0;
-    const auto ambientHumidity = 0.5;
-    const auto surfaceTilt{90.0};
+    const auto hc = 10.0;
+    const auto airTemperature = 20.0;
+    const auto airHumidity = 1.0;
 
-    const HygroThermFEM::TARPCoefficients bcCoeff{ambientTemperature, ambientHumidity};
+    const HygroThermFEM::FixedBCHCCoefficients bcCoeff{airTemperature, hc, airHumidity};
 
-    HygroThermFEM::Moisture::createBC_TARPHc(domain, 1, 2, bcCoeff, surfaceTilt);
+    HygroThermFEM::Moisture::createBC_FixedHc(domain, 5, 6, bcCoeff);
 
-    const auto dTime = 36000;
-    const auto nSteps = 4;
+    const auto dTime = 3600;
+    const auto nSteps = 2;
 
-    auto humidities = properties(HygroThermFEM::Variable::humidity);
-    std::vector<std::vector<double>> solution;
+    auto temperatures{properties(HygroThermFEM::Variable::temperature)};
+    auto humidities{properties(HygroThermFEM::Variable::humidity)};
+    std::vector<std::vector<double>> temperatureSolution;
+    std::vector<double> temperatureError;
+    std::vector<std::vector<double>> waterContentSolution;
+    std::vector<double> humidityError;
+    size_t timestepIndex{0};
 
-    for(unsigned i = 0; i < nSteps; ++i)
+    auto aSolution = Sundials::transient(domain, humidities, dTime);
+
+    const std::vector<double> correctHumidityError{4.131868e-07, 1.509739e-06};
+    const std::vector<std::vector<double>> correctWaterContentSolution{
+      {121.994944, 121.994944, 122.127524, 122.127524, 122.292494, 122.292494},
+      {123.768705, 123.768705, 123.876207, 123.876207, 124.010072, 124.010072}};
+
+    EXPECT_EQ(waterContentSolution.size(), correctWaterContentSolution.size());
+
+    for(auto i = 0u; i < waterContentSolution.size(); ++i)
     {
-        humidities = HygroThermFEM::Substitution::transient(domain, humidities, dTime).solution;
-        auto waterContent = properties(HygroThermFEM::Variable::water);
-        solution.push_back(waterContent);
-    }
-
-    std::vector<std::vector<double>> correctSolution{
-      {4.195858, 4.195858, 0.147225, 0.147225, 0.005343, 0.005343, 0.000387, 0.000387},
-      {5.003654, 5.003654, 0.310106, 0.310106, 0.016237, 0.016237, 0.001534, 0.001534},
-      {5.180798, 5.180798, 0.467846, 0.467846, 0.032132, 0.032132, 0.003749, 0.003749},
-      {5.221863, 5.221863, 0.616733, 0.616733, 0.052394, 0.052394, 0.007271, 0.007271}};
-
-    EXPECT_EQ(solution.size(), correctSolution.size());
-
-    for(auto i = 0u; i < correctSolution.size(); ++i)
-    {
-        for(auto j = 0u; j < correctSolution[i].size(); ++j)
+        EXPECT_NEAR(correctHumidityError[i], humidityError[i], 1e-10);
+        for(auto j = 0u; j < waterContentSolution[i].size(); ++j)
         {
-            EXPECT_NEAR(correctSolution[i][j], solution[i][j], 1e-6);
+            EXPECT_NEAR(correctWaterContentSolution[i][j], waterContentSolution[i][j], 1e-6);
         }
     }
 }

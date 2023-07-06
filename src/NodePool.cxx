@@ -30,10 +30,11 @@ namespace HygroThermFEM
         return m_Nodes[Index - 1];
     }
 
-    size_t NodePool::maxIndex() const
+    size_t maxNodeIndex()
     {
-        Node2D aNode =
-          *max_element(m_Nodes.begin(), m_Nodes.end(), [](const Node2D & a, const Node2D & b) {
+        NodePool & pool = NodePool::Instance();
+        Node2D aNode = *max_element(
+          pool.m_Nodes.begin(), pool.m_Nodes.end(), [](const Node2D & a, const Node2D & b) {
               return a.getNodeNumber() < b.getNodeNumber();
           });
         return aNode.getNodeNumber();

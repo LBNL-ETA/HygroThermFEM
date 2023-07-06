@@ -89,7 +89,7 @@ TEST_F(ConvectionBC_2D_TransientNoChanges, TestExample_1)
     HygroThermFEM::SingleDomain domain{HygroThermFEM::DomainType::Thermal};
 
     /// Create elements
-    for(size_t i = 1u; i <= (NodePool::Instance().maxIndex() - 2) / 2; ++i)
+    for(size_t i = 1u; i <= (HygroThermFEM::maxNodeIndex() - 2) / 2; ++i)
     {
         const auto index1 = 2u * i + 1u;
         const auto index2 = 2u * i + 2u;

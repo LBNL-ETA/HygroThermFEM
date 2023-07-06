@@ -86,7 +86,7 @@ TEST_F(MultiDomain_2D_NoMoistureStorageFunction, TestExample_1)
     HygroThermFEM::MultiDomain domain;
 
     /// Create elements
-    for(size_t i = 1; i <= (NodePool::Instance().maxIndex() - 2) / 2; ++i)
+    for(size_t i = 1; i <= (HygroThermFEM::maxNodeIndex() - 2) / 2; ++i)
     {
         const auto node1 = 2u * i + 1u;
         const auto node2 = 2u * i + 2u;
