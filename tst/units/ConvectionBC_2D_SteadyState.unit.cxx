@@ -99,7 +99,7 @@ TEST_F(ConvectionBC_2D_SteadyState, TestExample_1)
     createBC_FixedHc(domain, 1, 2, bcCoeff1);
     createBC_FixedHc(domain, 6, 5, bcCoeff2);
 
-    const auto solution = steadyState(domain);
+    const auto solution = HygroThermFEM::Substitution::steadyState(domain);
     auto temperature = solution.temperature;
 
     std::vector<double> correctTemperature{

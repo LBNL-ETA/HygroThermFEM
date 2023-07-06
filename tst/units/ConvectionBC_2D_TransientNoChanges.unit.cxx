@@ -114,7 +114,7 @@ TEST_F(ConvectionBC_2D_TransientNoChanges, TestExample_1)
 
     for(unsigned i = 0; i < nSteps; ++i)
     {
-        temperatures = transient(domain, temperatures, dTime).solution;
+        temperatures = HygroThermFEM::Substitution::transient(domain, temperatures, dTime).solution;
         solution.push_back(temperatures);
     }
 

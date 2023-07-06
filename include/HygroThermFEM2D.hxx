@@ -18,8 +18,6 @@
 #include "../src/BoundaryConditions2D.hxx"
 #include "../src/SquareMatrix.hxx"
 #include "../src/VectorOperators.hxx"
-#include "../src/LinearSolver.hxx"
-#include "../src/FEMunique.hxx"
 #include "../src/SingleDomain.hxx"
 #include "../src/Functions.hxx"
 #include "../src/Interpolator.hxx"

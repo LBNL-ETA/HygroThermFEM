@@ -9,7 +9,7 @@
 #include "BoundaryConditionCoefficients.hxx"
 #include "TimestepNotifier.hxx"
 #include "TimestepObserver.hxx"
-#include "Solver.hxx"
+#include "SolverSubstitution.hxx"
 
 namespace HygroThermFEM
 {

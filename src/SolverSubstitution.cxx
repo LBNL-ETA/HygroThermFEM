@@ -1,4 +1,4 @@
-#include "Solver.hxx"
+#include "SolverSubstitution.hxx"
 #include "Exceptions.hxx"
 #include "SimulationProperties.hxx"
 #include "NodePool.hxx"
@@ -10,7 +10,7 @@
 #include "ModelUtilities.hxx"
 #include "TimestepData.hxx"
 
-namespace HygroThermFEM
+namespace HygroThermFEM::Substitution
 {
     namespace
     {

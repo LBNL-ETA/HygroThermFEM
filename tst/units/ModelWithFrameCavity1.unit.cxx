@@ -136,7 +136,7 @@ TEST_F(TestModelWithFrameCavity1, TestSingleFrameCavity)
 
     for(unsigned i = 0; i < nSteps; ++i)
     {
-        temperatures = transient(domain, temperatures, dTime).solution;
+        temperatures = HygroThermFEM::Substitution::transient(domain, temperatures, dTime).solution;
         solution.push_back(temperatures);
     }
 

@@ -12,7 +12,7 @@ private:
 protected:
     void
     SetUp() override {
-        m_IntPoints = fem::make_unique< HygroThermFEM::ThreeIntegrationPoint2D >();
+        m_IntPoints = std::make_unique< HygroThermFEM::ThreeIntegrationPoint2D >();
         ASSERT_TRUE( m_IntPoints != nullptr );
     }
 

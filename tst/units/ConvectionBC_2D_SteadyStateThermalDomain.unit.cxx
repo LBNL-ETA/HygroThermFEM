@@ -97,7 +97,7 @@ TEST_F(ConvectionBC_2D_SteadyStateThermalDomain, TestExample_1)
     HygroThermFEM::Thermal::createBC_FixedHc(domain, 1, 2, bcCoeff1);
     HygroThermFEM::Thermal::createBC_FixedHc(domain, 6, 5, bcCoeff2);
 
-    auto solution = steadyState(domain);
+    auto solution = HygroThermFEM::Substitution::steadyState(domain);
 
     std::vector<double> correctSolution{
       -17.87392241, -17.87392241, 7.341594828, 7.341594828, 19.94935345, 19.94935345};

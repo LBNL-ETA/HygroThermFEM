@@ -127,7 +127,7 @@ TEST_F(MultiDomain_2D_THERMM200mmSlab, TestExample_1)
 
     for(auto i = 0; i < nSteps; ++i)
     {
-        auto aSolution = transient(domain, temperatures, humidities, dTime, timestepIndex);
+        auto aSolution = HygroThermFEM::Substitution::transient(domain, temperatures, humidities, dTime, timestepIndex);
         temperatureSolution.push_back(aSolution.temperature);
         humiditySolution.push_back(aSolution.humidity);
         temperatures = aSolution.temperature;

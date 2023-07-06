@@ -149,7 +149,7 @@ TEST_F(MultiDomain_HighHumidity, TestExample_1)
 
     for(auto i = 0; i < nSteps; ++i)
     {
-        auto aSolution = transient(domain, temperatures, humidities, dTime, timestepIndex);
+        auto aSolution = HygroThermFEM::Substitution::transient(domain, temperatures, humidities, dTime, timestepIndex);
         temperatureSolution.push_back(aSolution.temperature);
         temperatureError.push_back(aSolution.temperatureError);
         waterContentSolution.push_back(aSolution.waterContent);

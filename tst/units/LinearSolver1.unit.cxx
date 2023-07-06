@@ -2,6 +2,7 @@
 #include <memory>
 
 #include "HygroThermFEM2D.hxx"
+#include "../src/LinearSolver.hxx"
 
 using HygroThermFEM::SquareMatrix;
 using HygroThermFEM::CLinearSolver;

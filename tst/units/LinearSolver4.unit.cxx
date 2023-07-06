@@ -4,6 +4,7 @@
 #include <chrono>
 
 #include "HygroThermFEM2D.hxx"
+#include "../src/LinearSolver.hxx"
 
 #pragma warning(push, 0)
 #include <Eigen/SparseCore>

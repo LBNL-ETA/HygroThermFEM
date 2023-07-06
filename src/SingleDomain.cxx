@@ -1,15 +1,8 @@
 #include <cmath>
 
 #include "SingleDomain.hxx"
-#include "FEMunique.hxx"
-#include "LinearSolver.hxx"
-#include "Common.hxx"
 #include "FEMMath.hxx"
-#include "BoundaryCondition2D.hxx"
-#include "VectorOperators.hxx"
-#include "SimulationProperties.hxx"
 #include "NodePool.hxx"
-#include "TimestepData.hxx"
 #include "MaterialPool.hxx"
 
 namespace HygroThermFEM

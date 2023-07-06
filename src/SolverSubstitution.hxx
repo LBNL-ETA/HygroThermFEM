@@ -9,7 +9,10 @@ namespace HygroThermFEM
 {
     struct MultiDomain;
     struct SingleDomain;
+}   // namespace HygroThermFEM
 
+namespace HygroThermFEM::Substitution
+{
     //! Calculates steady state for given data
     //! @param domain Domain for which steady state is being calculated
     //! @param output Domain solution
@@ -46,4 +49,4 @@ namespace HygroThermFEM
                        const std::vector<double> & previousTimestepHumidity,
                        double t_DTime,
                        size_t timestepIndex = 0);
-}   // namespace HygroThermFEM
+}   // namespace HygroThermFEM::Substitution
