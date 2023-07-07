@@ -123,6 +123,8 @@ TEST_F(Analytical_TemperatureBC_Transient_Sundials, TestExample_1)
             }
         }
     }
+
+    std::cout << "Solution (Substitution): " << std::endl;
 #endif
 
 #if 1
@@ -145,10 +147,9 @@ TEST_F(Analytical_TemperatureBC_Transient_Sundials, TestExample_1)
             }
         }
     }
+    std::cout << "Solution (SUNDIALS): " << std::endl;
 #endif
 
-    // Print solution to cout
-    std::cout << "Solution: " << std::endl;
     std::cout << "-------------------------------------------------------" << std::endl;
     for(auto & row : solution)
     {

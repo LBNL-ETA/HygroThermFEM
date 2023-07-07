@@ -80,7 +80,9 @@ namespace Sundials
             data->solution->push_back(yval[i]);
         }
 
-        return (0);
+        HygroThermFEM::updateNodeValues(*data->solution, baseVariable(*data->domain));
+
+        return 0;
     }
 
     SunUserData getInitialUdot(N_Vector uu, void * user_data)
