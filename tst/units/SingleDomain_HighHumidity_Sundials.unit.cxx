@@ -30,7 +30,7 @@ TEST_F(SingleDomain_HighHumidity_Sundials, TestExample_1)
     std::vector<double> gridXCoordinates{0.15, 0.05, 0.00};
 
     const auto domainTemperature = 0.0;
-    const auto domainHumidity = 0.999;
+    const auto domainHumidity = 0.0;
     const auto domainPressure = 101325.0;
     const auto liquidPercent = 1.0;
 
@@ -106,7 +106,7 @@ TEST_F(SingleDomain_HighHumidity_Sundials, TestExample_1)
     // Create Boundary Conditions
     const auto hc = 10.0;
     const auto airTemperature = 20.0;
-    const auto airHumidity = 0.0;
+    const auto airHumidity = 1.0;
 
     const HygroThermFEM::FixedBCHCCoefficients bcCoeff{airTemperature, hc, airHumidity};
 
@@ -123,13 +123,8 @@ TEST_F(SingleDomain_HighHumidity_Sundials, TestExample_1)
     std::vector<double> humidityError;
     size_t timestepIndex{0};
 
-    // Time the transient call
-    const auto start = std::chrono::steady_clock::now();
-    auto aSolution = Sundials::transient(domain, humidities, dTime);
-    const auto end = std::chrono::steady_clock::now();
-    const auto diff = end - start;
-    std::cout << "Time to solve transient: "
-              << std::chrono::duration<double, std::milli>(diff).count() << " ms\n";
+    auto bSolution = HygroThermFEM::Substitution::transient(domain, humidities, dTime, timestepIndex);
+    auto aSolution = Sundials::transient(domain, humidities, dTime, nSteps);
 
     const std::vector<double> correctHumidityError{4.131868e-07, 1.509739e-06};
     const std::vector<std::vector<double>> correctWaterContentSolution{

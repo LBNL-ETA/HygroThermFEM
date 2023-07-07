@@ -204,19 +204,18 @@ namespace Sundials
     std::vector<HygroThermFEM::SingleTimestepSolution>
       transient(HygroThermFEM::SingleDomain & domain,
                 const std::vector<double> & previousTimestepValues,
-                double t_DTime)
+                double t_DTime, size_t nTimesteps)
     {
         std::vector<HygroThermFEM::SingleTimestepSolution> solution;
-        auto sunInit{initializeSolver(0.999, domain)};
+        auto sunInit{initializeSolver(1.0, domain)};
         auto currentTime{0.0};
-        const auto nSteps{1000u};
-        for(auto i = 0u; i < nSteps; ++i)
+        for(auto i = 0u; i < nTimesteps; ++i)
         {
             auto retval =
               IDASolve(sunInit.mem, t_DTime * (i + 1), &currentTime, sunInit.uu, sunInit.ud, IDA_NORMAL);
                 if(retval != IDA_SUCCESS)
                 {
-                    throw HygroThermFEM::SolutionFailedToConvergeException();;
+                    throw HygroThermFEM::SolutionFailedToConvergeException();
                 }
             solution.emplace_back(*sunInit.data.data->solution, currentTime);
         }

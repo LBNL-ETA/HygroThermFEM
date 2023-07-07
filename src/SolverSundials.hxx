@@ -54,5 +54,6 @@ namespace Sundials
     std::vector<HygroThermFEM::SingleTimestepSolution>
       transient(HygroThermFEM::SingleDomain & domain,
                 const std::vector<double> & previousTimestepValues,
-                double t_DTime);
+                double t_DTime,
+                size_t nTimesteps);
 }   // namespace Sundials
