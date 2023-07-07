@@ -204,10 +204,10 @@ namespace Sundials
     std::vector<HygroThermFEM::SingleTimestepSolution>
       transient(HygroThermFEM::SingleDomain & domain,
                 const std::vector<double> & previousTimestepValues,
-                double t_DTime, size_t nTimesteps)
+                double t_DTime, size_t nTimesteps, double initialValue)
     {
         std::vector<HygroThermFEM::SingleTimestepSolution> solution;
-        auto sunInit{initializeSolver(1.0, domain)};
+        auto sunInit{initializeSolver(initialValue, domain)};
         auto currentTime{0.0};
         for(auto i = 0u; i < nTimesteps; ++i)
         {

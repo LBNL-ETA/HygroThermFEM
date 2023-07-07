@@ -124,7 +124,7 @@ TEST_F(SingleDomain_HighHumidity_Sundials, TestExample_1)
     size_t timestepIndex{0};
 
     auto bSolution = HygroThermFEM::Substitution::transient(domain, humidities, dTime, timestepIndex);
-    auto aSolution = Sundials::transient(domain, humidities, dTime, nSteps);
+    auto aSolution = Sundials::transient(domain, humidities, dTime, nSteps, domainHumidity);
 
     const std::vector<double> correctHumidityError{4.131868e-07, 1.509739e-06};
     const std::vector<std::vector<double>> correctWaterContentSolution{
