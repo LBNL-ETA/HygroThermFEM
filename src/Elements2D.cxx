@@ -206,14 +206,9 @@ namespace HygroThermFEM
 
     bool ElementsLinear2D::isLinear() const
     {
-        for(auto & elem : m_Elements)
-        {
-            if(!elem->isLinear())
-            {
-                return false;
-            }
-        }
-        return true;
+        return std::all_of(m_Elements.begin(), m_Elements.end(), [](const auto& elem){
+            return elem->isLinear();
+        });
     }
 
     IElementLinear2D * ElementsLinear2D::findElement(const size_t index1, const size_t index2)
