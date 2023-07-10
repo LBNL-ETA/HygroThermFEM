@@ -11,7 +11,7 @@ class ConvectionBC_2D_Transient_Sundials : public testing::Test
 public:
     const size_t nSteps{100u};
     const double dTime{3600};
-    const double hc2{15.0};
+    const double hc2{0.01};
     const double temperatureAir2{-18.0};
 
 protected:
@@ -29,12 +29,19 @@ TEST_F(ConvectionBC_2D_Transient_Sundials, TestExample_Substitution)
 {
     SCOPED_TRACE("Begin Test: Three elements with simple convection BC.");
 
-    NodePool::Instance().createNode(1, 0.2, 0.05);
-    NodePool::Instance().createNode(2, 0.2, 0.00);
-    NodePool::Instance().createNode(3, 0.1, 0.05);
-    NodePool::Instance().createNode(4, 0.1, 0.00);
-    NodePool::Instance().createNode(5, 0.0, 0.05);
-    NodePool::Instance().createNode(6, 0.0, 0.00);
+    HygroThermFEM::State state1;
+    state1.setValue(HygroThermFEM::BaseVariable::temperature, 10.0);
+    HygroThermFEM::State state2;
+    state2.setValue(HygroThermFEM::BaseVariable::temperature, 20.0);
+    HygroThermFEM::State state3;
+    state3.setValue(HygroThermFEM::BaseVariable::temperature, 30.0);
+
+    NodePool::Instance().createNode(1, 0.2, 0.05, state1);
+    NodePool::Instance().createNode(2, 0.2, 0.00, state1);
+    NodePool::Instance().createNode(3, 0.1, 0.05, state2);
+    NodePool::Instance().createNode(4, 0.1, 0.00, state2);
+    NodePool::Instance().createNode(5, 0.0, 0.05, state3);
+    NodePool::Instance().createNode(6, 0.0, 0.00, state3);
 
     // Material Properties
     const double thermalConductivityDry{1.0};
@@ -147,12 +154,19 @@ TEST_F(ConvectionBC_2D_Transient_Sundials, TestExample_Sundials)
 {
     SCOPED_TRACE("Begin Test: Three elements with simple convection BC.");
 
-    NodePool::Instance().createNode(1, 0.2, 0.05);
-    NodePool::Instance().createNode(2, 0.2, 0.00);
-    NodePool::Instance().createNode(3, 0.1, 0.05);
-    NodePool::Instance().createNode(4, 0.1, 0.00);
-    NodePool::Instance().createNode(5, 0.0, 0.05);
-    NodePool::Instance().createNode(6, 0.0, 0.00);
+    HygroThermFEM::State state1;
+    state1.setValue(HygroThermFEM::BaseVariable::temperature, 10.0);
+    HygroThermFEM::State state2;
+    state2.setValue(HygroThermFEM::BaseVariable::temperature, 20.0);
+    HygroThermFEM::State state3;
+    state3.setValue(HygroThermFEM::BaseVariable::temperature, 30.0);
+
+    NodePool::Instance().createNode(1, 0.2, 0.05, state1);
+    NodePool::Instance().createNode(2, 0.2, 0.00, state1);
+    NodePool::Instance().createNode(3, 0.1, 0.05, state2);
+    NodePool::Instance().createNode(4, 0.1, 0.00, state2);
+    NodePool::Instance().createNode(5, 0.0, 0.05, state3);
+    NodePool::Instance().createNode(6, 0.0, 0.00, state3);
 
     // Material Properties
     const double thermalConductivityDry{1.0};
