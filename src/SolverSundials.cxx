@@ -118,20 +118,19 @@ namespace Sundials
 
     SunInitialization initializeSolver(double initialValue, HygroThermFEM::SingleDomain & domain)
     {
-        int retval;   // IDA functions return 0 (good) or something less than zero (Bad)
-
-        // Initalize Solver
+        // Initialize Solver
         // SUNContext object is the orchestra conductor
         SUNContext ctx;
-        retval = SUNContext_Create(nullptr, &ctx);
+
+        // IDA functions return 0 (good) or something less than zero (Bad)
+        int retval{SUNContext_Create(nullptr, &ctx)};
 
         // make some SUNDIALS-native vectors
-        N_Vector ud, uu, rr, vatol;
         const auto neq = HygroThermFEM::maxNodeIndex();
-        uu = N_VNew_Serial(neq, ctx);
-        ud = N_VNew_Serial(neq, ctx);
-        rr = N_VNew_Serial(neq, ctx);
-        vatol = N_VNew_Serial(neq, ctx);
+        N_Vector uu{N_VNew_Serial(neq, ctx)};
+        N_Vector ud{N_VNew_Serial(neq, ctx)};
+        N_Vector rr{N_VNew_Serial(neq, ctx)};
+        N_Vector vatol{N_VNew_Serial(neq, ctx)};
 
         // set initial condition
         N_VConst(initialValue, uu);
@@ -139,10 +138,11 @@ namespace Sundials
         N_VConst(29.0, rr);
 
         // get access to SUNDIALS arrays
-        realtype *uuvals, *udvals, *rvals;
-        uuvals = N_VGetArrayPointer(uu);
+        realtype *udvals;
+        // realtype *uuvals, *udvals, *rvals;
+        // uuvals = N_VGetArrayPointer(uu);
         udvals = N_VGetArrayPointer(ud);
-        rvals = N_VGetArrayPointer(rr);
+        // rvals = N_VGetArrayPointer(rr);
 
         // initialize solution with IDA
         void * mem = nullptr;
@@ -173,10 +173,10 @@ namespace Sundials
         const realtype t0 = 0.0;
         retval = IDAInit(mem, residual, t0, uu, ud);
 
-        realtype reltol = RCONST(1.0e-5);
-        realtype abstol = RCONST(1.0e-4);
-        realtype tret, tsd, t;
-        t = RCONST(0.0);
+        realtype reltol{RCONST(1.0e-5)};
+        realtype abstol{RCONST(1.0e-4)};
+
+        realtype t{RCONST(0.0)};
         retval = IDASStolerances(mem, reltol, abstol);
         N_VConst(abstol, vatol);
         // retval = IDASVtolerances(mem, reltol, vatol);
