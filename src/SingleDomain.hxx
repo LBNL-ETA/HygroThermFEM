@@ -49,6 +49,6 @@ namespace HygroThermFEM
         std::optional<EquivalentGasCavities> gasCavities{std::nullopt};
     };
 
-    BaseVariable baseVariable(SingleDomain & domain);
+    BaseVariable baseVariableOf(SingleDomain & domain);
 
 }   // namespace HygroThermFEM

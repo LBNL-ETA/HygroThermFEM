@@ -232,42 +232,40 @@ namespace HygroThermFEM
         return result;
     }
 
-    std::vector<NodeFlux> IElementLinear2D::flux() const
-    {
-        const auto numOfIntegrationPoints = IntegrationPoints2D::Instance().count2D();
-        std::vector<NodeFlux> results;
-        for(const auto & cond : m_ConductanceFunctions)
-        {
-            const auto values = m_Nodes.properties(m_FluxVariable);
-            const auto k = cond->values(m_Nodes);
-            assert(k.size() == numOfQuadrilateralNodes);
-            assert(values.size() == numOfQuadrilateralNodes);
+    namespace ExtrapolationConstants {
+        constexpr double A{1.866025404};
+        constexpr double B{-0.5};
+        constexpr double C{0.133974596};
+    }
 
-            // First calculate Dt/Dx and Dt/Dy in Gauss points
-            std::vector<double> VDtDx(numOfIntegrationPoints, 0);
-            std::vector<double> VDtDy(numOfIntegrationPoints, 0);
+    namespace {
+        template <typename DPsiDType>
+        std::vector<double> CalculateDuDxOrDuDy(const std::vector<double>& values, const DPsiDType& DPsiD)
+        {
+            const auto numOfIntegrationPoints = IntegrationPoints2D::Instance().count2D();
+            std::vector<double> VDtD(numOfIntegrationPoints, 0);
             for(size_t i = 0; i < numOfIntegrationPoints; ++i)
             {
-                const auto DPsiDx = m_Global2D.DPsiDx(i);
-                const auto DPsiDy = m_Global2D.DPsiDy(i);
-                assert(DPsiDx.size() == numOfIntegrationPoints);
-                double DtDx{0};
-                double DtDy{0};
+                const auto DPsiDxOrY = DPsiD(i);
+                assert(DPsiDxOrY.size() == numOfIntegrationPoints);
+                double DtDxOrY{0};
                 for(size_t j = 0; j < values.size(); ++j)
                 {
-                    DtDx += DPsiDx[j] * values[j];
-                    DtDy += DPsiDy[j] * values[j];
+                    DtDxOrY += DPsiDxOrY[j] * values[j];
                 }
-                VDtDx[i] = DtDx;
-                VDtDy[i] = DtDy;
+                VDtD[i] = DtDxOrY;
             }
+            return VDtD;
+        }
 
-            // Extrapolate flux from Gauss points to nodes.
-            const auto a = 1.866025404;
-            const auto b = -0.5;
-            const auto c = 0.133974596;
+        std::vector<NodeFlux> CalculateNodeFlux(const std::vector<double>& k, const std::vector<double>& VDuDx, const std::vector<double>& VDuDy)
+        {
+            std::vector<NodeFlux> results;
             const std::vector<std::vector<double>> extrapolationCoefficients{
-              {a, b, c, b}, {b, a, b, c}, {c, b, a, b}, {b, c, b, a}};
+              {ExtrapolationConstants::A, ExtrapolationConstants::B, ExtrapolationConstants::C, ExtrapolationConstants::B},
+              {ExtrapolationConstants::B, ExtrapolationConstants::A, ExtrapolationConstants::B, ExtrapolationConstants::C},
+              {ExtrapolationConstants::C, ExtrapolationConstants::B, ExtrapolationConstants::A, ExtrapolationConstants::B},
+              {ExtrapolationConstants::B, ExtrapolationConstants::C, ExtrapolationConstants::B, ExtrapolationConstants::A}};
 
             for(size_t i = 0u; i < numOfQuadrilateralNodes; ++i)
             {
@@ -275,11 +273,32 @@ namespace HygroThermFEM
                 auto valY{0.0};
                 for(const auto val : extrapolationCoefficients[i])
                 {
-                    valX -= k[i] * VDtDx[i] * val;
-                    valY -= k[i] * VDtDy[i] * val;
+                    valX -= k[i] * VDuDx[i] * val;
+                    valY -= k[i] * VDuDy[i] * val;
                 }
                 results.emplace_back(valX, valY);
             }
+            return results;
+        }
+    }
+
+    std::vector<NodeFlux> IElementLinear2D::flux() const
+    {
+        std::vector<NodeFlux> results;
+        for(const auto & cond : m_ConductanceFunctions)
+        {
+            const auto values{m_Nodes.properties(m_FluxVariable)};
+            const auto k{cond->values(m_Nodes)};
+            assert(k.size() == numOfQuadrilateralNodes);
+            assert(values.size() == numOfQuadrilateralNodes);
+
+            const auto VDuDx{
+              CalculateDuDxOrDuDy(values, [this](size_t i) { return m_Global2D.DPsiDx(i); })};
+            const auto VDuDy{
+              CalculateDuDxOrDuDy(values, [this](size_t i) { return m_Global2D.DPsiDy(i); })};
+
+            const auto nodeFlux{CalculateNodeFlux(k, VDuDx, VDuDy)};
+            results.insert(results.end(), nodeFlux.begin(), nodeFlux.end());
         }
         return results;
     }

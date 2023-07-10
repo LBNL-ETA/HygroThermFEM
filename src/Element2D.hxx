@@ -187,24 +187,24 @@ namespace HygroThermFEM
         template<typename T>
         void
           DDu(T && t,
-              const typename std::enable_if<std::is_base_of<IValue, T>::value, T>::type * = nullptr)
+              const typename std::enable_if_t<std::is_base_of_v<IValue, T>, T> * = nullptr)
         {
-            m_DDuFunctions.emplace_back(std::unique_ptr<T>(new T(t)));
+            m_DDuFunctions.emplace_back(std::make_unique<T>(t));
         }
 
         //! Template function that will add K * Du/Dt matrix into the system.
         template<typename T>
         void Cap(T & t,
-                 typename std::enable_if<std::is_base_of<IValue, T>::value, T>::type * = nullptr)
+                 typename std::enable_if_t<std::is_base_of_v<IValue, T>, T> * = nullptr)
         {
-            m_CapacitanceFunctions.emplace_back(std::unique_ptr<T>(new T(t)));
+            m_CapacitanceFunctions.emplace_back(std::make_unique<T>(t));
         }
 
         template<typename T>
         void Cap(T && t,
-                 typename std::enable_if<std::is_base_of<IValue, T>::value, T>::type * = nullptr)
+                 typename std::enable_if_t<std::is_base_of_v<IValue, T>, T> * = nullptr)
         {
-            m_CapacitanceFunctions.emplace_back(std::unique_ptr<T>(new T(t)));
+            m_CapacitanceFunctions.emplace_back(std::make_unique<T>(t));
         }
 
         //! Template function that will add K*((Dp/Dx)(Du/Dx) + (Dp/Dy)(Du/Dy)) matrix into the
@@ -212,53 +212,53 @@ namespace HygroThermFEM
         template<typename T, typename U>
         void DpDu(T & t,
                   U & u,
-                  typename std::enable_if<std::is_base_of<IValue, T>::value, T>::type * = nullptr)
+                  typename std::enable_if_t<std::is_base_of_v<IValue, T>, T> * = nullptr)
         {
-            m_DpDuFunctions.emplace_back(std::unique_ptr<T>(new T(t)),
-                                         std::unique_ptr<U>(new U(u)));
+            m_DpDuFunctions.emplace_back(std::make_unique<T>(t),
+                                         std::make_unique<U>(u));
         }
 
         template<typename T, typename U>
         void DpDu(T && t,
                   U & u,
-                  typename std::enable_if<std::is_base_of<IValue, T>::value, T>::type * = nullptr)
+                  typename std::enable_if_t<std::is_base_of_v<IValue, T>, T> * = nullptr)
         {
-            m_DpDuFunctions.emplace_back(std::unique_ptr<T>(new T(t)),
-                                         std::unique_ptr<U>(new U(u)));
+            m_DpDuFunctions.emplace_back(std::make_unique<T>(t),
+                                         std::make_unique<U>(u));
         }
 
         template<typename T, typename U>
         void DpDu(T & t,
                   U && u,
-                  typename std::enable_if<std::is_base_of<IValue, T>::value, T>::type * = nullptr)
+                  typename std::enable_if_t<std::is_base_of_v<IValue, T>, T> * = nullptr)
         {
-            m_DpDuFunctions.emplace_back(std::unique_ptr<T>(new T(t)),
-                                         std::unique_ptr<U>(new U(u)));
+            m_DpDuFunctions.emplace_back(std::make_unique<T>(t),
+                                         std::make_unique<U>(u));
         }
 
         template<typename T, typename U>
         void DpDu(T && t,
                   U && u,
-                  typename std::enable_if<std::is_base_of<IValue, T>::value, T>::type * = nullptr)
+                  typename std::enable_if_t<std::is_base_of_v<IValue, T>, T> * = nullptr)
         {
-            m_DpDuFunctions.emplace_back(std::unique_ptr<T>(new T(t)),
-                                         std::unique_ptr<U>(new U(u)));
+            m_DpDuFunctions.emplace_back(std::make_unique<T>(t),
+                                         std::make_unique<U>(u));
         }
 
         //! Template function that will create functions used in equivalent material conductivity
         //! and therefore used in flux calculations.
         template<typename T>
         void CondFlux(T & t,
-                  typename std::enable_if<std::is_base_of<IValue, T>::value, T>::type * = nullptr)
+                  typename std::enable_if_t<std::is_base_of_v<IValue, T>, T> * = nullptr)
         {
-            m_ConductanceFunctions.emplace_back(std::unique_ptr<T>(new T(t)));
+            m_ConductanceFunctions.emplace_back(std::make_unique<T>(t));
         }
 
         template<typename T>
         void CondFlux(T && t,
-                  typename std::enable_if<std::is_base_of<IValue, T>::value, T>::type * = nullptr)
+                  typename std::enable_if_t<std::is_base_of_v<IValue, T>, T> * = nullptr)
         {
-            m_ConductanceFunctions.emplace_back(std::unique_ptr<T>(new T(t)));
+            m_ConductanceFunctions.emplace_back(std::make_unique<T>(t));
         }
 
         //! \brief Supports multiplication of between matrix and vector in differential equations.
@@ -285,9 +285,9 @@ namespace HygroThermFEM
         void multiplies(
           T & t,
           Variable property,
-          const typename std::enable_if<std::is_base_of<IValue, T>::value, T>::type * = nullptr)
+          const typename std::enable_if_t<std::is_base_of_v<IValue, T>, T> * = nullptr)
         {
-            m_Matrix_x_Vector.emplace_back(std::unique_ptr<T>(new T(t)), property);
+            m_Matrix_x_Vector.emplace_back(std::make_unique<T>(t), property);
         }
 
         //! Template function that will create necessary multiplier between matrix and vector.
@@ -295,9 +295,9 @@ namespace HygroThermFEM
         void multiplies(
           T && t,
           Variable property,
-          const typename std::enable_if<std::is_base_of<IValue, T>::value, T>::type * = nullptr)
+          const typename std::enable_if_t<std::is_base_of_v<IValue, T>, T> * = nullptr)
         {
-            m_Matrix_x_Vector.emplace_back(std::unique_ptr<T>(new T(t)), property);
+            m_Matrix_x_Vector.emplace_back(std::make_unique<T>(t), property);
         }
 
         const IMaterial & m_Material;
@@ -412,7 +412,7 @@ namespace HygroThermFEM
             }
 
         private:
-            std::size_t checkNextIndex(const std::size_t index) const
+            [[nodiscard]] std::size_t checkNextIndex(const std::size_t index) const
             {
                 auto validIndex = index;
 
@@ -428,7 +428,7 @@ namespace HygroThermFEM
                 return validIndex;
             }
 
-            std::size_t checkPrevIndex(const std::size_t index) const
+            [[nodiscard]] std::size_t checkPrevIndex(const std::size_t index) const
             {
                 auto validIndex = index;
 

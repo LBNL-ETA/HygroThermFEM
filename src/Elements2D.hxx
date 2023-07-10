@@ -23,7 +23,7 @@ namespace HygroThermFEM
         std::vector<double> getLumpedMass(double DTime);
 
 
-        // TODO: This is the same as getLumpedMass but witout DTime division. Refactor this into single usage.
+        // TODO: This is the same as getLumpedMass but without DTime division. Refactor this into single usage.
         // Probably just getCMatrix / DTime and then remove getLumpedMass
         SquareMatrix getCMatrix();
 

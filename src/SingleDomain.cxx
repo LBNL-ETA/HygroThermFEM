@@ -25,7 +25,7 @@ namespace HygroThermFEM
         }
     }
 
-    BaseVariable baseVariable(SingleDomain & domain)
+    BaseVariable baseVariableOf(SingleDomain & domain)
     {
         const std::map<DomainType, BaseVariable> baseVariableMap = {
           {DomainType::Thermal, BaseVariable::temperature},

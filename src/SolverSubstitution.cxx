@@ -191,7 +191,7 @@ namespace HygroThermFEM::Substitution
 
                     ++numOfIterations;
 
-                    updateNodeValues(solution, baseVariable(domain), true);
+                    updateNodeValues(solution, baseVariableOf(domain), true);
 
                     A = transientM_K_H_Matrix(domain, t_DTime, timestepIndex);
                     B = transientMT_R_Vector(
@@ -204,7 +204,7 @@ namespace HygroThermFEM::Substitution
                 }
             }
 
-            updateNodeValues(solution, baseVariable(domain), true);
+            updateNodeValues(solution, baseVariableOf(domain), true);
 
             return std::make_pair(solution, converged);
         }

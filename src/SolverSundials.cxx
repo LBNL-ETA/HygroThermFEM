@@ -1,7 +1,7 @@
 #include "SolverSundials.hxx"
 
-#include <ida/ida.h>                /* prototypes for IDA fcts., consts.    */
-#include <nvector/nvector_serial.h> /* access to serial N_Vector            */
+#include <ida/ida.h>                    /* prototypes for IDA fcts., consts.    */
+#include <nvector/nvector_serial.h>     /* access to serial N_Vector            */
 #include <sunmatrix/sunmatrix_sparse.h> /* access to sparse SUNMatrix           */
 #include <sundials/sundials_types.h>    /* definition of type realtype          */
 #include <sunlinsol/sunlinsol_spgmr.h>  /* access to spgmr SUNLinearSolver      */
@@ -12,6 +12,7 @@
 #include "NodePool.hxx"
 #include "LinearSolver.hxx"
 #include "Exceptions.hxx"
+#include "VectorOperators.hxx"
 
 namespace Sundials
 {
@@ -76,11 +77,12 @@ namespace Sundials
         data->solution->clear();
         for(int i = 0; i < neq; i++)
         {
-            auto test{yval[i]};
             data->solution->push_back(yval[i]);
         }
 
-        return (0);
+        HygroThermFEM::updateNodeValues(*data->solution, baseVariableOf(*data->domain));
+
+        return 0;
     }
 
     SunUserData getInitialUdot(N_Vector uu, void * user_data)
@@ -138,7 +140,7 @@ namespace Sundials
         N_VConst(29.0, rr);
 
         // get access to SUNDIALS arrays
-        realtype *udvals;
+        realtype * udvals;
         // realtype *uuvals, *udvals, *rvals;
         // uuvals = N_VGetArrayPointer(uu);
         udvals = N_VGetArrayPointer(ud);
@@ -204,21 +206,25 @@ namespace Sundials
     std::vector<HygroThermFEM::SingleTimestepSolution>
       transient(HygroThermFEM::SingleDomain & domain,
                 const std::vector<double> & previousTimestepValues,
-                double t_DTime)
+                double t_DTime,
+                size_t nTimesteps,
+                double initialValue)
     {
         std::vector<HygroThermFEM::SingleTimestepSolution> solution;
-        auto sunInit{initializeSolver(0.999, domain)};
+        auto sunInit{initializeSolver(initialValue, domain)};
         auto currentTime{0.0};
-        const auto nSteps{1000u};
-        for(auto i = 0u; i < nSteps; ++i)
+        for(auto i = 0u; i < nTimesteps; ++i)
         {
-            auto retval =
-              IDASolve(sunInit.mem, t_DTime * (i + 1), &currentTime, sunInit.uu, sunInit.ud, IDA_NORMAL);
-                if(retval != IDA_SUCCESS)
-                {
-                    throw HygroThermFEM::SolutionFailedToConvergeException();;
-                }
+            auto retval = IDASolve(
+              sunInit.mem, t_DTime * (i + 1), &currentTime, sunInit.uu, sunInit.ud, IDA_NORMAL);
+            if(retval != IDA_SUCCESS)
+            {
+                throw HygroThermFEM::SolutionFailedToConvergeException();
+            }
             solution.emplace_back(*sunInit.data.data->solution, currentTime);
+            HygroThermFEM::updateNodeValues(*sunInit.data.data->solution,
+              HygroThermFEM::baseVariableOf(*sunInit.data.data->domain),
+                                            true);
         }
 
         return solution;

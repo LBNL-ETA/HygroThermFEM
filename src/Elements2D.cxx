@@ -16,26 +16,22 @@ namespace HygroThermFEM
 #ifdef STL_MULTITHREADING
 
         std::mutex mtx;
-
         std::for_each(std::execution::par_unseq,
                       std::begin(m_Elements),
                       std::end(m_Elements),
-                      [&](auto && aElement) {
+                      [&](const auto & aElement) {
                           auto indexes = aElement->nodeIndexes();
                           auto conductance = aElement->DDuMatrices();
-                          // auto testConductance = conductance.toVector();
                           auto condDer = aElement->DpDuMatrices();
-                          // auto testCondDer = condDer.toVector();
-                          mtx.lock();
                           for(size_t i = 0; i < numOfQuadrilateralNodes; ++i)
                           {
                               for(size_t j = 0; j < numOfQuadrilateralNodes; ++j)
                               {
+                                  std::lock_guard guard(mtx);
                                   result(indexes[i] - 1, indexes[j] - 1) +=
                                     conductance(i, j) + condDer(i, j);
                               }
                           }
-                          mtx.unlock();
                       });
 
 #else
@@ -66,23 +62,20 @@ namespace HygroThermFEM
 
 #ifdef STL_MULTITHREADING
         std::mutex mtx;
-
         std::for_each(std::execution::par_unseq,
                       std::begin(m_Elements),
                       std::end(m_Elements),
-                      [&](auto && aElement) {
+                      [&](const auto & aElement) {
                           auto indexes = aElement->nodeIndexes();
                           auto capacitance = aElement->capacitanceMatrices();
-                          // auto capTest = capacitance.toVector();
-                          mtx.lock();
                           for(size_t i = 0; i < numOfQuadrilateralNodes; ++i)
                           {
                               for(size_t j = 0; j < numOfQuadrilateralNodes; ++j)
                               {
+                                  std::lock_guard guard(mtx);
                                   Capacitance[indexes[i] - 1][indexes[j] - 1] += capacitance(i, j);
                               }
                           }
-                          mtx.unlock();
                       });
 #else
         for(const auto & element : m_Elements)
@@ -126,19 +119,18 @@ namespace HygroThermFEM
         std::for_each(std::execution::par_unseq,
                       std::begin(m_Elements),
                       std::end(m_Elements),
-                      [&](auto && aElement) {
+                      [&](const auto & aElement) {
                           auto indexes = aElement->nodeIndexes();
                           auto capacitance = aElement->capacitanceMatrices();
-                          mtx.lock();
                           for(size_t i = 0; i < numOfQuadrilateralNodes; ++i)
                           {
                               for(size_t j = 0; j < numOfQuadrilateralNodes; ++j)
                               {
+                                  std::lock_guard guard(mtx);
                                   Capacitance(indexes[i] - 1, indexes[j] - 1) +=
                                     capacitance(i, j);
                               }
                           }
-                          mtx.unlock();
                       });
 
 #else
@@ -167,8 +159,7 @@ namespace HygroThermFEM
             }
         }
 
-        //return SquareMatrix{Capacitance};
-        return SquareMatrix{Mlump};
+        return Mlump;
     }
 
     SquareMatrix ElementsLinear2D::getMassMatrix(const double DTime)
@@ -181,19 +172,18 @@ namespace HygroThermFEM
         std::for_each(std::execution::par_unseq,
                       std::begin(m_Elements),
                       std::end(m_Elements),
-                      [&](auto && aElement) {
+                      [&](const auto & aElement) {
                           auto indexes = aElement->nodeIndexes();
                           auto capacitance = aElement->capacitanceMatrices();
-                          mtx.lock();
                           for(size_t i = 0; i < numOfQuadrilateralNodes; ++i)
                           {
                               for(size_t j = 0; j < numOfQuadrilateralNodes; ++j)
                               {
+                                  std::lock_guard guard(mtx);
                                   Capacitance(indexes[i] - 1, indexes[j] - 1) +=
                                     capacitance(i, j) / DTime;
                               }
                           }
-                          mtx.unlock();
                       });
 
 #else
@@ -216,22 +206,15 @@ namespace HygroThermFEM
 
     bool ElementsLinear2D::isLinear() const
     {
-        bool isLinear = true;
-        for(auto & elem : m_Elements)
-        {
-            isLinear = isLinear && elem->isLinear();
-            if(!isLinear)   // no need to waste time in loop
-            {
-                break;
-            }
-        }
-        return isLinear;
+        return std::all_of(m_Elements.begin(), m_Elements.end(), [](const auto& elem){
+            return elem->isLinear();
+        });
     }
 
     IElementLinear2D * ElementsLinear2D::findElement(const size_t index1, const size_t index2)
     {
         IElementLinear2D * el = nullptr;
-        for(auto & element : m_Elements)
+        for(const auto & element : m_Elements)
         {
             if(element->haveBothNodes(index1, index2))
             {
@@ -253,19 +236,17 @@ namespace HygroThermFEM
 #ifdef STL_MULTITHREADING
 
         std::mutex mtx;
-
         std::for_each(std::execution::par_unseq,
                       std::begin(m_Elements),
                       std::end(m_Elements),
-                      [&](auto && aElement) {
+                      [&](const auto & aElement) {
                           const auto indexes = aElement->nodeIndexes();
                           const auto vecR = aElement->rightSideVector();
-                          mtx.lock();
                           for(size_t i = 0; i < numOfQuadrilateralNodes; ++i)
                           {
+                              std::lock_guard guard(mtx);
                               result[indexes[i] - 1] += vecR[i];
                           }
-                          mtx.unlock();
                       });
 
 #else
@@ -292,19 +273,17 @@ namespace HygroThermFEM
 
 #ifdef STL_MULTITHREADING
         std::mutex mtx;
-
         std::for_each(std::execution::par_unseq,
                       std::begin(m_Elements),
                       std::end(m_Elements),
-                      [&](auto && aElement) {
+                      [&](const auto & aElement) {
                           const auto indexes = aElement->nodeIndexes();
                           const auto flux = aElement->flux();
-                          mtx.lock();
                           for(size_t i = 0; i < numOfQuadrilateralNodes; ++i)
                           {
+                              std::lock_guard guard(mtx);
                               fluxes[indexes[i] - 1].push_back(flux[i]);
                           }
-                          mtx.unlock();
                       });
 
 #else
@@ -325,12 +304,12 @@ namespace HygroThermFEM
             const double x = std::accumulate(fluxes[j].begin(),
                                              fluxes[j].end(),
                                              0.0,
-                                             [&](double lhs, NodeFlux & a) { return lhs + a.x; })
+                                             [&](double lhs, const NodeFlux & a) { return lhs + a.x; })
                              / fluxes[j].size();
             const double y = std::accumulate(fluxes[j].begin(),
                                              fluxes[j].end(),
                                              0.0,
-                                             [&](double lhs, NodeFlux & a) { return lhs + a.y; })
+                                             [&](double lhs, const NodeFlux & a) { return lhs + a.y; })
                              / fluxes[j].size();
             result[j] = {x, y};
         }
