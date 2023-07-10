@@ -56,9 +56,6 @@ namespace Sundials
         K_eig += data->domain->boundaryConditions.HMatrix(timestepIndex);
         // RHS vector
         auto RHS = data->domain->boundaryConditions.RVector(timestepIndex);
-        // apply bcs on RHS (funkyness to add vectors together... thanks, StackOverflow)
-        auto RHSbc = data->domain->boundaryConditions.RVector(timestepIndex);
-        std::transform(RHS.begin(), RHS.end(), RHSbc.begin(), RHS.begin(), std::plus<>());
 
         double LHS;
         for(int i = 0; i < neq; i++)
@@ -67,20 +64,19 @@ namespace Sundials
             for(int j = 0; j < neq; j++)
             {
                 LHS += C_eig(i, j) * ypval[j] + K_eig(i, j) * yval[j];
-                LHS += C_eig(i, j) * ypval[j] + K_eig(i, j) * yval[j];
             }
             rval[i] = LHS - RHS[i];
         }
 
         // convert solution vector to format HygroThermFEM can understand and update nodal solutions
-
         data->solution->clear();
         for(int i = 0; i < neq; i++)
         {
             data->solution->push_back(yval[i]);
         }
 
-        HygroThermFEM::updateNodeValues(*data->solution, baseVariableOf(*data->domain));
+        // This does not seem necessary but keeping it here for now to check
+        //HygroThermFEM::updateNodeValues(*data->solution, baseVariableOf(*data->domain));
 
         return 0;
     }
@@ -140,22 +136,15 @@ namespace Sundials
 
         N_VConst(29.0, rr);
 
-        // get access to SUNDIALS arrays
-        realtype * udvals;
-        // realtype *uuvals, *udvals, *rvals;
-        // uuvals = N_VGetArrayPointer(uu);
-        udvals = N_VGetArrayPointer(ud);
-        // rvals = N_VGetArrayPointer(rr);
+        realtype * udvals = N_VGetArrayPointer(ud);
 
         // initialize solution with IDA
-        void * mem = nullptr;
-        mem = IDACreate(ctx);
+        void * mem = IDACreate(ctx);
 
         // tell sundials how to get to domain object and stuff so it can construct a residual
         UserData data;
         data = (UserData)malloc(sizeof *data);
         data->domain = &domain;
-        // data->dTime = dTime;
         data->timestepIndex = 0;
         data->solution = new std::vector<double>();
         // this pp vector is a carryover from making a user defined preconditioner... see **_messy
@@ -176,10 +165,9 @@ namespace Sundials
         const realtype t0 = 0.0;
         retval = IDAInit(mem, residual, t0, uu, ud);
 
-        realtype reltol{RCONST(1.0e-5)};
-        realtype abstol{RCONST(1.0e-4)};
+        realtype reltol{RCONST(1.0e-8)};
+        realtype abstol{RCONST(1.0e-9)};
 
-        realtype t{RCONST(0.0)};
         retval = IDASStolerances(mem, reltol, abstol);
         N_VConst(abstol, vatol);
         // retval = IDASVtolerances(mem, reltol, vatol);
