@@ -128,7 +128,7 @@ TEST_F(Analytical_TemperatureBC_Transient_Sundials, TestExample_1)
 #endif
 
 #if 1
-    auto aSolution{Sundials::transient(domain, temperatures, dTime, nSteps, initialTemperature)};
+    auto aSolution{Sundials::transient(domain, temperatures, dTime, nSteps)};
     for(unsigned i = 0; i < nSteps; ++i)
     {
         if((i >= 99u) && ((i - 99u) % 100u == 0u))

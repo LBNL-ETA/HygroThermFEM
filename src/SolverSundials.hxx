@@ -47,7 +47,7 @@ namespace Sundials
         SunUserData data;
     };
 
-    SunInitialization initializeSolver(double initialValue, HygroThermFEM::SingleDomain & domain);
+    SunInitialization initializeSolver(const std::vector<double> & initialValues, HygroThermFEM::SingleDomain & domain);
 
     // Put vector for now, but this is not going to work in long term because we need to switch
     // between different types of domains.
@@ -55,5 +55,5 @@ namespace Sundials
       transient(HygroThermFEM::SingleDomain & domain,
                 const std::vector<double> & previousTimestepValues,
                 double t_DTime,
-                size_t nTimesteps, double initialValue);
+                size_t nTimesteps);
 }   // namespace Sundials

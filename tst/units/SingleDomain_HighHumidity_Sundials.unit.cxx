@@ -133,7 +133,7 @@ TEST_F(SingleDomain_HighHumidity_Sundials, TestExample_1)
     std::cout << "Solution (Substitution): " << std::endl;
 #endif
 #if 1
-    auto aSolution{Sundials::transient(domain, humidities, dTime, nSteps, domainHumidity)};
+    auto aSolution{Sundials::transient(domain, humidities, dTime, nSteps)};
     for(auto & sol: aSolution)
     {
         humiditySolution.push_back(sol.solution);

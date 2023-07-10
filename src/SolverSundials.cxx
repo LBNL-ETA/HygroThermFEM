@@ -118,7 +118,8 @@ namespace Sundials
         return {udot0, data};
     }
 
-    SunInitialization initializeSolver(double initialValue, HygroThermFEM::SingleDomain & domain)
+    SunInitialization initializeSolver(const std::vector<double> & initialValues,
+                                       HygroThermFEM::SingleDomain & domain)
     {
         // Initialize Solver
         // SUNContext object is the orchestra conductor
@@ -129,13 +130,13 @@ namespace Sundials
 
         // make some SUNDIALS-native vectors
         const auto neq = HygroThermFEM::maxNodeIndex();
-        N_Vector uu{N_VNew_Serial(neq, ctx)};
+        //N_Vector uu{N_VNew_Serial(neq, ctx)};
         N_Vector ud{N_VNew_Serial(neq, ctx)};
         N_Vector rr{N_VNew_Serial(neq, ctx)};
         N_Vector vatol{N_VNew_Serial(neq, ctx)};
 
-        // set initial condition
-        N_VConst(initialValue, uu);
+        // Create N_Vector from the existing data
+        N_Vector uu = N_VMake_Serial(initialValues.size(), const_cast<realtype*>(initialValues.data()), ctx);
 
         N_VConst(29.0, rr);
 
@@ -207,11 +208,10 @@ namespace Sundials
       transient(HygroThermFEM::SingleDomain & domain,
                 const std::vector<double> & previousTimestepValues,
                 double t_DTime,
-                size_t nTimesteps,
-                double initialValue)
+                size_t nTimesteps)
     {
         std::vector<HygroThermFEM::SingleTimestepSolution> solution;
-        auto sunInit{initializeSolver(initialValue, domain)};
+        auto sunInit{initializeSolver(previousTimestepValues, domain)};
         auto currentTime{0.0};
         for(auto i = 0u; i < nTimesteps; ++i)
         {
@@ -222,9 +222,10 @@ namespace Sundials
                 throw HygroThermFEM::SolutionFailedToConvergeException();
             }
             solution.emplace_back(*sunInit.data.data->solution, currentTime);
-            HygroThermFEM::updateNodeValues(*sunInit.data.data->solution,
+            HygroThermFEM::updateNodeValues(
+              *sunInit.data.data->solution,
               HygroThermFEM::baseVariableOf(*sunInit.data.data->domain),
-                                            true);
+              true);
         }
 
         return solution;

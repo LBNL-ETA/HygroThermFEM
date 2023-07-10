@@ -227,8 +227,7 @@ TEST_F(ConvectionBC_2D_Transient_Sundials, TestExample_Sundials)
     std::vector<std::vector<double>> temperaturesSolution;
 
 
-    constexpr auto initialTemperature = 0.0;
-    auto aSolution{Sundials::transient(domain, temperatures, dTime, nSteps, initialTemperature)};
+    auto aSolution{Sundials::transient(domain, temperatures, dTime, nSteps)};
     for(unsigned i = 0; i < nSteps; ++i)
     {
         temperaturesSolution.emplace_back(aSolution[i].solution);
