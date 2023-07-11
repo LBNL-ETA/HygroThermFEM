@@ -28,7 +28,7 @@ namespace Sundials
         SUNContext_Free(&ctx);
     }
 
-    int residual(realtype tres, N_Vector yy, N_Vector yp, N_Vector rr, void * user_data)
+    int residual(realtype , N_Vector yy, N_Vector yp, N_Vector rr, void * user_data)
     {
         realtype *yval, *ypval, *rval;
 
@@ -157,7 +157,7 @@ namespace Sundials
 
         userData = getInitialUdot(uu, data);
         N_VConst(0.0, ud);
-        for(int j = 0; j < neq; j++)
+        for(size_t j = 0u; j < neq; j++)
         {
             udvals[j] = userData.uDot0[j];
         }
@@ -165,12 +165,11 @@ namespace Sundials
         const realtype t0 = 0.0;
         retval = IDAInit(mem, residual, t0, uu, ud);
 
-        realtype reltol{RCONST(1.0e-8)};
-        realtype abstol{RCONST(1.0e-9)};
+        realtype reltol{RCONST(1.0e-15)};
+        realtype abstol{RCONST(1.0e-13)};
 
         retval = IDASStolerances(mem, reltol, abstol);
         N_VConst(abstol, vatol);
-        // retval = IDASVtolerances(mem, reltol, vatol);
 
         // Chose the solver (Still in initialize)
         SUNLinearSolver LS;
