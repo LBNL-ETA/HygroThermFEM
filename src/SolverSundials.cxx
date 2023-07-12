@@ -20,10 +20,11 @@ namespace Sundials
     {
         struct UserData
         {
-            HygroThermFEM::SingleDomain * domain;
+            explicit UserData(HygroThermFEM::SingleDomain & domain) : domain(domain)
+            {}
+            HygroThermFEM::SingleDomain & domain;
             size_t timestepIndex{0};
-            N_Vector pp;
-            std::vector<double> * solution;
+            std::vector<double> solution;
         };
 
         struct SunInitialization
@@ -34,8 +35,7 @@ namespace Sundials
                 N_VDestroy(uu);
                 N_VDestroy(ud);
                 N_VDestroy(rr);
-                N_VDestroy(data->pp);
-                free(data->solution);
+                N_VDestroy(pp);
                 SUNContext_Free(&ctx);
             }
             int error{0};
@@ -44,6 +44,7 @@ namespace Sundials
             N_Vector uu{nullptr};
             N_Vector ud{nullptr};
             N_Vector rr{nullptr};
+            N_Vector pp{nullptr};
             std::vector<double> uDot0;
             std::shared_ptr<UserData> data;
         };
@@ -68,13 +69,13 @@ namespace Sundials
             // Get C matrix
             // Simon divides by dTime when getting mass matrix...
             // so we defined a new function to get raw (lumped) mass matrix
-            auto C_eig = data->domain->elements.getCMatrix();
+            auto C_eig = data->domain.elements.getCMatrix();
             // Get stiffness matrix
-            auto K_eig = data->domain->elements.conductanceMatrix();
+            auto K_eig = data->domain.elements.conductanceMatrix();
             // apply bcs no stiffness matrix
-            K_eig += data->domain->boundaryConditions.HMatrix(timestepIndex);
+            K_eig += data->domain.boundaryConditions.HMatrix(timestepIndex);
             // RHS vector
-            auto RHS = data->domain->boundaryConditions.RVector(timestepIndex);
+            auto RHS = data->domain.boundaryConditions.RVector(timestepIndex);
 
             double LHS;
             for(int i = 0; i < neq; i++)
@@ -89,10 +90,10 @@ namespace Sundials
 
             // convert solution vector to format HygroThermFEM can understand and update nodal
             // solutions
-            data->solution->clear();
+            data->solution.clear();
             for(int i = 0; i < neq; i++)
             {
-                data->solution->push_back(yval[i]);
+                data->solution.push_back(yval[i]);
             }
 
             // This does not seem necessary but keeping it here for now to check
@@ -111,11 +112,11 @@ namespace Sundials
             auto timestepIndex = user_data->timestepIndex;
 
             /*Grab system information from HygroThermFEM*/
-            auto C_eig = user_data->domain->elements.getCMatrix();
-            auto K_eig = user_data->domain->elements.conductanceMatrix();
-            K_eig += user_data->domain->boundaryConditions.HMatrix(timestepIndex);
-            auto RHS = user_data->domain->boundaryConditions.RVector(timestepIndex);
-            auto RHSbc = user_data->domain->boundaryConditions.RVector(timestepIndex);
+            auto C_eig = user_data->domain.elements.getCMatrix();
+            auto K_eig = user_data->domain.elements.conductanceMatrix();
+            K_eig += user_data->domain.boundaryConditions.HMatrix(timestepIndex);
+            auto RHS = user_data->domain.boundaryConditions.RVector(timestepIndex);
+            auto RHSbc = user_data->domain.boundaryConditions.RVector(timestepIndex);
             std::transform(RHS.begin(), RHS.end(), RHSbc.begin(), RHS.begin(), std::plus<>());
 
             // turn into vector that Eigen can understand
@@ -160,15 +161,12 @@ namespace Sundials
             void * mem = IDACreate(ctx);
 
             // tell sundials how to get to domain object and stuff so it can construct a residual
-            auto data{std::make_shared<UserData>()};
-            //data = static_cast<UserData*>(malloc(sizeof(UserData)));
-            data->domain = &domain;
+            auto data{std::make_shared<UserData>(domain)};
+            // data = static_cast<UserData*>(malloc(sizeof(UserData)));
             data->timestepIndex = 0;
-            data->solution = new std::vector<double>();
             // this pp vector is a carryover from making a user defined preconditioner... see
             // **_messy
-            data->pp = nullptr;
-            data->pp = N_VClone(uu);
+            N_Vector pp = N_VClone(uu);
             retval = IDASetUserData(mem, data.get());
 
             // This gets the consistent IC for udot
@@ -206,7 +204,7 @@ namespace Sundials
             retval = IDASetMaxNumSteps(mem, maxSteps);
             // retval = IDASetMinStep(mem, dTime/1000.);
 
-            return {retval, ctx, mem, uu, ud, rr, uDot0, data};
+            return {retval, ctx, mem, uu, ud, rr, pp, uDot0, data};
         }
     }   // namespace
     std::vector<HygroThermFEM::SingleTimestepSolution>
@@ -226,11 +224,9 @@ namespace Sundials
             {
                 throw HygroThermFEM::SolutionFailedToConvergeException();
             }
-            solution.emplace_back(*sunInit.data->solution, currentTime);
+            solution.emplace_back(sunInit.data->solution, currentTime);
             HygroThermFEM::updateNodeValues(
-              *sunInit.data->solution,
-              HygroThermFEM::baseVariableOf(*sunInit.data->domain),
-              true);
+              sunInit.data->solution, HygroThermFEM::baseVariableOf(sunInit.data->domain), true);
         }
 
         return solution;
