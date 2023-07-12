@@ -26,12 +26,6 @@ namespace Sundials
             std::vector<double> * solution;
         };
 
-        struct SunUserData
-        {
-            std::vector<double> uDot0;
-            std::shared_ptr<UserData> data;
-        };
-
         struct SunInitialization
         {
             ~SunInitialization()
@@ -40,8 +34,8 @@ namespace Sundials
                 N_VDestroy(uu);
                 N_VDestroy(ud);
                 N_VDestroy(rr);
-                N_VDestroy(data.data->pp);
-                free(data.data->solution);
+                N_VDestroy(data->pp);
+                free(data->solution);
                 SUNContext_Free(&ctx);
             }
             int error{0};
@@ -50,7 +44,8 @@ namespace Sundials
             N_Vector uu{nullptr};
             N_Vector ud{nullptr};
             N_Vector rr{nullptr};
-            SunUserData data;
+            std::vector<double> uDot0;
+            std::shared_ptr<UserData> data;
         };
 
 
@@ -106,7 +101,7 @@ namespace Sundials
             return 0;
         }
 
-        SunUserData getInitialUdot(N_Vector uu, std::shared_ptr<UserData> & user_data)
+        std::vector<double> getInitialUdot(N_Vector uu, std::shared_ptr<UserData> & user_data)
         {
             std::vector<double> udot0;
             std::vector<double> u0;
@@ -133,9 +128,7 @@ namespace Sundials
             auto fstar = (-1.0) * K_eig * u0;
             std::transform(fstar.begin(), fstar.end(), RHS.begin(), fstar.begin(), std::plus<>());
 
-            udot0 = HygroThermFEM::CLinearSolver::solveEigen(C_eig, fstar);
-
-            return {udot0, user_data};
+            return HygroThermFEM::CLinearSolver::solveEigen(C_eig, fstar);
         }
 
         SunInitialization initializeSolver(const std::vector<double> & initialValues,
@@ -167,25 +160,24 @@ namespace Sundials
             void * mem = IDACreate(ctx);
 
             // tell sundials how to get to domain object and stuff so it can construct a residual
-            auto data{std::make_shared<UserData>()};
-            //data = static_cast<UserData*>(malloc(sizeof(UserData)));
-            data->domain = &domain;
-            data->timestepIndex = 0;
-            data->solution = new std::vector<double>();
+            SunInitialization sunInit;
+            sunInit.data = std::make_shared<UserData>();
+            
+            // data = static_cast<UserData*>(malloc(sizeof(UserData)));
+            sunInit.data->domain = &domain;
+            sunInit.data->timestepIndex = 0;
+            sunInit.data->solution = new std::vector<double>();
             // this pp vector is a carryover from making a user defined preconditioner... see
             // **_messy
-            data->pp = nullptr;
-            data->pp = N_VClone(uu);
-            retval = IDASetUserData(mem, data.get());
+            sunInit.data->pp = nullptr;
+            sunInit.data->pp = N_VClone(uu);
+            retval = IDASetUserData(mem, sunInit.data.get());
 
-            // This gets the consistent IC for udot
-            SunUserData userData;
-
-            userData = getInitialUdot(uu, data);
+            sunInit.uDot0 = getInitialUdot(uu, sunInit.data);
             N_VConst(0.0, ud);
             for(size_t j = 0u; j < neq; j++)
             {
-                udvals[j] = userData.uDot0[j];
+                udvals[j] = sunInit.uDot0[j];
             }
 
             const realtype t0 = 0.0;
@@ -213,8 +205,14 @@ namespace Sundials
             constexpr auto maxSteps = 10000;
             retval = IDASetMaxNumSteps(mem, maxSteps);
             // retval = IDASetMinStep(mem, dTime/1000.);
+            sunInit.error = retval;
+            sunInit.ctx = ctx;
+            sunInit.mem = mem;
+            sunInit.uu = uu;
+            sunInit.ud = ud;
+            sunInit.rr = rr;
 
-            return {retval, ctx, mem, uu, ud, rr, userData};
+            return sunInit;
         }
     }   // namespace
     std::vector<HygroThermFEM::SingleTimestepSolution>
@@ -234,10 +232,10 @@ namespace Sundials
             {
                 throw HygroThermFEM::SolutionFailedToConvergeException();
             }
-            solution.emplace_back(*sunInit.data.data->solution, currentTime);
+            solution.emplace_back(*sunInit.data->solution, currentTime);
             HygroThermFEM::updateNodeValues(
-              *sunInit.data.data->solution,
-              HygroThermFEM::baseVariableOf(*sunInit.data.data->domain),
+              *sunInit.data->solution,
+              HygroThermFEM::baseVariableOf(*sunInit.data->domain),
               true);
         }
 
