@@ -160,24 +160,24 @@ namespace Sundials
             void * mem = IDACreate(ctx);
 
             // tell sundials how to get to domain object and stuff so it can construct a residual
-            SunInitialization sunInit;
-            sunInit.data = std::make_shared<UserData>();
-            
-            // data = static_cast<UserData*>(malloc(sizeof(UserData)));
-            sunInit.data->domain = &domain;
-            sunInit.data->timestepIndex = 0;
-            sunInit.data->solution = new std::vector<double>();
+            auto data{std::make_shared<UserData>()};
+            //data = static_cast<UserData*>(malloc(sizeof(UserData)));
+            data->domain = &domain;
+            data->timestepIndex = 0;
+            data->solution = new std::vector<double>();
             // this pp vector is a carryover from making a user defined preconditioner... see
             // **_messy
-            sunInit.data->pp = nullptr;
-            sunInit.data->pp = N_VClone(uu);
-            retval = IDASetUserData(mem, sunInit.data.get());
+            data->pp = nullptr;
+            data->pp = N_VClone(uu);
+            retval = IDASetUserData(mem, data.get());
 
-            sunInit.uDot0 = getInitialUdot(uu, sunInit.data);
+            // This gets the consistent IC for udot
+
+            auto uDot0 = getInitialUdot(uu, data);
             N_VConst(0.0, ud);
             for(size_t j = 0u; j < neq; j++)
             {
-                udvals[j] = sunInit.uDot0[j];
+                udvals[j] = uDot0[j];
             }
 
             const realtype t0 = 0.0;
@@ -205,14 +205,8 @@ namespace Sundials
             constexpr auto maxSteps = 10000;
             retval = IDASetMaxNumSteps(mem, maxSteps);
             // retval = IDASetMinStep(mem, dTime/1000.);
-            sunInit.error = retval;
-            sunInit.ctx = ctx;
-            sunInit.mem = mem;
-            sunInit.uu = uu;
-            sunInit.ud = ud;
-            sunInit.rr = rr;
 
-            return sunInit;
+            return {retval, ctx, mem, uu, ud, rr, uDot0, data};
         }
     }   // namespace
     std::vector<HygroThermFEM::SingleTimestepSolution>
