@@ -1,13 +1,6 @@
 #pragma once
 
 #include <vector>
-#include <ida/ida.h>                /* prototypes for IDA fcts., consts.    */
-#include <nvector/nvector_serial.h> /* access to serial N_Vector            */
-#include <sunmatrix/sunmatrix_sparse.h> /* access to sparse SUNMatrix           */
-#include <sundials/sundials_types.h>    /* definition of type realtype          */
-#include <sunlinsol/sunlinsol_spgmr.h>  /* access to spgmr SUNLinearSolver      */
-#include <sunmatrix/sunmatrix_band.h>   /* access to band SUNMatrix             */
-#include <sunlinsol/sunlinsol_band.h>   /* access to band SUNLinearSolver       */
 #include "SolutionVariables.hxx"
 
 namespace HygroThermFEM
