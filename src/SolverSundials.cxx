@@ -104,23 +104,19 @@ namespace Sundials
 
         std::vector<double> getInitialUdot(N_Vector uu, std::shared_ptr<UserData> & user_data)
         {
-            std::vector<double> udot0;
-            std::vector<double> u0;
-            realtype * uval;
             sunindextype neq = N_VGetLength(uu);
 
             auto timestepIndex = user_data->timestepIndex;
 
-            /*Grab system information from HygroThermFEM*/
             auto C_eig = user_data->domain.elements.getCMatrix();
             auto K_eig = user_data->domain.elements.conductanceMatrix();
             K_eig += user_data->domain.boundaryConditions.HMatrix(timestepIndex);
             auto RHS = user_data->domain.boundaryConditions.RVector(timestepIndex);
-            auto RHSbc = user_data->domain.boundaryConditions.RVector(timestepIndex);
-            std::transform(RHS.begin(), RHS.end(), RHSbc.begin(), RHS.begin(), std::plus<>());
 
             // turn into vector that Eigen can understand
-            uval = N_VGetArrayPointer(uu);
+            realtype * uval = N_VGetArrayPointer(uu);
+
+            std::vector<double> u0;
             for(int i = 0; i < neq; i++)
             {
                 u0.push_back(uval[i]);
@@ -200,7 +196,7 @@ namespace Sundials
             /* Attach the matrix and linear solver */
             retval = IDASetLinearSolver(mem, LS, A);
 
-            constexpr auto maxSteps = 10000;
+            constexpr auto maxSteps{10000};
             retval = IDASetMaxNumSteps(mem, maxSteps);
             // retval = IDASetMinStep(mem, dTime/1000.);
 
