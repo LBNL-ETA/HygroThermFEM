@@ -8,8 +8,8 @@
 class SingleDomain_HighHumidity_Sundials : public testing::Test
 {
 public:
-    const double dTime{3.6};
-    const size_t nSteps{20000u};
+    const double dTime{3600};
+    const size_t nSteps{20u};
 
     const double domainTemperature{0.0};
     const double domainHumidity{0.8};
