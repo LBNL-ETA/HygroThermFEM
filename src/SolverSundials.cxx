@@ -18,18 +18,18 @@ namespace Sundials
 {
     namespace
     {
-        typedef struct
+        struct UserData
         {
             HygroThermFEM::SingleDomain * domain;
             size_t timestepIndex{0};
             N_Vector pp;
             std::vector<double> * solution;
-        } * UserData;
+        };
 
         struct SunUserData
         {
             std::vector<double> uDot0;
-            UserData data;
+            std::shared_ptr<UserData> data;
         };
 
         struct SunInitialization
@@ -42,7 +42,6 @@ namespace Sundials
                 N_VDestroy(rr);
                 N_VDestroy(data.data->pp);
                 free(data.data->solution);
-                free(data.data);
                 SUNContext_Free(&ctx);
             }
             int error{0};
@@ -57,19 +56,17 @@ namespace Sundials
 
         int residual(realtype, N_Vector yy, N_Vector yp, N_Vector rr, void * user_data)
         {
-            realtype *yval, *ypval, *rval;
-
             /* Initialize rr to uu, to take care of boundary equations.
              * ... this should only matter for dirichlet conditions*/
             N_VScale(1.0, yy, rr);
 
-            yval = N_VGetArrayPointer(yy);
-            ypval = N_VGetArrayPointer(yp);
-            rval = N_VGetArrayPointer(rr);
+            realtype * yval = N_VGetArrayPointer(yy);
+            realtype * ypval = N_VGetArrayPointer(yp);
+            realtype * rval = N_VGetArrayPointer(rr);
 
             sunindextype neq = N_VGetLength(yy);
-            UserData data;
-            data = (UserData)user_data;
+            UserData * data;
+            data = (UserData *)user_data;
 
             auto timestepIndex = data->timestepIndex;
 
@@ -109,22 +106,21 @@ namespace Sundials
             return 0;
         }
 
-        SunUserData getInitialUdot(N_Vector uu, void * user_data)
+        SunUserData getInitialUdot(N_Vector uu, std::shared_ptr<UserData> & user_data)
         {
             std::vector<double> udot0;
             std::vector<double> u0;
             realtype * uval;
             sunindextype neq = N_VGetLength(uu);
-            UserData data;
-            data = (UserData)user_data;
-            auto timestepIndex = data->timestepIndex;
+
+            auto timestepIndex = user_data->timestepIndex;
 
             /*Grab system information from HygroThermFEM*/
-            auto C_eig = data->domain->elements.getCMatrix();
-            auto K_eig = data->domain->elements.conductanceMatrix();
-            K_eig += data->domain->boundaryConditions.HMatrix(timestepIndex);
-            auto RHS = data->domain->boundaryConditions.RVector(timestepIndex);
-            auto RHSbc = data->domain->boundaryConditions.RVector(timestepIndex);
+            auto C_eig = user_data->domain->elements.getCMatrix();
+            auto K_eig = user_data->domain->elements.conductanceMatrix();
+            K_eig += user_data->domain->boundaryConditions.HMatrix(timestepIndex);
+            auto RHS = user_data->domain->boundaryConditions.RVector(timestepIndex);
+            auto RHSbc = user_data->domain->boundaryConditions.RVector(timestepIndex);
             std::transform(RHS.begin(), RHS.end(), RHSbc.begin(), RHS.begin(), std::plus<>());
 
             // turn into vector that Eigen can understand
@@ -139,7 +135,7 @@ namespace Sundials
 
             udot0 = HygroThermFEM::CLinearSolver::solveEigen(C_eig, fstar);
 
-            return {udot0, data};
+            return {udot0, user_data};
         }
 
         SunInitialization initializeSolver(const std::vector<double> & initialValues,
@@ -171,8 +167,8 @@ namespace Sundials
             void * mem = IDACreate(ctx);
 
             // tell sundials how to get to domain object and stuff so it can construct a residual
-            UserData data;
-            data = (UserData)malloc(sizeof *data);
+            auto data{std::make_shared<UserData>()};
+            //data = static_cast<UserData*>(malloc(sizeof(UserData)));
             data->domain = &domain;
             data->timestepIndex = 0;
             data->solution = new std::vector<double>();
@@ -180,7 +176,7 @@ namespace Sundials
             // **_messy
             data->pp = nullptr;
             data->pp = N_VClone(uu);
-            retval = IDASetUserData(mem, data);
+            retval = IDASetUserData(mem, data.get());
 
             // This gets the consistent IC for udot
             SunUserData userData;

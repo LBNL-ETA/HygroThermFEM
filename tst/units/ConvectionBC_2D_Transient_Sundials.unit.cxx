@@ -10,8 +10,8 @@ using HygroThermFEM::MaterialPool;
 class ConvectionBC_2D_Transient_Sundials : public testing::Test
 {
 public:
-    const size_t nSteps{20u};
-    const double dTime{3600};
+    const size_t nSteps{200u};
+    const double dTime{360};
     const double hc2{1};
     const double temperatureAir2{-18.0};
     const double initialT1{10};
