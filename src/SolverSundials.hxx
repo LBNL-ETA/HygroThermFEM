@@ -17,38 +17,6 @@ namespace HygroThermFEM
 
 namespace Sundials
 {
-    typedef struct
-    {
-        HygroThermFEM::SingleDomain * domain;
-        size_t timestepIndex{0};
-        N_Vector pp;
-        std::vector<double> * solution;
-    } * UserData;
-
-    int residual(realtype tres, N_Vector yy, N_Vector yp, N_Vector rr, void * user_data);
-
-    struct SunUserData
-    {
-        std::vector<double> uDot0;
-        UserData data;
-    };
-
-    SunUserData getInitialUdot(N_Vector uu, void * user_data);
-
-    struct SunInitialization
-    {
-        ~SunInitialization();
-        int error{0};
-        SUNContext ctx{nullptr};
-        void * mem{nullptr};
-        N_Vector uu{nullptr};
-        N_Vector ud{nullptr};
-        N_Vector rr{nullptr};
-        SunUserData data;
-    };
-
-    SunInitialization initializeSolver(const std::vector<double> & initialValues, HygroThermFEM::SingleDomain & domain);
-
     // Put vector for now, but this is not going to work in long term because we need to switch
     // between different types of domains.
     std::vector<HygroThermFEM::SingleTimestepSolution>
