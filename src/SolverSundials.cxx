@@ -49,7 +49,6 @@ namespace Sundials
             std::unique_ptr<UserData> data;
         };
 
-
         int residual(realtype, N_Vector yy, N_Vector yp, N_Vector rr, void * user_data)
         {
             /* Initialize rr to uu, to take care of boundary equations.
@@ -128,80 +127,79 @@ namespace Sundials
             return HygroThermFEM::CLinearSolver::solveEigen(C_eig, fstar);
         }
 
-        SunInitialization initializeSolver(const std::vector<double> & initialValues,
-                                           HygroThermFEM::SingleDomain & domain)
+        N_Vector CreateVector(int neq, SUNContext ctx)
         {
-            // Initialize Solver
-            // SUNContext object is the orchestra conductor
-            SUNContext ctx;
+            return N_VNew_Serial(neq, ctx);
+        }
 
-            // IDA functions return 0 (good) or something less than zero (Bad)
-            int retval{SUNContext_Create(nullptr, &ctx)};
+        N_Vector CreateVectorFromData(const std::vector<double> & data, SUNContext ctx)
+        {
+            return N_VMake_Serial(data.size(), const_cast<realtype *>(data.data()), ctx);
+        }
 
-            // make some SUNDIALS-native vectors
-            const auto neq = HygroThermFEM::maxNodeIndex();
-            // N_Vector uu{N_VNew_Serial(neq, ctx)};
-            N_Vector ud{N_VNew_Serial(neq, ctx)};
-            N_Vector rr{N_VNew_Serial(neq, ctx)};
-            N_Vector vatol{N_VNew_Serial(neq, ctx)};
-
-            // Create N_Vector from the existing data
-            N_Vector uu = N_VMake_Serial(
-              initialValues.size(), const_cast<realtype *>(initialValues.data()), ctx);
-
-            N_VConst(29.0, rr);
-
+        void InitUd(const std::vector<double> & uDot0, N_Vector ud)
+        {
             realtype * udvals = N_VGetArrayPointer(ud);
-
-            // initialize solution with IDA
-            void * mem = IDACreate(ctx);
-
-            // tell sundials how to get to domain object and stuff so it can construct a residual
-            auto data{std::make_unique<UserData>(domain)};
-            // data = static_cast<UserData*>(malloc(sizeof(UserData)));
-            data->timestepIndex = 0;
-            // this pp vector is a carryover from making a user defined preconditioner... see
-            // **_messy
-            N_Vector pp = N_VClone(uu);
-            retval = IDASetUserData(mem, data.get());
-
-            // This gets the consistent IC for udot
-
-            auto uDot0 = getInitialUdot(uu, *data);
-            N_VConst(0.0, ud);
-            for(size_t j = 0u; j < neq; j++)
+            for(size_t j = 0u; j < uDot0.size(); j++)
             {
                 udvals[j] = uDot0[j];
             }
+        }
+
+        std::unique_ptr<UserData> CreateUserData(HygroThermFEM::SingleDomain & domain)
+        {
+            auto data{std::make_unique<UserData>(domain)};
+            data->timestepIndex = 0;
+            return data;
+        }
+
+        SUNLinearSolver CreateSolver(N_Vector uu, SUNMatrix A, SUNContext ctx)
+        {
+            return SUNLinSol_Band(uu, A, ctx);
+        }
+
+        SunInitialization initializeSolver(const std::vector<double> & initialValues,
+                                           HygroThermFEM::SingleDomain & domain)
+        {
+            SUNContext ctx;
+            int retval{SUNContext_Create(nullptr, &ctx)};
+            const auto neq = HygroThermFEM::maxNodeIndex();
+
+            N_Vector ud = CreateVector(neq, ctx);
+            N_Vector rr = CreateVector(neq, ctx);
+            N_Vector vatol = CreateVector(neq, ctx);
+            N_Vector uu = CreateVectorFromData(initialValues, ctx);
+
+            N_VConst(29.0, rr);
+
+            void * mem = IDACreate(ctx);
+            auto data = CreateUserData(domain);
+            retval = IDASetUserData(mem, data.get());
+
+            auto uDot0 = getInitialUdot(uu, *data);
+            InitUd(uDot0, ud);
 
             const realtype t0 = 0.0;
             retval = IDAInit(mem, residual, t0, uu, ud);
 
             realtype reltol{RCONST(1.0e-10)};
             realtype abstol{RCONST(1.0e-9)};
-
             retval = IDASStolerances(mem, reltol, abstol);
             N_VConst(abstol, vatol);
 
-            // Chose the solver (Still in initialize)
-            SUNLinearSolver LS;
+            SUNMatrix A = SUNBandMatrix(neq, neq, neq, ctx);
+            SUNLinearSolver LS = CreateSolver(uu, A, ctx);
 
-            /* Create banded SUNMatrix for use in linear solves */
-            SUNMatrix A;
-            A = SUNBandMatrix(neq, neq, neq, ctx);
-
-            /* Create banded SUNLinearSolver object */
-            LS = SUNLinSol_Band(uu, A, ctx);
-
-            /* Attach the matrix and linear solver */
             retval = IDASetLinearSolver(mem, LS, A);
-
             constexpr auto maxSteps{10000};
             retval = IDASetMaxNumSteps(mem, maxSteps);
-            // retval = IDASetMinStep(mem, dTime/1000.);
+
+            N_Vector pp = N_VClone(uu);
 
             return {retval, ctx, mem, uu, ud, rr, pp, uDot0, std::move(data)};
         }
+
+
     }   // namespace
 
     std::vector<HygroThermFEM::SingleTimestepSolution>
