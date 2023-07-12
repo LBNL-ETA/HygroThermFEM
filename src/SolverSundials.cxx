@@ -46,7 +46,7 @@ namespace Sundials
             N_Vector rr{nullptr};
             N_Vector pp{nullptr};
             std::vector<double> uDot0;
-            std::shared_ptr<UserData> data;
+            std::unique_ptr<UserData> data;
         };
 
 
@@ -102,16 +102,16 @@ namespace Sundials
             return 0;
         }
 
-        std::vector<double> getInitialUdot(N_Vector uu, std::shared_ptr<UserData> & user_data)
+        std::vector<double> getInitialUdot(N_Vector uu, const UserData & user_data)
         {
             sunindextype neq = N_VGetLength(uu);
 
-            auto timestepIndex = user_data->timestepIndex;
+            auto timestepIndex = user_data.timestepIndex;
 
-            auto C_eig = user_data->domain.elements.getCMatrix();
-            auto K_eig = user_data->domain.elements.conductanceMatrix();
-            K_eig += user_data->domain.boundaryConditions.HMatrix(timestepIndex);
-            auto RHS = user_data->domain.boundaryConditions.RVector(timestepIndex);
+            auto C_eig = user_data.domain.elements.getCMatrix();
+            auto K_eig = user_data.domain.elements.conductanceMatrix();
+            K_eig += user_data.domain.boundaryConditions.HMatrix(timestepIndex);
+            auto RHS = user_data.domain.boundaryConditions.RVector(timestepIndex);
 
             // turn into vector that Eigen can understand
             realtype * uval = N_VGetArrayPointer(uu);
@@ -157,7 +157,7 @@ namespace Sundials
             void * mem = IDACreate(ctx);
 
             // tell sundials how to get to domain object and stuff so it can construct a residual
-            auto data{std::make_shared<UserData>(domain)};
+            auto data{std::make_unique<UserData>(domain)};
             // data = static_cast<UserData*>(malloc(sizeof(UserData)));
             data->timestepIndex = 0;
             // this pp vector is a carryover from making a user defined preconditioner... see
@@ -167,7 +167,7 @@ namespace Sundials
 
             // This gets the consistent IC for udot
 
-            auto uDot0 = getInitialUdot(uu, data);
+            auto uDot0 = getInitialUdot(uu, *data);
             N_VConst(0.0, ud);
             for(size_t j = 0u; j < neq; j++)
             {
@@ -200,9 +200,10 @@ namespace Sundials
             retval = IDASetMaxNumSteps(mem, maxSteps);
             // retval = IDASetMinStep(mem, dTime/1000.);
 
-            return {retval, ctx, mem, uu, ud, rr, pp, uDot0, data};
+            return {retval, ctx, mem, uu, ud, rr, pp, uDot0, std::move(data)};
         }
     }   // namespace
+
     std::vector<HygroThermFEM::SingleTimestepSolution>
       transient(HygroThermFEM::SingleDomain & domain,
                 const std::vector<double> & previousTimestepValues,
