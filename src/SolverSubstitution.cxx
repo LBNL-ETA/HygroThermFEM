@@ -300,7 +300,6 @@ namespace HygroThermFEM
         {
             if(domain.simulateMoisture)
             {
-                updateNodeValues(temperatureSolution.solution, BaseVariable::temperature, false);
                 const auto result{executeTimestepIteration(domain.moistureDomain,
                                                            currentHumidity,
                                                            previousTimestepHumidity,
@@ -309,11 +308,11 @@ namespace HygroThermFEM
                 humidityError = result.error;
                 humiditySolution = result.solution;
                 currentHumidity = result.solution.solution;
+                updateNodeValues(humiditySolution.solution, BaseVariable::humidity, false);
             }
 
             if(domain.simulateThermal)
             {
-                updateNodeValues(humiditySolution.solution, BaseVariable::humidity, false);
                 const auto result{executeTimestepIteration(domain.thermalDomain,
                                                            currentTemperature,
                                                            previousTimestepTemperature,
@@ -322,6 +321,7 @@ namespace HygroThermFEM
                 temperatureError = result.error;
                 temperatureSolution = result.solution;
                 currentTemperature = result.solution.solution;
+                updateNodeValues(temperatureSolution.solution, BaseVariable::temperature, false);
             }
 
             ++currentIteration;
