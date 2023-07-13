@@ -2,7 +2,6 @@
 
 #include <ida/ida.h>                    /* prototypes for IDA fcts., consts.    */
 #include <nvector/nvector_serial.h>     /* access to serial N_Vector            */
-#include <sunmatrix/sunmatrix_sparse.h> /* access to sparse SUNMatrix           */
 #include <sundials/sundials_types.h>    /* definition of type realtype          */
 #include <sunlinsol/sunlinsol_spgmr.h>  /* access to spgmr SUNLinearSolver      */
 #include <sunmatrix/sunmatrix_band.h>   /* access to band SUNMatrix             */
@@ -55,8 +54,8 @@ namespace Sundials
              * ... this should only matter for dirichlet conditions*/
             N_VScale(1.0, yy, rr);
 
-            realtype * yval = N_VGetArrayPointer(yy);
-            realtype * ypval = N_VGetArrayPointer(yp);
+            const realtype * yval = N_VGetArrayPointer(yy);
+            const realtype * ypval = N_VGetArrayPointer(yp);
             realtype * rval = N_VGetArrayPointer(rr);
 
             sunindextype neq = N_VGetLength(yy);
@@ -113,9 +112,10 @@ namespace Sundials
             auto RHS = user_data.domain.boundaryConditions.RVector(timestepIndex);
 
             // turn into vector that Eigen can understand
-            realtype * uval = N_VGetArrayPointer(uu);
+            const realtype * uval = N_VGetArrayPointer(uu);
 
             std::vector<double> u0;
+            u0.reserve(neq);
             for(int i = 0; i < neq; i++)
             {
                 u0.push_back(uval[i]);

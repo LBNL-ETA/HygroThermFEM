@@ -53,7 +53,7 @@ namespace HygroThermFEM
 
     void updateNodeValues(const std::vector<double> & t_values,
                           const BaseVariable t_property,
-                          bool updatePreviousTimestep)
+                          bool updatePreviousTimestep = false)
     {
         NodePool & pool = NodePool::Instance();   // get the singleton instance
 

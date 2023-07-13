@@ -7,7 +7,7 @@
 namespace HygroThermFEM
 {
     // Define a map from SingleDomainType to ElementFactory.
-    std::map<DomainType, ElementFactory> elementFactoryMap = {
+    const std::map<DomainType, ElementFactory> elementFactoryMap = {
       {DomainType::Thermal,
        [](const size_t index1,
           const size_t index2,
@@ -35,7 +35,7 @@ namespace HygroThermFEM
                        const std::string & materialName)
     {
         domain.elements.assignElement(
-          elementFactoryMap[domain.domainType](index1, index2, index3, index4, materialName));
+          elementFactoryMap.at(domain.domainType)(index1, index2, index3, index4, materialName));
     }
 
     void createElement(MultiDomain & domain,
@@ -49,12 +49,12 @@ namespace HygroThermFEM
         createElement(domain.moistureDomain, index1, index2, index3, index4, materialName);
     }
 
-    bool isLinear(SingleDomain & domain)
+    bool isLinear(const SingleDomain & domain)
     {
         return domain.elements.isLinear() && domain.boundaryConditions.isLinear();
     }
 
-    void HygroThermFEM::clearModel(SingleDomain & domain)
+    void clearModel(SingleDomain & domain)
     {
         NodePool::Instance().clear();
         MaterialPool::Instance().clear();

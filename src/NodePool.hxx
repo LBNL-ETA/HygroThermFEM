@@ -49,7 +49,7 @@ namespace HygroThermFEM
         //! timestep value.
         friend void updateNodeValues(const std::vector<double> & t_values,
                                      BaseVariable t_property,
-                                     bool updatePreviousTimestep = false);
+                                     bool updatePreviousTimestep);
 
         //! Returns state values (temperature, water content or pressure) at all nodes.
         //!< Variable for which values are obtained.
@@ -61,5 +61,22 @@ namespace HygroThermFEM
         //! Storage for nodes in NodePool.
         std::vector<Node2D> m_Nodes;
     };
+
+    //! Update all node values for given state property.
+    //!
+    //! @param t_values Vector of new values for given BaseVariable property.
+    //! @param t_property Property for which new values will be applied to
+    //! @param updatePreviousTimestep Indicates if old value should be stored as previous
+    //! timestep value.
+    void updateNodeValues(const std::vector<double> & t_values,
+                                 BaseVariable t_property,
+                                 bool updatePreviousTimestep);
+
+    //! Returns state values (temperature, water content or pressure) at all nodes.
+    //!< Variable for which values are obtained.
+    std::vector<double> properties(Variable t_Property);
+
+    //! Returns maximum node index from pool of nodes.
+    std::size_t maxNodeIndex();
 
 }   // namespace HygroThermFEM

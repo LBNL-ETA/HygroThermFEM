@@ -46,7 +46,7 @@ namespace HygroThermFEM
                        const std::string & materialName);
 
     //! \brief Checks if domain equations are linear
-    bool isLinear(SingleDomain & domain);
+    bool isLinear(const SingleDomain & domain);
 
     //! @brief Deletes Geometry, boundary conditions and materials
     void clearModel(SingleDomain & domain);
