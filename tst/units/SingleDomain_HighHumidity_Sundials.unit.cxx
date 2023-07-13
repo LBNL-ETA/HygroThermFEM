@@ -143,7 +143,8 @@ TEST_F(SingleDomain_HighHumidity_Sundials, Substitution)
 
     for(auto i = 0u; i < nSteps; ++i)
     {
-        auto aSolution{HygroThermFEM::Substitution::transient(domain, humidities, dTime, 0u)};
+        HygroThermFEM::TransientSubstitutionSolver solver;
+        auto aSolution{solver.transient(domain, humidities, dTime, 0u)};
         humiditySolution.push_back(aSolution.solution);
         humidities = aSolution.solution;
         time.push_back((i + 1) * dTime);

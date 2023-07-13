@@ -104,15 +104,15 @@ TEST_F(MultiDomain_2D_VariableTARPHc_MultiTimestepBC, TestExample_1)
 
     // Variable boundary conditions (temperature and humidity) over ten timesteps.
     const std::vector<HygroThermFEM::TARPCoefficients> bcCoeff{{20.0, 0.6},
-                                                                       {20.0, 0.5},
-                                                                       {20.0, 0.4},
-                                                                       {20.0, 0.3},
-                                                                       {20.0, 0.2},
-                                                                       {18.0, 0.2},
-                                                                       {16.0, 0.2},
-                                                                       {14.0, 0.2},
-                                                                       {12.0, 0.2},
-                                                                       {10.0, 0.2}};
+                                                               {20.0, 0.5},
+                                                               {20.0, 0.4},
+                                                               {20.0, 0.3},
+                                                               {20.0, 0.2},
+                                                               {18.0, 0.2},
+                                                               {16.0, 0.2},
+                                                               {14.0, 0.2},
+                                                               {12.0, 0.2},
+                                                               {10.0, 0.2}};
 
     const auto surfaceTilt{90.0};
 
@@ -129,7 +129,8 @@ TEST_F(MultiDomain_2D_VariableTARPHc_MultiTimestepBC, TestExample_1)
 
     for(auto i = 0; i < nSteps; ++i)
     {
-        auto aSolution = HygroThermFEM::Substitution::transient(domain, temperatures, humidities, dTime, timestepIndex);
+        HygroThermFEM::TransientSubstitutionSolver solver;
+        auto aSolution = solver.transient(domain, temperatures, humidities, dTime, timestepIndex);
         temperatureSolution.push_back(aSolution.temperature);
         waterContentSolution.push_back(aSolution.waterContent);
         temperatures = aSolution.temperature;
@@ -178,6 +179,6 @@ TEST_F(MultiDomain_2D_VariableTARPHc_MultiTimestepBC, TestExample_1)
         for(auto j = 0u; j < correctTemperatureSolution[i].size(); ++j)
         {
             EXPECT_NEAR(correctTemperatureSolution[i][j], temperatureSolution[i][j], 1e-6);
-        }        
+        }
     }
 }

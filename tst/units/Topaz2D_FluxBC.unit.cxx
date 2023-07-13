@@ -101,7 +101,8 @@ TEST_F(Topaz2D_FluxBC, TestExample_1)
 
     for(unsigned i = 0; i < nSteps; ++i)
     {
-        temperatures = HygroThermFEM::Substitution::transient(domain, temperatures, dTime).solution;
+        HygroThermFEM::TransientSubstitutionSolver solver;
+        temperatures = solver.transient(domain, temperatures, dTime).solution;
         solution.push_back(temperatures);
     }
 

@@ -199,7 +199,6 @@ namespace Sundials
             return {retval, ctx, mem, uu, ud, rr, pp, uDot0, std::move(data)};
         }
 
-
     }   // namespace
 
     std::vector<HygroThermFEM::SingleTimestepSolution>

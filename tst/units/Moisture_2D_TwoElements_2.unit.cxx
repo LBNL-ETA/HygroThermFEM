@@ -110,7 +110,8 @@ TEST_F(Moisture_2D_TwoElements_2, TestExample_1)
 
     for(unsigned i = 0; i < nSteps; ++i)
     {
-        auto solution = HygroThermFEM::Substitution::transient(domain, humidities, dTime);
+        HygroThermFEM::TransientSubstitutionSolver solver;
+        auto solution = solver.transient(domain, humidities, dTime);
         humidities = solution.solution;
         timesteps.push_back(solution.dTime);
         auto waterContent = properties(HygroThermFEM::Variable::water);

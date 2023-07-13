@@ -127,7 +127,8 @@ TEST_F(MultiDomain_2D_THERMM200mmSlab, TestExample_1)
 
     for(auto i = 0; i < nSteps; ++i)
     {
-        auto aSolution = HygroThermFEM::Substitution::transient(domain, temperatures, humidities, dTime, timestepIndex);
+        HygroThermFEM::TransientSubstitutionSolver solver;
+        auto aSolution = solver.transient(domain, temperatures, humidities, dTime, timestepIndex);
         temperatureSolution.push_back(aSolution.temperature);
         humiditySolution.push_back(aSolution.humidity);
         temperatures = aSolution.temperature;
@@ -157,7 +158,7 @@ TEST_F(MultiDomain_2D_THERMM200mmSlab, TestExample_1)
         {0.408722,0.408722,0.067939,0.408722,0.067939,0.007166,0.067939,0.007166,0.067939,0.007166,0.067939,0.408722,0.067939,0.408722,0.408722},
         {0.405276,0.405276,0.07194,0.405276,0.07194,0.008155,0.07194,0.008155,0.07194,0.008155,0.07194,0.405276,0.07194,0.405276,0.405276},
         {0.402154,0.402154,0.075864,0.402154,0.075864,0.009202,0.075864,0.009202,0.075864,0.009202,0.075864,0.402154,0.075864,0.402154,0.402154}};
-// clang-format on
+    // clang-format on
 
     EXPECT_EQ(humiditySolution.size(), correctHumiditySolution.size());
 

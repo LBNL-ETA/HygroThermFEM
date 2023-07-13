@@ -116,7 +116,8 @@ TEST_F(MoistureBC_2D_3, TestExample_1)
 
     for(unsigned i = 0; i < nSteps; ++i)
     {
-        humidities = HygroThermFEM::Substitution::transient(domain, humidities, dTime).solution;
+        HygroThermFEM::TransientSubstitutionSolver solver;
+        humidities = solver.transient(domain, humidities, dTime).solution;
         auto waterContent = properties(HygroThermFEM::Variable::water);
         solution.push_back(waterContent);
     }

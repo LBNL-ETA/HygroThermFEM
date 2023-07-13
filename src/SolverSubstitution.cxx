@@ -10,7 +10,7 @@
 #include "ModelUtilities.hxx"
 #include "TimestepData.hxx"
 
-namespace HygroThermFEM::Substitution
+namespace HygroThermFEM
 {
     namespace
     {
@@ -210,10 +210,11 @@ namespace HygroThermFEM::Substitution
         }
     }   // namespace
 
-    SingleTimestepSolution transient(SingleDomain & domain,
-                                     const std::vector<double> & previousTimestepValues,
-                                     double t_DTime,
-                                     size_t timestepIndex)
+    SingleTimestepSolution
+      TransientSubstitutionSolver::transient(SingleDomain & domain,
+                                             const std::vector<double> & previousTimestepValues,
+                                             double t_DTime,
+                                             size_t timestepIndex)
     {
         std::vector<double> solution;
         bool converged{false};
@@ -259,7 +260,8 @@ namespace HygroThermFEM::Substitution
                             const double dTime,
                             size_t timestepIndex)
         {
-            auto newValueSolution = transient(domain, previousTimestepValue, dTime, timestepIndex);
+            TransientSubstitutionSolver solver;
+            auto newValueSolution = solver.transient(domain, previousTimestepValue, dTime, timestepIndex);
             auto newValueError = HygroThermFEM::errorNorm(newValueSolution.solution, currentValue);
             auto newCurrentValue = newValueSolution.solution;
             return std::make_tuple(newValueSolution, newValueError, newCurrentValue);
@@ -308,11 +310,12 @@ namespace HygroThermFEM::Substitution
 
     }   // namespace
 
-    Solution transient(HygroThermFEM::MultiDomain & domain,
-                       const std::vector<double> & previousTimestepTemperature,
-                       const std::vector<double> & previousTimestepHumidity,
-                       double t_DTime,
-                       size_t timestepIndex)
+    Solution TransientSubstitutionSolver::transient(
+      HygroThermFEM::MultiDomain & domain,
+      const std::vector<double> & previousTimestepTemperature,
+      const std::vector<double> & previousTimestepHumidity,
+      double t_DTime,
+      size_t timestepIndex)
     {
         const auto ConvergenceError{SimulationProperties::Instance().errorTolerance()};
         auto temperatureError{std::numeric_limits<double>::max()};
@@ -396,4 +399,19 @@ namespace HygroThermFEM::Substitution
                         temperatureError,
                         humidityError};
     }
-}   // namespace HygroThermFEM
+
+    SingleTimestepSolution TransientSubstitutionSolver::transient(
+      SingleDomain & domain, const std::vector<double> & previousTimestepValues, double t_DTime)
+    {
+        return transient(domain, previousTimestepValues, t_DTime, 0);
+    }
+
+    Solution TransientSubstitutionSolver::transient(
+      MultiDomain & domain,
+      const std::vector<double> & previousTimestepTemperature,
+      const std::vector<double> & previousTimestepHumidity,
+      double t_DTime)
+    {
+        return transient(domain, previousTimestepTemperature, previousTimestepHumidity, t_DTime, 0);
+    }
+}   // namespace HygroThermFEM::Substitution

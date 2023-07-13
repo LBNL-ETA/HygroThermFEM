@@ -105,7 +105,8 @@ TEST_F(ConvectionBC_2D_Transient, TestExample_1)
 
     for(unsigned i = 0; i < nSteps; ++i)
     {
-        temperatures = HygroThermFEM::Substitution::transient(domain, temperatures, dTime).solution;
+        HygroThermFEM::TransientSubstitutionSolver solver;
+        temperatures = solver.transient(domain, temperatures, dTime).solution;
         temperaturesSolution.push_back(temperatures);
         fluxSolution.push_back(domain.flux());
     }

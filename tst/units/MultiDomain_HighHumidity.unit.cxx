@@ -18,14 +18,23 @@ public:
         }
     }
 
-    [[nodiscard]] unsigned getLevelOne() const {return m_SimulationCalls.at(1);}
-    [[nodiscard]] unsigned getLevelTwo() const {return m_SimulationCalls.at(2);}
-    [[nodiscard]] unsigned getLevelThree() const {return m_SimulationCalls.at(3);}
+    [[nodiscard]] unsigned getLevelOne() const
+    {
+        return m_SimulationCalls.at(1);
+    }
+    [[nodiscard]] unsigned getLevelTwo() const
+    {
+        return m_SimulationCalls.at(2);
+    }
+    [[nodiscard]] unsigned getLevelThree() const
+    {
+        return m_SimulationCalls.at(3);
+    }
 
 private:
     // Map will simply keep track of how many times simulation was called
     // at given division level
-    std::map<unsigned, unsigned> m_SimulationCalls{{1,0}, {2,0}, {3,0}};
+    std::map<unsigned, unsigned> m_SimulationCalls{{1, 0}, {2, 0}, {3, 0}};
 };
 
 class MultiDomain_HighHumidity : public testing::Test
@@ -149,7 +158,8 @@ TEST_F(MultiDomain_HighHumidity, TestExample_1)
 
     for(auto i = 0; i < nSteps; ++i)
     {
-        auto aSolution = HygroThermFEM::Substitution::transient(domain, temperatures, humidities, dTime, timestepIndex);
+        HygroThermFEM::TransientSubstitutionSolver solver;
+        auto aSolution = solver.transient(domain, temperatures, humidities, dTime, timestepIndex);
         temperatureSolution.push_back(aSolution.temperature);
         temperatureError.push_back(aSolution.temperatureError);
         waterContentSolution.push_back(aSolution.waterContent);
@@ -161,8 +171,8 @@ TEST_F(MultiDomain_HighHumidity, TestExample_1)
 
     const std::vector<double> correctHumidityError{4.131868e-07, 1.509739e-06};
     const std::vector<std::vector<double>> correctWaterContentSolution{
-            {121.994944,121.994944,122.127524,122.127524,122.292494,122.292494},
-            {123.768705,123.768705,123.876207,123.876207,124.010072,124.010072}};
+      {121.994944, 121.994944, 122.127524, 122.127524, 122.292494, 122.292494},
+      {123.768705, 123.768705, 123.876207, 123.876207, 124.010072, 124.010072}};
 
     EXPECT_EQ(waterContentSolution.size(), correctWaterContentSolution.size());
 
@@ -177,8 +187,8 @@ TEST_F(MultiDomain_HighHumidity, TestExample_1)
 
     const std::vector<double> correctTemperatureError{0.005612, 0.013515};
     const std::vector<std::vector<double>> correctTemperatureSolution{
-            {0.696524,0.696524,2.284785,2.284785,6.987855,6.987855},
-            {1.881866,1.881866,4.601701,4.601701,9.950096,9.950096}};
+      {0.696524, 0.696524, 2.284785, 2.284785, 6.987855, 6.987855},
+      {1.881866, 1.881866, 4.601701, 4.601701, 9.950096, 9.950096}};
 
     EXPECT_EQ(temperatureSolution.size(), correctTemperatureSolution.size());
 

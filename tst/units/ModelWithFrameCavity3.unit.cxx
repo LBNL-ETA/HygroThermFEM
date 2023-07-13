@@ -145,7 +145,8 @@ TEST_F(TestModelWithFrameCavity3, TestSingleFrameCavity)
 
     for(auto i = 0; i < nSteps; ++i)
     {
-        auto aSolution = HygroThermFEM::Substitution::transient(domain, temperatures, humidities, dTime);
+        HygroThermFEM::TransientSubstitutionSolver solver;
+        auto aSolution = solver.transient(domain, temperatures, humidities, dTime);
         temperatureSolution.push_back(aSolution.temperature);
         waterContentSolution.push_back(aSolution.waterContent);
         temperatures = aSolution.temperature;

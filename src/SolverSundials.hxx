@@ -16,5 +16,5 @@ namespace Sundials
       transient(HygroThermFEM::SingleDomain & domain,
                 const std::vector<double> & previousTimestepValues,
                 double t_DTime,
-                size_t nTimesteps);
+                size_t nTimesteps = 0u);
 }   // namespace Sundials
