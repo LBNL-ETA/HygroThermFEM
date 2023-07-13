@@ -259,20 +259,23 @@ namespace HygroThermFEM
             SingleTimestepSolution solution;
         };
 
-        IterationResult executeTimestepIteration(HygroThermFEM::SingleDomain & domain,
-                                          const std::vector<double> & currentValue,
-                                          const std::vector<double> & previousTimestepValue,
-                                          const double dTime,
-                                          size_t timestepIndex)
-        {
-            TransientSubstitutionSolver solver;
-            auto newValueSolution =
-              solver.transient(domain, previousTimestepValue, dTime, timestepIndex);
-            auto newValueError = HygroThermFEM::errorNorm(newValueSolution.solution, currentValue);
-            return {newValueError, newValueSolution};
-        }
-
     }   // namespace
+
+    IterationResult performDomainIteration(HygroThermFEM::SingleDomain & domain,
+                                           std::vector<double> & currentVariable,
+                                           const std::vector<double> & previousVariable,
+                                           double dTime,
+                                           size_t timestepIndex)
+    {
+        // auto result{executeTimestepIteration(
+        //  domain, currentVariable, previousVariable, dTime, timestepIndex)};
+        TransientSubstitutionSolver solver;
+        auto newValueSolution = solver.transient(domain, previousVariable, dTime, timestepIndex);
+        auto newValueError = HygroThermFEM::errorNorm(newValueSolution.solution, currentVariable);
+        updateNodeValues(newValueSolution.solution, baseVariableOf(domain), false);
+        currentVariable = newValueSolution.solution;
+        return {newValueError, newValueSolution};
+    }
 
     Solution TransientSubstitutionSolver::transient(
       HygroThermFEM::MultiDomain & domain,
@@ -294,34 +297,29 @@ namespace HygroThermFEM
 
         size_t currentIteration{0};
 
-        // Note that temperature and humidity are solved separately first and then updated with new
-        // data for next iteration.
         do
         {
             if(domain.simulateMoisture)
             {
-                const auto result{executeTimestepIteration(domain.moistureDomain,
-                                                           currentHumidity,
-                                                           previousTimestepHumidity,
-                                                           dTime,
-                                                           timestepIndex)};
-                humidityError = result.error;
-                humiditySolution = result.solution;
-                currentHumidity = result.solution.solution;
-                updateNodeValues(humiditySolution.solution, BaseVariable::humidity, false);
+                IterationResult moistureIteration = performDomainIteration(domain.moistureDomain,
+                                                                           currentHumidity,
+                                                                           previousTimestepHumidity,
+                                                                           dTime,
+                                                                           timestepIndex);
+                humidityError = moistureIteration.error;
+                humiditySolution = moistureIteration.solution;
             }
 
             if(domain.simulateThermal)
             {
-                const auto result{executeTimestepIteration(domain.thermalDomain,
-                                                           currentTemperature,
-                                                           previousTimestepTemperature,
-                                                           dTime,
-                                                           timestepIndex)};
-                temperatureError = result.error;
-                temperatureSolution = result.solution;
-                currentTemperature = result.solution.solution;
-                updateNodeValues(temperatureSolution.solution, BaseVariable::temperature, false);
+                IterationResult thermalIteration =
+                  performDomainIteration(domain.thermalDomain,
+                                         currentTemperature,
+                                         previousTimestepTemperature,
+                                         dTime,
+                                         timestepIndex);
+                temperatureError = thermalIteration.error;
+                temperatureSolution = thermalIteration.solution;
             }
 
             ++currentIteration;
