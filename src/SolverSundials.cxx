@@ -182,8 +182,8 @@ namespace Sundials
             const realtype t0 = 0.0;
             retval = IDAInit(mem, residual, t0, uu, ud);
 
-            realtype reltol{RCONST(1.0e-10)};
-            realtype abstol{RCONST(1.0e-9)};
+            realtype reltol{RCONST(1.0e-6)};
+            realtype abstol{RCONST(1.0e-5)};
             retval = IDASStolerances(mem, reltol, abstol);
             N_VConst(abstol, vatol);
 

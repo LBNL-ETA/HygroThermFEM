@@ -169,10 +169,11 @@ TEST_F(MultiDomain_HighHumidity, TestExample_1)
         ++timestepIndex;
     }
 
-    const std::vector<double> correctHumidityError{4.131868e-07, 1.509739e-06};
+    const std::vector<double> correctHumidityError{2.338981e-06, 7.101896e-06};
     const std::vector<std::vector<double>> correctWaterContentSolution{
-      {121.994944, 121.994944, 122.127524, 122.127524, 122.292494, 122.292494},
-      {123.768705, 123.768705, 123.876207, 123.876207, 124.010072, 124.010072}};
+      {122.018106, 122.018106, 122.152173, 122.152173, 122.318987, 122.318987},
+      {123.706637, 123.706637, 123.808641, 123.808641, 123.935668, 123.935668},
+    };
 
     EXPECT_EQ(waterContentSolution.size(), correctWaterContentSolution.size());
 
@@ -185,10 +186,11 @@ TEST_F(MultiDomain_HighHumidity, TestExample_1)
         }
     }
 
-    const std::vector<double> correctTemperatureError{0.005612, 0.013515};
+    const std::vector<double> correctTemperatureError{0.031540, 0.064605};
     const std::vector<std::vector<double>> correctTemperatureSolution{
-      {0.696524, 0.696524, 2.284785, 2.284785, 6.987855, 6.987855},
-      {1.881866, 1.881866, 4.601701, 4.601701, 9.950096, 9.950096}};
+      {0.700363, 0.700363, 2.297507, 2.297507, 7.027110, 7.027110},
+      {1.874543, 1.874543, 4.568180, 4.568180, 9.822999, 9.822999},
+    };
 
     EXPECT_EQ(temperatureSolution.size(), correctTemperatureSolution.size());
 
@@ -204,13 +206,13 @@ TEST_F(MultiDomain_HighHumidity, TestExample_1)
     // Checking number of iterations within subiterations
 
     auto lvlOneMoisture = progressMoisture.getLevelOne();
-    EXPECT_EQ(lvlOneMoisture, 7u);
+    EXPECT_EQ(lvlOneMoisture, 5u);
 
     auto lvlTwoMoisture = progressMoisture.getLevelTwo();
-    EXPECT_EQ(lvlTwoMoisture, 7u);
+    EXPECT_EQ(lvlTwoMoisture, 5u);
 
     auto lvlThreeMoisture = progressMoisture.getLevelThree();
-    EXPECT_EQ(lvlThreeMoisture, 7007u);
+    EXPECT_EQ(lvlThreeMoisture, 5005u);
 
     auto lvlOneThermal = progressThermal.getLevelOne();
     EXPECT_EQ(lvlOneThermal, 0u);

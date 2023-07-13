@@ -253,7 +253,7 @@ namespace HygroThermFEM
 
     namespace
     {
-        std::tuple<SingleTimestepSolution, double, std::vector<double>>
+        std::tuple<SingleTimestepSolution, double>
           executeSimulation(HygroThermFEM::SingleDomain & domain,
                             const std::vector<double> & currentValue,
                             const std::vector<double> & previousTimestepValue,
@@ -261,51 +261,11 @@ namespace HygroThermFEM
                             size_t timestepIndex)
         {
             TransientSubstitutionSolver solver;
-            auto newValueSolution = solver.transient(domain, previousTimestepValue, dTime, timestepIndex);
+            auto newValueSolution =
+              solver.transient(domain, previousTimestepValue, dTime, timestepIndex);
             auto newValueError = HygroThermFEM::errorNorm(newValueSolution.solution, currentValue);
-            auto newCurrentValue = newValueSolution.solution;
-            return std::make_tuple(newValueSolution, newValueError, newCurrentValue);
-        }
-
-
-        void executeTransientIteration(HygroThermFEM::MultiDomain & multiDomain,
-                                       const std::vector<double> & previousTimestepTemperature,
-                                       const std::vector<double> & previousTimestepHumidity,
-                                       double & temperatureError,
-                                       double & humidityError,
-                                       std::vector<double> & currentTemperature,
-                                       std::vector<double> & currentHumidity,
-                                       SingleTimestepSolution & temperatureSolution,
-                                       SingleTimestepSolution & humiditySolution,
-                                       const double dTime,
-                                       size_t timestepIndex,
-                                       const double ConvergenceError,
-                                       const size_t MaxIterations)
-        {
-            size_t localIterCounter{0};
-            while(humidityError > ConvergenceError && temperatureError > ConvergenceError
-                  && localIterCounter <= MaxIterations)
-            {
-                if(multiDomain.simulateMoisture)
-                {
-                    std::tie(humiditySolution, humidityError, currentHumidity) =
-                      executeSimulation(multiDomain.moistureDomain,
-                                        currentHumidity,
-                                        previousTimestepHumidity,
-                                        dTime,
-                                        timestepIndex);
-                }
-                if(multiDomain.simulateThermal)
-                {
-                    std::tie(temperatureSolution, temperatureError, currentTemperature) =
-                      executeSimulation(multiDomain.thermalDomain,
-                                        currentTemperature,
-                                        previousTimestepTemperature,
-                                        dTime,
-                                        timestepIndex);
-                }
-                ++localIterCounter;
-            }
+            // auto newCurrentValue = newValueSolution.solution;
+            return std::make_tuple(newValueSolution, newValueError);
         }
 
     }   // namespace
@@ -334,47 +294,33 @@ namespace HygroThermFEM
         // data for next iteration.
         do
         {
-            executeTransientIteration(domain,
-                                      previousTimestepTemperature,
-                                      previousTimestepHumidity,
-                                      temperatureError,
-                                      humidityError,
-                                      currentTemperature,
-                                      currentHumidity,
-                                      temperatureSolution,
-                                      humiditySolution,
-                                      dTime,
-                                      timestepIndex,
-                                      ConvergenceError,
-                                      MaxIterations);
-
             if(domain.simulateMoisture)
             {
                 updateNodeValues(temperatureSolution.solution, BaseVariable::temperature, false);
-                std::tie(humiditySolution, humidityError, currentHumidity) =
+                std::tie(humiditySolution, humidityError) =
                   executeSimulation(domain.moistureDomain,
                                     currentHumidity,
                                     previousTimestepHumidity,
                                     dTime,
                                     timestepIndex);
+                currentHumidity = humiditySolution.solution;
             }
 
             if(domain.simulateThermal)
             {
                 updateNodeValues(humiditySolution.solution, BaseVariable::humidity, false);
-                std::tie(temperatureSolution, temperatureError, currentTemperature) =
+                std::tie(temperatureSolution, temperatureError) =
                   executeSimulation(domain.thermalDomain,
                                     currentTemperature,
                                     previousTimestepTemperature,
                                     dTime,
                                     timestepIndex);
+                currentTemperature = temperatureSolution.solution;
             }
 
             ++currentIteration;
-        }
-
-        while((temperatureError > ConvergenceError && humidityError > ConvergenceError)
-              || currentIteration > MaxIterations);
+        } while((temperatureError > ConvergenceError && humidityError > ConvergenceError)
+                || currentIteration > MaxIterations);
 
         updateNodeValues(temperatureSolution.solution, BaseVariable::temperature, true);
         updateNodeValues(humiditySolution.solution, BaseVariable::humidity, true);
@@ -414,4 +360,4 @@ namespace HygroThermFEM
     {
         return transient(domain, previousTimestepTemperature, previousTimestepHumidity, t_DTime, 0);
     }
-}   // namespace HygroThermFEM::Substitution
+}   // namespace HygroThermFEM
