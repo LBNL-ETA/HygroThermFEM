@@ -253,19 +253,23 @@ namespace HygroThermFEM
 
     namespace
     {
-        std::tuple<SingleTimestepSolution, double>
-          executeSimulation(HygroThermFEM::SingleDomain & domain,
-                            const std::vector<double> & currentValue,
-                            const std::vector<double> & previousTimestepValue,
-                            const double dTime,
-                            size_t timestepIndex)
+        struct IterationResult
+        {
+            double error{std::numeric_limits<double>::max()};
+            SingleTimestepSolution solution;
+        };
+
+        IterationResult executeTimestepIteration(HygroThermFEM::SingleDomain & domain,
+                                          const std::vector<double> & currentValue,
+                                          const std::vector<double> & previousTimestepValue,
+                                          const double dTime,
+                                          size_t timestepIndex)
         {
             TransientSubstitutionSolver solver;
             auto newValueSolution =
               solver.transient(domain, previousTimestepValue, dTime, timestepIndex);
             auto newValueError = HygroThermFEM::errorNorm(newValueSolution.solution, currentValue);
-            // auto newCurrentValue = newValueSolution.solution;
-            return std::make_tuple(newValueSolution, newValueError);
+            return {newValueError, newValueSolution};
         }
 
     }   // namespace
@@ -297,25 +301,27 @@ namespace HygroThermFEM
             if(domain.simulateMoisture)
             {
                 updateNodeValues(temperatureSolution.solution, BaseVariable::temperature, false);
-                std::tie(humiditySolution, humidityError) =
-                  executeSimulation(domain.moistureDomain,
-                                    currentHumidity,
-                                    previousTimestepHumidity,
-                                    dTime,
-                                    timestepIndex);
-                currentHumidity = humiditySolution.solution;
+                const auto result{executeTimestepIteration(domain.moistureDomain,
+                                                           currentHumidity,
+                                                           previousTimestepHumidity,
+                                                           dTime,
+                                                           timestepIndex)};
+                humidityError = result.error;
+                humiditySolution = result.solution;
+                currentHumidity = result.solution.solution;
             }
 
             if(domain.simulateThermal)
             {
                 updateNodeValues(humiditySolution.solution, BaseVariable::humidity, false);
-                std::tie(temperatureSolution, temperatureError) =
-                  executeSimulation(domain.thermalDomain,
-                                    currentTemperature,
-                                    previousTimestepTemperature,
-                                    dTime,
-                                    timestepIndex);
-                currentTemperature = temperatureSolution.solution;
+                const auto result{executeTimestepIteration(domain.thermalDomain,
+                                                           currentTemperature,
+                                                           previousTimestepTemperature,
+                                                           dTime,
+                                                           timestepIndex)};
+                temperatureError = result.error;
+                temperatureSolution = result.solution;
+                currentTemperature = result.solution.solution;
             }
 
             ++currentIteration;
