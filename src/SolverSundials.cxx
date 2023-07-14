@@ -1,12 +1,13 @@
 #include "SolverSundials.hxx"
 
-#include <ida/ida.h>                    /* prototypes for IDA fcts., consts.    */
-#include <nvector/nvector_serial.h>     /* access to serial N_Vector            */
-#include <sundials/sundials_types.h>    /* definition of type realtype          */
-#include <sunlinsol/sunlinsol_spgmr.h>  /* access to spgmr SUNLinearSolver      */
-#include <sunmatrix/sunmatrix_band.h>   /* access to band SUNMatrix             */
-#include <sunlinsol/sunlinsol_band.h>   /* access to band SUNLinearSolver       */
+#include <ida/ida.h>                   /* prototypes for IDA fcts., consts.    */
+#include <nvector/nvector_serial.h>    /* access to serial N_Vector            */
+#include <sundials/sundials_types.h>   /* definition of type realtype          */
+#include <sunlinsol/sunlinsol_spgmr.h> /* access to spgmr SUNLinearSolver      */
+#include <sunmatrix/sunmatrix_band.h>  /* access to band SUNMatrix             */
+#include <sunlinsol/sunlinsol_band.h>  /* access to band SUNLinearSolver       */
 
+#include "MultiDomain.hxx"
 #include "SingleDomain.hxx"
 #include "NodePool.hxx"
 #include "LinearSolver.hxx"
@@ -182,8 +183,8 @@ namespace Sundials
             const realtype t0 = 0.0;
             retval = IDAInit(mem, residual, t0, uu, ud);
 
-            realtype reltol{RCONST(1.0e-6)};
-            realtype abstol{RCONST(1.0e-5)};
+            realtype reltol{RCONST(1.0e-12)};
+            realtype abstol{RCONST(1.0e-11)};
             retval = IDASStolerances(mem, reltol, abstol);
             N_VConst(abstol, vatol);
 
@@ -200,6 +201,78 @@ namespace Sundials
         }
 
     }   // namespace
+
+    struct SolverPimpl
+    {
+        SolverPimpl(HygroThermFEM::SingleDomain & domain,
+                    const std::vector<double> & previousTimestepValue) :
+            sunInit(Sundials::initializeSolver(previousTimestepValue, domain))
+        {}
+
+        SunInitialization sunInit;
+    };
+
+    SolverIDA::~SolverIDA() = default;
+
+    HygroThermFEM::SingleTimestepSolution
+      SolverIDA::transient(HygroThermFEM::SingleDomain & domain,
+                           const std::vector<double> & previousTimestepValues,
+                           double t_DTime,
+                           size_t timestepIndex)
+    {
+        if(!m_pimpl)
+        {
+            m_pimpl = std::make_shared<SolverPimpl>(domain, previousTimestepValues);
+        }
+
+        auto currentTime{t_DTime * timestepIndex};
+        auto retval =
+          IDASolve(m_pimpl->sunInit.mem, t_DTime * (timestepIndex + 1), &currentTime, m_pimpl->sunInit.uu, m_pimpl->sunInit.ud, IDA_NORMAL);
+        if(retval != IDA_SUCCESS)
+        {
+            throw HygroThermFEM::SolutionFailedToConvergeException();
+        }
+        HygroThermFEM::updateNodeValues(
+          m_pimpl->sunInit.data->solution, HygroThermFEM::baseVariableOf(m_pimpl->sunInit.data->domain), true);
+        return {m_pimpl->sunInit.data->solution, currentTime};
+    }
+
+    HygroThermFEM::SingleTimestepSolution
+      SolverIDA::transient(HygroThermFEM::SingleDomain & domain,
+                           const std::vector<double> & previousTimestepValues,
+                           double t_DTime)
+    {
+        return transient(domain, previousTimestepValues, t_DTime, 0);
+    }
+
+    HygroThermFEM::Solution
+      SolverIDA::transient(HygroThermFEM::MultiDomain & domain,
+                           const std::vector<double> & previousTimestepTemperature,
+                           const std::vector<double> & previousTimestepHumidity,
+                           double t_DTime,
+                           size_t timestepIndex)
+    {
+        return {0,
+                std::vector<double>(),
+                std::vector<double>(),
+                std::vector<double>(),
+                std::vector<double>(),
+                std::vector<double>(),
+                std::vector<double>(),
+                std::vector<HygroThermFEM::NodeFlux>(),
+                std::vector<HygroThermFEM::NodeFlux>(),
+                0,
+                0};
+    }
+
+    HygroThermFEM::Solution
+      SolverIDA::transient(HygroThermFEM::MultiDomain & domain,
+                           const std::vector<double> & previousTimestepTemperature,
+                           const std::vector<double> & previousTimestepHumidity,
+                           double t_DTime)
+    {
+        return transient(domain, previousTimestepTemperature, previousTimestepHumidity, t_DTime, 0);
+    }
 
     std::vector<HygroThermFEM::SingleTimestepSolution>
       transient(HygroThermFEM::SingleDomain & domain,
