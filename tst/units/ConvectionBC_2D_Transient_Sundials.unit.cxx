@@ -10,8 +10,8 @@ using HygroThermFEM::MaterialPool;
 class ConvectionBC_2D_Transient_Sundials : public testing::Test
 {
 public:
-    const size_t nSteps{200u};
-    const double dTime{360};
+    const size_t nSteps{20u};
+    const double dTime{3600};
     const double hc2{1};
     const double temperatureAir2{-18.0};
     const double initialT1{10};
@@ -260,11 +260,12 @@ TEST_F(ConvectionBC_2D_Transient_Sundials, TestExample_Sundials)
     temperaturesSolution.emplace_back(temperatures);
     time.emplace_back(0.0);
 
-
     Sundials::SolverIDA solver;
     for(unsigned i = 0; i < nSteps; ++i)
     {
-        temperatures = solver.transient(domain, temperatures, dTime, i).solution;
+        auto solution = solver.transient(domain, temperatures, dTime, i);
+        temperatures = solution.solution;
+        //temperatures = solver.transient(domain, temperatures, dTime, i).solution;
         temperaturesSolution.push_back(temperatures);
         time.push_back((i + 1) * dTime);
     }

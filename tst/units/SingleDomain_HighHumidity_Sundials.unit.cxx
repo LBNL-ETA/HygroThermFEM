@@ -11,8 +11,8 @@ public:
     const double dTime{3600};
     const size_t nSteps{20u};
 
-    const double domainTemperature{0.0};
-    const double domainHumidity{0.8};
+    const double domainTemperature{35.0};
+    const double domainHumidity{1.0};
     const double domainPressure{101325.0};
     const double liquidPercent{1.0};
 

@@ -10,9 +10,9 @@ namespace HygroThermFEM
     //! \brief Class to hold solution from single timestep.
     struct SingleTimestepSolution
     {
-        SingleTimestepSolution(std::vector<double> solution, double dtime) :
+        SingleTimestepSolution(const std::vector<double> & solution, double dtime) :
             dTime(dtime),
-            solution(std::move(solution))
+            solution(solution)
         {}
             std::vector<double> solution;   //!< Solution from single transient step
             double dTime;   //!< Timestep for which solution has been performed. Engine can adopt

@@ -51,6 +51,8 @@ namespace Sundials
 
         int residual(realtype, N_Vector yy, N_Vector yp, N_Vector rr, void * user_data)
         {
+            static int count = 0;
+            count++;
             /* Initialize rr to uu, to take care of boundary equations.
              * ... this should only matter for dirichlet conditions*/
             N_VScale(1.0, yy, rr);
@@ -210,6 +212,7 @@ namespace Sundials
         {}
 
         SunInitialization sunInit;
+        double currentTime{0.0};
     };
 
     SolverIDA::~SolverIDA() = default;
@@ -223,18 +226,18 @@ namespace Sundials
         if(!m_pimpl)
         {
             m_pimpl = std::make_shared<SolverPimpl>(domain, previousTimestepValues);
+            m_pimpl->currentTime = 0.0;
         }
 
-        auto currentTime{t_DTime * timestepIndex};
         auto retval =
-          IDASolve(m_pimpl->sunInit.mem, t_DTime * (timestepIndex + 1), &currentTime, m_pimpl->sunInit.uu, m_pimpl->sunInit.ud, IDA_NORMAL);
+          IDASolve(m_pimpl->sunInit.mem, t_DTime * (timestepIndex + 1), &m_pimpl->currentTime, m_pimpl->sunInit.uu, m_pimpl->sunInit.ud, IDA_NORMAL);
         if(retval != IDA_SUCCESS)
         {
             throw HygroThermFEM::SolutionFailedToConvergeException();
         }
         HygroThermFEM::updateNodeValues(
           m_pimpl->sunInit.data->solution, HygroThermFEM::baseVariableOf(m_pimpl->sunInit.data->domain), true);
-        return {m_pimpl->sunInit.data->solution, currentTime};
+        return {m_pimpl->sunInit.data->solution, m_pimpl->currentTime};
     }
 
     HygroThermFEM::SingleTimestepSolution
