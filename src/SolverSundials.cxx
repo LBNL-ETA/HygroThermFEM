@@ -16,193 +16,252 @@
 
 namespace Sundials
 {
-    namespace
+    struct UserData
     {
-        struct UserData
-        {
-            explicit UserData(HygroThermFEM::SingleDomain & domain) : domain(domain)
-            {}
-            HygroThermFEM::SingleDomain & domain;
-            size_t timestepIndex{0};
-            std::vector<double> solution;
-        };
+        explicit UserData(HygroThermFEM::SingleDomain & domain) : domain(domain)
+        {}
+        HygroThermFEM::SingleDomain & domain;
+        size_t timestepIndex{0};
+        std::vector<double> solution;
+    };
 
-        struct SunInitialization
+    struct SunInitialization
+    {
+        SunInitialization(int error,
+                          SUNContext ctx,
+                          void * mem,
+                          N_Vector uu,
+                          N_Vector ud,
+                          N_Vector rr,
+                          N_Vector pp,
+                          const std::vector<double> & uDot0,
+                          const std::shared_ptr<UserData> & data) :
+            error(error),
+            ctx(ctx),
+            mem(mem),
+            uu(uu),
+            ud(ud),
+            rr(rr),
+            pp(pp),
+            uDot0(uDot0),
+            data(data)
+        {}
+
+        ~SunInitialization()
         {
-            ~SunInitialization()
-            {
+            IDAFree(&mem);
+            N_VDestroy(uu);
+            N_VDestroy(ud);
+            N_VDestroy(rr);
+            N_VDestroy(pp);
+            SUNContext_Free(&ctx);
+        }
+
+        // Copy constructor
+        SunInitialization(const SunInitialization & other) :
+            error(other.error),
+            ctx(other.ctx),           // assuming SUNContext can be copied directly
+            uu(N_VClone(other.uu)),   // assuming this is the correct way to copy a N_Vector
+            ud(N_VClone(other.ud)),
+            rr(N_VClone(other.rr)),
+            pp(N_VClone(other.pp)),
+            uDot0(other.uDot0),
+            data(new UserData(*other.data))   // deep copy UserData
+        {
+            mem = IDACreate(ctx);   // create new mem with the copied context
+        }
+
+        // Copy assignment operator
+        SunInitialization & operator=(const SunInitialization & other)
+        {
+            if(this != &other)
+            {   // self-assignment check expected
+                // clean up the destination object
                 IDAFree(&mem);
                 N_VDestroy(uu);
                 N_VDestroy(ud);
                 N_VDestroy(rr);
                 N_VDestroy(pp);
                 SUNContext_Free(&ctx);
+
+                // copy from source to destination
+                error = other.error;
+                ctx = other.ctx;           // assuming SUNContext can be copied directly
+                uu = N_VClone(other.uu);   // assuming this is the correct way to copy a N_Vector
+                ud = N_VClone(other.ud);
+                rr = N_VClone(other.rr);
+                pp = N_VClone(other.pp);
+                uDot0 = other.uDot0;
+                data = other.data;
+
+                mem = IDACreate(ctx);   // create new mem with the copied context
             }
-            int error{0};
-            SUNContext ctx{nullptr};
-            void * mem{nullptr};
-            N_Vector uu{nullptr};
-            N_Vector ud{nullptr};
-            N_Vector rr{nullptr};
-            N_Vector pp{nullptr};
-            std::vector<double> uDot0;
-            std::unique_ptr<UserData> data;
-        };
+            return *this;
+        }
 
-        int residual(realtype, N_Vector yy, N_Vector yp, N_Vector rr, void * user_data)
+        int error{0};
+        SUNContext ctx{nullptr};
+        void * mem{nullptr};
+        N_Vector uu{nullptr};
+        N_Vector ud{nullptr};
+        N_Vector rr{nullptr};
+        N_Vector pp{nullptr};
+        std::vector<double> uDot0;
+        std::shared_ptr<UserData> data;
+    };
+
+    int residual(realtype, N_Vector yy, N_Vector yp, N_Vector rr, void * user_data)
+    {
+        static int count = 0;
+        count++;
+        /* Initialize rr to uu, to take care of boundary equations.
+         * ... this should only matter for dirichlet conditions*/
+        N_VScale(1.0, yy, rr);
+
+        const realtype * yval = N_VGetArrayPointer(yy);
+        const realtype * ypval = N_VGetArrayPointer(yp);
+        realtype * rval = N_VGetArrayPointer(rr);
+
+        sunindextype neq = N_VGetLength(yy);
+        UserData * data;
+        data = (UserData *)user_data;
+
+        auto timestepIndex = data->timestepIndex;
+
+        // Get C matrix
+        // Simon divides by dTime when getting mass matrix...
+        // so we defined a new function to get raw (lumped) mass matrix
+        auto C_eig = data->domain.elements.getCMatrix();
+        // Get stiffness matrix
+        auto K_eig = data->domain.elements.conductanceMatrix();
+        // apply bcs no stiffness matrix
+        K_eig += data->domain.boundaryConditions.HMatrix(timestepIndex);
+        // RHS vector
+        auto RHS = data->domain.boundaryConditions.RVector(timestepIndex);
+
+        double LHS;
+        for(int i = 0; i < neq; i++)
         {
-            static int count = 0;
-            count++;
-            /* Initialize rr to uu, to take care of boundary equations.
-             * ... this should only matter for dirichlet conditions*/
-            N_VScale(1.0, yy, rr);
-
-            const realtype * yval = N_VGetArrayPointer(yy);
-            const realtype * ypval = N_VGetArrayPointer(yp);
-            realtype * rval = N_VGetArrayPointer(rr);
-
-            sunindextype neq = N_VGetLength(yy);
-            UserData * data;
-            data = (UserData *)user_data;
-
-            auto timestepIndex = data->timestepIndex;
-
-            // Get C matrix
-            // Simon divides by dTime when getting mass matrix...
-            // so we defined a new function to get raw (lumped) mass matrix
-            auto C_eig = data->domain.elements.getCMatrix();
-            // Get stiffness matrix
-            auto K_eig = data->domain.elements.conductanceMatrix();
-            // apply bcs no stiffness matrix
-            K_eig += data->domain.boundaryConditions.HMatrix(timestepIndex);
-            // RHS vector
-            auto RHS = data->domain.boundaryConditions.RVector(timestepIndex);
-
-            double LHS;
-            for(int i = 0; i < neq; i++)
+            LHS = 0.0;
+            for(int j = 0; j < neq; j++)
             {
-                LHS = 0.0;
-                for(int j = 0; j < neq; j++)
-                {
-                    LHS += C_eig(i, j) * ypval[j] + K_eig(i, j) * yval[j];
-                }
-                rval[i] = LHS - RHS[i];
+                LHS += C_eig(i, j) * ypval[j] + K_eig(i, j) * yval[j];
             }
-
-            // convert solution vector to format HygroThermFEM can understand and update nodal
-            // solutions
-            data->solution.clear();
-            for(int i = 0; i < neq; i++)
-            {
-                data->solution.push_back(yval[i]);
-            }
-
-            // This does not seem necessary but keeping it here for now to check
-            // HygroThermFEM::updateNodeValues(*data->solution, baseVariableOf(*data->domain));
-
-            return 0;
+            rval[i] = LHS - RHS[i];
         }
 
-        std::vector<double> getInitialUdot(N_Vector uu, const UserData & user_data)
+        // convert solution vector to format HygroThermFEM can understand and update nodal
+        // solutions
+        data->solution.clear();
+        for(int i = 0; i < neq; i++)
         {
-            sunindextype neq = N_VGetLength(uu);
-
-            auto timestepIndex = user_data.timestepIndex;
-
-            auto C_eig = user_data.domain.elements.getCMatrix();
-            auto K_eig = user_data.domain.elements.conductanceMatrix();
-            K_eig += user_data.domain.boundaryConditions.HMatrix(timestepIndex);
-            auto RHS = user_data.domain.boundaryConditions.RVector(timestepIndex);
-
-            // turn into vector that Eigen can understand
-            const realtype * uval = N_VGetArrayPointer(uu);
-
-            std::vector<double> u0;
-            u0.reserve(neq);
-            for(int i = 0; i < neq; i++)
-            {
-                u0.push_back(uval[i]);
-            }
-
-            auto fstar = (-1.0) * K_eig * u0;
-            std::transform(fstar.begin(), fstar.end(), RHS.begin(), fstar.begin(), std::plus<>());
-
-            return HygroThermFEM::CLinearSolver::solveEigen(C_eig, fstar);
+            data->solution.push_back(yval[i]);
         }
 
-        N_Vector CreateVector(int neq, SUNContext ctx)
+        // This does not seem necessary but keeping it here for now to check
+        // HygroThermFEM::updateNodeValues(*data->solution, baseVariableOf(*data->domain));
+
+        return 0;
+    }
+
+    std::vector<double> getInitialUdot(N_Vector uu, const UserData & user_data)
+    {
+        sunindextype neq = N_VGetLength(uu);
+
+        auto timestepIndex = user_data.timestepIndex;
+
+        auto C_eig = user_data.domain.elements.getCMatrix();
+        auto K_eig = user_data.domain.elements.conductanceMatrix();
+        K_eig += user_data.domain.boundaryConditions.HMatrix(timestepIndex);
+        auto RHS = user_data.domain.boundaryConditions.RVector(timestepIndex);
+
+        // turn into vector that Eigen can understand
+        const realtype * uval = N_VGetArrayPointer(uu);
+
+        std::vector<double> u0;
+        u0.reserve(static_cast<size_t>(neq));
+        for(int i = 0; i < neq; i++)
         {
-            return N_VNew_Serial(neq, ctx);
+            u0.push_back(uval[i]);
         }
 
-        N_Vector CreateVectorFromData(const std::vector<double> & data, SUNContext ctx)
+        auto fstar = (-1.0) * K_eig * u0;
+        std::transform(fstar.begin(), fstar.end(), RHS.begin(), fstar.begin(), std::plus<>());
+
+        return HygroThermFEM::CLinearSolver::solveEigen(C_eig, fstar);
+    }
+
+    N_Vector CreateVector(int neq, SUNContext ctx)
+    {
+        return N_VNew_Serial(neq, ctx);
+    }
+
+    N_Vector CreateVectorFromData(const std::vector<double> & data, SUNContext ctx)
+    {
+        return N_VMake_Serial(data.size(), const_cast<realtype *>(data.data()), ctx);
+    }
+
+    void InitUd(const std::vector<double> & uDot0, N_Vector ud)
+    {
+        realtype * udvals = N_VGetArrayPointer(ud);
+        for(size_t j = 0u; j < uDot0.size(); j++)
         {
-            return N_VMake_Serial(data.size(), const_cast<realtype *>(data.data()), ctx);
+            udvals[j] = uDot0[j];
         }
+    }
 
-        void InitUd(const std::vector<double> & uDot0, N_Vector ud)
-        {
-            realtype * udvals = N_VGetArrayPointer(ud);
-            for(size_t j = 0u; j < uDot0.size(); j++)
-            {
-                udvals[j] = uDot0[j];
-            }
-        }
+    std::unique_ptr<UserData> CreateUserData(HygroThermFEM::SingleDomain & domain)
+    {
+        auto data{std::make_unique<UserData>(domain)};
+        data->timestepIndex = 0;
+        return data;
+    }
 
-        std::unique_ptr<UserData> CreateUserData(HygroThermFEM::SingleDomain & domain)
-        {
-            auto data{std::make_unique<UserData>(domain)};
-            data->timestepIndex = 0;
-            return data;
-        }
+    SUNLinearSolver CreateSolver(N_Vector uu, SUNMatrix A, SUNContext ctx)
+    {
+        return SUNLinSol_Band(uu, A, ctx);
+    }
 
-        SUNLinearSolver CreateSolver(N_Vector uu, SUNMatrix A, SUNContext ctx)
-        {
-            return SUNLinSol_Band(uu, A, ctx);
-        }
+    SunInitialization initializeSolver(const std::vector<double> & initialValues,
+                                       HygroThermFEM::SingleDomain & domain)
+    {
+        SUNContext ctx;
+        int retval{SUNContext_Create(nullptr, &ctx)};
+        const auto neq = HygroThermFEM::maxNodeIndex();
 
-        SunInitialization initializeSolver(const std::vector<double> & initialValues,
-                                           HygroThermFEM::SingleDomain & domain)
-        {
-            SUNContext ctx;
-            int retval{SUNContext_Create(nullptr, &ctx)};
-            const auto neq = HygroThermFEM::maxNodeIndex();
+        N_Vector ud = CreateVector(neq, ctx);
+        N_Vector rr = CreateVector(neq, ctx);
+        N_Vector vatol = CreateVector(neq, ctx);
+        N_Vector uu = CreateVectorFromData(initialValues, ctx);
 
-            N_Vector ud = CreateVector(neq, ctx);
-            N_Vector rr = CreateVector(neq, ctx);
-            N_Vector vatol = CreateVector(neq, ctx);
-            N_Vector uu = CreateVectorFromData(initialValues, ctx);
+        N_VConst(29.0, rr);
 
-            N_VConst(29.0, rr);
+        void * mem = IDACreate(ctx);
+        auto data = CreateUserData(domain);
+        retval = IDASetUserData(mem, data.get());
 
-            void * mem = IDACreate(ctx);
-            auto data = CreateUserData(domain);
-            retval = IDASetUserData(mem, data.get());
+        auto uDot0 = getInitialUdot(uu, *data);
+        InitUd(uDot0, ud);
 
-            auto uDot0 = getInitialUdot(uu, *data);
-            InitUd(uDot0, ud);
+        const realtype t0 = 0.0;
+        retval = IDAInit(mem, residual, t0, uu, ud);
 
-            const realtype t0 = 0.0;
-            retval = IDAInit(mem, residual, t0, uu, ud);
+        realtype reltol{RCONST(1.0e-12)};
+        realtype abstol{RCONST(1.0e-11)};
+        retval = IDASStolerances(mem, reltol, abstol);
+        N_VConst(abstol, vatol);
 
-            realtype reltol{RCONST(1.0e-12)};
-            realtype abstol{RCONST(1.0e-11)};
-            retval = IDASStolerances(mem, reltol, abstol);
-            N_VConst(abstol, vatol);
+        SUNMatrix A = SUNBandMatrix(neq, neq, neq, ctx);
+        SUNLinearSolver LS = CreateSolver(uu, A, ctx);
 
-            SUNMatrix A = SUNBandMatrix(neq, neq, neq, ctx);
-            SUNLinearSolver LS = CreateSolver(uu, A, ctx);
+        retval = IDASetLinearSolver(mem, LS, A);
+        constexpr auto maxSteps{10000};
+        retval = IDASetMaxNumSteps(mem, maxSteps);
 
-            retval = IDASetLinearSolver(mem, LS, A);
-            constexpr auto maxSteps{10000};
-            retval = IDASetMaxNumSteps(mem, maxSteps);
+        N_Vector pp = N_VClone(uu);
 
-            N_Vector pp = N_VClone(uu);
-
-            return {retval, ctx, mem, uu, ud, rr, pp, uDot0, std::move(data)};
-        }
-
-    }   // namespace
+        return {retval, ctx, mem, uu, ud, rr, pp, uDot0, std::move(data)};
+    }
 
     struct SolverPimpl
     {
@@ -210,6 +269,11 @@ namespace Sundials
                     const std::vector<double> & previousTimestepValue) :
             sunInit(Sundials::initializeSolver(previousTimestepValue, domain))
         {}
+
+        int solve(double t_DTime)
+        {
+            return IDASolve(sunInit.mem, t_DTime, &currentTime, sunInit.uu, sunInit.ud, IDA_NORMAL);
+        }
 
         SunInitialization sunInit;
         double currentTime{0.0};
@@ -229,14 +293,15 @@ namespace Sundials
             m_pimpl->currentTime = 0.0;
         }
 
-        auto retval =
-          IDASolve(m_pimpl->sunInit.mem, t_DTime * (timestepIndex + 1), &m_pimpl->currentTime, m_pimpl->sunInit.uu, m_pimpl->sunInit.ud, IDA_NORMAL);
+        auto retval{m_pimpl->solve(t_DTime * (timestepIndex + 1))};
         if(retval != IDA_SUCCESS)
         {
             throw HygroThermFEM::SolutionFailedToConvergeException();
         }
         HygroThermFEM::updateNodeValues(
-          m_pimpl->sunInit.data->solution, HygroThermFEM::baseVariableOf(m_pimpl->sunInit.data->domain), true);
+          m_pimpl->sunInit.data->solution,
+          HygroThermFEM::baseVariableOf(m_pimpl->sunInit.data->domain),
+          true);
         return {m_pimpl->sunInit.data->solution, m_pimpl->currentTime};
     }
 
@@ -275,6 +340,28 @@ namespace Sundials
                            double t_DTime)
     {
         return transient(domain, previousTimestepTemperature, previousTimestepHumidity, t_DTime, 0);
+    }
+
+    HygroThermFEM::SingleTimestepSolution
+      SolverIDA::transient(const std::shared_ptr<SolverPimpl> & pimpl,
+                           HygroThermFEM::SingleDomain & domain,
+                           const std::vector<double> & previousTimestepValues,
+                           double t_DTime,
+                           size_t timestepIndex)
+    {
+        if(pimpl)
+        {
+            auto retval{pimpl->solve(t_DTime * (timestepIndex + 1))};
+            if(retval != IDA_SUCCESS)
+            {
+                throw HygroThermFEM::SolutionFailedToConvergeException();
+            }
+            HygroThermFEM::updateNodeValues(
+              pimpl->sunInit.data->solution,
+              HygroThermFEM::baseVariableOf(pimpl->sunInit.data->domain),
+              true);
+            return {pimpl->sunInit.data->solution, pimpl->currentTime};
+        }
     }
 
     std::vector<HygroThermFEM::SingleTimestepSolution>

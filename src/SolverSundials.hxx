@@ -27,6 +27,13 @@ namespace Sundials
                     size_t timestepIndex) override;
 
         HygroThermFEM::SingleTimestepSolution
+          transient(const std::shared_ptr<SolverPimpl> & pimpl,
+                    HygroThermFEM::SingleDomain & domain,
+                    const std::vector<double> & previousTimestepValues,
+                    double t_DTime,
+                    size_t timestepIndex);
+
+        HygroThermFEM::SingleTimestepSolution
           transient(HygroThermFEM::SingleDomain & domain,
                     const std::vector<double> & previousTimestepValues,
                     double t_DTime);
@@ -38,9 +45,9 @@ namespace Sundials
                                           size_t timestepIndex) override;
 
         HygroThermFEM::Solution transient(HygroThermFEM::MultiDomain & domain,
-                                                const std::vector<double> & previousTimestepTemperature,
-                                                const std::vector<double> & previousTimestepHumidity,
-                                                double t_DTime);
+                                          const std::vector<double> & previousTimestepTemperature,
+                                          const std::vector<double> & previousTimestepHumidity,
+                                          double t_DTime);
 
     private:
         std::shared_ptr<SolverPimpl> m_pimpl;

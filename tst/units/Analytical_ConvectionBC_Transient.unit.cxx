@@ -14,9 +14,82 @@ using HygroThermFEM::MaterialPool;
 
 class Analytical_TemperatureBC_Transient : public testing::Test
 {
+public:
+    const double dTime{0.001};
+    const size_t nSteps{1000u};
+    HygroThermFEM::SingleDomain domain{HygroThermFEM::DomainType::Thermal};
+
 protected:
     void SetUp() override
-    {}
+    {
+        /// Create slab that is 10 cm long and have nodes at every 1 cm
+        std::vector<double> gridXCoordinates{0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0};
+
+        const auto initialTemperature = 1.0;
+        const auto initialHumidity = 0.0;
+        const auto initialPressure = 101325.0;
+
+        HygroThermFEM::State state(initialTemperature, initialHumidity, initialPressure, 0);
+
+        size_t nodeIndex = 0;
+        for(auto val : gridXCoordinates)
+        {
+            ++nodeIndex;
+            NodePool::Instance().createNode(nodeIndex, val, 0.00, state);
+            ++nodeIndex;
+            NodePool::Instance().createNode(nodeIndex, val, 0.05, state);
+        }
+
+        // Material Properties
+        const double thermalConductivityDry{1.0};
+        const double density{1.0};
+        const double porosity{0.0};
+        const double specificHeatCapacityDry{1.0};
+        const double diffusionResistanceFactor{15.0};
+        const std::vector<FenestrationCommon::point> thermalConductivityMoistureDependent = {
+          {0.0, 1.0}, {180, 1.0}};
+        const double thermalConductivityMeasuredAtTemperature{0};
+        const std::vector<FenestrationCommon::point> thermalConductivityTemperatureDependent = {
+          {0.0, 1.0}, {1, 1.0}};
+        const double thermalConductivityMeasuredAtHumidity{0};
+        const std::vector<FenestrationCommon::point> liquidTransportationCurve = {{0, 0},
+                                                                                  {180, 7E-7}};
+
+        const std::vector<FenestrationCommon::point> moistureStorageFunction = {{0, 0}, {1, 180}};
+
+        auto & material =
+          MaterialPool::Instance().createSolidMaterial("Test Material",
+                                                       thermalConductivityDry,
+                                                       density,
+                                                       porosity,
+                                                       specificHeatCapacityDry,
+                                                       diffusionResistanceFactor,
+                                                       thermalConductivityMoistureDependent,
+                                                       thermalConductivityMeasuredAtTemperature,
+                                                       thermalConductivityTemperatureDependent,
+                                                       thermalConductivityMeasuredAtHumidity,
+                                                       liquidTransportationCurve,
+                                                       moistureStorageFunction);
+
+        /// Create elements
+        for(size_t i = 1; i <= (HygroThermFEM::maxNodeIndex() - 2) / 2; ++i)
+        {
+            const auto node1 = 2u * i - 1u;
+            const auto node2 = 2u * i + 1u;
+            const auto node3 = 2u * i + 2u;
+            const auto node4 = 2u * i;
+
+            createElement(domain, node1, node2, node3, node4, material.name());
+        }
+
+        // Create Boundary Conditions
+        const auto tAir = 0.0;
+        const auto hc = 1.0;
+
+        const HygroThermFEM::FixedBCHCCoefficients bcCoeff{tAir, hc};
+
+        HygroThermFEM::Thermal::createBC_FixedHc(domain, 21, 22, bcCoeff);
+    }
 
     void TearDown() override
     {
@@ -25,90 +98,16 @@ protected:
     }
 };
 
-TEST_F(Analytical_TemperatureBC_Transient, TestExample_1)
+TEST_F(Analytical_TemperatureBC_Transient, SubstitutionSolver)
 {
-    SCOPED_TRACE("Begin Test: Example.");
-
-    /// Create slab that is 10 cm long and have nodes at every 1 cm
-    std::vector<double> gridXCoordinates{0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0};
-
-    const auto initialTemperature = 1.0;
-    const auto initialHumidity = 0.0;
-    const auto initialPressure = 101325.0;
-
-    HygroThermFEM::State state(initialTemperature, initialHumidity, initialPressure, 0);
-
-    size_t nodeIndex = 0;
-    for(auto val : gridXCoordinates)
-    {
-        ++nodeIndex;
-        NodePool::Instance().createNode(nodeIndex, val, 0.00, state);
-        ++nodeIndex;
-        NodePool::Instance().createNode(nodeIndex, val, 0.05, state);
-    }
-
-    // Material Properties
-    const double thermalConductivityDry{1.0};
-    const double density{1.0};
-    const double porosity{0.0};
-    const double specificHeatCapacityDry{1.0};
-    const double diffusionResistanceFactor{15.0};
-    const std::vector<FenestrationCommon::point> thermalConductivityMoistureDependent = {
-            {0.0, 1.0}, {180, 1.0}};
-    const double thermalConductivityMeasuredAtTemperature{0};
-    const std::vector<FenestrationCommon::point> thermalConductivityTemperatureDependent = {
-            {0.0, 1.0}, {1, 1.0}};
-    const double thermalConductivityMeasuredAtHumidity{0};
-    const std::vector<FenestrationCommon::point> liquidTransportationCurve = {{0, 0},
-                                                                              {180, 7E-7}};
-
-    const std::vector<FenestrationCommon::point> moistureStorageFunction = {{0, 0},
-                                                                            {1, 180}};
-
-    auto & material =
-            MaterialPool::Instance().createSolidMaterial("Test Material",
-                                                         thermalConductivityDry,
-                                                         density,
-                                                         porosity,
-                                                         specificHeatCapacityDry,
-                                                         diffusionResistanceFactor,
-                                                         thermalConductivityMoistureDependent,
-                                                         thermalConductivityMeasuredAtTemperature,
-                                                         thermalConductivityTemperatureDependent,
-                                                         thermalConductivityMeasuredAtHumidity,
-                                                         liquidTransportationCurve,
-                                                         moistureStorageFunction);
-
-    HygroThermFEM::SingleDomain domain{HygroThermFEM::DomainType::Thermal};
-
-    /// Create elements
-    for(size_t i = 1; i <= (HygroThermFEM::maxNodeIndex() - 2) / 2; ++i)
-    {
-        const auto node1 = 2u * i - 1u;
-        const auto node2 = 2u * i + 1u;
-        const auto node3 = 2u * i + 2u;
-        const auto node4 = 2u * i;
-
-        createElement(domain, node1, node2, node3, node4, material.name());
-    }
-
-    // Create Boundary Conditions
-    const auto tAir = 0.0;
-    const auto hc = 1.0;
-
-    const HygroThermFEM::FixedBCHCCoefficients bcCoeff{tAir, hc};
-
-    HygroThermFEM::Thermal::createBC_FixedHc(domain, 21, 22, bcCoeff);
-
-    const auto dTime = 0.001;
-    const auto nSteps = 1000;
+    SCOPED_TRACE("Begin Test: Substitution solver.");
 
     auto temperatures = properties(HygroThermFEM::Variable::temperature);
     std::vector<std::vector<double>> solution;
 
+    HygroThermFEM::TransientSubstitutionSolver solver;
     for(unsigned i = 0; i < nSteps; ++i)
     {
-        HygroThermFEM::TransientSubstitutionSolver solver;
         temperatures = solver.transient(domain, temperatures, dTime).solution;
         solution.push_back(temperatures);
     }
@@ -123,6 +122,42 @@ TEST_F(Analytical_TemperatureBC_Transient, TestExample_1)
                                                            {0.61903, 0.56264, 0.40374},
                                                            {0.57487, 0.52250, 0.37493},
                                                            {0.53386, 0.48522, 0.34818}};
+
+    EXPECT_EQ(solution.size(), analyticalSolution.size() * 100);
+
+    for(auto i = 0u; i < analyticalSolution.size(); ++i)
+    {
+        for(auto j = 0u; j < analyticalSolution[i].size(); ++j)
+        {
+            EXPECT_NEAR(analyticalSolution[i][j], solution[100 * i + 99][j * 10], 0.002);
+        }
+    }
+}
+
+TEST_F(Analytical_TemperatureBC_Transient, SundialsSolver)
+{
+    auto temperatures = properties(HygroThermFEM::Variable::temperature);
+    std::vector<std::vector<double>> solution;
+
+    Sundials::SolverIDA solver;
+    for(size_t i = 0u; i < nSteps; ++i)
+    {
+        auto solutionStep = solver.transient(domain, temperatures, dTime, i);
+        temperatures = solutionStep.solution;
+        // temperatures = solver.transient(domain, temperatures, dTime, i).solution;
+        solution.push_back(temperatures);
+    }
+
+    std::vector<std::vector<double>> analyticalSolution = {{0.992843, 0.950772, 0.724161},
+                                                           {0.950036, 0.878826, 0.642953},
+                                                           {0.890328, 0.813873, 0.587632},
+                                                           {0.830878, 0.756627, 0.543956},
+                                                           {0.771802, 0.701891, 0.503843},
+                                                           {0.714948, 0.649894, 0.46628},
+                                                           {0.665419, 0.604788, 0.433849},
+                                                           {0.616496, 0.560295, 0.401909},
+                                                           {0.573726, 0.521416, 0.374014},
+                                                           {0.53296, 0.484364, 0.347434}};
 
     EXPECT_EQ(solution.size(), analyticalSolution.size() * 100);
 
