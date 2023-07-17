@@ -54,9 +54,9 @@ namespace HygroThermFEM
                            double t_DTime);
 
     protected:
-        IterationResult performDomainIteration(HygroThermFEM::SingleDomain & domain,
+        IterationResult performDomainIteration(SingleDomain & domain,
                                                std::vector<double> & currentVariable,
-                                               const std::vector<double> & previousVariable,
+                                               const std::vector<double> & previousTimestepVariable,
                                                double dTime,
                                                size_t timestepIndex);
     };

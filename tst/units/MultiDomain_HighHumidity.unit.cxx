@@ -241,7 +241,7 @@ TEST_F(MultiDomain_HighHumidity, Sundials)
     Sundials::SolverIDA solver;
     for(auto i = 0u; i < nSteps; ++i)
     {
-        auto aSolution = solver.transient(domain, temperatures, humidities, dTime, timestepIndex);
+        auto aSolution = solver.transient(domain, temperatures, humidities, dTime, i);
         temperatureSolution.push_back(aSolution.temperature);
         temperatureError.push_back(aSolution.temperatureError);
         waterContentSolution.push_back(aSolution.waterContent);

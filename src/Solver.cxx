@@ -90,12 +90,12 @@ namespace HygroThermFEM
     IterationResult
       TransientSolver::performDomainIteration(SingleDomain & domain,
                                               std::vector<double> & currentVariable,
-                                              const std::vector<double> & previousVariable,
+                                              const std::vector<double> & previousTimestepVariable,
                                               double dTime,
                                               size_t timestepIndex)
     {
         {
-            auto newValueSolution = transient(domain, previousVariable, dTime, timestepIndex);
+            auto newValueSolution = transient(domain, previousTimestepVariable, dTime, timestepIndex);
             auto newValueError =
               HygroThermFEM::errorNorm(newValueSolution.solution, currentVariable);
             updateNodeValues(newValueSolution.solution, baseVariableOf(domain), false);

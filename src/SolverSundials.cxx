@@ -296,7 +296,7 @@ namespace Sundials
         }
         HygroThermFEM::updateNodeValues(pimpl->sunInit.data->solution,
                                         HygroThermFEM::baseVariableOf(pimpl->sunInit.data->domain),
-                                        true);
+                                        false);
         return {pimpl->sunInit.data->solution, pimpl->currentTime};
     }
 
