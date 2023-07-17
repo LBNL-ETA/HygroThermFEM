@@ -38,4 +38,5 @@
 #include "../src/ModelUtilities.hxx"
 #include "../src/GravityVector.hxx"
 #include "../src/SolutionVariables.hxx"
+#include "../src/SolverSubstitution.hxx"
 #include "../src/SolverSundials.hxx"

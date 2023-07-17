@@ -1,11 +1,18 @@
 #pragma once
 
 #include "SolutionVariables.hxx"
+#include "FEMMath.hxx"
 
 namespace HygroThermFEM
 {
-    struct SingleDomain;
     struct MultiDomain;
+    struct SingleDomain;
+
+    struct IterationResult
+    {
+        double error{std::numeric_limits<double>::max()};
+        SingleTimestepSolution solution;
+    };
 
     class TransientSolver
     {
@@ -22,7 +29,7 @@ namespace HygroThermFEM
         //! and timestep for which solution has been performed. Engine can adopt new timestep for
         //! which solution will converge.
         virtual HygroThermFEM::SingleTimestepSolution
-          transient(SingleDomain & domain,
+          transient(HygroThermFEM::SingleDomain & domain,
                     const std::vector<double> & previousTimestepValues,
                     double t_DTime,
                     size_t timestepIndex) = 0;
@@ -40,5 +47,13 @@ namespace HygroThermFEM
                                    const std::vector<double> & previousTimestepHumidity,
                                    double t_DTime,
                                    size_t timestepIndex) = 0;
+
+    protected:
+        IterationResult performDomainIteration(HygroThermFEM::SingleDomain & domain,
+                                               std::vector<double> & currentVariable,
+                                               const std::vector<double> & previousVariable,
+                                               double dTime,
+                                               size_t timestepIndex);
     };
+
 }   // namespace HygroThermFEM

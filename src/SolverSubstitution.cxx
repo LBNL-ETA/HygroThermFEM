@@ -251,16 +251,6 @@ namespace HygroThermFEM
         return {solution, t_DTime};
     }
 
-    namespace
-    {
-        struct IterationResult
-        {
-            double error{std::numeric_limits<double>::max()};
-            SingleTimestepSolution solution;
-        };
-
-    }   // namespace
-
     IterationResult performDomainIteration(HygroThermFEM::SingleDomain & domain,
                                            std::vector<double> & currentVariable,
                                            const std::vector<double> & previousVariable,
