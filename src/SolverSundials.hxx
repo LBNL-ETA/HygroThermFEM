@@ -3,13 +3,10 @@
 #include <vector>
 #include <memory>
 
+#include "SingleDomain.hxx"
 #include "SolutionVariables.hxx"
 #include "Solver.hxx"
 
-namespace HygroThermFEM
-{
-    struct SingleDomain;
-}
 
 namespace Sundials
 {
@@ -43,7 +40,10 @@ namespace Sundials
                                           double t_DTime);
 
     private:
-        std::shared_ptr<SolverPimpl> m_pimpl;
+        std::map<HygroThermFEM::DomainType, std::shared_ptr<SolverPimpl>> m_pimpls;
+        std::shared_ptr<SolverPimpl> &
+          getSolverPimpl(HygroThermFEM::SingleDomain & domain,
+                         const std::vector<double> & previousTimestepValues);
     };
 
     // Put vector for now, but this is not going to work in long term because we need to switch

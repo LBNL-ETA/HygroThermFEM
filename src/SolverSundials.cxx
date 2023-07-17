@@ -287,22 +287,17 @@ namespace Sundials
                            double t_DTime,
                            size_t timestepIndex)
     {
-        if(!m_pimpl)
-        {
-            m_pimpl = std::make_shared<SolverPimpl>(domain, previousTimestepValues);
-            m_pimpl->currentTime = 0.0;
-        }
+        auto & pimpl = getSolverPimpl(domain, previousTimestepValues);
 
-        auto retval{m_pimpl->solve(t_DTime * (timestepIndex + 1))};
+        auto retval{pimpl->solve(t_DTime * (timestepIndex + 1))};
         if(retval != IDA_SUCCESS)
         {
             throw HygroThermFEM::SolutionFailedToConvergeException();
         }
-        HygroThermFEM::updateNodeValues(
-          m_pimpl->sunInit.data->solution,
-          HygroThermFEM::baseVariableOf(m_pimpl->sunInit.data->domain),
-          true);
-        return {m_pimpl->sunInit.data->solution, m_pimpl->currentTime};
+        HygroThermFEM::updateNodeValues(pimpl->sunInit.data->solution,
+                                        HygroThermFEM::baseVariableOf(pimpl->sunInit.data->domain),
+                                        true);
+        return {pimpl->sunInit.data->solution, pimpl->currentTime};
     }
 
     HygroThermFEM::SingleTimestepSolution
@@ -340,6 +335,21 @@ namespace Sundials
                            double t_DTime)
     {
         return transient(domain, previousTimestepTemperature, previousTimestepHumidity, t_DTime, 0);
+    }
+
+    std::shared_ptr<SolverPimpl> &
+      SolverIDA::getSolverPimpl(HygroThermFEM::SingleDomain & domain,
+                                const std::vector<double> & previousTimestepValues)
+    {
+        auto it = m_pimpls.find(domain.domainType);
+        if(it == m_pimpls.end() || it->second == nullptr)
+        {
+            m_pimpls[domain.domainType] =
+              std::make_shared<SolverPimpl>(domain, previousTimestepValues);
+            m_pimpls[domain.domainType]->currentTime = 0.0;
+        }
+
+        return m_pimpls[domain.domainType];
     }
 
     std::vector<HygroThermFEM::SingleTimestepSolution>
