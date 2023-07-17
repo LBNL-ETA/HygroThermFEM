@@ -144,7 +144,6 @@ TEST_F(Analytical_TemperatureBC_Transient, SundialsSolver)
     {
         auto solutionStep = solver.transient(domain, temperatures, dTime, i);
         temperatures = solutionStep.solution;
-        // temperatures = solver.transient(domain, temperatures, dTime, i).solution;
         solution.push_back(temperatures);
     }
 

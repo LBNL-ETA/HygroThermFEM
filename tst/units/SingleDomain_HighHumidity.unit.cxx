@@ -5,7 +5,7 @@
 
 #include "HygroThermFEM2D.hxx"
 
-class SingleDomain_HighHumidity_Sundials : public testing::Test
+class SingleDomain_HighHumidity : public testing::Test
 {
 public:
     HygroThermFEM::SingleDomain domain{HygroThermFEM::DomainType::Moisture};
@@ -13,13 +13,13 @@ public:
     const double dTime{3600};
     const size_t nSteps{20u};
 
-    const double domainTemperature{35.0};
-    const double domainHumidity{1.0};
+    const double domainTemperature{25.0};
+    const double domainHumidity{0.9};
     const double domainPressure{101325.0};
     const double liquidPercent{1.0};
 
-    const double hc{26.0};
-    const double airTemperature{35.0};
+    const double hc{8.0};
+    const double airTemperature{15.0};
     const double airHumidity{1.0};
 
 protected:
@@ -113,127 +113,109 @@ protected:
     }
 };
 
-TEST_F(SingleDomain_HighHumidity_Sundials, Substitution)
+TEST_F(SingleDomain_HighHumidity, Substitution)
 {
     SCOPED_TRACE("Begin Test: Simple two elements example with moisture transfer (Substitution).");
 
     auto temperatures{properties(HygroThermFEM::Variable::temperature)};
     auto humidities{properties(HygroThermFEM::Variable::humidity)};
-    std::vector<std::vector<double>> temperatureSolution;
-    std::vector<double> temperatureError;
-    std::vector<double> time;
-    std::vector<std::vector<double>> waterContentSolution;
     std::vector<std::vector<double>> humiditySolution;
     std::vector<double> humidityError;
 
     humiditySolution.emplace_back(humidities);
-    time.emplace_back(0.0);
 
-    for(auto i = 0u; i < nSteps; ++i)
+    HygroThermFEM::TransientSubstitutionSolver solver;
+    for(unsigned i = 0; i < nSteps; ++i)
     {
-        HygroThermFEM::TransientSubstitutionSolver solver;
-        auto aSolution{solver.transient(domain, humidities, dTime, 0u)};
-        humiditySolution.push_back(aSolution.solution);
-        humidities = aSolution.solution;
-        time.push_back((i + 1) * dTime);
+        auto solution{solver.transient(domain, humidities, dTime, i)};
+        humidities = solution.solution;
+        humiditySolution.emplace_back(humidities);
     }
 
-    std::ostringstream filename;
-    filename << "Substitution_" << dTime << ".csv";
+    const std::vector<std::vector<double>> correctHumiditySolution{
+      {0.900000, 0.900000, 0.900000, 0.900000, 0.900000, 0.900000},
+      {0.900000, 0.900000, 0.899984, 0.899984, 0.815263, 0.815263},
+      {0.900000, 0.900000, 0.899956, 0.899956, 0.746663, 0.746663},
+      {0.900000, 0.900000, 0.899917, 0.899917, 0.694754, 0.694754},
+      {0.900000, 0.900000, 0.899872, 0.899872, 0.656811, 0.656811},
+      {0.900000, 0.900000, 0.899821, 0.899821, 0.629250, 0.629250},
+      {0.900000, 0.900000, 0.899767, 0.899767, 0.609326, 0.609326},
+      {0.900000, 0.900000, 0.899710, 0.899710, 0.594974, 0.594974},
+      {0.900000, 0.900000, 0.899650, 0.899650, 0.584664, 0.584664},
+      {0.900000, 0.900000, 0.899590, 0.899590, 0.577272, 0.577272},
+      {0.900000, 0.900000, 0.899528, 0.899528, 0.571979, 0.571979},
+      {0.900000, 0.900000, 0.899466, 0.899466, 0.568193, 0.568193},
+      {0.900000, 0.900000, 0.899403, 0.899403, 0.565489, 0.565489},
+      {0.899999, 0.899999, 0.899339, 0.899339, 0.563560, 0.563560},
+      {0.899999, 0.899999, 0.899275, 0.899275, 0.562183, 0.562183},
+      {0.899999, 0.899999, 0.899211, 0.899211, 0.561203, 0.561203},
+      {0.899999, 0.899999, 0.899147, 0.899147, 0.560504, 0.560504},
+      {0.899999, 0.899999, 0.899083, 0.899083, 0.560007, 0.560007},
+      {0.899999, 0.899999, 0.899018, 0.899018, 0.559653, 0.559653},
+      {0.899999, 0.899999, 0.898953, 0.898953, 0.559401, 0.559401},
+      {0.899999, 0.899999, 0.898889, 0.898889, 0.559221, 0.559221},
+    };
 
-    std::ofstream myfile;
-    myfile.open(filename.str());
+    EXPECT_EQ(humiditySolution.size(), correctHumiditySolution.size());
 
-    // loop over both the time and temperaturesSolution simultaneously
-    for(size_t i = 0; i < humiditySolution.size(); i++)
+    for(auto i = 0u; i < humiditySolution.size(); ++i)
     {
-        // first print the time
-        myfile << time[i] << ", ";
-        // then print the temperatures for this time
-        for(auto & val : humiditySolution[i])
+        for(auto j = 0u; j < humiditySolution[i].size(); ++j)
         {
-            myfile << val << ", ";
+            EXPECT_NEAR(correctHumiditySolution[i][j], humiditySolution[i][j], 1e-6);
         }
-        myfile << std::endl;
     }
-    myfile.close();
-
-    const std::vector<double> correctHumidityError{4.131868e-07, 1.509739e-06};
-    const std::vector<std::vector<double>> correctWaterContentSolution{
-      {121.994944, 121.994944, 122.127524, 122.127524, 122.292494, 122.292494},
-      {123.768705, 123.768705, 123.876207, 123.876207, 124.010072, 124.010072}};
-
-    // EXPECT_EQ(waterContentSolution.size(), correctWaterContentSolution.size());
-    //
-    // for(auto i = 0u; i < waterContentSolution.size(); ++i)
-    //{
-    //    EXPECT_NEAR(correctHumidityError[i], humidityError[i], 1e-10);
-    //    for(auto j = 0u; j < waterContentSolution[i].size(); ++j)
-    //    {
-    //        EXPECT_NEAR(correctWaterContentSolution[i][j], waterContentSolution[i][j], 1e-6);
-    //    }
-    //}
 }
 
-TEST_F(SingleDomain_HighHumidity_Sundials, Sundials)
+TEST_F(SingleDomain_HighHumidity, Sundials)
 {
     SCOPED_TRACE("Begin Test: Simple two elements example with moisture transfer (Sundials).");
 
     auto temperatures{properties(HygroThermFEM::Variable::temperature)};
     auto humidities{properties(HygroThermFEM::Variable::humidity)};
-    std::vector<std::vector<double>> temperatureSolution;
-    std::vector<double> temperatureError;
-    std::vector<double> time;
-    std::vector<std::vector<double>> waterContentSolution;
     std::vector<std::vector<double>> humiditySolution;
-    std::vector<double> humidityError;
 
     humiditySolution.emplace_back(humidities);
-    time.emplace_back(0.0);
 
     Sundials::SolverIDA solver;
     for(unsigned i = 0; i < nSteps; ++i)
     {
         auto solution{solver.transient(domain, humidities, dTime, i)};
         humidities = solution.solution;
-        //humidities = solver.transient(domain, humidities, dTime, i).solution;
         humiditySolution.emplace_back(humidities);
-        time.emplace_back(solution.dTime);
     }
 
-    std::ostringstream filename;
-    filename << "Sundials_" << dTime << ".csv";
+    const std::vector<std::vector<double>> correctHumiditySolution{
+      {0.900000, 0.900000, 0.900000, 0.900000, 0.900000, 0.900000},
+      {0.900000, 0.900000, 0.899997, 0.899997, 0.866514, 0.866514},
+      {0.900000, 0.900000, 0.899983, 0.899983, 0.791222, 0.791222},
+      {0.900000, 0.900000, 0.899956, 0.899956, 0.723636, 0.723636},
+      {0.900000, 0.900000, 0.899918, 0.899918, 0.671543, 0.671543},
+      {0.900000, 0.900000, 0.899873, 0.899873, 0.636146, 0.636146},
+      {0.900000, 0.900000, 0.899822, 0.899822, 0.611443, 0.611443},
+      {0.900000, 0.900000, 0.899765, 0.899765, 0.593958, 0.593958},
+      {0.900000, 0.900000, 0.899705, 0.899705, 0.582241, 0.582241},
+      {0.900000, 0.900000, 0.899646, 0.899646, 0.574639, 0.574639},
+      {0.900000, 0.900000, 0.899585, 0.899585, 0.569492, 0.569492},
+      {0.900000, 0.900000, 0.899519, 0.899519, 0.565803, 0.565803},
+      {0.900000, 0.900000, 0.899457, 0.899457, 0.563484, 0.563484},
+      {0.900000, 0.900000, 0.899397, 0.899397, 0.562008, 0.562008},
+      {0.900000, 0.900000, 0.899332, 0.899332, 0.560916, 0.560916},
+      {0.899999, 0.899999, 0.899267, 0.899267, 0.560202, 0.560202},
+      {0.899999, 0.899999, 0.899199, 0.899199, 0.559708, 0.559708},
+      {0.899999, 0.899999, 0.899140, 0.899140, 0.559421, 0.559421},
+      {0.899999, 0.899999, 0.899074, 0.899074, 0.559202, 0.559202},
+      {0.899999, 0.899999, 0.899010, 0.899010, 0.559064, 0.559064},
+      {0.899999, 0.899999, 0.898943, 0.898943, 0.558966, 0.558966},
+    };
 
-    std::ofstream myfile;
-    myfile.open(filename.str());
+    EXPECT_EQ(humiditySolution.size(), correctHumiditySolution.size());
 
-    // loop over both the time and temperaturesSolution simultaneously
-    for(size_t i = 0; i < humiditySolution.size(); i++)
+    for(auto i = 0u; i < humiditySolution.size(); ++i)
     {
-        // first print the time
-        myfile << time[i] << ", ";
-        // then print the temperatures for this time
-        for(auto & val : humiditySolution[i])
+        for(auto j = 0u; j < humiditySolution[i].size(); ++j)
         {
-            myfile << val << ", ";
+            EXPECT_NEAR(correctHumiditySolution[i][j], humiditySolution[i][j], 1e-6);
         }
-        myfile << std::endl;
     }
-    myfile.close();
-
-    const std::vector<double> correctHumidityError{4.131868e-07, 1.509739e-06};
-    const std::vector<std::vector<double>> correctWaterContentSolution{
-      {121.994944, 121.994944, 122.127524, 122.127524, 122.292494, 122.292494},
-      {123.768705, 123.768705, 123.876207, 123.876207, 124.010072, 124.010072}};
-
-    // EXPECT_EQ(waterContentSolution.size(), correctWaterContentSolution.size());
-    //
-    // for(auto i = 0u; i < waterContentSolution.size(); ++i)
-    //{
-    //    EXPECT_NEAR(correctHumidityError[i], humidityError[i], 1e-10);
-    //    for(auto j = 0u; j < waterContentSolution[i].size(); ++j)
-    //    {
-    //        EXPECT_NEAR(correctWaterContentSolution[i][j], waterContentSolution[i][j], 1e-6);
-    //    }
-    //}
 }
