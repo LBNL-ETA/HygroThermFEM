@@ -42,11 +42,16 @@ namespace HygroThermFEM
         //! \return Solution from single transient step. SingleTimestepSolution contains solution
         //! and timestep for which solution has been performed. Engine can adopt new timestep for
         //! which solution will converge.
-        virtual Solution transient(HygroThermFEM::MultiDomain & domain,
-                                   const std::vector<double> & previousTimestepTemperature,
-                                   const std::vector<double> & previousTimestepHumidity,
-                                   double t_DTime,
-                                   size_t timestepIndex) = 0;
+        Solution transient(HygroThermFEM::MultiDomain & domain,
+                           const std::vector<double> & previousTimestepTemperature,
+                           const std::vector<double> & previousTimestepHumidity,
+                           double t_DTime,
+                           size_t timestepIndex);
+
+        Solution transient(HygroThermFEM::MultiDomain & domain,
+                           const std::vector<double> & previousTimestepTemperature,
+                           const std::vector<double> & previousTimestepHumidity,
+                           double t_DTime);
 
     protected:
         IterationResult performDomainIteration(HygroThermFEM::SingleDomain & domain,

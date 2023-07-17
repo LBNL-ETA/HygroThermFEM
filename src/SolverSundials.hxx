@@ -17,6 +17,9 @@ namespace Sundials
     public:
         ~SolverIDA() override;
 
+        // This brings both versions of transient from TransientSolver into scope
+        using TransientSolver::transient;
+
         HygroThermFEM::SingleTimestepSolution
           transient(HygroThermFEM::SingleDomain & domain,
                     const std::vector<double> & previousTimestepValues,
@@ -27,17 +30,6 @@ namespace Sundials
           transient(HygroThermFEM::SingleDomain & domain,
                     const std::vector<double> & previousTimestepValues,
                     double t_DTime);
-
-        HygroThermFEM::Solution transient(HygroThermFEM::MultiDomain & domain,
-                                          const std::vector<double> & previousTimestepTemperature,
-                                          const std::vector<double> & previousTimestepHumidity,
-                                          double t_DTime,
-                                          size_t timestepIndex) override;
-
-        HygroThermFEM::Solution transient(HygroThermFEM::MultiDomain & domain,
-                                          const std::vector<double> & previousTimestepTemperature,
-                                          const std::vector<double> & previousTimestepHumidity,
-                                          double t_DTime);
 
     private:
         std::map<HygroThermFEM::DomainType, std::shared_ptr<SolverPimpl>> m_pimpls;

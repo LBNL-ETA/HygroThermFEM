@@ -25,6 +25,9 @@ namespace HygroThermFEM
     class TransientSubstitutionSolver : public TransientSolver
     {
     public:
+        // This brings both versions of transient from TransientSolver into scope
+        using TransientSolver::transient;
+
         //! \brief Calculates next timestep values from current values.
         //! @param domain Domain for which transient solution is being calculated
         //! @param previousTimestepValues Current values of state variable or initial condition
@@ -45,26 +48,5 @@ namespace HygroThermFEM
         SingleTimestepSolution transient(SingleDomain & domain,
                                          const std::vector<double> & previousTimestepValues,
                                          double t_DTime);
-
-        //! \brief Calculates next timestep value from current values
-        //! \param previousTimestepTemperature vector of nodal temperatures from previous timestep
-        //! \param previousTimestepHumidity vector of nodal humidity from previous timestep
-        //! \param t_DTime time between two timestep
-        //! \param timestepIndex current timestep index used in variable boundary conditions case
-        //! \return Solution from single transient step. SingleTimestepSolution contains solution
-        //! and timestep for which solution has been performed. Engine can adopt new timestep for
-        //! which solution will converge.
-        Solution transient(HygroThermFEM::MultiDomain & domain,
-                           const std::vector<double> & previousTimestepTemperature,
-                           const std::vector<double> & previousTimestepHumidity,
-                           double t_DTime,
-                           size_t timestepIndex) override;
-
-        //! \brief Overriden functions are not allowed to have a default arguments which is the
-        //! reason why this function is defined separately.
-        Solution transient(HygroThermFEM::MultiDomain & domain,
-                           const std::vector<double> & previousTimestepTemperature,
-                           const std::vector<double> & previousTimestepHumidity,
-                           double t_DTime);
     };
 }   // namespace HygroThermFEM::Substitution

@@ -308,35 +308,6 @@ namespace Sundials
         return transient(domain, previousTimestepValues, t_DTime, 0);
     }
 
-    HygroThermFEM::Solution
-      SolverIDA::transient(HygroThermFEM::MultiDomain & domain,
-                           const std::vector<double> & previousTimestepTemperature,
-                           const std::vector<double> & previousTimestepHumidity,
-                           double t_DTime,
-                           size_t timestepIndex)
-    {
-        return {0,
-                std::vector<double>(),
-                std::vector<double>(),
-                std::vector<double>(),
-                std::vector<double>(),
-                std::vector<double>(),
-                std::vector<double>(),
-                std::vector<HygroThermFEM::NodeFlux>(),
-                std::vector<HygroThermFEM::NodeFlux>(),
-                0,
-                0};
-    }
-
-    HygroThermFEM::Solution
-      SolverIDA::transient(HygroThermFEM::MultiDomain & domain,
-                           const std::vector<double> & previousTimestepTemperature,
-                           const std::vector<double> & previousTimestepHumidity,
-                           double t_DTime)
-    {
-        return transient(domain, previousTimestepTemperature, previousTimestepHumidity, t_DTime, 0);
-    }
-
     std::shared_ptr<SolverPimpl> &
       SolverIDA::getSolverPimpl(HygroThermFEM::SingleDomain & domain,
                                 const std::vector<double> & previousTimestepValues)
