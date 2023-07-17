@@ -225,3 +225,63 @@ TEST_F(MultiDomain_HighHumidity, Substitution)
     auto lvlThreeThermal = progressThermal.getLevelThree();
     EXPECT_EQ(lvlThreeThermal, 0u);
 }
+
+TEST_F(MultiDomain_HighHumidity, Sundials)
+{
+    SCOPED_TRACE("Begin Test: Simple two elements example with moisture transfer.");
+
+    auto temperatures{properties(HygroThermFEM::Variable::temperature)};
+    auto humidities{properties(HygroThermFEM::Variable::humidity)};
+    std::vector<std::vector<double>> temperatureSolution;
+    std::vector<double> temperatureError;
+    std::vector<std::vector<double>> waterContentSolution;
+    std::vector<double> humidityError;
+    size_t timestepIndex{0};
+
+    Sundials::SolverIDA solver;
+    for(auto i = 0u; i < nSteps; ++i)
+    {
+        auto aSolution = solver.transient(domain, temperatures, humidities, dTime, timestepIndex);
+        temperatureSolution.push_back(aSolution.temperature);
+        temperatureError.push_back(aSolution.temperatureError);
+        waterContentSolution.push_back(aSolution.waterContent);
+        humidityError.push_back(aSolution.humidityError);
+        temperatures = aSolution.temperature;
+        humidities = aSolution.humidity;
+        ++timestepIndex;
+    }
+
+    const std::vector<double> correctHumidityError{2.338981e-06, 7.101896e-06};
+    const std::vector<std::vector<double>> correctWaterContentSolution{
+      {122.018106, 122.018106, 122.152173, 122.152173, 122.318987, 122.318987},
+      {123.706637, 123.706637, 123.808641, 123.808641, 123.935668, 123.935668}
+    };
+
+    EXPECT_EQ(waterContentSolution.size(), correctWaterContentSolution.size());
+
+    for(auto i = 0u; i < waterContentSolution.size(); ++i)
+    {
+        EXPECT_NEAR(correctHumidityError[i], humidityError[i], 1e-10);
+        for(auto j = 0u; j < waterContentSolution[i].size(); ++j)
+        {
+            EXPECT_NEAR(correctWaterContentSolution[i][j], waterContentSolution[i][j], 1e-6);
+        }
+    }
+
+    const std::vector<double> correctTemperatureError{0.031540, 0.064605};
+    const std::vector<std::vector<double>> correctTemperatureSolution{
+      {0.700363, 0.700363, 2.297507, 2.297507, 7.027110, 7.027110},
+      {1.874543, 1.874543, 4.568180, 4.568180, 9.822999, 9.822999},
+    };
+
+    EXPECT_EQ(temperatureSolution.size(), correctTemperatureSolution.size());
+
+    for(auto i = 0u; i < correctTemperatureSolution.size(); ++i)
+    {
+        EXPECT_NEAR(correctTemperatureError[i], temperatureError[i], 1e-6);
+        for(auto j = 0u; j < correctTemperatureSolution[i].size(); ++j)
+        {
+            EXPECT_NEAR(correctTemperatureSolution[i][j], temperatureSolution[i][j], 1e-6);
+        }
+    }
+}
