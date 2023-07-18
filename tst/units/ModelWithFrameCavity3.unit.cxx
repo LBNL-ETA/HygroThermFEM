@@ -143,10 +143,10 @@ TEST_F(TestModelWithFrameCavity3, TestSingleFrameCavity)
     std::vector<std::vector<double>> temperatureSolution;
     std::vector<std::vector<double>> waterContentSolution;
 
-    HygroThermFEM::TransientSubstitutionSolver solver;
+    HygroThermFEM::TransientSubstitutionSolver solver{domain};
     for(auto i = 0; i < nSteps; ++i)
     {
-        auto aSolution = solver.transient(domain, temperatures, humidities, dTime, i);
+        auto aSolution = solver.transient(temperatures, humidities, dTime, i);
         temperatureSolution.push_back(aSolution.temperature);
         waterContentSolution.push_back(aSolution.waterContent);
         temperatures = aSolution.temperature;

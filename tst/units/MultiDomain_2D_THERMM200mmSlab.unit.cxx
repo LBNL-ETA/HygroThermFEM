@@ -125,10 +125,10 @@ TEST_F(MultiDomain_2D_THERMM200mmSlab, TestExample_1)
     std::vector<std::vector<double>> humiditySolution;
     size_t timestepIndex{0u};
 
+    HygroThermFEM::TransientSubstitutionSolver solver{domain};
     for(auto i = 0; i < nSteps; ++i)
     {
-        HygroThermFEM::TransientSubstitutionSolver solver;
-        auto aSolution = solver.transient(domain, temperatures, humidities, dTime, timestepIndex);
+        auto aSolution = solver.transient(temperatures, humidities, dTime, timestepIndex);
         temperatureSolution.push_back(aSolution.temperature);
         humiditySolution.push_back(aSolution.humidity);
         temperatures = aSolution.temperature;

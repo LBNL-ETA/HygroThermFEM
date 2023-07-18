@@ -108,10 +108,10 @@ TEST_F(ConvectionBC_2D_Transient_Solvers, Substitution)
     std::vector<std::vector<double>> temperaturesSolution;
     temperaturesSolution.emplace_back(temperatures);
 
-    HygroThermFEM::TransientSubstitutionSolver solver;
+    HygroThermFEM::TransientSingleDomainSubstitution solver{domain};
     for(unsigned i = 0; i < nSteps; ++i)
     {
-        temperatures = solver.transient(domain, temperatures, dTime).solution;
+        temperatures = solver.transient(temperatures, dTime).solution;
         temperaturesSolution.push_back(temperatures);
     }
 
@@ -158,10 +158,10 @@ TEST_F(ConvectionBC_2D_Transient_Solvers, Sundials)
     std::vector<std::vector<double>> temperaturesSolution;
     temperaturesSolution.emplace_back(temperatures);
 
-    Sundials::SolverIDA solver;
+    Sundials::TransientSingleDomainSundials solver{domain};
     for(unsigned i = 0; i < nSteps; ++i)
     {
-        auto solution = solver.transient(domain, temperatures, dTime, i);
+        auto solution = solver.transient(temperatures, dTime, i);
         temperatures = solution.solution;
         temperaturesSolution.push_back(temperatures);
     }

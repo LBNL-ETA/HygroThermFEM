@@ -126,10 +126,10 @@ TEST_F(MultiDomainHumidityOnly_1, TestExample_1)
     std::vector<std::vector<double>> temperatureSolution;
     std::vector<std::vector<double>> waterContentSolution;
 
+    HygroThermFEM::TransientSubstitutionSolver solver{domain};
     for(auto i = 0; i < nSteps; ++i)
     {
-        HygroThermFEM::TransientSubstitutionSolver solver;
-        auto aSolution = solver.transient(domain, temperatures, humidities, dTime);
+        auto aSolution = solver.transient(temperatures, humidities, dTime);
         temperatureSolution.push_back(aSolution.temperature);
         waterContentSolution.push_back(aSolution.waterContent);
         temperatures = aSolution.temperature;

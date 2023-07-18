@@ -158,10 +158,10 @@ TEST_F(MultiDomain_HighHumidity, Substitution)
     std::vector<double> humidityError;
     size_t timestepIndex{0};
 
-    HygroThermFEM::TransientSubstitutionSolver solver;
+    HygroThermFEM::TransientSubstitutionSolver solver{domain};
     for(auto i = 0u; i < nSteps; ++i)
     {
-        auto aSolution = solver.transient(domain, temperatures, humidities, dTime, timestepIndex);
+        auto aSolution = solver.transient(temperatures, humidities, dTime, timestepIndex);
         temperatureSolution.push_back(aSolution.temperature);
         temperatureError.push_back(aSolution.temperatureError);
         waterContentSolution.push_back(aSolution.waterContent);
@@ -238,10 +238,10 @@ TEST_F(MultiDomain_HighHumidity, Sundials)
     std::vector<double> humidityError;
     size_t timestepIndex{0};
 
-    Sundials::SolverIDA solver;
+    Sundials::SolverIDA solver{domain};
     for(auto i = 0u; i < nSteps; ++i)
     {
-        auto aSolution = solver.transient(domain, temperatures, humidities, dTime, i);
+        auto aSolution = solver.transient(temperatures, humidities, dTime, i);
         temperatureSolution.push_back(aSolution.temperature);
         temperatureError.push_back(aSolution.temperatureError);
         waterContentSolution.push_back(aSolution.waterContent);

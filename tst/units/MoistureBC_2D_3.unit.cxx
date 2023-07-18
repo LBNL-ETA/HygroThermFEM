@@ -114,10 +114,10 @@ TEST_F(MoistureBC_2D_3, TestExample_1)
     auto humidities = properties(HygroThermFEM::Variable::humidity);
     std::vector<std::vector<double>> solution;
 
+    HygroThermFEM::TransientSingleDomainSubstitution solver{domain};
     for(unsigned i = 0; i < nSteps; ++i)
     {
-        HygroThermFEM::TransientSubstitutionSolver solver;
-        humidities = solver.transient(domain, humidities, dTime).solution;
+        humidities = solver.transient(humidities, dTime).solution;
         auto waterContent = properties(HygroThermFEM::Variable::water);
         solution.push_back(waterContent);
     }

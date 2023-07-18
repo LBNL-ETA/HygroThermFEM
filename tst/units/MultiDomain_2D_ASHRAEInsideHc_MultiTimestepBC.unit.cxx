@@ -8,27 +8,24 @@ using HygroThermFEM::MaterialPool;
 
 class MultiDomain_2D_ASHRAEInsideHc_MultiTimestepBC : public testing::Test
 {
+public:
+    HygroThermFEM::MultiDomain domain;
+
+    const double dTime{3600};
+    const size_t nSteps{10u};
+
+    const double initialTemperature{0.0};
+    const double initialMoistureContent{0.0};
+    const double initialPressure{101325};
+    const double liquidPercent{1.0};
+
+    const double surfaceTilt{90.0};    // degrees
+    const double surfaceHeight{1.0};   // meters
+
 protected:
     void SetUp() override
-    {}
-
-    void TearDown() override
     {
-        NodePool::Instance().clear();
-        MaterialPool::Instance().clear();
-    }
-};
-
-TEST_F(MultiDomain_2D_ASHRAEInsideHc_MultiTimestepBC, TestExample_1)
-{
-    // Enter nodes. Arguments are: node number, x-coordinate, y-coordinate
-
-    std::vector<double> gridXCoordinates{0, 0.05, 0.1};
-
-    const double initialTemperature = 0.0;
-    const double initialMoistureContent = 0.0;
-    const double initialPressure = 101325;
-    const auto liquidPercent = 1.0;
+        std::vector<double> gridXCoordinates{0, 0.05, 0.1};
 
     auto state = HygroThermFEM::State(
       initialTemperature, initialMoistureContent, initialPressure, liquidPercent);
@@ -88,8 +85,6 @@ TEST_F(MultiDomain_2D_ASHRAEInsideHc_MultiTimestepBC, TestExample_1)
                                                    liquidTransportationCurve,
                                                    moistureStorageFunction);
 
-    HygroThermFEM::MultiDomain domain;
-
     /// Create elements
     for(size_t i = 1; i <= (HygroThermFEM::maxNodeIndex() - 2) / 2; ++i)
     {
@@ -114,24 +109,28 @@ TEST_F(MultiDomain_2D_ASHRAEInsideHc_MultiTimestepBC, TestExample_1)
                                                                        {12.0, 0.2, 101325.0},
                                                                        {10.0, 0.2, 101325.0}};
 
-    const auto surfaceTilt{90.0};    // degrees
-    const auto surfaceHeight{1.0};   // meters
-
     createBC_ASHRAEInsideHc(domain, 1, 2, bcCoeff, surfaceHeight, surfaceTilt);
+    }
 
-    const auto dTime = 3600;
-    const auto nSteps = 10;
+    void TearDown() override
+    {
+        NodePool::Instance().clear();
+        MaterialPool::Instance().clear();
+    }
+};
 
+TEST_F(MultiDomain_2D_ASHRAEInsideHc_MultiTimestepBC, Substitution)
+{
     auto temperatures = properties(HygroThermFEM::Variable::temperature);
     auto humidities = properties(HygroThermFEM::Variable::humidity);
     std::vector<std::vector<double>> temperatureSolution;
     std::vector<std::vector<double>> waterContentSolution;
     size_t timestepIndex{0u};
 
-    for(auto i = 0; i < nSteps; ++i)
+    HygroThermFEM::TransientSubstitutionSolver solver{domain};
+    for(auto i = 0u; i < nSteps; ++i)
     {
-        HygroThermFEM::TransientSubstitutionSolver solver;
-        auto aSolution = solver.transient(domain, temperatures, humidities, dTime, timestepIndex);
+        auto aSolution = solver.transient(temperatures, humidities, dTime, timestepIndex);
         temperatureSolution.push_back(aSolution.temperature);
         waterContentSolution.push_back(aSolution.waterContent);
         temperatures = aSolution.temperature;

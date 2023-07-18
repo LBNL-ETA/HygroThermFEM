@@ -125,10 +125,10 @@ TEST_F(MultiDomain_2D_ConstantTempTwoNodes_MultiTimestepBC, TestExample_1)
     std::vector<std::vector<double>> waterContentSolution;
     size_t timestepIndex{0u};
 
+    HygroThermFEM::TransientSubstitutionSolver solver{domain};
     for(auto i = 0; i < nSteps; ++i)
     {
-        HygroThermFEM::TransientSubstitutionSolver solver;
-        auto aSolution = solver.transient(domain, temperatures, humidities, dTime, timestepIndex);
+        auto aSolution = solver.transient(temperatures, humidities, dTime, timestepIndex);
         temperatureSolution.push_back(aSolution.temperature);
         waterContentSolution.push_back(aSolution.waterContent);
         temperatures = aSolution.temperature;

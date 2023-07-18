@@ -105,10 +105,10 @@ TEST_F(ConvectionBC_2D_Transient_MultiBC, TestExample_1)
     std::vector<std::vector<HygroThermFEM::NodeFlux>> fluxSolution;
     size_t timestepIndex{0};
 
+    HygroThermFEM::TransientSingleDomainSubstitution solver{domain};
     for(unsigned i = 0; i < nSteps; ++i)
     {
-        HygroThermFEM::TransientSubstitutionSolver solver;
-        temperatures = solver.transient(domain, temperatures, dTime, timestepIndex).solution;
+        temperatures = solver.transient(temperatures, dTime, timestepIndex).solution;
         temperaturesSolution.push_back(temperatures);
         fluxSolution.push_back(domain.flux());
         ++timestepIndex;

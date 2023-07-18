@@ -108,10 +108,10 @@ TEST_F(Topaz2D_TemperatureBC, TestExample_1)
     auto temperatures = properties(HygroThermFEM::Variable::temperature);
     std::vector<std::vector<double>> solution;
 
+    HygroThermFEM::TransientSingleDomainSubstitution solver{domain};
     for(unsigned i = 0; i < nSteps; ++i)
     {
-        HygroThermFEM::TransientSubstitutionSolver solver;
-        temperatures = solver.transient(domain, temperatures, dTime).solution;
+        temperatures = solver.transient(temperatures, dTime).solution;
         solution.push_back(temperatures);
     }
 

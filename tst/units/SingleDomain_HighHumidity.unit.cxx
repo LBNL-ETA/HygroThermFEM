@@ -124,10 +124,10 @@ TEST_F(SingleDomain_HighHumidity, Substitution)
 
     humiditySolution.emplace_back(humidities);
 
-    HygroThermFEM::TransientSubstitutionSolver solver;
+    HygroThermFEM::TransientSingleDomainSubstitution solver{domain};
     for(unsigned i = 0; i < nSteps; ++i)
     {
-        auto solution{solver.transient(domain, humidities, dTime, i)};
+        auto solution{solver.transient(humidities, dTime, i)};
         humidities = solution.solution;
         humiditySolution.emplace_back(humidities);
     }
@@ -177,10 +177,10 @@ TEST_F(SingleDomain_HighHumidity, Sundials)
 
     humiditySolution.emplace_back(humidities);
 
-    Sundials::SolverIDA solver;
+    Sundials::TransientSingleDomainSundials solver{domain};
     for(unsigned i = 0; i < nSteps; ++i)
     {
-        auto solution{solver.transient(domain, humidities, dTime, i)};
+        auto solution{solver.transient(humidities, dTime, i)};
         humidities = solution.solution;
         humiditySolution.emplace_back(humidities);
     }

@@ -22,11 +22,10 @@ namespace HygroThermFEM
     //! Calculates steady state solution for multiple domains.
     Solution steadyState(HygroThermFEM::MultiDomain & domain);
 
-    class TransientSubstitutionSolver : public TransientSolver
+    class TransientSingleDomainSubstitution : public SingleDomainTransientSolver
     {
     public:
-        // This brings both versions of transient from TransientSolver into scope
-        using TransientSolver::transient;
+        explicit TransientSingleDomainSubstitution(SingleDomain & domain);
 
         //! \brief Calculates next timestep values from current values.
         //! @param domain Domain for which transient solution is being calculated
@@ -38,15 +37,21 @@ namespace HygroThermFEM
         //! @return Solution from single transient step. SingleTimestepSolution contains solution
         //! and timestep for which solution has been performed. Engine can adopt new timestep for
         //! which solution will converge.
-        SingleTimestepSolution transient(SingleDomain & domain,
-                                         const std::vector<double> & previousTimestepValues,
+        SingleTimestepSolution transient(const std::vector<double> & previousTimestepValues,
                                          double t_DTime,
                                          size_t timestepIndex) override;
 
         //! \brief Overriden functions are not allowed to have a default arguments which is the
         //! reason why this function is defined separately.
-        SingleTimestepSolution transient(SingleDomain & domain,
-                                         const std::vector<double> & previousTimestepValues,
+        SingleTimestepSolution transient(const std::vector<double> & previousTimestepValues,
                                          double t_DTime);
     };
-}   // namespace HygroThermFEM::Substitution
+
+    class TransientSubstitutionSolver : public TransientSolver
+    {
+    public:
+        explicit TransientSubstitutionSolver(MultiDomain & domain);
+
+        std::unique_ptr<SingleDomainTransientSolver> createSolver(SingleDomain & domain) override;
+    };
+}   // namespace HygroThermFEM

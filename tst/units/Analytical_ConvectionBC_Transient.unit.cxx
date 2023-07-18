@@ -105,10 +105,10 @@ TEST_F(Analytical_TemperatureBC_Transient, SubstitutionSolver)
     auto temperatures = properties(HygroThermFEM::Variable::temperature);
     std::vector<std::vector<double>> solution;
 
-    HygroThermFEM::TransientSubstitutionSolver solver;
+    HygroThermFEM::TransientSingleDomainSubstitution solver{domain};
     for(unsigned i = 0; i < nSteps; ++i)
     {
-        temperatures = solver.transient(domain, temperatures, dTime).solution;
+        temperatures = solver.transient(temperatures, dTime).solution;
         solution.push_back(temperatures);
     }
 
@@ -139,10 +139,10 @@ TEST_F(Analytical_TemperatureBC_Transient, SundialsSolver)
     auto temperatures = properties(HygroThermFEM::Variable::temperature);
     std::vector<std::vector<double>> solution;
 
-    Sundials::SolverIDA solver;
+    Sundials::TransientSingleDomainSundials solver{domain};
     for(size_t i = 0u; i < nSteps; ++i)
     {
-        auto solutionStep = solver.transient(domain, temperatures, dTime, i);
+        auto solutionStep = solver.transient(temperatures, dTime, i);
         temperatures = solutionStep.solution;
         solution.push_back(temperatures);
     }

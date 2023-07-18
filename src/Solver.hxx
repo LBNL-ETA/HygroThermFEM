@@ -14,10 +14,12 @@ namespace HygroThermFEM
         SingleTimestepSolution solution;
     };
 
-    class TransientSolver
+    class SingleDomainTransientSolver
     {
     public:
-        virtual ~TransientSolver() = default;
+        explicit SingleDomainTransientSolver(SingleDomain & domain);
+        ~SingleDomainTransientSolver() = default;
+
         //! \brief Calculates next timestep values from current values.
         //! @param domain Domain for which transient solution is being calculated
         //! @param previousTimestepValues Current values of state variable or initial condition
@@ -29,10 +31,25 @@ namespace HygroThermFEM
         //! and timestep for which solution has been performed. Engine can adopt new timestep for
         //! which solution will converge.
         virtual HygroThermFEM::SingleTimestepSolution
-          transient(HygroThermFEM::SingleDomain & domain,
-                    const std::vector<double> & previousTimestepValues,
+          transient(const std::vector<double> & previousTimestepValues,
                     double t_DTime,
                     size_t timestepIndex) = 0;
+
+        IterationResult performDomainIteration(std::vector<double> & currentVariable,
+                                               const std::vector<double> & previousTimestepVariable,
+                                               double dTime,
+                                               size_t timestepIndex);
+
+    protected:
+        SingleDomain & m_Domain;
+    };
+
+    class TransientSolver
+    {
+    public:
+        explicit TransientSolver(MultiDomain & domain);
+
+        virtual ~TransientSolver() = default;
 
         //! \brief Calculates next timestep value from current values
         //! \param previousTimestepTemperature vector of nodal temperatures from previous timestep
@@ -42,23 +59,23 @@ namespace HygroThermFEM
         //! \return Solution from single transient step. SingleTimestepSolution contains solution
         //! and timestep for which solution has been performed. Engine can adopt new timestep for
         //! which solution will converge.
-        Solution transient(HygroThermFEM::MultiDomain & domain,
-                           const std::vector<double> & previousTimestepTemperature,
+        Solution transient(const std::vector<double> & previousTimestepTemperature,
                            const std::vector<double> & previousTimestepHumidity,
                            double t_DTime,
                            size_t timestepIndex);
 
-        Solution transient(HygroThermFEM::MultiDomain & domain,
-                           const std::vector<double> & previousTimestepTemperature,
+        Solution transient(const std::vector<double> & previousTimestepTemperature,
                            const std::vector<double> & previousTimestepHumidity,
                            double t_DTime);
 
+        virtual std::unique_ptr<SingleDomainTransientSolver>
+          createSolver(HygroThermFEM::SingleDomain & domain) = 0;
+
     protected:
-        IterationResult performDomainIteration(SingleDomain & domain,
-                                               std::vector<double> & currentVariable,
-                                               const std::vector<double> & previousTimestepVariable,
-                                               double dTime,
-                                               size_t timestepIndex);
+        std::unique_ptr<SingleDomainTransientSolver> m_TemperatureSolver{nullptr};
+        std::unique_ptr<SingleDomainTransientSolver> m_HumiditySolver{nullptr};
+
+        MultiDomain & m_Domain;
     };
 
 }   // namespace HygroThermFEM

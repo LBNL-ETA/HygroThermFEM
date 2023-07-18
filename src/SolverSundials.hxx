@@ -12,30 +12,34 @@ namespace Sundials
 {
     struct SolverPimpl;
 
-    class SolverIDA : public HygroThermFEM::TransientSolver
+    class TransientSingleDomainSundials : public HygroThermFEM::SingleDomainTransientSolver
     {
     public:
-        ~SolverIDA() override;
-
-        // This brings both versions of transient from TransientSolver into scope
-        using TransientSolver::transient;
+        explicit TransientSingleDomainSundials(HygroThermFEM::SingleDomain & domain);
 
         HygroThermFEM::SingleTimestepSolution
-          transient(HygroThermFEM::SingleDomain & domain,
-                    const std::vector<double> & previousTimestepValues,
+          transient(const std::vector<double> & previousTimestepValues,
                     double t_DTime,
                     size_t timestepIndex) override;
 
         HygroThermFEM::SingleTimestepSolution
-          transient(HygroThermFEM::SingleDomain & domain,
-                    const std::vector<double> & previousTimestepValues,
-                    double t_DTime);
+          transient(const std::vector<double> & previousTimestepValues, double t_DTime);
 
     private:
-        std::map<HygroThermFEM::DomainType, std::shared_ptr<SolverPimpl>> m_pimpls;
         std::shared_ptr<SolverPimpl> &
           getSolverPimpl(HygroThermFEM::SingleDomain & domain,
                          const std::vector<double> & previousTimestepValues);
+
+        std::shared_ptr<SolverPimpl> m_pimpl;
+    };
+
+    class SolverIDA : public HygroThermFEM::TransientSolver
+    {
+    public:
+        explicit SolverIDA(HygroThermFEM::MultiDomain & domain);
+
+        std::unique_ptr<HygroThermFEM::SingleDomainTransientSolver>
+          createSolver(HygroThermFEM::SingleDomain & domain) override;
     };
 
     // Put vector for now, but this is not going to work in long term because we need to switch

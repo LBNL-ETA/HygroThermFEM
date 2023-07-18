@@ -7,8 +7,30 @@
 
 namespace HygroThermFEM
 {
-    Solution TransientSolver::transient(MultiDomain & domain,
-                                        const std::vector<double> & previousTimestepTemperature,
+    SingleDomainTransientSolver::SingleDomainTransientSolver(SingleDomain & domain) :
+        m_Domain{domain}
+    {}
+
+    IterationResult SingleDomainTransientSolver::performDomainIteration(
+      std::vector<double> & currentVariable,
+      const std::vector<double> & previousTimestepVariable,
+      double dTime,
+      size_t timestepIndex)
+    {
+        {
+            auto newValueSolution = transient(previousTimestepVariable, dTime, timestepIndex);
+            auto newValueError =
+              HygroThermFEM::errorNorm(newValueSolution.solution, currentVariable);
+            updateNodeValues(newValueSolution.solution, baseVariableOf(m_Domain), false);
+            currentVariable = newValueSolution.solution;
+            return {newValueError, newValueSolution};
+        }
+    }
+
+    TransientSolver::TransientSolver(MultiDomain & domain) : m_Domain{domain}
+    {}
+
+    Solution TransientSolver::transient(const std::vector<double> & previousTimestepTemperature,
                                         const std::vector<double> & previousTimestepHumidity,
                                         double t_DTime,
                                         size_t timestepIndex)
@@ -26,27 +48,30 @@ namespace HygroThermFEM
 
         size_t currentIteration{0};
 
+        if(!m_TemperatureSolver && m_Domain.simulateThermal)
+        {
+            m_TemperatureSolver = createSolver(m_Domain.thermalDomain);
+        }
+
+        if(!m_HumiditySolver && m_Domain.simulateMoisture)
+        {
+            m_HumiditySolver = createSolver(m_Domain.moistureDomain);
+        }
+
         do
         {
-            if(domain.simulateMoisture)
+            if(m_Domain.simulateMoisture)
             {
-                IterationResult moistureIteration = performDomainIteration(domain.moistureDomain,
-                                                                           currentHumidity,
-                                                                           previousTimestepHumidity,
-                                                                           dTime,
-                                                                           timestepIndex);
+                IterationResult moistureIteration = m_HumiditySolver->performDomainIteration(
+                  currentHumidity, previousTimestepHumidity, dTime, timestepIndex);
                 humidityError = moistureIteration.error;
                 humiditySolution = moistureIteration.solution;
             }
 
-            if(domain.simulateThermal)
+            if(m_Domain.simulateThermal)
             {
-                IterationResult thermalIteration =
-                  performDomainIteration(domain.thermalDomain,
-                                         currentTemperature,
-                                         previousTimestepTemperature,
-                                         dTime,
-                                         timestepIndex);
+                IterationResult thermalIteration = m_TemperatureSolver->performDomainIteration(
+                  currentTemperature, previousTimestepTemperature, dTime, timestepIndex);
                 temperatureError = thermalIteration.error;
                 temperatureSolution = thermalIteration.solution;
             }
@@ -63,8 +88,8 @@ namespace HygroThermFEM
         const auto vaporContent{properties(Variable::vapor)};
         const auto iceContent{properties(Variable::ice)};
 
-        const auto heatFlux = domain.thermalDomain.flux();
-        const auto waterFlux = domain.moistureDomain.flux();
+        const auto heatFlux = m_Domain.thermalDomain.flux();
+        const auto waterFlux = m_Domain.moistureDomain.flux();
 
         return Solution{dTime,
                         currentTemperature,
@@ -79,28 +104,10 @@ namespace HygroThermFEM
                         humidityError};
     }
 
-    Solution TransientSolver::transient(MultiDomain & domain,
-                                        const std::vector<double> & previousTimestepTemperature,
+    Solution TransientSolver::transient(const std::vector<double> & previousTimestepTemperature,
                                         const std::vector<double> & previousTimestepHumidity,
                                         double t_DTime)
     {
-        return transient(domain, previousTimestepTemperature, previousTimestepHumidity, t_DTime, 0);
-    }
-
-    IterationResult
-      TransientSolver::performDomainIteration(SingleDomain & domain,
-                                              std::vector<double> & currentVariable,
-                                              const std::vector<double> & previousTimestepVariable,
-                                              double dTime,
-                                              size_t timestepIndex)
-    {
-        {
-            auto newValueSolution = transient(domain, previousTimestepVariable, dTime, timestepIndex);
-            auto newValueError =
-              HygroThermFEM::errorNorm(newValueSolution.solution, currentVariable);
-            updateNodeValues(newValueSolution.solution, baseVariableOf(domain), false);
-            currentVariable = newValueSolution.solution;
-            return {newValueError, newValueSolution};
-        }
+        return transient(previousTimestepTemperature, previousTimestepHumidity, t_DTime, 0);
     }
 }   // namespace HygroThermFEM

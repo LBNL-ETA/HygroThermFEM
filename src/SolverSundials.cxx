@@ -138,6 +138,10 @@ namespace Sundials
         K_eig += data->domain.boundaryConditions.HMatrix(timestepIndex);
         // RHS vector
         auto RHS = data->domain.boundaryConditions.RVector(timestepIndex);
+        auto RHSe = data->domain.elements.RVector();
+
+        // Sum up RHS and RHSe using trasnform
+        std::transform(RHS.begin(), RHS.end(), RHSe.begin(), RHS.begin(), std::plus<>());
 
         double LHS;
         for(int i = 0; i < neq; i++)
@@ -279,15 +283,15 @@ namespace Sundials
         double currentTime{0.0};
     };
 
-    SolverIDA::~SolverIDA() = default;
+    TransientSingleDomainSundials::TransientSingleDomainSundials(
+      HygroThermFEM::SingleDomain & domain) :
+        SingleDomainTransientSolver(domain)
+    {}
 
-    HygroThermFEM::SingleTimestepSolution
-      SolverIDA::transient(HygroThermFEM::SingleDomain & domain,
-                           const std::vector<double> & previousTimestepValues,
-                           double t_DTime,
-                           size_t timestepIndex)
+    HygroThermFEM::SingleTimestepSolution TransientSingleDomainSundials::transient(
+      const std::vector<double> & previousTimestepValues, double t_DTime, size_t timestepIndex)
     {
-        auto & pimpl = getSolverPimpl(domain, previousTimestepValues);
+        auto & pimpl = getSolverPimpl(m_Domain, previousTimestepValues);
 
         auto retval{pimpl->solve(t_DTime * (timestepIndex + 1))};
         if(retval != IDA_SUCCESS)
@@ -301,26 +305,31 @@ namespace Sundials
     }
 
     HygroThermFEM::SingleTimestepSolution
-      SolverIDA::transient(HygroThermFEM::SingleDomain & domain,
-                           const std::vector<double> & previousTimestepValues,
-                           double t_DTime)
+      TransientSingleDomainSundials::transient(const std::vector<double> & previousTimestepValues,
+                                               double t_DTime)
     {
-        return transient(domain, previousTimestepValues, t_DTime, 0);
+        return transient(previousTimestepValues, t_DTime, 0);
     }
 
-    std::shared_ptr<SolverPimpl> &
-      SolverIDA::getSolverPimpl(HygroThermFEM::SingleDomain & domain,
-                                const std::vector<double> & previousTimestepValues)
+    std::shared_ptr<SolverPimpl> & TransientSingleDomainSundials::getSolverPimpl(
+      HygroThermFEM::SingleDomain & domain, const std::vector<double> & previousTimestepValues)
     {
-        auto it = m_pimpls.find(domain.domainType);
-        if(it == m_pimpls.end() || it->second == nullptr)
+        if(!m_pimpl)
         {
-            m_pimpls[domain.domainType] =
-              std::make_shared<SolverPimpl>(domain, previousTimestepValues);
-            m_pimpls[domain.domainType]->currentTime = 0.0;
+            m_pimpl = std::make_shared<SolverPimpl>(domain, previousTimestepValues);
+            m_pimpl->currentTime = 0.0;
         }
 
-        return m_pimpls[domain.domainType];
+        return m_pimpl;
+    }
+
+    SolverIDA::SolverIDA(HygroThermFEM::MultiDomain & domain) : TransientSolver(domain)
+    {}
+
+    std::unique_ptr<HygroThermFEM::SingleDomainTransientSolver>
+      SolverIDA::createSolver(HygroThermFEM::SingleDomain & domain)
+    {
+        return std::make_unique<Sundials::TransientSingleDomainSundials>(domain);
     }
 
     std::vector<HygroThermFEM::SingleTimestepSolution>
