@@ -238,8 +238,6 @@ namespace Sundials
         N_Vector vatol = CreateVector(neq, ctx);
         N_Vector uu = CreateVectorFromData(initialValues, ctx);
 
-        N_VConst(29.0, rr);
-
         void * mem = IDACreate(ctx);
         auto data = CreateUserData(domain);
         retval = IDASetUserData(mem, data.get());
@@ -267,19 +265,31 @@ namespace Sundials
         return {retval, ctx, mem, uu, ud, rr, pp, uDot0, std::move(data)};
     }
 
+    void resetValues(const std::vector<double> & values, SunInitialization & sunInit)
+    {
+        realtype * yval = N_VGetArrayPointer(sunInit.uu);
+        for(size_t i = 0u; i < values.size(); ++i)
+        {
+            yval[i] = values[i];
+        }
+    }
+
     struct SolverPimpl
     {
         SolverPimpl(HygroThermFEM::SingleDomain & domain,
                     const std::vector<double> & previousTimestepValue) :
-            sunInit(Sundials::initializeSolver(previousTimestepValue, domain))
+            sunInit(Sundials::initializeSolver(previousTimestepValue, domain)),
+            previousTimestepValue(previousTimestepValue)
         {}
 
         int solve(double t_DTime)
         {
+            resetValues(previousTimestepValue, sunInit);
             return IDASolve(sunInit.mem, t_DTime, &currentTime, sunInit.uu, sunInit.ud, IDA_NORMAL);
         }
 
         SunInitialization sunInit;
+        std::vector<double> previousTimestepValue;
         double currentTime{0.0};
     };
 
@@ -293,6 +303,7 @@ namespace Sundials
     {
         auto & pimpl = getSolverPimpl(m_Domain, previousTimestepValues);
 
+        pimpl->previousTimestepValue = previousTimestepValues;
         auto retval{pimpl->solve(t_DTime * (timestepIndex + 1))};
         if(retval != IDA_SUCCESS)
         {
