@@ -25,6 +25,8 @@ namespace Sundials
         HygroThermFEM::SingleTimestepSolution
           transient(const std::vector<double> & previousTimestepValues, double t_DTime);
 
+        void setTolerance(double t_Tolerance);
+
     private:
         std::shared_ptr<SolverPimpl> &
           getSolverPimpl(HygroThermFEM::SingleDomain & domain,

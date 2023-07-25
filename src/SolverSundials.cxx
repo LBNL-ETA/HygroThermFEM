@@ -13,6 +13,7 @@
 #include "LinearSolver.hxx"
 #include "Exceptions.hxx"
 #include "VectorOperators.hxx"
+#include "SimulationProperties.hxx"
 
 namespace Sundials
 {
@@ -112,8 +113,6 @@ namespace Sundials
 
     int residual(realtype, N_Vector yy, N_Vector yp, N_Vector rr, void * user_data)
     {
-        static int count = 0;
-        count++;
         /* Initialize rr to uu, to take care of boundary equations.
          * ... this should only matter for dirichlet conditions*/
         N_VScale(1.0, yy, rr);
@@ -226,6 +225,12 @@ namespace Sundials
         return SUNLinSol_Band(uu, A, ctx);
     }
 
+    std::map<HygroThermFEM::DomainType, double> errorForSundials{
+      {HygroThermFEM::DomainType::Thermal,
+       HygroThermFEM::SimulationProperties::Instance().errorToleranceTemperature()},
+      {HygroThermFEM::DomainType::Moisture,
+       HygroThermFEM::SimulationProperties::Instance().errorToleranceMoisture()}};
+
     SunInitialization initializeSolver(const std::vector<double> & initialValues,
                                        HygroThermFEM::SingleDomain & domain)
     {
@@ -248,8 +253,8 @@ namespace Sundials
         const realtype t0 = 0.0;
         retval = IDAInit(mem, residual, t0, uu, ud);
 
-        realtype reltol{RCONST(1.0e-12)};
-        realtype abstol{RCONST(1.0e-11)};
+        realtype reltol{RCONST(errorForSundials.at(domain.domainType))};
+        realtype abstol{RCONST(errorForSundials.at(domain.domainType) * 1000)};
         retval = IDASStolerances(mem, reltol, abstol);
         N_VConst(abstol, vatol);
 
@@ -257,7 +262,8 @@ namespace Sundials
         SUNLinearSolver LS = CreateSolver(uu, A, ctx);
 
         retval = IDASetLinearSolver(mem, LS, A);
-        constexpr auto maxSteps{10000};
+        const auto maxSteps{HygroThermFEM::SimulationProperties::Instance().maxNumberOfIterations()
+                            * 100};
         retval = IDASetMaxNumSteps(mem, maxSteps);
 
         N_Vector pp = N_VClone(uu);
@@ -303,7 +309,6 @@ namespace Sundials
     {
         auto & pimpl = getSolverPimpl(m_Domain, previousTimestepValues);
 
-        pimpl->previousTimestepValue = previousTimestepValues;
         auto retval{pimpl->solve(t_DTime * (timestepIndex + 1))};
         if(retval != IDA_SUCCESS)
         {

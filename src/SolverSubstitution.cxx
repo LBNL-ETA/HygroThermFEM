@@ -73,7 +73,10 @@ namespace HygroThermFEM
 
     Solution steadyState(HygroThermFEM::MultiDomain & domain)
     {
-        const auto ConvergenceError = SimulationProperties::Instance().errorTolerance();
+        const auto ConvergenceErrorMoisture =
+          SimulationProperties::Instance().errorToleranceMoisture();
+        const auto ConvergenceErrorTemperature =
+          SimulationProperties::Instance().errorToleranceTemperature();
         auto temperatureError{std::numeric_limits<double>::max()};
         auto humidityError{std::numeric_limits<double>::max()};
         const auto MaxIterations = SimulationProperties::Instance().maxNumberOfIterations();
@@ -107,8 +110,8 @@ namespace HygroThermFEM
                 temperatureError = 0;
             }
             ++currentIteration;
-        } while(temperatureError > ConvergenceError || humidityError > ConvergenceError
-                || currentIteration > MaxIterations);
+        } while((temperatureError > ConvergenceErrorTemperature
+                || humidityError > ConvergenceErrorMoisture) && currentIteration < MaxIterations);
 
         updateNodeValues(humidity, BaseVariable::humidity, true);
         updateNodeValues(temperature, BaseVariable::temperature, true);
@@ -147,7 +150,7 @@ namespace HygroThermFEM
                             size_t timestepIndex)
         {
             const auto RelaxParameter = SimulationProperties::Instance().relaxationParamter();
-            const auto ConvergenceError = SimulationProperties::Instance().errorTolerance();
+            const auto ConvergenceError = SimulationProperties::Instance().errorToleranceMoisture();
             const auto MaxIterations = SimulationProperties::Instance().maxNumberOfIterations();
 
             auto A = transientM_K_H_Matrix(domain, t_DTime, timestepIndex);

@@ -8,16 +8,6 @@ namespace HygroThermFEM
         return m_Instance;
     }
 
-    SimulationProperties::SimulationProperties() :
-        m_RelaxationParameter(defaultProperties.relaxationParameter),
-        m_ErrorTolerance(defaultProperties.errorTolerance),
-        m_MaxNumberOfIterations(defaultProperties.maxIterations),
-        m_ExcludeWaterLiquidTransportation(defaultProperties.excludeWaterLiquidTransportation),
-        m_ExcludeHeatOfEvaporation(defaultProperties.excludeHeatOfEvaporation),
-        m_ExcludeCapillaryConduction(defaultProperties.excludeCapillaryConduction),
-        m_ExcludeVaporDiffusionConduction(defaultProperties.excludeVaporDiffusionConduction)
-    {}
-
     bool SimulationProperties::excludeWaterLiquidTransportation() const
     {
         return m_ExcludeWaterLiquidTransportation;
@@ -43,14 +33,14 @@ namespace HygroThermFEM
                                                       const size_t t_MaxNumberOfIterations)
     {
         m_RelaxationParameter = t_RelaxationParameter;
-        m_ErrorTolerance = t_ErrorTolerance;
+        m_ErrorToleranceMoisture = t_ErrorTolerance;
         m_MaxNumberOfIterations = t_MaxNumberOfIterations;
     }
 
     void SimulationProperties::resetIterationParameters()
     {
         m_RelaxationParameter = defaultProperties.relaxationParameter;
-        m_ErrorTolerance = defaultProperties.errorTolerance;
+        m_ErrorToleranceMoisture = defaultProperties.errorToleranceMoisture;
         m_MaxNumberOfIterations = defaultProperties.maxIterations;
     }
 
@@ -87,9 +77,14 @@ namespace HygroThermFEM
         return m_RelaxationParameter;
     }
 
-    double SimulationProperties::errorTolerance() const
+    double SimulationProperties::errorToleranceMoisture() const
     {
-        return m_ErrorTolerance;
+        return m_ErrorToleranceMoisture;
+    }
+
+    double SimulationProperties::errorToleranceTemperature() const
+    {
+        return m_ErrorToleranceTemperature;
     }
 
     size_t SimulationProperties::maxNumberOfIterations() const

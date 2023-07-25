@@ -53,7 +53,9 @@ namespace HygroThermFEM
         double relaxationParamter() const;
 
         //! \brief Returns current error tolerance.
-        double errorTolerance() const;
+        double errorToleranceMoisture() const;
+
+        double errorToleranceTemperature() const;
 
         //! \brief Returns current maximum allowed number of iterations.
         std::size_t maxNumberOfIterations() const;
@@ -79,13 +81,14 @@ namespace HygroThermFEM
         bool thermalConductivityTemperatureAndMoistureDependent() const;
 
     private:
-        SimulationProperties();
+        SimulationProperties() = default;
 
         //! \brief Keeps default parameters in single place
         struct DefaultProperties
         {
             const double relaxationParameter{1.0};
-            const double errorTolerance{1e-5};
+            const double errorToleranceMoisture{1e-5};
+            const double errorToleranceTemperature{1e-3};
             const size_t maxIterations{50};
             const bool excludeWaterLiquidTransportation{false};
             const bool excludeHeatOfEvaporation{false};
@@ -94,13 +97,14 @@ namespace HygroThermFEM
             const bool thermalConductivityMoistureAndTemperatureDependent{false};
         } defaultProperties;
 
-        double m_RelaxationParameter;
-        double m_ErrorTolerance;
-        size_t m_MaxNumberOfIterations;
-        bool m_ExcludeWaterLiquidTransportation;
-        bool m_ExcludeHeatOfEvaporation;
-        bool m_ExcludeCapillaryConduction;
-        bool m_ExcludeVaporDiffusionConduction;
-        bool m_ThermalConductivityMoistureAndTemperatureDependent;
+        double m_RelaxationParameter{defaultProperties.relaxationParameter};
+        double m_ErrorToleranceMoisture{defaultProperties.errorToleranceMoisture};
+        double m_ErrorToleranceTemperature{defaultProperties.errorToleranceTemperature};
+        size_t m_MaxNumberOfIterations{defaultProperties.maxIterations};
+        bool m_ExcludeWaterLiquidTransportation{defaultProperties.excludeWaterLiquidTransportation};
+        bool m_ExcludeHeatOfEvaporation{defaultProperties.excludeHeatOfEvaporation};
+        bool m_ExcludeCapillaryConduction{defaultProperties.excludeCapillaryConduction};
+        bool m_ExcludeVaporDiffusionConduction{defaultProperties.excludeVaporDiffusionConduction};
+        bool m_ThermalConductivityMoistureAndTemperatureDependent{defaultProperties.thermalConductivityMoistureAndTemperatureDependent};
     };
 }   // namespace HygroThermFEM
