@@ -290,7 +290,6 @@ namespace Sundials
 
         int solve(double t_DTime)
         {
-            resetValues(previousTimestepValue, sunInit);
             return IDASolve(sunInit.mem, t_DTime, &currentTime, sunInit.uu, sunInit.ud, IDA_NORMAL);
         }
 
