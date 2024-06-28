@@ -36,6 +36,10 @@ IF ( CMAKE_COMPILER_IS_GNUCXX OR "x${CMAKE_CXX_COMPILER_ID}" STREQUAL "xClang" )
   ADD_CXX_DEBUG_DEFINITIONS("-ggdb") # Produces debugging information specifically for gdb
 ENDIF ()
 
+if (MSVC)
+    add_compile_options(/MP)
+endif()
+
 macro( warning_level_update )
   foreach (flag_var
     CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE
