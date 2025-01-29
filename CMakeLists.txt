@@ -41,7 +41,7 @@ FetchContent_Declare(
         GIT_TAG ${KeffCavity_Branch}
 )
 FetchContent_MakeAvailable(EigenExternal)
-include_directories(${CMAKE_BINARY_DIR}/eigen-src)
+include_directories(${CMAKE_BINARY_DIR}/_deps/eigenexternal-src)
 
 # Include KeffCavity
 set(BUILD_KeffC_TESTING OFF CACHE BOOL "Build KeffCavity tests" FORCE)
