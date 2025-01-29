@@ -26,21 +26,32 @@ if(BUILD_FOR_PROFILING)
   set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -O0")
 endif()
 
+include(FetchContent)
 include(cmake/HTProjectMacros.cmake)
 include(cmake/HTinternal_utils.cmake)
 include(cmake/HTCompilerFlags.cmake)
 
 # Include Eigen
-configure_file(CMakeListsEigen.txt.in ${CMAKE_BINARY_DIR}/eigen-download/CMakeLists.txt)
-execute_process(COMMAND ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}" .
-        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/eigen-download)
-execute_process(COMMAND ${CMAKE_COMMAND} --build .
-        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/eigen-download)
-
+# Include KeffCavity
+# set(BUILD_KeffC_TESTING OFF CACHE BOOL "Build KeffCavity tests" FORCE)
+set(Eigen_Branch "3.4.0")
+FetchContent_Declare(
+        EigenExternal
+        GIT_REPOSITORY https://gitlab.com/libeigen/eigen.git
+        GIT_TAG ${KeffCavity_Branch}
+)
+FetchContent_MakeAvailable(EigenExternal)
 include_directories(${CMAKE_BINARY_DIR}/eigen-src)
 
 # Include KeffCavity
-include(CMakeLists-KeffCavity.txt)
+set(BUILD_KeffC_TESTING OFF CACHE BOOL "Build KeffCavity tests" FORCE)
+set(KeffCavity_Branch "Version_1.0.16")
+FetchContent_Declare(
+        KeffCavity
+        GIT_REPOSITORY https://github.com/LBNL-ETA/KeffCavity.git
+        GIT_TAG ${KeffCavity_Branch}
+)
+FetchContent_MakeAvailable(KeffCavity)
 
 # google test will not be created by this project if this is not main project. Main project is expected to handle google test.
 get_directory_property(hasParent PARENT_DIRECTORY)
