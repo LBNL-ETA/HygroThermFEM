@@ -45,7 +45,7 @@ include_directories(${CMAKE_BINARY_DIR}/_deps/eigenexternal-src)
 
 # Include KeffCavity
 set(BUILD_KeffC_TESTING OFF CACHE BOOL "Build KeffCavity tests" FORCE)
-set(KeffCavity_Branch "Version_1.0.16")
+set(KeffCavity_Branch "LouveredShutters")
 FetchContent_Declare(
         KeffCavity
         GIT_REPOSITORY https://github.com/LBNL-ETA/KeffCavity.git
