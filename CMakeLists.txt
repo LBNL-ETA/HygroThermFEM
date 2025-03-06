@@ -4,9 +4,9 @@ set(target_name HygroThermFEM)
 
 cmake_policy(SET CMP0048 NEW)
 
-project(${target_name} VERSION 1.0.37 LANGUAGES CXX)
+project(${target_name} VERSION 1.0.38 LANGUAGES CXX)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 
 option(BUILD_FOR_CODE_COVERAGE OFF)
 
@@ -45,7 +45,7 @@ include_directories(${CMAKE_BINARY_DIR}/_deps/eigenexternal-src)
 
 # Include KeffCavity
 set(BUILD_KeffC_TESTING OFF CACHE BOOL "Build KeffCavity tests" FORCE)
-set(KeffCavity_Branch "Version_1.0.17")
+set(KeffCavity_Branch "CPP20Conversion")
 FetchContent_Declare(
         KeffCavity
         GIT_REPOSITORY https://github.com/LBNL-ETA/KeffCavity.git
