@@ -4,7 +4,7 @@ set(target_name HygroThermFEM)
 
 cmake_policy(SET CMP0048 NEW)
 
-project(${target_name} VERSION 1.0.46 LANGUAGES CXX)
+project(${target_name} VERSION 1.0.47 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 
@@ -38,7 +38,7 @@ set(Eigen_Branch "3.4.0")
 FetchContent_Declare(
         EigenExternal
         GIT_REPOSITORY https://gitlab.com/libeigen/eigen.git
-        GIT_TAG ${KeffCavity_Branch}
+        GIT_TAG ${Eigen_Branch}
 )
 FetchContent_MakeAvailable(EigenExternal)
 include_directories(${CMAKE_BINARY_DIR}/_deps/eigenexternal-src)
