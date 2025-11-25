@@ -4,7 +4,7 @@ set(target_name HygroThermFEM)
 
 cmake_policy(SET CMP0048 NEW)
 
-project(${target_name} VERSION 1.0.49 LANGUAGES CXX)
+project(${target_name} VERSION 1.0.50 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 
@@ -34,7 +34,7 @@ include(cmake/HTCompilerFlags.cmake)
 # Include Eigen
 # Include KeffCavity
 # set(BUILD_KeffC_TESTING OFF CACHE BOOL "Build KeffCavity tests" FORCE)
-set(Eigen_Branch "3.4.0")
+set(Eigen_Branch "5.0.1")
 FetchContent_Declare(
         EigenExternal
         GIT_REPOSITORY https://gitlab.com/libeigen/eigen.git
@@ -45,7 +45,7 @@ include_directories(${CMAKE_BINARY_DIR}/_deps/eigenexternal-src)
 
 # Include KeffCavity
 set(BUILD_KeffC_TESTING OFF CACHE BOOL "Build KeffCavity tests" FORCE)
-set(KeffCavity_Branch "Version_1.0.29")
+set(KeffCavity_Branch "Version_1.0.30")
 FetchContent_Declare(
         KeffCavity
         GIT_REPOSITORY https://github.com/LBNL-ETA/KeffCavity.git
