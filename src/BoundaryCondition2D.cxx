@@ -42,12 +42,12 @@ namespace HygroThermFEM
             std::vector<double> vaporLeak(numOfBCNodes, 0);
             for(std::size_t j = 0; j < numOfBCNodes; ++j)
             {
-                const double T = m_Nodes[j].property(Variable::temperature);
+                const double nodeTemperature = m_Nodes[j].property(Variable::temperature);
                 const double humidity = m_Nodes[j].property(Variable::humidity);
                 vaporLeak[j] =
                   (m_AirHumidity * saturationConcentrationAtTemperature(m_AirTemperature)
-                   - humidity * saturationConcentrationAtTemperature(T))
-                  * heatOfEvaporation(T);
+                   - humidity * saturationConcentrationAtTemperature(nodeTemperature))
+                  * heatOfEvaporation(nodeTemperature);
             }
             const auto vaporFluxEnergy =
               vaporLeak * m_ConvectiveCoeffCalc->waterVaporTransferCoefficient();
@@ -92,8 +92,8 @@ namespace HygroThermFEM
         std::vector<double> concentration(numOfBCNodes, 0);
         for(std::size_t j = 0; j < numOfBCNodes; ++j)
         {
-            const double T = m_Nodes[j].property(Variable::temperature);
-            concentration[j] = saturationConcentrationAtTemperature(T);
+            const double nodeTemperature = m_Nodes[j].property(Variable::temperature);
+            concentration[j] = saturationConcentrationAtTemperature(nodeTemperature);
         }
         const auto vaporFlux =
           concentration * m_ConvectiveCoeffCalc->waterVaporTransferCoefficient();

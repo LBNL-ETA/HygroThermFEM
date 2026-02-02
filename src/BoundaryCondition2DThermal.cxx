@@ -174,10 +174,11 @@ namespace HygroThermFEM
         std::vector<double> result(numOfBCNodes, 0);
         for(std::size_t j = 0; j < numOfBCNodes; ++j)
         {
-            const double T = celsiusToKelvin(m_Nodes[j].property(Variable::temperature));
-            const double Trad = celsiusToKelvin(m_RadiationTemperature);
-            result[j] =
-              (T + Trad) * (Trad * Trad + T * T) * Constants::STEFANBOLTZMANN * m_Emissivity;
+            const double surfaceTemp = celsiusToKelvin(m_Nodes[j].property(Variable::temperature));
+            const double radiationTemp = celsiusToKelvin(m_RadiationTemperature);
+            result[j] = (surfaceTemp + radiationTemp)
+                        * (radiationTemp * radiationTemp + surfaceTemp * surfaceTemp)
+                        * Constants::STEFANBOLTZMANN * m_Emissivity;
         }
         return result;
     }

@@ -239,7 +239,7 @@ namespace HygroThermFEM
         for(const auto & cond : m_ConductanceFunctions)
         {
             const auto values = m_Nodes.properties(m_FluxVariable);
-            const auto k = cond->values(m_Nodes);
+            const auto conductivityValues = cond->values(m_Nodes);
             assert(k.size() == numOfQuadrilateralNodes);
             assert(values.size() == numOfQuadrilateralNodes);
 
@@ -263,11 +263,14 @@ namespace HygroThermFEM
             }
 
             // Extrapolate flux from Gauss points to nodes.
-            const auto a = 1.866025404;
-            const auto b = -0.5;
-            const auto c = 0.133974596;
+            const auto extrapolationCoeffA = 1.866025404;
+            const auto extrapolationCoeffB = -0.5;
+            const auto extrapolationCoeffC = 0.133974596;
             const std::vector<std::vector<double>> extrapolationCoefficients{
-              {a, b, c, b}, {b, a, b, c}, {c, b, a, b}, {b, c, b, a}};
+              {extrapolationCoeffA, extrapolationCoeffB, extrapolationCoeffC, extrapolationCoeffB},
+              {extrapolationCoeffB, extrapolationCoeffA, extrapolationCoeffB, extrapolationCoeffC},
+              {extrapolationCoeffC, extrapolationCoeffB, extrapolationCoeffA, extrapolationCoeffB},
+              {extrapolationCoeffB, extrapolationCoeffC, extrapolationCoeffB, extrapolationCoeffA}};
 
             for(size_t i = 0u; i < numOfQuadrilateralNodes; ++i)
             {
@@ -275,8 +278,8 @@ namespace HygroThermFEM
                 auto valY{0.0};
                 for(const auto val : extrapolationCoefficients[i])
                 {
-                    valX -= k[i] * VDtDx[i] * val;
-                    valY -= k[i] * VDtDy[i] * val;
+                    valX -= conductivityValues[i] * VDtDx[i] * val;
+                    valY -= conductivityValues[i] * VDtDy[i] * val;
                 }
                 results.emplace_back(valX, valY);
             }
@@ -441,9 +444,9 @@ namespace HygroThermFEM
             const auto delta = Constant(2.5E-5 / m_Material.diffusionResistanceFactor());
             if(!SimulationProperties::Instance().excludeHeatOfEvaporation())
             {
-                auto h = HeatOfEvaporation() * delta;
+                auto evaporationHeat = HeatOfEvaporation() * delta;
 
-                multiplies(h, Variable::vapor);
+                multiplies(evaporationHeat, Variable::vapor);
             }
         }
 

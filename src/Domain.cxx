@@ -17,8 +17,8 @@ namespace HygroThermFEM
     SquareMatrix IDomain::steadyStateLeftHandSide()
     {
         auto condMat = m_Elements.conductanceMatrix();
-        const auto h = m_BCs.HMatrix();
-        condMat += h;
+        const auto boundaryHMatrix = m_BCs.HMatrix();
+        condMat += boundaryHMatrix;
 
         return condMat;
     }
