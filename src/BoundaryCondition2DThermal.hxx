@@ -192,23 +192,18 @@ namespace HygroThermFEM
     };
 
     ///////////////////////////////////////////////////////
-    /// BlackBodyRadiationBC
+    /// IRadiationBC - Base class for radiation BCs
     ///////////////////////////////////////////////////////
 
-    //! \brief Simple black body radiation boundary condition.
+    //! \brief Base class for radiation boundary conditions.
     //!
-    //! Boundary condition is used only in thermal module.
-    class BlackBodyRadiationBC : public IBCLinear2D
+    //! Provides common implementation of R_Vector() and H_Matrix() for radiation-based
+    //! boundary conditions. Derived classes implement radiationCoefficients() to provide
+    //! the specific radiation calculation method.
+    class IRadiationBC : public IBCLinear2D
     {
     public:
-        //! Black body radiation boundary condition with two nodes, emissivity and radiation
-        //! temperature
-        BlackBodyRadiationBC(
-          size_t index1,                  //!< Node 1 index
-          size_t index2,                  //!< Node 2 index
-          double t_Emissivity,            //!< Boundary condition surface emissivity at both nodes.
-          double t_RadiationTemperature   //!< Outside radiation temperature in celsius.
-        );
+        virtual ~IRadiationBC() = default;
 
         //! Function that calculates right hand side vector.
         [[nodiscard]] std::vector<double> R_Vector() const override;
@@ -216,31 +211,69 @@ namespace HygroThermFEM
         //! Function that calculates matrix.
         [[nodiscard]] SquareMatrix H_Matrix() const override;
 
-    private:
-        //! Radiative convective coefficient that needs to be calculated based on current
-        //! temperatures
-        std::vector<double> HRadiative() const;
+    protected:
+        //! Construction of radiation boundary condition base.
+        IRadiationBC(size_t index1,                  //!< Node 1 index
+                     size_t index2,                  //!< Node 2 index
+                     double radiationTemperature,    //!< Outside radiation temperature in celsius.
+                     bool isLinear = true            //!< Whether the BC is linear
+        );
+
+        //! Returns radiation coefficients for each boundary node.
+        //! Derived classes implement specific calculation methods.
+        [[nodiscard]] virtual std::vector<double> radiationCoefficients() const = 0;
 
         double m_RadiationTemperature;
+    };
+
+    ///////////////////////////////////////////////////////
+    /// BlackBodyRadiationBC
+    ///////////////////////////////////////////////////////
+
+    //! \brief Simple black body radiation boundary condition.
+    //!
+    //! Boundary condition is used only in thermal module. Uses Stefan-Boltzmann law
+    //! to calculate radiative heat transfer coefficient based on current temperatures.
+    class BlackBodyRadiationBC : public IRadiationBC
+    {
+    public:
+        //! Black body radiation boundary condition with two nodes, emissivity and radiation
+        //! temperature
+        BlackBodyRadiationBC(
+          size_t index1,                  //!< Node 1 index
+          size_t index2,                  //!< Node 2 index
+          double emissivity,              //!< Boundary condition surface emissivity at both nodes.
+          double radiationTemperature     //!< Outside radiation temperature in celsius.
+        );
+
+    protected:
+        //! Radiative coefficient calculated using Stefan-Boltzmann law based on current temperatures
+        [[nodiscard]] std::vector<double> radiationCoefficients() const override;
+
+    private:
         double m_Emissivity;
     };
 
     ///////////////////////////////////////////////////////
-    /// SimplifiedRadiationBC
+    /// LinearizedRadiationBC
     ///////////////////////////////////////////////////////
-    class LinearizedRadiationBC : public IBCLinear2D
+
+    //! \brief Linearized radiation boundary condition.
+    //!
+    //! Uses a pre-calculated constant radiation coefficient instead of
+    //! computing it from Stefan-Boltzmann law at each iteration.
+    class LinearizedRadiationBC : public IRadiationBC
     {
     public:
         LinearizedRadiationBC(size_t index1,
                               size_t index2,
                               const LinearizedRadiationBCCoefficients & linearRadBC);
 
-        std::vector<double> R_Vector() const override;
-
-        SquareMatrix H_Matrix() const override;
+    protected:
+        //! Returns constant radiation coefficient for each boundary node
+        [[nodiscard]] std::vector<double> radiationCoefficients() const override;
 
     private:
         double m_RadiationCoefficient;
-        double m_RadiationTemperature;
     };
 }   // namespace HygroThermFEM

@@ -157,60 +157,65 @@ namespace HygroThermFEM
     }
 
     ////////////////////////////////////////////////////////
+    /// IRadiationBC - Base class for radiation BCs
+    ////////////////////////////////////////////////////////
+
+    IRadiationBC::IRadiationBC(const size_t index1,
+                               const size_t index2,
+                               const double radiationTemperature,
+                               const bool isLinear) :
+        IBCLinear2D(index1, index2, isLinear),
+        m_RadiationTemperature{radiationTemperature}
+    {}
+
+    std::vector<double> IRadiationBC::R_Vector() const
+    {
+        return m_PsiVector * radiationCoefficients() * m_RadiationTemperature;
+    }
+
+    SquareMatrix IRadiationBC::H_Matrix() const
+    {
+        return m_PsiPsiMatrix.mmultRows(radiationCoefficients());
+    }
+
+    ////////////////////////////////////////////////////////
     /// BlackBodyRadiationBC
     ////////////////////////////////////////////////////////
 
     BlackBodyRadiationBC::BlackBodyRadiationBC(const size_t index1,
                                                const size_t index2,
-                                               const double t_Emissivity,
-                                               const double t_RadiationTemperature) :
-        IBCLinear2D(index1, index2, false),
-        m_RadiationTemperature{t_RadiationTemperature},
-        m_Emissivity{t_Emissivity}
+                                               const double emissivity,
+                                               const double radiationTemperature) :
+        IRadiationBC(index1, index2, radiationTemperature, false),
+        m_Emissivity{emissivity}
     {}
 
-    std::vector<double> BlackBodyRadiationBC::HRadiative() const
+    std::vector<double> BlackBodyRadiationBC::radiationCoefficients() const
     {
         std::vector<double> result(numOfBCNodes, 0);
-        for(std::size_t j = 0; j < numOfBCNodes; ++j)
+        for(std::size_t idx = 0; idx < numOfBCNodes; ++idx)
         {
-            const double surfaceTemp = celsiusToKelvin(m_Nodes[j].property(Variable::temperature));
+            const double surfaceTemp = celsiusToKelvin(m_Nodes[idx].property(Variable::temperature));
             const double radiationTemp = celsiusToKelvin(m_RadiationTemperature);
-            result[j] = (surfaceTemp + radiationTemp)
-                        * (radiationTemp * radiationTemp + surfaceTemp * surfaceTemp)
-                        * Constants::STEFANBOLTZMANN * m_Emissivity;
+            result[idx] = (surfaceTemp + radiationTemp)
+                          * (radiationTemp * radiationTemp + surfaceTemp * surfaceTemp)
+                          * Constants::STEFANBOLTZMANN * m_Emissivity;
         }
         return result;
     }
 
-    std::vector<double> BlackBodyRadiationBC::R_Vector() const
-    {
-        return m_PsiVector * HRadiative() * m_RadiationTemperature;
-    }
-
-    SquareMatrix BlackBodyRadiationBC::H_Matrix() const
-    {
-        return m_PsiPsiMatrix.mmultRows(HRadiative());
-    }
-
     ////////////////////////////////////////////////////////
-    /// SimplifiedRadiationBC
+    /// LinearizedRadiationBC
     ////////////////////////////////////////////////////////
 
     LinearizedRadiationBC::LinearizedRadiationBC(
-      size_t index1, size_t index2, const LinearizedRadiationBCCoefficients & linearRadBC) :
-        IBCLinear2D(index1, index2),
-        m_RadiationCoefficient(linearRadBC.RadiationCoefficient),
-        m_RadiationTemperature(linearRadBC.RadiationTemperature)
+      const size_t index1, const size_t index2, const LinearizedRadiationBCCoefficients & linearRadBC) :
+        IRadiationBC(index1, index2, linearRadBC.RadiationTemperature, true),
+        m_RadiationCoefficient(linearRadBC.RadiationCoefficient)
     {}
 
-    std::vector<double> LinearizedRadiationBC::R_Vector() const
+    std::vector<double> LinearizedRadiationBC::radiationCoefficients() const
     {
-        return m_PsiVector * m_RadiationCoefficient * m_RadiationTemperature;
-    }
-
-    SquareMatrix LinearizedRadiationBC::H_Matrix() const
-    {
-        return m_PsiPsiMatrix * m_RadiationCoefficient;
+        return std::vector<double>(numOfBCNodes, m_RadiationCoefficient);
     }
 }   // namespace HygroThermFEM
