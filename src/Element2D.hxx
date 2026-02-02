@@ -146,7 +146,7 @@ namespace HygroThermFEM
         SquareMatrix DDuMatrices() const;
 
         //! Integrates all matrices that are part of K * ((Dp/Dx)(Du/Dx) + (Dp/Dy)(Du/Dy)) equation.
-        SquareMatrix DpDuMatrices();
+        SquareMatrix DpDuMatrices() const;
 
         //! Integrates all matrices that are part of K * Du/Dt equation.
         SquareMatrix capacitanceMatrices() const;

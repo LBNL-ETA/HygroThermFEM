@@ -202,7 +202,7 @@ namespace HygroThermFEM
         return result;
     }
 
-    SquareMatrix IElementLinear2D::DpDuMatrices()
+    SquareMatrix IElementLinear2D::DpDuMatrices() const
     {
         SquareMatrix result{numOfQuadrilateralNodes};
 

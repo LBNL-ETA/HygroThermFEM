@@ -24,19 +24,19 @@ namespace HygroThermFEM
         //! Local shape function
         double Psi(size_t IntegrationPointIndex,   //!< Index of integration point
                    size_t Index                    //!< Index of shape function
-        );
+        ) const;
 
         //! Differential of shape function over ksi (equivalent of x coordinate in local coordinate
         //! system)
         double PsiDKsi(size_t IntegrationPointIndex,   //!< Index of integration point
                        size_t Index                    //!< Index of shape function derivative
-        );
+        ) const;
 
         //! Differential of shape function over eta (equivalent of y coordinate in local coordinate
         //! system)
         double PsiDEta(size_t IntegrationPointIndex,   //!< Index of integration point
                        size_t Index                    //!< Index of shape function derivative
-        );
+        ) const;
 
         //! Vector all all shape functions in given integration point
 		const std::vector< double > & Psi(

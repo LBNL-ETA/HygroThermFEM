@@ -54,7 +54,7 @@ namespace HygroThermFEM
         }
     }
 
-    double QuadrilateralLinearLocal2D::Psi(size_t const IntegrationPointIndex, size_t const Index)
+    double QuadrilateralLinearLocal2D::Psi(size_t const IntegrationPointIndex, size_t const Index) const
     {
         if(IntegrationPointIndex >= m_Ksi.size())
         {
@@ -66,7 +66,7 @@ namespace HygroThermFEM
     }
 
     double QuadrilateralLinearLocal2D::PsiDKsi(size_t const IntegrationPointIndex,
-                                               size_t const Index)
+                                               size_t const Index) const
     {
         if(IntegrationPointIndex >= m_Ksi.size())
         {
@@ -78,7 +78,7 @@ namespace HygroThermFEM
     }
 
     double QuadrilateralLinearLocal2D::PsiDEta(size_t const IntegrationPointIndex,
-                                               size_t const Index)
+                                               size_t const Index) const
     {
         if(IntegrationPointIndex >= m_Ksi.size())
         {
