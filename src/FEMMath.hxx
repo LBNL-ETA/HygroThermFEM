@@ -10,6 +10,4 @@ namespace HygroThermFEM
     double norm(const std::vector<double> & t_vector);
 
     double radians(double d);
-
-    double degrees(double r);
 }   // namespace HygroThermFEM

@@ -1,6 +1,3 @@
-#include <cassert>
-#include <cmath>
-
 #pragma warning(push, 0)
 #include <Eigen/Sparse>
 #include <Eigen/Cholesky>
@@ -10,32 +7,6 @@
 
 namespace HygroThermFEM
 {
-    std::vector<double> CLinearSolver::checkSingularity(SquareMatrix & t_MatrixA) const
-    {
-        const auto size = t_MatrixA.size();
-        std::vector<double> vv;
-
-        for(size_t i = 0; i < size; ++i)
-        {
-            double aamax = 0;
-            for(size_t j = 0; j < size; ++j)
-            {
-                const auto absCellValue = fabs(t_MatrixA(i, j));
-                if(absCellValue > aamax)
-                {
-                    aamax = absCellValue;
-                }
-            }
-            if(aamax == 0)
-            {
-                assert(aamax != 0);
-            }
-            vv.push_back(1 / aamax);
-        }
-
-        return vv;
-    }
-
     std::vector<double> CLinearSolver::solveEigen(const SquareMatrix & t_MatrixA,
                                                   const std::vector<double> & t_VectorB)
     {

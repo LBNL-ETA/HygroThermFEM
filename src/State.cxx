@@ -17,37 +17,6 @@ namespace HygroThermFEM
         m_Property[BaseVariable::liquidPercent] = liquidPercent;
     }
 
-    State operator+(const State & lhs, const State & rhs)
-    {
-        State state(0, 0, 0, 0);
-        state.setValue(BaseVariable::temperature,
-                       lhs.getValue(BaseVariable::temperature) + rhs.getValue(BaseVariable::temperature));
-        state.setValue(BaseVariable::humidity,
-                       lhs.getValue(BaseVariable::humidity) + rhs.getValue(BaseVariable::humidity));
-        state.setValue(BaseVariable::pressure,
-                       lhs.getValue(BaseVariable::pressure) + rhs.getValue(BaseVariable::pressure));
-        state.setValue(BaseVariable::liquidPercent,
-                       lhs.getValue(BaseVariable::liquidPercent)
-                         + rhs.getValue(BaseVariable::liquidPercent));
-
-        return state;
-    }
-
-    State operator-(const State & lhs, const State & rhs)
-    {
-        State state(0, 0, 0, 0);
-        state.setValue(BaseVariable::temperature,
-                       lhs.getValue(BaseVariable::temperature) - rhs.getValue(BaseVariable::temperature));
-        state.setValue(BaseVariable::humidity,
-                       lhs.getValue(BaseVariable::humidity) - rhs.getValue(BaseVariable::humidity));
-        state.setValue(BaseVariable::pressure,
-                       lhs.getValue(BaseVariable::pressure) - rhs.getValue(BaseVariable::pressure));
-        state.setValue(BaseVariable::liquidPercent,
-                       lhs.getValue(BaseVariable::liquidPercent)
-                         - rhs.getValue(BaseVariable::liquidPercent));
-        return state;
-    }
-
     double State::getValue(const BaseVariable t_Property) const
     {
         return m_Property.at(t_Property);

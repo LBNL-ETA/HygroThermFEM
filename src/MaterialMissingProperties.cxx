@@ -58,8 +58,9 @@ namespace HygroThermFEM
     bool MaterialMissingProperties::isMissingAnyProperty() const
     {
         return Density || Emissivity || Porosity || SpecificHeatCapacityDry
-               || WaterVaporDiffusionResistanceFactor || MoistureStorageFunction
-               || LiquidTransportationSuction || LiquidTransportationRedistribution
+               || ThermalConductivityDry || WaterVaporDiffusionResistanceFactor
+               || MoistureStorageFunction || LiquidTransportationSuction
+               || LiquidTransportationRedistribution
                || ThermalConductivityMoistureAndTemperatureDependent;
     }
 

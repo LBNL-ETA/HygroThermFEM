@@ -31,12 +31,6 @@ namespace HygroThermFEM
           double liquidPercent = 1.0    //!< Percent of water content in liquid state.
         );
 
-        //! Operator overloading for addition operation
-        friend State operator+(const State & lhs, const State & rhs);
-
-        //! Operator overloading for subtraction operation
-        friend State operator-(const State & lhs, const State & rhs);
-
         //! Returns state value for given BaseVariable
         double getValue(BaseVariable t_Property) const;
 

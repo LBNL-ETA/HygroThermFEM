@@ -13,18 +13,8 @@ namespace Timesteps
         return m_MaxDivisions;
     }
 
-    void Settings::setMaxDivisions(const unsigned mMaxDivisions)
-    {
-        m_MaxDivisions = mMaxDivisions;
-    }
-
     unsigned Settings::getNumberOfSubtimesteps() const
     {
         return m_NumberOfSubsegments;
-    }
-
-    void Settings::setNumberOfSubtimesteps(const unsigned numberOfSubtimesteps)
-    {
-        m_NumberOfSubsegments = numberOfSubtimesteps;
     }
 }   // namespace Timesteps
