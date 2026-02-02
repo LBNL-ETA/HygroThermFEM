@@ -58,7 +58,7 @@ namespace HygroThermFEM
         return result;
     }
 
-    std::vector<double> ElementsLinear2D::getLumpedMass(const double DTime)
+    std::vector<double> ElementsLinear2D::getLumpedMass(const double DTime) const
     {
         const auto numOfNodes{NodePool::Instance().maxIndex()};
         std::vector<std::vector<double>> Capacitance(numOfNodes,
@@ -116,7 +116,7 @@ namespace HygroThermFEM
         return M;
     }
 
-    SquareMatrix ElementsLinear2D::getMassMatrix(const double DTime)
+    SquareMatrix ElementsLinear2D::getMassMatrix(const double DTime) const
     {
         SquareMatrix Capacitance{NodePool::Instance().maxIndex()};
 

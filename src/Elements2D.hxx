@@ -20,13 +20,13 @@ namespace HygroThermFEM
         //!
         //! \param DTime Timestep value for which matrix will be evaluated.
         //! \return Vector of mass values in nodes.
-        std::vector<double> getLumpedMass(double DTime);
+        std::vector<double> getLumpedMass(double DTime) const;
 
         //! Mass matrix in full form (not lumped)
         //!
         //! \param DTime Timestep value for which matrix will be evaluated.
         //! \return Mass matrix values.
-        SquareMatrix getMassMatrix(double DTime);
+        SquareMatrix getMassMatrix(double DTime) const;
 
         //! Right hand side vector of the domain.
         std::vector<double> RVector() const;

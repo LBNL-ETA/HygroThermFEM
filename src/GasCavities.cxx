@@ -99,7 +99,7 @@ namespace HygroThermFEM
         return segments;
     }
 
-    KeffCavity::CavitySide EquivalentGasCavity::getSide1(KeffCavity::ScreenFlow screenFlow)
+    KeffCavity::CavitySide EquivalentGasCavity::getSide1(KeffCavity::ScreenFlow screenFlow) const
     {
         std::map<KeffCavity::ScreenFlow, Side> flowMap{
           {KeffCavity::ScreenFlow::Left, Side::Right},
@@ -111,7 +111,7 @@ namespace HygroThermFEM
         return m_Side.at(flowMap.at(screenFlow));
     }
 
-    KeffCavity::CavitySide EquivalentGasCavity::getSide2(KeffCavity::ScreenFlow screenFlow)
+    KeffCavity::CavitySide EquivalentGasCavity::getSide2(KeffCavity::ScreenFlow screenFlow) const
     {
         std::map<KeffCavity::ScreenFlow, Side> flowMap{
           {KeffCavity::ScreenFlow::Left, Side::Left},

@@ -112,10 +112,10 @@ namespace HygroThermFEM
         };
 
         //! Gets side (temperature and emissivity) based on screen flow direction
-        KeffCavity::CavitySide getSide1(KeffCavity::ScreenFlow screenFlow);
+        KeffCavity::CavitySide getSide1(KeffCavity::ScreenFlow screenFlow) const;
 
         //! Gets side (temperature and emissivity) based on screen flow direction
-        KeffCavity::CavitySide getSide2(KeffCavity::ScreenFlow screenFlow);
+        KeffCavity::CavitySide getSide2(KeffCavity::ScreenFlow screenFlow) const;
 
         //! Calculates frame cavity area out of segments
         [[nodiscard]] double calcArea() const;
