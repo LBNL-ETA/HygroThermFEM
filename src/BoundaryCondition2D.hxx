@@ -8,6 +8,32 @@
 namespace HygroThermFEM
 {
     ////////////////////////////////////////////////////////
+    /// IConvectiveBCBase - Base class for convection-based BCs
+    ////////////////////////////////////////////////////////
+
+    //! \brief Base class for boundary conditions that use convective heat transfer models.
+    //!
+    //! Provides common members for air temperature, humidity, and convective coefficient
+    //! calculator used by both thermal (IConvectionBC) and moisture (IMoistureBC) domains.
+    class IConvectiveBCBase : public IBCLinear2D
+    {
+    public:
+        virtual ~IConvectiveBCBase() = default;
+
+    protected:
+        //! Constructor for convective boundary condition base.
+        IConvectiveBCBase(size_t index1,
+                          size_t index2,
+                          double airTemperature,
+                          double airHumidity,
+                          std::unique_ptr<IConvectiveCoefficient> convectiveCoeffCalc);
+
+        const double m_AirTemperature;
+        const double m_AirHumidity;
+        std::unique_ptr<IConvectiveCoefficient> m_ConvectiveCoeffCalc;
+    };
+
+    ////////////////////////////////////////////////////////
     /// IConvectionBC
     ////////////////////////////////////////////////////////
 
@@ -15,16 +41,16 @@ namespace HygroThermFEM
     //! condition models
     //!
     //! Simple convection boundary condition that is used in thermal module.
-    class IConvectionBC : public IBCLinear2D
+    class IConvectionBC : public IConvectiveBCBase
     {
     public:
         //! Constructor for convection boundary condition that is common between models
         IConvectionBC(size_t index1,
                       size_t index2,
-                      double t_AirTemperature,
-                      std::unique_ptr<IConvectiveCoefficient>,
-                      double t_AirHumidity = 0,
-                      bool t_SimulateMoisture = true);
+                      double airTemperature,
+                      std::unique_ptr<IConvectiveCoefficient> convectiveCoeffCalc,
+                      double airHumidity = 0,
+                      bool simulateMoisture = true);
 
         //! Function that calculates right hand side vector.
         [[nodiscard]] std::vector<double> R_Vector() const override;
@@ -33,32 +59,28 @@ namespace HygroThermFEM
         [[nodiscard]] SquareMatrix H_Matrix() const override;
 
     protected:
-        const double m_AirTemperature;
-        std::unique_ptr<IConvectiveCoefficient> m_ConvectiveCoeffCalc;
-        const double m_AirHumidity;
-
         //! Need to include energy from vapor flux energy if moisture is present.
         bool m_SimulateVaporFluxEnergy;
-    };    
+    };
 
     /////////////////////////////////////////////////////
-    /// MoistureBC
+    /// IMoistureBC
     /////////////////////////////////////////////////////
 
     //! \brief Base class for moisture boundary conditions. The only difference in inherited classes
     //! is how convection heat transfer coefficient is calculated.
     //!
     //! This class handles all matrices and vectors generation that is common for moisture bcs
-    class IMoistureBC : public IBCLinear2D
+    class IMoistureBC : public IConvectiveBCBase
     {
     public:
         //! Construction for moisture boundary condition.
         IMoistureBC(size_t index1,
                     size_t index2,
                     const std::string & materialName,
-                    double t_AirHumidity,
-                    double t_AirTemperature,
-                    std::unique_ptr<IConvectiveCoefficient> model);
+                    double airHumidity,
+                    double airTemperature,
+                    std::unique_ptr<IConvectiveCoefficient> convectiveCoeffCalc);
 
         //! Function that calculates right hand side vector.
         [[nodiscard]] std::vector<double> R_Vector() const override;
@@ -67,12 +89,7 @@ namespace HygroThermFEM
         [[nodiscard]] SquareMatrix H_Matrix() const override;
 
     protected:
-        double m_AirHumidity;
-        double m_AirTemperature;
         const IMaterial & m_Material;
-
-        //! \brief Convective coefficients calculations can be performed with different algorithms
-        std::unique_ptr<IConvectiveCoefficient> m_ConvectiveCoeffCalc;
-    };    
+    };
 
 }   // namespace HygroThermFEM

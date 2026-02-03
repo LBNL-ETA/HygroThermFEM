@@ -11,20 +11,32 @@
 namespace HygroThermFEM
 {
     ////////////////////////////////////////////////////////
+    /// IConvectiveBCBase
+    ////////////////////////////////////////////////////////
+
+    IConvectiveBCBase::IConvectiveBCBase(const size_t index1,
+                                         const size_t index2,
+                                         const double airTemperature,
+                                         const double airHumidity,
+                                         std::unique_ptr<IConvectiveCoefficient> convectiveCoeffCalc) :
+        IBCLinear2D(index1, index2),
+        m_AirTemperature(airTemperature),
+        m_AirHumidity(airHumidity),
+        m_ConvectiveCoeffCalc(std::move(convectiveCoeffCalc))
+    {}
+
+    ////////////////////////////////////////////////////////
     /// IConvectionBC
     ////////////////////////////////////////////////////////
 
-    IConvectionBC::IConvectionBC(size_t index1,
-                                 size_t index2,
-                                 const double t_AirTemperature,
-                                 std::unique_ptr<IConvectiveCoefficient> convModel,
-                                 const double t_AirHumidity,
-                                 const bool t_SimulateMoisture) :
-        IBCLinear2D(index1, index2),
-        m_AirTemperature(t_AirTemperature),
-        m_ConvectiveCoeffCalc(std::move(convModel)),
-        m_AirHumidity(t_AirHumidity),
-        m_SimulateVaporFluxEnergy(t_SimulateMoisture)
+    IConvectionBC::IConvectionBC(const size_t index1,
+                                 const size_t index2,
+                                 const double airTemperature,
+                                 std::unique_ptr<IConvectiveCoefficient> convectiveCoeffCalc,
+                                 const double airHumidity,
+                                 const bool simulateMoisture) :
+        IConvectiveBCBase(index1, index2, airTemperature, airHumidity, std::move(convectiveCoeffCalc)),
+        m_SimulateVaporFluxEnergy(simulateMoisture)
     {}
 
     std::vector<double> IConvectionBC::R_Vector() const
@@ -69,14 +81,11 @@ namespace HygroThermFEM
     IMoistureBC::IMoistureBC(const size_t index1,
                              const size_t index2,
                              const std::string & materialName,
-                             const double t_AirHumidity,
-                             const double t_AirTemperature,
-                             std::unique_ptr<IConvectiveCoefficient> model) :
-        IBCLinear2D(index1, index2),
-        m_AirHumidity(t_AirHumidity),
-        m_AirTemperature(t_AirTemperature),
-        m_Material(MaterialPool::Instance().material(materialName)),
-        m_ConvectiveCoeffCalc(std::move(model))
+                             const double airHumidity,
+                             const double airTemperature,
+                             std::unique_ptr<IConvectiveCoefficient> convectiveCoeffCalc) :
+        IConvectiveBCBase(index1, index2, airTemperature, airHumidity, std::move(convectiveCoeffCalc)),
+        m_Material(MaterialPool::Instance().material(materialName))
     {}
 
     std::vector<double> IMoistureBC::R_Vector() const
