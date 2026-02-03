@@ -96,8 +96,8 @@ TEST_F(Topaz2D_ConvectionBC, TestExample_1)
     HygroThermFEM::MultiDomain multiDomain(true, false);
     auto & domain = multiDomain.thermalDomain();
 
-    domain.createElement(3, 4, 2, 1, material.name());
-    domain.createElement(6, 4, 3, 5, material.name());
+    multiDomain.createElement(3, 4, 2, 1, material.name());
+    multiDomain.createElement(6, 4, 3, 5, material.name());
 
     // Create Boundary Conditions
     constexpr auto tSurface = 20.0;

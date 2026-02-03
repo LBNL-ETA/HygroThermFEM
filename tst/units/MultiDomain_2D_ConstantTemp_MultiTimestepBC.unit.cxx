@@ -88,7 +88,7 @@ TEST_F(MultiDomain_2D_ConstantTemp_MultiTimestepBC, TestExample_1)
                                                    liquidTransportationCurve,
                                                    moistureStorageFunction);
 
-    HygroThermFEM::MultiDomain domain;
+    HygroThermFEM::MultiDomain multiDomain;
 
     /// Create elements
     for(size_t i = 1; i <= (NodePool::Instance().maxIndex() - 2) / 2; ++i)
@@ -97,7 +97,7 @@ TEST_F(MultiDomain_2D_ConstantTemp_MultiTimestepBC, TestExample_1)
         const auto node2 = 2u * i + 2u;
         const auto node3 = 2u * i;
         const auto node4 = 2u * i - 1u;
-        domain.createElement(node1, node2, node3, node4, material.name());
+        multiDomain.createElement(node1, node2, node3, node4, material.name());
     }
 
     /// Create Boundary Conditions
@@ -105,7 +105,7 @@ TEST_F(MultiDomain_2D_ConstantTemp_MultiTimestepBC, TestExample_1)
     // Variable boundary conditions (temperature and humidity) over ten timesteps.
     const std::vector<double> bcTemperatures{20, 19, 18, 17, 16, 15, 16, 17, 18, 19};
 
-    domain.createBC_FixedTemperature(1, 2, bcTemperatures);
+    multiDomain.createBC_FixedTemperature(1, 2, bcTemperatures);
 
     constexpr auto dTime = 3600;
     constexpr auto nSteps = 10;
@@ -118,7 +118,7 @@ TEST_F(MultiDomain_2D_ConstantTemp_MultiTimestepBC, TestExample_1)
 
     for(auto i = 0; i < nSteps; ++i)
     {
-        auto aSolution = domain.transient(temperatures, humidities, dTime, timestepIndex);
+        auto aSolution = multiDomain.transient(temperatures, humidities, dTime, timestepIndex);
         temperatureSolution.push_back(aSolution.temperature);
         waterContentSolution.push_back(aSolution.waterContent);
         temperatures = aSolution.temperature;

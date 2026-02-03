@@ -23,7 +23,7 @@ protected:
     }
 
     // Helper to create a simple 2x2 model with one element
-    void createSimpleModel(ThermalDomain & domain)
+    void createSimpleModel(MultiDomain & multiDomain)
     {
         const State state(20.0, 0.5, 101325.0);
 
@@ -61,11 +61,11 @@ protected:
                                                      liquidTransportationCurve,
                                                      moistureStorageFunction);
 
-        domain.createElement(1, 2, 3, 4, "TestMaterial");
+        multiDomain.createElement(1, 2, 3, 4, "TestMaterial");
     }
 
     // Helper to create model with frame cavity for gravity tests
-    void createModelWithFrameCavity(ThermalDomain & domain)
+    void createModelWithFrameCavity(MultiDomain & multiDomain)
     {
         const State state(20.0, 0.0, 101325.0);
 
@@ -107,8 +107,8 @@ protected:
         MaterialPool::Instance().createGas("FrameCavity", HygroThermFEM::CavityStandard::ISO15099);
 
         // Create elements: one solid and one frame cavity
-        domain.createElement(1, 2, 5, 4, "SolidMaterial");
-        domain.createElement(2, 3, 6, 5, "FrameCavity");
+        multiDomain.createElement(1, 2, 5, 4, "SolidMaterial");
+        multiDomain.createElement(2, 3, 6, 5, "FrameCavity");
     }
 };
 
@@ -118,7 +118,7 @@ TEST_F(TestDomainClearModelAndGravity, TestClearModelRemovesNodesAndMaterials)
 
     MultiDomain multiDomain(true, false);
     auto & domain = multiDomain.thermalDomain();
-    createSimpleModel(domain);
+    createSimpleModel(multiDomain);
 
     // Verify model was created
     const auto nodeCountBefore = NodePool::Instance().properties(Variable::temperature).size();
@@ -138,7 +138,7 @@ TEST_F(TestDomainClearModelAndGravity, TestClearModelAllowsNewModel)
 
     MultiDomain multiDomain(true, false);
     auto & domain = multiDomain.thermalDomain();
-    createSimpleModel(domain);
+    createSimpleModel(multiDomain);
 
     // Clear the model
     domain.clearModel();
@@ -164,7 +164,7 @@ TEST_F(TestDomainClearModelAndGravity, TestSetGravityVectorDefault)
 
     MultiDomain multiDomain(true, false);
     auto & domain = multiDomain.thermalDomain();
-    createModelWithFrameCavity(domain);
+    createModelWithFrameCavity(multiDomain);
 
     // Add boundary condition
     const HygroThermFEM::FixedBCHCCoefficients bcCoeff{0.0, 30.0};
@@ -184,7 +184,7 @@ TEST_F(TestDomainClearModelAndGravity, TestSetGravityVectorCustom)
 
     MultiDomain multiDomain(true, false);
     auto & domain = multiDomain.thermalDomain();
-    createModelWithFrameCavity(domain);
+    createModelWithFrameCavity(multiDomain);
 
     // Add boundary condition
     const HygroThermFEM::FixedBCHCCoefficients bcCoeff{0.0, 30.0};
@@ -212,7 +212,7 @@ TEST_F(TestDomainClearModelAndGravity, TestSetGravityVectorBeforeCavityInit)
 
     MultiDomain multiDomain(true, false);
     auto & domain = multiDomain.thermalDomain();
-    createModelWithFrameCavity(domain);
+    createModelWithFrameCavity(multiDomain);
 
     // Set gravity before any transient calculation (before gasCavities is created)
     const FenestrationCommon::GravityVector customGravity{0.0, 0.0, -1.0};

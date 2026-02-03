@@ -88,8 +88,8 @@ TEST_F(Moisture_2D_TwoElements_1, TestExample_1)
     auto & domain = multiDomain.moistureDomain();
 
     /// Create elements
-    domain.createElement(3, 4, 2, 1, material.name());
-    domain.createElement(6, 4, 3, 5, material.name());
+    multiDomain.createElement(3, 4, 2, 1, material.name());
+    multiDomain.createElement(6, 4, 3, 5, material.name());
 
     // Create Boundary Conditions
     constexpr auto airTemperature = 20.0;

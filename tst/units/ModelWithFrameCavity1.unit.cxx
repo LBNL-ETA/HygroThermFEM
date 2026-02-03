@@ -104,7 +104,7 @@ TEST_F(TestModelWithFrameCavity1, TestSingleFrameCavity)
                 {
                     materialName = solidMaterial.name();
                 }
-                domain.createElement(node1, node2, node3, node4, materialName);
+                multiDomain.createElement(node1, node2, node3, node4, materialName);
             }
         }
     }

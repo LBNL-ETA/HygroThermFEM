@@ -31,10 +31,10 @@ TEST_F(TestMaterialChecker, TestExample_1)
 
     const bool SimulateThermal{true};
     const bool SimulateMoisture{true};
-    HygroThermFEM::MultiDomain domain{SimulateThermal, SimulateMoisture};
+    HygroThermFEM::MultiDomain multiDomain{SimulateThermal, SimulateMoisture};
 
     // Check for transient simulation
-    const auto matCheckTransient = domain.checkForMaterialsValidity(HygroThermFEM::SimulationType::Transient);
+    const auto matCheckTransient = multiDomain.checkForMaterialsValidity(HygroThermFEM::SimulationType::Transient);
     EXPECT_EQ(matCheckTransient.size(), 1u);
     EXPECT_EQ(matCheckTransient.isMaterialLibraryCorrect(), false);
 
@@ -53,7 +53,7 @@ TEST_F(TestMaterialChecker, TestExample_1)
     EXPECT_EQ(matCheckTransient[0].ThermalConductivityMoistureAndTemperatureDependent, false);
 
     // Check for steady-state simulation
-    const auto matCheckSteadyState = domain.checkForMaterialsValidity(HygroThermFEM::SimulationType::SteadyState);
+    const auto matCheckSteadyState = multiDomain.checkForMaterialsValidity(HygroThermFEM::SimulationType::SteadyState);
     EXPECT_EQ(matCheckSteadyState.size(), 1u);
     EXPECT_EQ(matCheckSteadyState.isMaterialLibraryCorrect(), false);
     EXPECT_EQ(matCheckSteadyState[0].Density, false);
@@ -79,10 +79,10 @@ TEST_F(TestMaterialChecker, TestExample_2)
 
     const bool SimulateThermal{true};
     const bool SimulateMoisture{false};
-    HygroThermFEM::MultiDomain domain{SimulateThermal, SimulateMoisture};
+    HygroThermFEM::MultiDomain multiDomain{SimulateThermal, SimulateMoisture};
 
     // Check for transient simulation
-    const auto matCheckTransient = domain.checkForMaterialsValidity(HygroThermFEM::SimulationType::Transient);
+    const auto matCheckTransient = multiDomain.checkForMaterialsValidity(HygroThermFEM::SimulationType::Transient);
     EXPECT_EQ(matCheckTransient.size(), 1u);
     EXPECT_EQ(matCheckTransient.isMaterialLibraryCorrect(), false);
 
@@ -101,7 +101,7 @@ TEST_F(TestMaterialChecker, TestExample_2)
     EXPECT_EQ(matCheckTransient[0].ThermalConductivityMoistureAndTemperatureDependent, false);
 
     // Check for steady-state simulation
-    const auto matCheckSteadyState = domain.checkForMaterialsValidity(HygroThermFEM::SimulationType::SteadyState);
+    const auto matCheckSteadyState = multiDomain.checkForMaterialsValidity(HygroThermFEM::SimulationType::SteadyState);
     EXPECT_EQ(matCheckSteadyState.size(), 1u);
     EXPECT_EQ(matCheckSteadyState.isMaterialLibraryCorrect(), false);
     EXPECT_EQ(matCheckSteadyState[0].Density, false);
@@ -127,10 +127,10 @@ TEST_F(TestMaterialChecker, TestExample_3)
 
     const bool SimulateThermal{false};
     const bool SimulateMoisture{true};
-    HygroThermFEM::MultiDomain domain{SimulateThermal, SimulateMoisture};
+    HygroThermFEM::MultiDomain multiDomain{SimulateThermal, SimulateMoisture};
 
     // Check for transient simulation
-    const auto matCheckTransient = domain.checkForMaterialsValidity(HygroThermFEM::SimulationType::Transient);
+    const auto matCheckTransient = multiDomain.checkForMaterialsValidity(HygroThermFEM::SimulationType::Transient);
     EXPECT_EQ(matCheckTransient.size(), 1u);
     EXPECT_EQ(matCheckTransient.isMaterialLibraryCorrect(), false);
 
@@ -149,7 +149,7 @@ TEST_F(TestMaterialChecker, TestExample_3)
     EXPECT_EQ(matCheckTransient[0].ThermalConductivityMoistureAndTemperatureDependent, false);
 
     // Check for steady-state simulation
-    const auto matCheckSteadyState = domain.checkForMaterialsValidity(HygroThermFEM::SimulationType::SteadyState);
+    const auto matCheckSteadyState = multiDomain.checkForMaterialsValidity(HygroThermFEM::SimulationType::SteadyState);
     EXPECT_EQ(matCheckSteadyState.size(), 1u);
     EXPECT_EQ(matCheckSteadyState.isMaterialLibraryCorrect(), false);
     EXPECT_EQ(matCheckSteadyState[0].Density, false);
@@ -176,7 +176,7 @@ TEST_F(TestMaterialChecker, TestExample_4)
 
     const bool SimulateThermal{true};
     const bool SimulateMoisture{true};
-    HygroThermFEM::MultiDomain domain{SimulateThermal, SimulateMoisture};
+    HygroThermFEM::MultiDomain multiDomain{SimulateThermal, SimulateMoisture};
 
     // Simulation properties will have turned off liquid transportation and capillary conduction in
     // order to test need for liquid transportation curve.
@@ -194,7 +194,7 @@ TEST_F(TestMaterialChecker, TestExample_4)
       thermalConductivityMoistureAndTemperatureDependent);
 
     // Check for transient simulation
-    const auto matCheckTransient = domain.checkForMaterialsValidity(HygroThermFEM::SimulationType::Transient);
+    const auto matCheckTransient = multiDomain.checkForMaterialsValidity(HygroThermFEM::SimulationType::Transient);
     EXPECT_EQ(matCheckTransient.size(), 1u);
     EXPECT_EQ(matCheckTransient.isMaterialLibraryCorrect(), false);
 
@@ -213,7 +213,7 @@ TEST_F(TestMaterialChecker, TestExample_4)
     EXPECT_EQ(matCheckTransient[0].ThermalConductivityMoistureAndTemperatureDependent, false);
 
     // Check for steady-state simulation
-    const auto matCheckSteadyState = domain.checkForMaterialsValidity(HygroThermFEM::SimulationType::SteadyState);
+    const auto matCheckSteadyState = multiDomain.checkForMaterialsValidity(HygroThermFEM::SimulationType::SteadyState);
     EXPECT_EQ(matCheckSteadyState.size(), 1u);
     EXPECT_EQ(matCheckSteadyState.isMaterialLibraryCorrect(), false);
     EXPECT_EQ(matCheckSteadyState[0].Density, false);
@@ -240,7 +240,7 @@ TEST_F(TestMaterialChecker, TestExample_5)
 
     const bool SimulateThermal{true};
     const bool SimulateMoisture{false};
-    HygroThermFEM::MultiDomain domain{SimulateThermal, SimulateMoisture};
+    HygroThermFEM::MultiDomain multiDomain{SimulateThermal, SimulateMoisture};
 
     // Simulation properties will have turned off liquid transportation and capillary conduction in
     // order to test need for liquid transportation curve.
@@ -258,7 +258,7 @@ TEST_F(TestMaterialChecker, TestExample_5)
             thermalConductivityMoistureAndTemperatureDependent);
 
     // Check for transient simulation
-    const auto matCheckTransient = domain.checkForMaterialsValidity(HygroThermFEM::SimulationType::Transient);
+    const auto matCheckTransient = multiDomain.checkForMaterialsValidity(HygroThermFEM::SimulationType::Transient);
     EXPECT_EQ(matCheckTransient.size(), 1u);
     EXPECT_EQ(matCheckTransient.isMaterialLibraryCorrect(), false);
 
@@ -277,7 +277,7 @@ TEST_F(TestMaterialChecker, TestExample_5)
     EXPECT_EQ(matCheckTransient[0].ThermalConductivityMoistureAndTemperatureDependent, false);
 
     // Check for steady-state simulation
-    const auto matCheckSteadyState = domain.checkForMaterialsValidity(HygroThermFEM::SimulationType::SteadyState);
+    const auto matCheckSteadyState = multiDomain.checkForMaterialsValidity(HygroThermFEM::SimulationType::SteadyState);
     EXPECT_EQ(matCheckSteadyState.size(), 1u);
     EXPECT_EQ(matCheckSteadyState.isMaterialLibraryCorrect(), false);
     EXPECT_EQ(matCheckSteadyState[0].Density, false);

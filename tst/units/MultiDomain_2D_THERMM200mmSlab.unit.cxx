@@ -89,17 +89,17 @@ TEST_F(MultiDomain_2D_THERMM200mmSlab, TestExample_1)
                                                    liquidTransportationCurve,
                                                    moistureStorageFunction);
 
-    HygroThermFEM::MultiDomain domain;
+    HygroThermFEM::MultiDomain multiDomain;
 
     /// Create elements
-    domain.createElement(3, 1, 2, 5, material.name());
-    domain.createElement(2, 4, 7, 5, material.name());
-    domain.createElement(6, 3, 5, 8, material.name());
-    domain.createElement(5, 7, 10, 8, material.name());
-    domain.createElement(9, 6, 8, 11, material.name());
-    domain.createElement(11, 14, 12, 9, material.name());
-    domain.createElement(11, 8, 10, 13, material.name());
-    domain.createElement(11, 13, 15, 14, material.name());
+    multiDomain.createElement(3, 1, 2, 5, material.name());
+    multiDomain.createElement(2, 4, 7, 5, material.name());
+    multiDomain.createElement(6, 3, 5, 8, material.name());
+    multiDomain.createElement(5, 7, 10, 8, material.name());
+    multiDomain.createElement(9, 6, 8, 11, material.name());
+    multiDomain.createElement(11, 14, 12, 9, material.name());
+    multiDomain.createElement(11, 8, 10, 13, material.name());
+    multiDomain.createElement(11, 13, 15, 14, material.name());
 
     /// Create Boundary Conditions
     constexpr auto hc = 2.0;
@@ -111,10 +111,10 @@ TEST_F(MultiDomain_2D_THERMM200mmSlab, TestExample_1)
       bcCoeff, bcCoeff, bcCoeff, bcCoeff, bcCoeff, bcCoeff, bcCoeff, bcCoeff, bcCoeff, bcCoeff,
       bcCoeff, bcCoeff, bcCoeff, bcCoeff, bcCoeff, bcCoeff, bcCoeff, bcCoeff, bcCoeff, bcCoeff};
 
-    domain.createBC_FixedHc(15, 14, bcCoeffs);
-    domain.createBC_FixedHc(14, 12, bcCoeffs);
-    domain.createBC_FixedHc(1, 2, bcCoeffs);
-    domain.createBC_FixedHc(2, 4, bcCoeffs);
+    multiDomain.createBC_FixedHc(15, 14, bcCoeffs);
+    multiDomain.createBC_FixedHc(14, 12, bcCoeffs);
+    multiDomain.createBC_FixedHc(1, 2, bcCoeffs);
+    multiDomain.createBC_FixedHc(2, 4, bcCoeffs);
 
     constexpr auto dTime = 3600;
     constexpr auto nSteps = 20;
@@ -127,7 +127,7 @@ TEST_F(MultiDomain_2D_THERMM200mmSlab, TestExample_1)
 
     for(auto i = 0; i < nSteps; ++i)
     {
-        auto aSolution = domain.transient(temperatures, humidities, dTime, timestepIndex);
+        auto aSolution = multiDomain.transient(temperatures, humidities, dTime, timestepIndex);
         temperatureSolution.push_back(aSolution.temperature);
         humiditySolution.push_back(aSolution.humidity);
         temperatures = aSolution.temperature;

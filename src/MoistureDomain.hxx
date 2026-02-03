@@ -15,6 +15,18 @@ namespace HygroThermFEM
         //! Simple constructor - only accessible via MultiDomain
         MoistureDomain(bool automaticUpdatePreviousTimestep = true);
 
+        //! \brief Creates and adds element into domain - only accessible via MultiDomain
+        //! @param index1 Node 1 index
+        //! @param index2 Node 2 index
+        //! @param index3 Node 3 index
+        //! @param index4 Node 4 index
+        //! @param materialName Material name assigned to the element
+        void createElement(size_t index1,
+                           size_t index2,
+                           size_t index3,
+                           size_t index4,
+                           const std::string & materialName) override;
+
     public:
 
         //! \brief Creation of convection boundary condition
@@ -145,19 +157,7 @@ namespace HygroThermFEM
         //! @param index1 Node 1 index
         //! @param index2 Node 2 index
         //! @param values structure to hold fixed temperature and humidity for every timestep
-        void createBC_FixedHumidity(size_t index1, size_t index2, const std::vector<TemperatureAndHumidity> & values);        
-
-        //! \brief Creates and adds element into domain.
-        //! @param index1 Node 1 index
-        //! @param index2 Node 2 index
-        //! @param index3 Node 3 index
-        //! @param index4 Node 4 index
-        //! @param materialName Material name assigned to the element
-        virtual void createElement(size_t index1,
-                                   size_t index2,
-                                   size_t index3,
-                                   size_t index4,
-                                   const std::string & materialName) override;
+        void createBC_FixedHumidity(size_t index1, size_t index2, const std::vector<TemperatureAndHumidity> & values);
 
     protected:
         void postProcess(std::vector<double> & solution) override;

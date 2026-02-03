@@ -88,7 +88,7 @@ TEST_F(MultiDomain_2D_ASHRAEOutsideHc_MultiTimestepBC, TestExample_1)
                                                    liquidTransportationCurve,
                                                    moistureStorageFunction);
 
-    HygroThermFEM::MultiDomain domain;
+    HygroThermFEM::MultiDomain multiDomain;
 
     /// Create elements
     for(size_t i = 1; i <= (NodePool::Instance().maxIndex() - 2) / 2; ++i)
@@ -97,7 +97,7 @@ TEST_F(MultiDomain_2D_ASHRAEOutsideHc_MultiTimestepBC, TestExample_1)
         const auto node2 = 2u * i + 2u;
         const auto node3 = 2u * i;
         const auto node4 = 2u * i - 1u;
-        domain.createElement(node1, node2, node3, node4, material.name());
+        multiDomain.createElement(node1, node2, node3, node4, material.name());
     }
 
     /// Create Boundary Conditions
@@ -114,7 +114,7 @@ TEST_F(MultiDomain_2D_ASHRAEOutsideHc_MultiTimestepBC, TestExample_1)
                                                                        {12.0, 0.2, 5.5},
                                                                        {10.0, 0.2, 5.9}};
 
-    domain.createBC_ASHRAEOutsideHc(1, 2, bcCoeff);
+    multiDomain.createBC_ASHRAEOutsideHc(1, 2, bcCoeff);
 
     constexpr auto dTime = 3600;
     constexpr auto nSteps = 10;
@@ -127,7 +127,7 @@ TEST_F(MultiDomain_2D_ASHRAEOutsideHc_MultiTimestepBC, TestExample_1)
 
     for(auto i = 0; i < nSteps; ++i)
     {
-        auto aSolution = domain.transient(temperatures, humidities, dTime, timestepIndex);
+        auto aSolution = multiDomain.transient(temperatures, humidities, dTime, timestepIndex);
         temperatureSolution.push_back(aSolution.temperature);
         waterContentSolution.push_back(aSolution.waterContent);
         temperatures = aSolution.temperature;

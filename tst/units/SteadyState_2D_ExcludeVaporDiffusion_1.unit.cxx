@@ -107,10 +107,10 @@ TEST_F(SteadyState_2D_ExcludeVaporDiffusion_1, TestExample_1)
     const auto simulateThermal{true};
     const auto simulateMoisture{true};
 
-    HygroThermFEM::MultiDomain domain{simulateThermal, simulateMoisture};
+    HygroThermFEM::MultiDomain multiDomain{simulateThermal, simulateMoisture};
 
-    domain.createElement(3, 4, 2, 1, material.name());
-    domain.createElement(6, 4, 3, 5, material.name());
+    multiDomain.createElement(3, 4, 2, 1, material.name());
+    multiDomain.createElement(6, 4, 3, 5, material.name());
 
     // Create Boundary Conditions
     const auto hc1 = 1e20;
@@ -123,10 +123,10 @@ TEST_F(SteadyState_2D_ExcludeVaporDiffusion_1, TestExample_1)
     constexpr auto temperatureAir2 = 20.0;
     const HygroThermFEM::FixedBCHCCoefficients bcCoeff2{temperatureAir2, hc2, humidity2};
 
-    domain.createBC_FixedHc(1, 2, bcCoeff1);
-    domain.createBC_FixedHc(6, 5, bcCoeff2);
+    multiDomain.createBC_FixedHc(1, 2, bcCoeff1);
+    multiDomain.createBC_FixedHc(6, 5, bcCoeff2);
 
-    const auto solution = domain.steadyState();
+    const auto solution = multiDomain.steadyState();
     const auto temperature = solution.temperature;
     const auto humidity = solution.humidity;
 

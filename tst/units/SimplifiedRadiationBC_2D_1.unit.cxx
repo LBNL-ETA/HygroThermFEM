@@ -83,8 +83,8 @@ TEST_F(SimplifiedRadiationBC_2D_1, TestExample_1)
     HygroThermFEM::MultiDomain multiDomain(true, false);
     auto & domain = multiDomain.thermalDomain();
 
-    domain.createElement(3, 4, 2, 1, material.name());
-    domain.createElement(6, 4, 3, 5, material.name());
+    multiDomain.createElement(3, 4, 2, 1, material.name());
+    multiDomain.createElement(6, 4, 3, 5, material.name());
 
     // Create Boundary Conditions
     constexpr auto tRadiationTemperature = 20.0;

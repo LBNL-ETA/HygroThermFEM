@@ -85,8 +85,8 @@ TEST_F(Topaz2D_FluxBC, TestExample_1)
     HygroThermFEM::MultiDomain multiDomain(true, false);
     auto & domain = multiDomain.thermalDomain();
 
-    domain.createElement(1, 2, 4, 3, material.name());
-    domain.createElement(5, 3, 4, 6, material.name());
+    multiDomain.createElement(1, 2, 4, 3, material.name());
+    multiDomain.createElement(5, 3, 4, 6, material.name());
 
     // Create Boundary Conditions
     // Positive flux means outside flow.

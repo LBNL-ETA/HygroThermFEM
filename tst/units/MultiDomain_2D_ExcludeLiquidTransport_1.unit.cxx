@@ -107,7 +107,7 @@ TEST_F(MultiDomain_2D_ExcludeLiquidTransport_1, TestExample_1)
                                                    liquidTransportationCurve,
                                                    moistureStorageFunction);
 
-    HygroThermFEM::MultiDomain domain;
+    HygroThermFEM::MultiDomain multiDomain;
 
     /// Create elements
     for(size_t i = 1; i <= (NodePool::Instance().maxIndex() - 2) / 2; ++i)
@@ -116,7 +116,7 @@ TEST_F(MultiDomain_2D_ExcludeLiquidTransport_1, TestExample_1)
         const auto node2 = 2u * i + 2u;
         const auto node3 = 2u * i;
         const auto node4 = 2u * i - 1u;
-        domain.createElement(node1, node2, node3, node4, material.name());
+        multiDomain.createElement(node1, node2, node3, node4, material.name());
     }
 
     /// Create Boundary Conditions
@@ -126,8 +126,8 @@ TEST_F(MultiDomain_2D_ExcludeLiquidTransport_1, TestExample_1)
 
     const HygroThermFEM::FixedBCHCCoefficients bcCoeff{airTemperature, hc, humidity};
 
-    domain.createBC_FixedHc(1, 2, bcCoeff);
-    domain.createBC_FixedHc(5, 6, bcCoeff);
+    multiDomain.createBC_FixedHc(1, 2, bcCoeff);
+    multiDomain.createBC_FixedHc(5, 6, bcCoeff);
 
     constexpr auto dTime = 3600;
     constexpr auto nSteps = 24;
@@ -139,7 +139,7 @@ TEST_F(MultiDomain_2D_ExcludeLiquidTransport_1, TestExample_1)
 
     for(auto i = 0; i < nSteps; ++i)
     {
-        auto aSolution = domain.transient(temperatures, humidities, dTime);
+        auto aSolution = multiDomain.transient(temperatures, humidities, dTime);
         temperatureSolution.push_back(aSolution.temperature);
         waterContentSolution.push_back(aSolution.waterContent);
         temperatures = aSolution.temperature;

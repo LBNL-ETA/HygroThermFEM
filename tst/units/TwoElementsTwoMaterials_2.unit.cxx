@@ -130,14 +130,14 @@ TEST_F(TwoElementsTwoMaterials_2, NodeInTwoMaterials)
                                                    liquidTransportationCurve,
                                                    moistureStorageFunction);
 
-    MultiDomain domain(false, false);
+    MultiDomain multiDomain(false, false);
 
-    domain.createElement(1, 1, 2, 3, material1.name());
-    domain.createElement(2, 4, 5, 3, material2.name());
+    multiDomain.createElement(1, 1, 2, 3, material1.name());
+    multiDomain.createElement(2, 4, 5, 3, material2.name());
 
-    auto iceContent = domain.property(HygroThermFEM::Variable::ice);
-    auto vaporContent = domain.property(HygroThermFEM::Variable::vapor);
-    auto liquidContent = domain.property(HygroThermFEM::Variable::liquid);
+    auto iceContent = multiDomain.property(HygroThermFEM::Variable::ice);
+    auto vaporContent = multiDomain.property(HygroThermFEM::Variable::vapor);
+    auto liquidContent = multiDomain.property(HygroThermFEM::Variable::liquid);
 
     /// Test water content in node number 2 (material 2 will have more influence)
     EXPECT_NEAR(iceContent[1], 0, 1e-6);

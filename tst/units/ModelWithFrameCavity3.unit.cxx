@@ -88,7 +88,7 @@ TEST_F(TestModelWithFrameCavity3, TestSingleFrameCavity)
     std::set<size_t> frameCavityElement{6, 7, 10};
 
     // Create elements grid
-    HygroThermFEM::MultiDomain domain;
+    HygroThermFEM::MultiDomain multiDomain;
     size_t elementNumber{0u};
     for(auto ix = 1u; ix < gridX.size(); ++ix)
     {
@@ -109,7 +109,7 @@ TEST_F(TestModelWithFrameCavity3, TestSingleFrameCavity)
                 {
                     materialName = solidMaterial.name();
                 }
-                domain.createElement(node1, node2, node3, node4, materialName);
+                multiDomain.createElement(node1, node2, node3, node4, materialName);
             }
         }
     }
@@ -131,7 +131,7 @@ TEST_F(TestModelWithFrameCavity3, TestSingleFrameCavity)
     // Now build boundary condition on left edge of domain rectangle
     for(size_t i = 1u; i < bcnodes.size(); ++i)
     {
-        domain.createBC_FixedHc(bcnodes[i - 1u], bcnodes[i], bcCoeff);
+        multiDomain.createBC_FixedHc(bcnodes[i - 1u], bcnodes[i], bcCoeff);
     }
 
     // Now perform transient calculation in order to make frame cavity update over the simulation
@@ -145,7 +145,7 @@ TEST_F(TestModelWithFrameCavity3, TestSingleFrameCavity)
 
     for(auto i = 0; i < nSteps; ++i)
     {
-        auto aSolution = domain.transient(temperatures, humidities, dTime);
+        auto aSolution = multiDomain.transient(temperatures, humidities, dTime);
         temperatureSolution.push_back(aSolution.temperature);
         waterContentSolution.push_back(aSolution.waterContent);
         temperatures = aSolution.temperature;

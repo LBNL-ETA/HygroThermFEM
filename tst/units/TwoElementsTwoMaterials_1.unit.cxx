@@ -130,14 +130,14 @@ TEST_F(TwoElementsTwoMaterials_1, NodeInTwoMaterials)
                                                    liquidTransportationCurve,
                                                    moistureStorageFunction);
 
-    MultiDomain domain(false, false);
+    MultiDomain multiDomain(false, false);
 
-    domain.createElement(1, 3, 4, 2, material1.name());
-    domain.createElement(3, 5, 6, 4, material2.name());
+    multiDomain.createElement(1, 3, 4, 2, material1.name());
+    multiDomain.createElement(3, 5, 6, 4, material2.name());
 
-    auto iceContent = domain.property(HygroThermFEM::Variable::ice);
-    auto vaporContent = domain.property(HygroThermFEM::Variable::vapor);
-    auto liquidContent = domain.property(HygroThermFEM::Variable::liquid);
+    auto iceContent = multiDomain.property(HygroThermFEM::Variable::ice);
+    auto vaporContent = multiDomain.property(HygroThermFEM::Variable::vapor);
+    auto liquidContent = multiDomain.property(HygroThermFEM::Variable::liquid);
 
     /// Test various water contents in node number 3. It should be exactly half of influence between
     /// materials because of two rectangular nodes

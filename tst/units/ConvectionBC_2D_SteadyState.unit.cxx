@@ -78,10 +78,10 @@ TEST_F(ConvectionBC_2D_SteadyState, TestExample_1)
                                                    liquidTransportationCurve,
                                                    moistureStorageFunction);
 
-    HygroThermFEM::MultiDomain domain;
+    HygroThermFEM::MultiDomain multiDomain;
 
-    domain.createElement(3, 4, 2, 1, material.name());
-    domain.createElement(6, 4, 3, 5, material.name());
+    multiDomain.createElement(3, 4, 2, 1, material.name());
+    multiDomain.createElement(6, 4, 3, 5, material.name());
 
     // Create Boundary Conditions
     constexpr auto hc1 = 20.0;
@@ -96,10 +96,10 @@ TEST_F(ConvectionBC_2D_SteadyState, TestExample_1)
 
     const HygroThermFEM::FixedBCHCCoefficients bcCoeff2{temperatureAir2, hc2, humidity2};
 
-    domain.createBC_FixedHc(1, 2, bcCoeff1);
-    domain.createBC_FixedHc(6, 5, bcCoeff2);
+    multiDomain.createBC_FixedHc(1, 2, bcCoeff1);
+    multiDomain.createBC_FixedHc(6, 5, bcCoeff2);
 
-    const auto solution = domain.steadyState();
+    const auto solution = multiDomain.steadyState();
     auto temperature = solution.temperature;
 
     std::vector<double> correctTemperature{
