@@ -176,13 +176,28 @@ class IterativeSolver : public ISolverStrategy { /* CG, GMRES */ };
 
 ## Specific Refactoring Tasks
 
-### High Priority
+### High Priority ✓ COMPLETED
 
-1. **Rename non-standard single-letter variables** - Focus on unclear abbreviations, not standard FEM notation
-2. **Add const to getters** - Audit all accessor methods
-3. **Extract BC base classes** - Reduce duplication by ~30%
+1. ✓ **Rename non-standard single-letter variables** - Completed
+   - Renamed `h` → `boundaryHMatrix`, `k` → `conductivityValues`
+   - Renamed `a`, `b`, `c` → `extrapolationCoeffA/B/C`
+   - Renamed `T` → `nodeTemperature`, `surfaceTemp`, `radiationTemp`
 
-### Medium Priority
+2. ✓ **Add const to getters** - Completed
+   - Added const to 8 methods: getLumpedMass, getMassMatrix, getSide1, getSide2,
+     Psi, PsiDKsi, PsiDEta, DpDuMatrices
+
+3. ✓ **Extract BC base classes** - Completed (3 phases)
+   - Phase 1: Created `IRadiationBC` base for BlackBodyRadiationBC and LinearizedRadiationBC
+   - Phase 2: Created `IEnvironmentCoefficients` base struct for 6 coefficient structs
+   - Phase 3: Created `IConvectiveBCBase` for IConvectionBC and IMoistureBC
+
+**Additional completed work:**
+- Removed dead code: checkSingularity(), degrees(), State operators, TimestepData setters
+- Fixed bug: ThermalConductivityDry missing from isMissingAnyProperty()
+- Added unit tests: Domain_ClearModelAndGravity (5 tests), MaterialMissingPropertiesMessage (13 tests)
+
+### Medium Priority (Next)
 
 4. **Inject MaterialPool** - Remove singleton dependency
 5. **Implement BC Factory** - Centralize BC creation
