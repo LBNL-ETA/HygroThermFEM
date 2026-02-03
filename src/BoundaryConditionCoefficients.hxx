@@ -5,12 +5,29 @@
 namespace HygroThermFEM
 {
     ///////////////////////////////////////////////////////////////////////////////////////////////
+    // IEnvironmentCoefficients - Base struct for environmental boundary conditions
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+
+    //! \brief Base structure for boundary condition coefficients that include environmental data.
+    //!
+    //! Provides common air temperature and humidity fields used by all convection-based
+    //! boundary condition coefficient structures.
+    struct IEnvironmentCoefficients
+    {
+        IEnvironmentCoefficients() = default;
+        IEnvironmentCoefficients(double airTemperature, double airHumidity);
+
+        double AirTemperature{0};
+        double AirHumidity{0};
+    };
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////
     // FixedBCHCCoefficients
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
     //! \brief Structure to keep boundary condition coefficients for fixed heat transfer
     //! coefficients case
-    struct FixedBCHCCoefficients
+    struct FixedBCHCCoefficients : public IEnvironmentCoefficients
     {
         FixedBCHCCoefficients(double airTemperature, double convectionCoefficient);
 
@@ -18,9 +35,7 @@ namespace HygroThermFEM
                               double convectionCoefficient,
                               double airHumidity);
 
-        double AirTemperature{0};
         double ConvectionCoefficient{0};
-        double AirHumidity{0};
     };
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -43,7 +58,7 @@ namespace HygroThermFEM
     //!
     //! It is simply the structure that holds all necessary variables that are needed to create
     //! boundary condition for comprehensive natural convection model that is often named as TARP
-    struct TARPCoefficients
+    struct TARPCoefficients : public IEnvironmentCoefficients
     {
         //! \brief Construction of variables for TARP convection model.
         //! This structure holds only values that vary through every timestep.
@@ -51,9 +66,6 @@ namespace HygroThermFEM
         //! \param airTemperature Air/Ambient temperature of exterior/interior environment
         //! \param airHumidity Air humidity of the environment
         TARPCoefficients(double airTemperature, double airHumidity);
-
-        double AirTemperature{0.0};   // Celsius
-        double AirHumidity{0.0};      // Humidity range is from 0 to 1
     };
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -64,7 +76,7 @@ namespace HygroThermFEM
     //! model.
     //!
     //! This structure will keep only coefficients that are variable between timesteps.
-    struct ASHRAEInsideCoefficients
+    struct ASHRAEInsideCoefficients : public IEnvironmentCoefficients
     {
         //! \brief Simple constructor for the structure
         //!
@@ -75,8 +87,6 @@ namespace HygroThermFEM
                                  double air_humidity,
                                  double air_pressure = defaultAirPressure);
 
-        double AirTemperature{0.0};               // Celsius
-        double AirHumidity{0.0};                  // Humidity range is from 0 to 1
         double AirPressure{defaultAirPressure};   // Pascals
 
     private:
@@ -92,11 +102,9 @@ namespace HygroThermFEM
     //! model.
     //!
     //! This structure will keep only coefficients that are variable between timesteps.
-    struct ASHRAEOutsideCoefficients
+    struct ASHRAEOutsideCoefficients : public IEnvironmentCoefficients
     {
         ASHRAEOutsideCoefficients(double airTemperature, double airHumidity, double windSpeed);
-        double AirTemperature{0.0};
-        double AirHumidity{0.0};
         double WindSpeed{0.0};
     };
 
@@ -108,16 +116,14 @@ namespace HygroThermFEM
     //! model.
     //!
     //! This structure will keep only coefficients that are variable between timesteps.
-    struct YazdanianKlemsCoefficients
+    struct YazdanianKlemsCoefficients : public IEnvironmentCoefficients
     {
         YazdanianKlemsCoefficients(double airTemperature,
                                    double airHumidity,
                                    double windSpeed,
                                    HygroThermFEM::WindDirection windDirection);
-        double AirTemperature{0.0};
-        double AirHumidity{0.0};
         double WindSpeed{0.0};
-        WindDirection WindDir{WindDirection::Leeward};        
+        WindDirection WindDir{WindDirection::Leeward};
     };
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -125,14 +131,12 @@ namespace HygroThermFEM
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
     //! \brief Structure to keep boundary condition coefficients that are used in Kimura model.
-    struct KimuraCoefficients
+    struct KimuraCoefficients : public IEnvironmentCoefficients
     {
         KimuraCoefficients(double airTemperature,
                            double airHumidity,
                            double windSpeed,
                            WindDirection windDir);
-        double AirTemperature{0.0};
-        double AirHumidity{0.0};
         double WindSpeed{0.0};
         WindDirection WindDir{WindDirection::Leeward};
     };

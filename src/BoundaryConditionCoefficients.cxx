@@ -3,20 +3,28 @@
 namespace HygroThermFEM
 {
     ///////////////////////////////////////////////////////////////////////////////////////////////
+    // IEnvironmentCoefficients
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+
+    IEnvironmentCoefficients::IEnvironmentCoefficients(const double airTemperature,
+                                                       const double airHumidity) :
+        AirTemperature(airTemperature), AirHumidity(airHumidity)
+    {}
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////
     // FixedBCHCCoefficients
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
     FixedBCHCCoefficients::FixedBCHCCoefficients(const double airTemperature,
                                                  const double convectionCoefficient) :
-        AirTemperature(airTemperature), ConvectionCoefficient(convectionCoefficient)
+        IEnvironmentCoefficients(airTemperature, 0), ConvectionCoefficient(convectionCoefficient)
     {}
 
     FixedBCHCCoefficients::FixedBCHCCoefficients(const double airTemperature,
                                                  const double convectionCoefficient,
                                                  const double airHumidity) :
-        AirTemperature(airTemperature),
-        ConvectionCoefficient(convectionCoefficient),
-        AirHumidity(airHumidity)
+        IEnvironmentCoefficients(airTemperature, airHumidity),
+        ConvectionCoefficient(convectionCoefficient)
     {}
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -33,39 +41,38 @@ namespace HygroThermFEM
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
     TARPCoefficients::TARPCoefficients(const double airTemperature, const double airHumidity) :
-        AirTemperature(airTemperature), AirHumidity(airHumidity)
+        IEnvironmentCoefficients(airTemperature, airHumidity)
     {}
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
     /// ASHRAEInsideCoefficients
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
-    ASHRAEInsideCoefficients::ASHRAEInsideCoefficients(double air_temperature,
-                                                       double air_humidity,
-                                                       double air_pressure) :
-        AirTemperature(air_temperature), AirHumidity(air_humidity), AirPressure(air_pressure)
+    ASHRAEInsideCoefficients::ASHRAEInsideCoefficients(const double air_temperature,
+                                                       const double air_humidity,
+                                                       const double air_pressure) :
+        IEnvironmentCoefficients(air_temperature, air_humidity), AirPressure(air_pressure)
     {}
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
     /// ASHRAEOutsideCoefficients
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
-    ASHRAEOutsideCoefficients::ASHRAEOutsideCoefficients(double airTemperature,
-                                                         double airHumidity,
-                                                         double windSpeed) :
-        AirTemperature(airTemperature), AirHumidity(airHumidity), WindSpeed(windSpeed)
+    ASHRAEOutsideCoefficients::ASHRAEOutsideCoefficients(const double airTemperature,
+                                                         const double airHumidity,
+                                                         const double windSpeed) :
+        IEnvironmentCoefficients(airTemperature, airHumidity), WindSpeed(windSpeed)
     {}
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
     /// YazdanianKlemsCoefficients
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
-    YazdanianKlemsCoefficients::YazdanianKlemsCoefficients(double airTemperature,
-                                                           double airHumidity,
-                                                           double windSpeed,
-                                                           WindDirection windDirection) :
-        AirTemperature(airTemperature),
-        AirHumidity(airHumidity),
+    YazdanianKlemsCoefficients::YazdanianKlemsCoefficients(const double airTemperature,
+                                                           const double airHumidity,
+                                                           const double windSpeed,
+                                                           const WindDirection windDirection) :
+        IEnvironmentCoefficients(airTemperature, airHumidity),
         WindSpeed(windSpeed),
         WindDir(windDirection)
     {}
@@ -74,12 +81,11 @@ namespace HygroThermFEM
     /// KimuraCoefficients
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
-    KimuraCoefficients::KimuraCoefficients(double airTemperature,
-                                           double airHumidity,
-                                           double windSpeed,
-                                           WindDirection windDir) :
-        AirTemperature(airTemperature),
-        AirHumidity(airHumidity),
+    KimuraCoefficients::KimuraCoefficients(const double airTemperature,
+                                           const double airHumidity,
+                                           const double windSpeed,
+                                           const WindDirection windDir) :
+        IEnvironmentCoefficients(airTemperature, airHumidity),
         WindSpeed(windSpeed),
         WindDir(windDir)
     {}
