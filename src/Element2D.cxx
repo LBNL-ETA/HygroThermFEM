@@ -240,7 +240,7 @@ namespace HygroThermFEM
         {
             const auto values = m_Nodes.properties(m_FluxVariable);
             const auto conductivityValues = cond->values(m_Nodes);
-            assert(k.size() == numOfQuadrilateralNodes);
+            assert(conductivityValues.size() == numOfQuadrilateralNodes);
             assert(values.size() == numOfQuadrilateralNodes);
 
             // First calculate Dt/Dx and Dt/Dy in Gauss points

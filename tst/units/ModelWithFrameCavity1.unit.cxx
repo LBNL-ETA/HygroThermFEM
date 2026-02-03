@@ -82,7 +82,8 @@ TEST_F(TestModelWithFrameCavity1, TestSingleFrameCavity)
     std::set<size_t> frameCavityElement{6, 7, 10};
 
     // Create elements grid
-    HygroThermFEM::ThermalDomain domain;
+    HygroThermFEM::MultiDomain multiDomain(true, false);
+    auto & domain = multiDomain.thermalDomain();
     size_t elementNumber{0u};
     for(auto ix = 1u; ix < gridX.size(); ++ix)
     {

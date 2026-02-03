@@ -85,7 +85,8 @@ TEST_F(Moisture_2D_TwoElements_3, TestExample_1)
                                                    liquidTransportationCurve,
                                                    moistureStorageFunction);
 
-    HygroThermFEM::MoistureDomain domain;
+    HygroThermFEM::MultiDomain multiDomain(false, true);
+    auto & domain = multiDomain.moistureDomain();
 
     /// Create elements
     domain.createElement(3, 4, 2, 1, material.name());

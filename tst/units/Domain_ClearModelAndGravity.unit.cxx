@@ -7,6 +7,7 @@ using HygroThermFEM::NodePool;
 using HygroThermFEM::MaterialPool;
 using HygroThermFEM::State;
 using HygroThermFEM::ThermalDomain;
+using HygroThermFEM::MultiDomain;
 using HygroThermFEM::Variable;
 
 class TestDomainClearModelAndGravity : public testing::Test
@@ -115,7 +116,8 @@ TEST_F(TestDomainClearModelAndGravity, TestClearModelRemovesNodesAndMaterials)
 {
     SCOPED_TRACE("Begin Test: clearModel removes nodes and materials.");
 
-    ThermalDomain domain;
+    MultiDomain multiDomain(true, false);
+    auto & domain = multiDomain.thermalDomain();
     createSimpleModel(domain);
 
     // Verify model was created
@@ -134,7 +136,8 @@ TEST_F(TestDomainClearModelAndGravity, TestClearModelAllowsNewModel)
 {
     SCOPED_TRACE("Begin Test: clearModel allows creating new model.");
 
-    ThermalDomain domain;
+    MultiDomain multiDomain(true, false);
+    auto & domain = multiDomain.thermalDomain();
     createSimpleModel(domain);
 
     // Clear the model
@@ -159,7 +162,8 @@ TEST_F(TestDomainClearModelAndGravity, TestSetGravityVectorDefault)
 {
     SCOPED_TRACE("Begin Test: Default gravity vector is (0, -1, 0).");
 
-    ThermalDomain domain;
+    MultiDomain multiDomain(true, false);
+    auto & domain = multiDomain.thermalDomain();
     createModelWithFrameCavity(domain);
 
     // Add boundary condition
@@ -178,7 +182,8 @@ TEST_F(TestDomainClearModelAndGravity, TestSetGravityVectorCustom)
 {
     SCOPED_TRACE("Begin Test: Custom gravity vector affects frame cavity.");
 
-    ThermalDomain domain;
+    MultiDomain multiDomain(true, false);
+    auto & domain = multiDomain.thermalDomain();
     createModelWithFrameCavity(domain);
 
     // Add boundary condition
@@ -205,7 +210,8 @@ TEST_F(TestDomainClearModelAndGravity, TestSetGravityVectorBeforeCavityInit)
 {
     SCOPED_TRACE("Begin Test: Set gravity vector before cavity initialization.");
 
-    ThermalDomain domain;
+    MultiDomain multiDomain(true, false);
+    auto & domain = multiDomain.thermalDomain();
     createModelWithFrameCavity(domain);
 
     // Set gravity before any transient calculation (before gasCavities is created)

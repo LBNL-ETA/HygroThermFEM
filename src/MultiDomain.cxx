@@ -496,6 +496,21 @@ namespace HygroThermFEM
         m_MoistureDomain.clearModel();
     }
 
+    MaterialPool & MultiDomain::materialPool()
+    {
+        return MaterialPool::Instance();
+    }
+
+    ThermalDomain & MultiDomain::thermalDomain()
+    {
+        return m_ThermalDomain;
+    }
+
+    MoistureDomain & MultiDomain::moistureDomain()
+    {
+        return m_MoistureDomain;
+    }
+
     Solution::Solution(const double dtime,
                        std::vector<double> temperature,
                        std::vector<double> humidity,

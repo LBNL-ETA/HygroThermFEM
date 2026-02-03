@@ -78,7 +78,8 @@ TEST_F(ConvectionBC_2D_SteadyStateThermalDomain, TestExample_1)
                                                    liquidTransportationCurve,
                                                    moistureStorageFunction);
 
-    HygroThermFEM::ThermalDomain domain;
+    HygroThermFEM::MultiDomain multiDomain(true, false);
+    auto & domain = multiDomain.thermalDomain();
 
     domain.createElement(3, 4, 2, 1, material.name());
     domain.createElement(6, 4, 3, 5, material.name());

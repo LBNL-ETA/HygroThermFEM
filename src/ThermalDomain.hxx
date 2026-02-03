@@ -4,12 +4,18 @@
 
 namespace HygroThermFEM
 {
+    class MultiDomain;
+
     //! \brief Domain class for solving temperature solution.
     class ThermalDomain : public IDomain
     {
-    public:
-        //! Simple constructor
+        friend class MultiDomain;
+
+    private:
+        //! Simple constructor - only accessible via MultiDomain
         ThermalDomain(bool automaticUpdatePreviousTimestep = true);
+
+    public:
 
         //! \brief Creation of convection boundary condition
         //! @param index1 Node 1 index

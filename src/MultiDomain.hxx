@@ -4,6 +4,7 @@
 #include "ThermalDomain.hxx"
 #include "MoistureDomain.hxx"
 #include "MaterialMissingProperties.hxx"
+#include "MaterialPool.hxx"
 
 namespace Timesteps
 {
@@ -338,6 +339,17 @@ namespace HygroThermFEM
         //! @brief Deletes Geometry and boundary conditions
         void clearModel();
 
+        //! @brief Access to material pool singleton for convenience
+        //! @return Reference to the MaterialPool instance
+        static MaterialPool & materialPool();
+
+        //! @brief Access to thermal domain for single-domain operations
+        //! @return Reference to the ThermalDomain
+        ThermalDomain & thermalDomain();
+
+        //! @brief Access to moisture domain for single-domain operations
+        //! @return Reference to the MoistureDomain
+        MoistureDomain & moistureDomain();
 
     private:
         //! \brief Checks validity of materials for transient simulation
