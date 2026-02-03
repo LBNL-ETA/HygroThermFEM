@@ -92,7 +92,6 @@ TEST_F(TestModelWithFrameCavity2, TestDoubleFrameCavity)
 
     // Create elements grid
     HygroThermFEM::MultiDomain multiDomain(true, false);
-    auto & domain = multiDomain.thermal();
     size_t elementNumber{0u};
     for(auto ix = 1u; ix < gridX.size(); ++ix)
     {
@@ -138,7 +137,7 @@ TEST_F(TestModelWithFrameCavity2, TestDoubleFrameCavity)
     // Now build boundary condition on left edge of domain rectangle
     for(size_t i = 1u; i < bcnodes.size(); ++i)
     {
-        domain.createBC_FixedHc(bcnodes[i - 1u], bcnodes[i], bcCoeff);
+        multiDomain.thermal().createBC_FixedHc(bcnodes[i - 1u], bcnodes[i], bcCoeff);
     }
 
     // Now perform transient calculation in order to make frame cavity update over the simulation
@@ -150,7 +149,7 @@ TEST_F(TestModelWithFrameCavity2, TestDoubleFrameCavity)
 
     for(unsigned i = 0; i < nSteps; ++i)
     {
-        temperatures = domain.transient(temperatures, dTime).solution;
+        temperatures = multiDomain.thermal().transient(temperatures, dTime).solution;
         solution.push_back(temperatures);
     }
 

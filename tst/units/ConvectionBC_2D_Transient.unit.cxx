@@ -78,7 +78,6 @@ TEST_F(ConvectionBC_2D_Transient, TestExample_1)
                                                    moistureStorageFunction);
 
     HygroThermFEM::MultiDomain multiDomain(true, false);
-    auto & domain = multiDomain.thermal();
 
     multiDomain.createElement(3, 4, 2, 1, material.name());
     multiDomain.createElement(6, 4, 3, 5, material.name());
@@ -94,8 +93,8 @@ TEST_F(ConvectionBC_2D_Transient, TestExample_1)
 
     const HygroThermFEM::FixedBCHCCoefficients bcCoeff2{temperatureAir2, hc2};
 
-    domain.createBC_FixedHc(1, 2, bcCoeff1);
-    domain.createBC_FixedHc(6, 5, bcCoeff2);
+    multiDomain.thermal().createBC_FixedHc(1, 2, bcCoeff1);
+    multiDomain.thermal().createBC_FixedHc(6, 5, bcCoeff2);
 
     constexpr auto dTime = 3600;
     constexpr auto nSteps = 4;
@@ -106,9 +105,9 @@ TEST_F(ConvectionBC_2D_Transient, TestExample_1)
 
     for(unsigned i = 0; i < nSteps; ++i)
     {
-        temperatures = domain.transient(temperatures, dTime).solution;
+        temperatures = multiDomain.thermal().transient(temperatures, dTime).solution;
         temperaturesSolution.push_back(temperatures);
-        fluxSolution.push_back(domain.flux());
+        fluxSolution.push_back(multiDomain.thermal().flux());
     }
 
     std::vector<std::vector<double>> correctTemperatureSolution{

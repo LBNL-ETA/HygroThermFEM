@@ -92,7 +92,6 @@ TEST_F(BlackBodyBC_2D_1, TestExample_1)
                                                    moistureStorageFunction);
 
     HygroThermFEM::MultiDomain multiDomain(true, false);
-    auto & domain = multiDomain.thermal();
 
     multiDomain.createElement(3, 4, 2, 1, material.name());
     multiDomain.createElement(6, 4, 3, 5, material.name());
@@ -101,7 +100,7 @@ TEST_F(BlackBodyBC_2D_1, TestExample_1)
     constexpr auto tRadiation = 20.0;
     constexpr auto surfaceEmissivity = 0.84;
 
-    domain.createBC_BlackBodyRadiation(5, 6, surfaceEmissivity, tRadiation);
+    multiDomain.thermal().createBC_BlackBodyRadiation(5, 6, surfaceEmissivity, tRadiation);
 
     constexpr auto dTime = 3600;
     constexpr auto nSteps = 4;
@@ -111,7 +110,7 @@ TEST_F(BlackBodyBC_2D_1, TestExample_1)
 
     for(unsigned i = 0; i < nSteps; ++i)
     {
-        temperatures = domain.transient(temperatures, dTime).solution;
+        temperatures = multiDomain.thermal().transient(temperatures, dTime).solution;
         solution.push_back(temperatures);
     }
 

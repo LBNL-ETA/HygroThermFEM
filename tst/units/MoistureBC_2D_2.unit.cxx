@@ -89,7 +89,6 @@ TEST_F(MoistureBC_2D_2, TestExample_1)
                                                    moistureStorageFunction);
 
     HygroThermFEM::MultiDomain multiDomain(false, true);
-    auto & domain = multiDomain.moisture();
 
     /// Create elements
     for(size_t i = 1; i <= (NodePool::Instance().maxIndex() - 2) / 2; ++i)
@@ -108,7 +107,7 @@ TEST_F(MoistureBC_2D_2, TestExample_1)
 
     const HygroThermFEM::TARPCoefficients bcCoeff{ambientTemperature, ambientHumidity};
 
-    domain.createBC_TARPHc(5, 6, bcCoeff, surfaceTilt);
+    multiDomain.moisture().createBC_TARPHc(5, 6, bcCoeff, surfaceTilt);
 
     constexpr auto dTime = 3600;
     constexpr auto nSteps = 4;
@@ -118,7 +117,7 @@ TEST_F(MoistureBC_2D_2, TestExample_1)
 
     for(size_t i = 0u; i < nSteps; ++i)
     {
-        humidities = domain.transient(humidities, dTime).solution;
+        humidities = multiDomain.moisture().transient(humidities, dTime).solution;
         auto waterContent = NodePool::Instance().properties(HygroThermFEM::Variable::water);
         solution.push_back(waterContent);
     }

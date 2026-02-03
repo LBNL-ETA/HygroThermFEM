@@ -94,7 +94,6 @@ TEST_F(Topaz2D_ConvectionBC, TestExample_1)
                                                    moistureStorageFunction);
 
     HygroThermFEM::MultiDomain multiDomain(true, false);
-    auto & domain = multiDomain.thermal();
 
     multiDomain.createElement(3, 4, 2, 1, material.name());
     multiDomain.createElement(6, 4, 3, 5, material.name());
@@ -105,7 +104,7 @@ TEST_F(Topaz2D_ConvectionBC, TestExample_1)
 
     const HygroThermFEM::FixedBCHCCoefficients bcCoeff{tSurface, hc};
 
-    domain.createBC_FixedHc(5, 6, bcCoeff);
+    multiDomain.thermal().createBC_FixedHc(5, 6, bcCoeff);
 
     constexpr auto dTime = 3600;
     constexpr auto nSteps = 4;
@@ -116,7 +115,7 @@ TEST_F(Topaz2D_ConvectionBC, TestExample_1)
 
     for(unsigned i = 0; i < nSteps; ++i)
     {
-        temperatures = domain.transient(temperatures, dTime).solution;
+        temperatures = multiDomain.thermal().transient(temperatures, dTime).solution;
         solution.push_back(temperatures);
     }
 

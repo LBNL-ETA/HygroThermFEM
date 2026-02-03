@@ -79,7 +79,6 @@ TEST_F(ConvectionBC_2D_SteadyStateThermalDomain, TestExample_1)
                                                    moistureStorageFunction);
 
     HygroThermFEM::MultiDomain multiDomain(true, false);
-    auto & domain = multiDomain.thermal();
 
     multiDomain.createElement(3, 4, 2, 1, material.name());
     multiDomain.createElement(6, 4, 3, 5, material.name());
@@ -95,10 +94,10 @@ TEST_F(ConvectionBC_2D_SteadyStateThermalDomain, TestExample_1)
 
     const HygroThermFEM::FixedBCHCCoefficients bcCoeff2{temperatureAir2, hc2};
 
-    domain.createBC_FixedHc(1, 2, bcCoeff1);
-    domain.createBC_FixedHc(6, 5, bcCoeff2);
+    multiDomain.thermal().createBC_FixedHc(1, 2, bcCoeff1);
+    multiDomain.thermal().createBC_FixedHc(6, 5, bcCoeff2);
 
-    auto solution = domain.steadyState();
+    auto solution = multiDomain.thermal().steadyState();
 
     std::vector<double> correctSolution{
       -17.87392241, -17.87392241, 7.341594828, 7.341594828, 19.94935345, 19.94935345};

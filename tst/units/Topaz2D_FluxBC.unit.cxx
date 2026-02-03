@@ -83,7 +83,6 @@ TEST_F(Topaz2D_FluxBC, TestExample_1)
                                                    moistureStorageFunction);
 
     HygroThermFEM::MultiDomain multiDomain(true, false);
-    auto & domain = multiDomain.thermal();
 
     multiDomain.createElement(1, 2, 4, 3, material.name());
     multiDomain.createElement(5, 3, 4, 6, material.name());
@@ -92,7 +91,7 @@ TEST_F(Topaz2D_FluxBC, TestExample_1)
     // Positive flux means outside flow.
     constexpr auto surfaceFlux = -12.0;
 
-    domain.createBC_FixedFlux(5, 6, surfaceFlux);
+    multiDomain.thermal().createBC_FixedFlux(5, 6, surfaceFlux);
 
     constexpr auto dTime = 3600;
     constexpr auto nSteps = 4;
@@ -102,7 +101,7 @@ TEST_F(Topaz2D_FluxBC, TestExample_1)
 
     for(unsigned i = 0; i < nSteps; ++i)
     {
-        temperatures = domain.transient(temperatures, dTime).solution;
+        temperatures = multiDomain.thermal().transient(temperatures, dTime).solution;
         solution.push_back(temperatures);
     }
 

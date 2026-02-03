@@ -117,7 +117,6 @@ TEST_F(TestDomainClearModelAndGravity, TestClearModelRemovesNodesAndMaterials)
     SCOPED_TRACE("Begin Test: clearModel removes nodes and materials.");
 
     MultiDomain multiDomain(true, false);
-    auto & domain = multiDomain.thermal();
     createSimpleModel(multiDomain);
 
     // Verify model was created
@@ -125,7 +124,7 @@ TEST_F(TestDomainClearModelAndGravity, TestClearModelRemovesNodesAndMaterials)
     EXPECT_EQ(nodeCountBefore, 4u);
 
     // Clear the model
-    domain.clearModel();
+    multiDomain.thermal().clearModel();
 
     // Verify pools are cleared
     const auto nodeCountAfter = NodePool::Instance().properties(Variable::temperature).size();
@@ -137,11 +136,10 @@ TEST_F(TestDomainClearModelAndGravity, TestClearModelAllowsNewModel)
     SCOPED_TRACE("Begin Test: clearModel allows creating new model.");
 
     MultiDomain multiDomain(true, false);
-    auto & domain = multiDomain.thermal();
     createSimpleModel(multiDomain);
 
     // Clear the model
-    domain.clearModel();
+    multiDomain.thermal().clearModel();
 
     // Create a new model - should not throw
     const State state(25.0, 0.6, 101325.0);
@@ -163,16 +161,15 @@ TEST_F(TestDomainClearModelAndGravity, TestSetGravityVectorDefault)
     SCOPED_TRACE("Begin Test: Default gravity vector is (0, -1, 0).");
 
     MultiDomain multiDomain(true, false);
-    auto & domain = multiDomain.thermal();
     createModelWithFrameCavity(multiDomain);
 
     // Add boundary condition
     const HygroThermFEM::FixedBCHCCoefficients bcCoeff{0.0, 30.0};
-    domain.createBC_FixedHc(1, 4, bcCoeff);
+    multiDomain.thermal().createBC_FixedHc(1, 4, bcCoeff);
 
     // Run transient to initialize gas cavities
     auto temperatures = NodePool::Instance().properties(Variable::temperature);
-    const auto result = domain.transient(temperatures, 360.0);
+    const auto result = multiDomain.thermal().transient(temperatures, 360.0);
 
     // Should complete without error with default gravity
     EXPECT_FALSE(result.solution.empty());
@@ -183,24 +180,23 @@ TEST_F(TestDomainClearModelAndGravity, TestSetGravityVectorCustom)
     SCOPED_TRACE("Begin Test: Custom gravity vector affects frame cavity.");
 
     MultiDomain multiDomain(true, false);
-    auto & domain = multiDomain.thermal();
     createModelWithFrameCavity(multiDomain);
 
     // Add boundary condition
     const HygroThermFEM::FixedBCHCCoefficients bcCoeff{0.0, 30.0};
-    domain.createBC_FixedHc(1, 4, bcCoeff);
+    multiDomain.thermal().createBC_FixedHc(1, 4, bcCoeff);
 
     // Run first transient step with default gravity to initialize cavities
     auto temperatures = NodePool::Instance().properties(Variable::temperature);
-    domain.transient(temperatures, 360.0);
+    multiDomain.thermal().transient(temperatures, 360.0);
 
     // Set horizontal gravity (tilted system)
     const FenestrationCommon::GravityVector horizontalGravity{1.0, 0.0, 0.0};
-    domain.setGravityVector(horizontalGravity);
+    multiDomain.thermal().setGravityVector(horizontalGravity);
 
     // Run another transient step - should use new gravity
     temperatures = NodePool::Instance().properties(Variable::temperature);
-    const auto result = domain.transient(temperatures, 360.0);
+    const auto result = multiDomain.thermal().transient(temperatures, 360.0);
 
     // Should complete without error
     EXPECT_FALSE(result.solution.empty());
@@ -211,20 +207,19 @@ TEST_F(TestDomainClearModelAndGravity, TestSetGravityVectorBeforeCavityInit)
     SCOPED_TRACE("Begin Test: Set gravity vector before cavity initialization.");
 
     MultiDomain multiDomain(true, false);
-    auto & domain = multiDomain.thermal();
     createModelWithFrameCavity(multiDomain);
 
     // Set gravity before any transient calculation (before gasCavities is created)
     const FenestrationCommon::GravityVector customGravity{0.0, 0.0, -1.0};
-    domain.setGravityVector(customGravity);
+    multiDomain.thermal().setGravityVector(customGravity);
 
     // Add boundary condition
     const HygroThermFEM::FixedBCHCCoefficients bcCoeff{0.0, 30.0};
-    domain.createBC_FixedHc(1, 4, bcCoeff);
+    multiDomain.thermal().createBC_FixedHc(1, 4, bcCoeff);
 
     // Run transient - should initialize cavities with custom gravity
     auto temperatures = NodePool::Instance().properties(Variable::temperature);
-    const auto result = domain.transient(temperatures, 360.0);
+    const auto result = multiDomain.thermal().transient(temperatures, 360.0);
 
     EXPECT_FALSE(result.solution.empty());
 }

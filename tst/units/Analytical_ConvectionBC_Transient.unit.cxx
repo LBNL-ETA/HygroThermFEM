@@ -80,7 +80,6 @@ TEST_F(Analytical_TemperatureBC_Transient, TestExample_1)
                                                          moistureStorageFunction);
 
     HygroThermFEM::MultiDomain multiDomain(true, false);
-    auto & domain = multiDomain.thermal();
 
     /// Create elements
     for(size_t i = 1; i <= (NodePool::Instance().maxIndex() - 2) / 2; ++i)
@@ -99,7 +98,7 @@ TEST_F(Analytical_TemperatureBC_Transient, TestExample_1)
 
     const HygroThermFEM::FixedBCHCCoefficients bcCoeff{tAir, hc};
 
-    domain.createBC_FixedHc(21, 22, bcCoeff);
+    multiDomain.thermal().createBC_FixedHc(21, 22, bcCoeff);
 
     constexpr auto dTime = 0.001;
     constexpr auto nSteps = 1000;
@@ -109,7 +108,7 @@ TEST_F(Analytical_TemperatureBC_Transient, TestExample_1)
 
     for(unsigned i = 0; i < nSteps; ++i)
     {
-        temperatures = domain.transient(temperatures, dTime).solution;
+        temperatures = multiDomain.thermal().transient(temperatures, dTime).solution;
         solution.push_back(temperatures);
     }
 
