@@ -46,17 +46,17 @@ TEST_F(TestModelWithFrameCavity1, TestSingleFrameCavity)
     }
 
     // Material Properties
-    const double thermalConductivityDry{1.8};
-    const double density{2050.0};
-    const double porosity{0.22};
-    const double specificHeatCapacityDry{850.0};
-    const double diffusionResistanceFactor{15.0};
+    constexpr double thermalConductivityDry{1.8};
+    constexpr double density{2050.0};
+    constexpr double porosity{0.22};
+    constexpr double specificHeatCapacityDry{850.0};
+    constexpr double diffusionResistanceFactor{15.0};
     const std::vector<FenestrationCommon::point> thermalConductivityMoistureDependent = {
       {0.0, 1.8}, {180, 1.8}};
-    const double thermalConductivityMeasuredAtTemperature{0};
+    constexpr double thermalConductivityMeasuredAtTemperature{0};
     const std::vector<FenestrationCommon::point> thermalConductivityTemperatureDependent = {
       {0.0, 1.8}, {1, 1.8}};
-    const double thermalConductivityMeasuredAtHumidity{0};
+    constexpr double thermalConductivityMeasuredAtHumidity{0};
     const std::vector<FenestrationCommon::point> liquidTransportationCurve = {{0, 0}, {180, 2e-6}};
 
     const std::vector<FenestrationCommon::point> moistureStorageFunction = {{0, 0}, {1, 180}};

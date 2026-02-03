@@ -61,10 +61,10 @@ TEST_F(MultiDomain_2D_NoMoistureStorageFunction, TestExample_1)
     const auto diffusionResistanceFactor{15.0};
     const std::vector<FenestrationCommon::point> thermalConductivityMoistureDependent = {
       {0.0, 1.8}, {180, 1.8}};
-    const double thermalConductivityMeasuredAtTemperature{0};
+    constexpr double thermalConductivityMeasuredAtTemperature{0};
     const std::vector<FenestrationCommon::point> thermalConductivityTemperatureDependent = {
       {0.0, 1.8}, {1, 1.8}};
-    const double thermalConductivityMeasuredAtHumidity{0};
+    constexpr double thermalConductivityMeasuredAtHumidity{0};
     const std::vector<FenestrationCommon::point> liquidTransportationCurve = {{0, 0}};
 
     const std::vector<FenestrationCommon::point> moistureStorageFunction = {{0, 0}};

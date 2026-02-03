@@ -34,17 +34,17 @@ protected:
         NodePool::Instance().createNode(4, 0.0, 1.0, state);
 
         // Create material
-        const double thermalConductivityDry{1.0};
-        const double density{1000.0};
-        const double porosity{0.1};
-        const double specificHeatCapacityDry{1000.0};
-        const double diffusionResistanceFactor{10.0};
+        constexpr double thermalConductivityDry{1.0};
+        constexpr double density{1000.0};
+        constexpr double porosity{0.1};
+        constexpr double specificHeatCapacityDry{1000.0};
+        constexpr double diffusionResistanceFactor{10.0};
         const std::vector<FenestrationCommon::point> thermalConductivityMoistureDependent = {
           {0.0, 1.0}, {180, 1.0}};
-        const double thermalConductivityMeasuredAtTemperature{0};
+        constexpr double thermalConductivityMeasuredAtTemperature{0};
         const std::vector<FenestrationCommon::point> thermalConductivityTemperatureDependent = {
           {0.0, 1.0}, {100.0, 1.0}};
-        const double thermalConductivityMeasuredAtHumidity{0};
+        constexpr double thermalConductivityMeasuredAtHumidity{0};
         const std::vector<FenestrationCommon::point> liquidTransportationCurve = {{0, 0}, {180, 1e-6}};
         const std::vector<FenestrationCommon::point> moistureStorageFunction = {{0, 0}, {1, 180}};
 
@@ -78,11 +78,11 @@ protected:
         NodePool::Instance().createNode(6, 0.02, 0.05, state);
 
         // Create solid material
-        const double thermalConductivityDry{1.8};
-        const double density{2050.0};
-        const double porosity{0.22};
-        const double specificHeatCapacityDry{850.0};
-        const double diffusionResistanceFactor{15.0};
+        constexpr double thermalConductivityDry{1.8};
+        constexpr double density{2050.0};
+        constexpr double porosity{0.22};
+        constexpr double specificHeatCapacityDry{850.0};
+        constexpr double diffusionResistanceFactor{15.0};
         const std::vector<FenestrationCommon::point> thermalConductivityMoistureDependent = {
           {0.0, 1.8}, {180, 1.8}};
         const std::vector<FenestrationCommon::point> thermalConductivityTemperatureDependent = {

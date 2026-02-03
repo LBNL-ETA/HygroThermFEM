@@ -51,17 +51,17 @@ TEST_F(MultiDomain_2D_THERMM200mmSlab, TestExample_1)
     NodePool::Instance().createNode(15, -0.1, 0.049);
 
     // Material Properties
-    const double thermalConductivityDry{0.1};
-    const double density{400.0};
-    const double porosity{0.81};
-    const double specificHeatCapacityDry{850.0};
-    const double diffusionResistanceFactor{7.9};
+    constexpr double thermalConductivityDry{0.1};
+    constexpr double density{400.0};
+    constexpr double porosity{0.81};
+    constexpr double specificHeatCapacityDry{850.0};
+    constexpr double diffusionResistanceFactor{7.9};
     const std::vector<FenestrationCommon::point> thermalConductivityMoistureDependent = {
       {0.0, 0.1}, {380, 0.1}};
-    const double thermalConductivityMeasuredAtTemperature{0};
+    constexpr double thermalConductivityMeasuredAtTemperature{0};
     const std::vector<FenestrationCommon::point> thermalConductivityTemperatureDependent = {
       {0.0, 0.1}, {1, 0.1}};
-    const double thermalConductivityMeasuredAtHumidity{0};
+    constexpr double thermalConductivityMeasuredAtHumidity{0};
     const std::vector<FenestrationCommon::point> liquidTransportationCurve = {
       {0, 0}, {3.1, 2e-10}, {38, 5.4e-09}, {265, 1.1e-08}, {342, 2e-08}, {380, 1e-07}};
 
