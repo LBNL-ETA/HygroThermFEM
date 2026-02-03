@@ -548,12 +548,12 @@ namespace HygroThermFEM
         return MaterialPool::Instance();
     }
 
-    ThermalDomain & MultiDomain::thermalDomain()
+    ThermalDomain & MultiDomain::thermal()
     {
         return m_ThermalDomain;
     }
 
-    MoistureDomain & MultiDomain::moistureDomain()
+    MoistureDomain & MultiDomain::moisture()
     {
         return m_MoistureDomain;
     }

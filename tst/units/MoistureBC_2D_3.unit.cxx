@@ -87,7 +87,7 @@ TEST_F(MoistureBC_2D_3, TestExample_1)
                                                    moistureStorageFunction);
 
     HygroThermFEM::MultiDomain multiDomain(false, true);
-    auto & domain = multiDomain.moistureDomain();
+    auto & domain = multiDomain.moisture();
 
     /// Create elements
     for(size_t i = 1; i <= (NodePool::Instance().maxIndex() - 2) / 2; ++i)

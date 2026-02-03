@@ -80,7 +80,7 @@ TEST_F(Analytical_TemperatureBC_Transient, TestExample_1)
                                                          moistureStorageFunction);
 
     HygroThermFEM::MultiDomain multiDomain(true, false);
-    auto & domain = multiDomain.thermalDomain();
+    auto & domain = multiDomain.thermal();
 
     /// Create elements
     for(size_t i = 1; i <= (NodePool::Instance().maxIndex() - 2) / 2; ++i)

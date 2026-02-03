@@ -92,7 +92,7 @@ TEST_F(TestModelWithFrameCavity2, TestDoubleFrameCavity)
 
     // Create elements grid
     HygroThermFEM::MultiDomain multiDomain(true, false);
-    auto & domain = multiDomain.thermalDomain();
+    auto & domain = multiDomain.thermal();
     size_t elementNumber{0u};
     for(auto ix = 1u; ix < gridX.size(); ++ix)
     {

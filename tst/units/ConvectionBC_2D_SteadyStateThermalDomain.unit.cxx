@@ -79,7 +79,7 @@ TEST_F(ConvectionBC_2D_SteadyStateThermalDomain, TestExample_1)
                                                    moistureStorageFunction);
 
     HygroThermFEM::MultiDomain multiDomain(true, false);
-    auto & domain = multiDomain.thermalDomain();
+    auto & domain = multiDomain.thermal();
 
     multiDomain.createElement(3, 4, 2, 1, material.name());
     multiDomain.createElement(6, 4, 3, 5, material.name());

@@ -117,7 +117,7 @@ TEST_F(TestDomainClearModelAndGravity, TestClearModelRemovesNodesAndMaterials)
     SCOPED_TRACE("Begin Test: clearModel removes nodes and materials.");
 
     MultiDomain multiDomain(true, false);
-    auto & domain = multiDomain.thermalDomain();
+    auto & domain = multiDomain.thermal();
     createSimpleModel(multiDomain);
 
     // Verify model was created
@@ -137,7 +137,7 @@ TEST_F(TestDomainClearModelAndGravity, TestClearModelAllowsNewModel)
     SCOPED_TRACE("Begin Test: clearModel allows creating new model.");
 
     MultiDomain multiDomain(true, false);
-    auto & domain = multiDomain.thermalDomain();
+    auto & domain = multiDomain.thermal();
     createSimpleModel(multiDomain);
 
     // Clear the model
@@ -163,7 +163,7 @@ TEST_F(TestDomainClearModelAndGravity, TestSetGravityVectorDefault)
     SCOPED_TRACE("Begin Test: Default gravity vector is (0, -1, 0).");
 
     MultiDomain multiDomain(true, false);
-    auto & domain = multiDomain.thermalDomain();
+    auto & domain = multiDomain.thermal();
     createModelWithFrameCavity(multiDomain);
 
     // Add boundary condition
@@ -183,7 +183,7 @@ TEST_F(TestDomainClearModelAndGravity, TestSetGravityVectorCustom)
     SCOPED_TRACE("Begin Test: Custom gravity vector affects frame cavity.");
 
     MultiDomain multiDomain(true, false);
-    auto & domain = multiDomain.thermalDomain();
+    auto & domain = multiDomain.thermal();
     createModelWithFrameCavity(multiDomain);
 
     // Add boundary condition
@@ -211,7 +211,7 @@ TEST_F(TestDomainClearModelAndGravity, TestSetGravityVectorBeforeCavityInit)
     SCOPED_TRACE("Begin Test: Set gravity vector before cavity initialization.");
 
     MultiDomain multiDomain(true, false);
-    auto & domain = multiDomain.thermalDomain();
+    auto & domain = multiDomain.thermal();
     createModelWithFrameCavity(multiDomain);
 
     // Set gravity before any transient calculation (before gasCavities is created)

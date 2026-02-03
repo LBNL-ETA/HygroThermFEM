@@ -345,11 +345,11 @@ namespace HygroThermFEM
 
         //! @brief Access to thermal domain for single-domain operations
         //! @return Reference to the ThermalDomain
-        ThermalDomain & thermalDomain();
+        ThermalDomain & thermal();
 
         //! @brief Access to moisture domain for single-domain operations
         //! @return Reference to the MoistureDomain
-        MoistureDomain & moistureDomain();
+        MoistureDomain & moisture();
 
     private:
         //! \brief Checks validity of materials for transient simulation

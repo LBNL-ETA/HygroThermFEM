@@ -92,7 +92,7 @@ TEST_F(Topaz2D_TemperatureBC, TestExample_1)
                                                    moistureStorageFunction);
 
     HygroThermFEM::MultiDomain multiDomain(true, false);
-    auto & domain = multiDomain.thermalDomain();
+    auto & domain = multiDomain.thermal();
 
     multiDomain.createElement(1, 2, 4, 3, material.name());
     multiDomain.createElement(5, 3, 4, 6, material.name());
