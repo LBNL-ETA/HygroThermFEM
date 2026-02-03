@@ -201,8 +201,16 @@ namespace HygroThermFEM
                                     const size_t index4,
                                     const std::string & materialName)
     {
-        m_ThermalDomain.createElement(index1, index2, index3, index4, materialName);
-        m_MoistureDomain.createElement(index1, index2, index3, index4, materialName);
+        // At least one domain must create elements for material assignment to nodes
+        // (needed for water content calculations even without active simulations)
+        if(m_SimulateThermal || !m_SimulateMoisture)
+        {
+            m_ThermalDomain.createElement(index1, index2, index3, index4, materialName);
+        }
+        if(m_SimulateMoisture)
+        {
+            m_MoistureDomain.createElement(index1, index2, index3, index4, materialName);
+        }
     }
 
     void MultiDomain::createBC_FixedHc(const size_t index1,
@@ -210,8 +218,10 @@ namespace HygroThermFEM
                                        const FixedBCHCCoefficients & fixedBchcCoefficients)
     {
         m_ThermalDomain.createBC_FixedHc(index1, index2, fixedBchcCoefficients, m_SimulateMoisture);
-
-        m_MoistureDomain.createBC_FixedHc(index1, index2, fixedBchcCoefficients);
+        if(m_SimulateMoisture)
+        {
+            m_MoistureDomain.createBC_FixedHc(index1, index2, fixedBchcCoefficients);
+        }
     }
 
     void MultiDomain::createBC_FixedHc(
@@ -220,7 +230,10 @@ namespace HygroThermFEM
       const std::vector<FixedBCHCCoefficients> & fixedBchcCoefficients)
     {
         m_ThermalDomain.createBC_FixedHc(index1, index2, fixedBchcCoefficients, m_SimulateMoisture);
-        m_MoistureDomain.createBC_FixedHc(index1, index2, fixedBchcCoefficients);
+        if(m_SimulateMoisture)
+        {
+            m_MoistureDomain.createBC_FixedHc(index1, index2, fixedBchcCoefficients);
+        }
     }
 
     void MultiDomain::createBC_TARPHc(size_t index1,
@@ -230,8 +243,10 @@ namespace HygroThermFEM
     {
         m_ThermalDomain.createBC_TARPHc(
           index1, index2, varHCCoeff, surfaceTilt, m_SimulateMoisture);
-
-        m_MoistureDomain.createBC_TARPHc(index1, index2, varHCCoeff, surfaceTilt);
+        if(m_SimulateMoisture)
+        {
+            m_MoistureDomain.createBC_TARPHc(index1, index2, varHCCoeff, surfaceTilt);
+        }
     }
 
     void MultiDomain::createBC_TARPHc(size_t index1,
@@ -241,8 +256,10 @@ namespace HygroThermFEM
     {
         m_ThermalDomain.createBC_TARPHc(
           index1, index2, varHCCoeff, surfaceTilt, m_SimulateMoisture);
-
-        m_MoistureDomain.createBC_TARPHc(index1, index2, varHCCoeff, surfaceTilt);
+        if(m_SimulateMoisture)
+        {
+            m_MoistureDomain.createBC_TARPHc(index1, index2, varHCCoeff, surfaceTilt);
+        }
     }
 
     void MultiDomain::createBC_ASHRAEInsideHc(size_t index1,
@@ -253,7 +270,10 @@ namespace HygroThermFEM
     {
         m_ThermalDomain.createBC_ASHRAEInsideHc(
           index1, index2, coeff, surfaceHeight, surfaceTilt, m_SimulateMoisture);
-        m_MoistureDomain.createBC_ASHRAEInsideHc(index1, index2, coeff, surfaceHeight, surfaceTilt);
+        if(m_SimulateMoisture)
+        {
+            m_MoistureDomain.createBC_ASHRAEInsideHc(index1, index2, coeff, surfaceHeight, surfaceTilt);
+        }
     }
 
     void MultiDomain::createBC_ASHRAEInsideHc(size_t index1,
@@ -264,7 +284,10 @@ namespace HygroThermFEM
     {
         m_ThermalDomain.createBC_ASHRAEInsideHc(
           index1, index2, coeff, surfaceHeight, surfaceTilt, m_SimulateMoisture);
-        m_MoistureDomain.createBC_ASHRAEInsideHc(index1, index2, coeff, surfaceHeight, surfaceTilt);
+        if(m_SimulateMoisture)
+        {
+            m_MoistureDomain.createBC_ASHRAEInsideHc(index1, index2, coeff, surfaceHeight, surfaceTilt);
+        }
     }
 
     void MultiDomain::createBC_ASHRAEOutsideHc(size_t index1,
@@ -272,7 +295,10 @@ namespace HygroThermFEM
                                                const ASHRAEOutsideCoefficients & coeff)
     {
         m_ThermalDomain.createBC_ASHRAEOutsideHc(index1, index2, coeff, m_SimulateMoisture);
-        m_MoistureDomain.createBC_ASHRAEOutsideHc(index1, index2, coeff);
+        if(m_SimulateMoisture)
+        {
+            m_MoistureDomain.createBC_ASHRAEOutsideHc(index1, index2, coeff);
+        }
     }
 
     void MultiDomain::createBC_ASHRAEOutsideHc(size_t index1,
@@ -280,7 +306,10 @@ namespace HygroThermFEM
                                                const std::vector<ASHRAEOutsideCoefficients> & coeff)
     {
         m_ThermalDomain.createBC_ASHRAEOutsideHc(index1, index2, coeff, m_SimulateMoisture);
-        m_MoistureDomain.createBC_ASHRAEOutsideHc(index1, index2, coeff);
+        if(m_SimulateMoisture)
+        {
+            m_MoistureDomain.createBC_ASHRAEOutsideHc(index1, index2, coeff);
+        }
     }
 
     void MultiDomain::createBC_YazdanianKlemsHc(size_t index1,
@@ -288,21 +317,30 @@ namespace HygroThermFEM
                                                 const YazdanianKlemsCoefficients & coeff)
     {
         m_ThermalDomain.createBC_YazdanianKlemsHc(index1, index2, coeff, m_SimulateMoisture);
-        m_MoistureDomain.createBC_YazdanianKlemsHc(index1, index2, coeff);
+        if(m_SimulateMoisture)
+        {
+            m_MoistureDomain.createBC_YazdanianKlemsHc(index1, index2, coeff);
+        }
     }
 
     void MultiDomain::createBC_YazdanianKlemsHc(
       size_t index1, size_t index2, const std::vector<YazdanianKlemsCoefficients> & coeff)
     {
         m_ThermalDomain.createBC_YazdanianKlemsHc(index1, index2, coeff, m_SimulateMoisture);
-        m_MoistureDomain.createBC_YazdanianKlemsHc(index1, index2, coeff);
+        if(m_SimulateMoisture)
+        {
+            m_MoistureDomain.createBC_YazdanianKlemsHc(index1, index2, coeff);
+        }
     }
 
     void
       MultiDomain::createBC_KimuraHc(size_t index1, size_t index2, const KimuraCoefficients & coeff)
     {
         m_ThermalDomain.createBC_KimuraHc(index1, index2, coeff, m_SimulateMoisture);
-        m_MoistureDomain.createBC_KimuraHc(index1, index2, coeff);
+        if(m_SimulateMoisture)
+        {
+            m_MoistureDomain.createBC_KimuraHc(index1, index2, coeff);
+        }
     }
 
     void MultiDomain::createBC_KimuraHc(size_t index1,
@@ -310,7 +348,10 @@ namespace HygroThermFEM
                                         const std::vector<KimuraCoefficients> & coeff)
     {
         m_ThermalDomain.createBC_KimuraHc(index1, index2, coeff, m_SimulateMoisture);
-        m_MoistureDomain.createBC_KimuraHc(index1, index2, coeff);
+        if(m_SimulateMoisture)
+        {
+            m_MoistureDomain.createBC_KimuraHc(index1, index2, coeff);
+        }
     }
 
     void MultiDomain::createBC_FixedTemperature(const size_t index1,
@@ -346,7 +387,10 @@ namespace HygroThermFEM
                                                            const TemperatureAndHumidity & values)
     {
         m_ThermalDomain.createBC_FixedTemperature(index1, index2, values.Temperature);
-        m_MoistureDomain.createBC_FixedHumidity(index1, index2, values);
+        if(m_SimulateMoisture)
+        {
+            m_MoistureDomain.createBC_FixedHumidity(index1, index2, values);
+        }
     }
 
     void MultiDomain::createBC_FixedTemperatureAndHumidity(
@@ -358,7 +402,10 @@ namespace HygroThermFEM
             temperatures[i] = values[i].Temperature;
         }
         m_ThermalDomain.createBC_FixedTemperature(index1, index2, temperatures);
-        m_MoistureDomain.createBC_FixedHumidity(index1, index2, values);
+        if(m_SimulateMoisture)
+        {
+            m_MoistureDomain.createBC_FixedHumidity(index1, index2, values);
+        }
     }
 
     void MultiDomain::createBC_FixedHeatFlux(size_t index1, size_t index2, double t_Flux)
