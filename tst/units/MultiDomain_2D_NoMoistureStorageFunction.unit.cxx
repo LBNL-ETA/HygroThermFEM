@@ -96,17 +96,17 @@ TEST_F(MultiDomain_2D_NoMoistureStorageFunction, TestExample_1)
     }
 
     /// Create Boundary Conditions
-    const auto hc = 5.0;
-    const auto airTemperature = 10.0;
-    const auto humidity = 0.0;
+    constexpr auto hc = 5.0;
+    constexpr auto airTemperature = 10.0;
+    constexpr auto humidity = 0.0;
 
     const HygroThermFEM::FixedBCHCCoefficients bcCoeff{airTemperature, hc, humidity};
 
     domain.createBC_FixedHc(1, 2, bcCoeff);
     domain.createBC_FixedHc(5, 6, bcCoeff);
 
-    const auto dTime = 3600;
-    const auto nSteps = 4;
+    constexpr auto dTime = 3600;
+    constexpr auto nSteps = 4;
 
     auto temperatures = NodePool::Instance().properties(HygroThermFEM::Variable::temperature);
     auto humidities = NodePool::Instance().properties(HygroThermFEM::Variable::humidity);

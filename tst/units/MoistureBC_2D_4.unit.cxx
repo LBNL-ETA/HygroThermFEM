@@ -25,10 +25,10 @@ TEST_F(MoistureBC_2D_4, TestExample_1)
 
     std::vector<double> gridXCoordinates{0.15, 0.05, 0.00};
 
-    const auto domainTemperature = 0.0;
-    const auto domainHumidity = 0.0;
-    const auto domainPressure = 101325.0;
-    const auto liquidPercent = 1.0;
+    constexpr auto domainTemperature = 0.0;
+    constexpr auto domainHumidity = 0.0;
+    constexpr auto domainPressure = 101325.0;
+    constexpr auto liquidPercent = 1.0;
 
     HygroThermFEM::State state(domainTemperature, domainHumidity, domainPressure, liquidPercent);
     size_t nodeIndex = 0;
@@ -101,16 +101,16 @@ TEST_F(MoistureBC_2D_4, TestExample_1)
     }
 
     // Create Boundary Conditions
-    const auto ambientTemperature = 20.0;
-    const auto ambientHumidity = 0.2;
+    constexpr auto ambientTemperature = 20.0;
+    constexpr auto ambientHumidity = 0.2;
     const auto surfaceTilt{90.0};
 
     const HygroThermFEM::TARPCoefficients bcCoeff{ambientTemperature, ambientHumidity};
 
     domain.createBC_TARPHc(5, 6, bcCoeff, surfaceTilt);
 
-    const auto dTime = 36000;
-    const auto nSteps = 4;
+    constexpr auto dTime = 36000;
+    constexpr auto nSteps = 4;
 
     auto humidities = NodePool::Instance().properties(HygroThermFEM::Variable::humidity);
     std::vector<std::vector<double>> solution;

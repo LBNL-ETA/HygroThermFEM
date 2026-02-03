@@ -35,7 +35,7 @@ TEST_F(MultiDomainHumidityOnly_1, TestExample_1)
     const double initialTemperature = 0.0;
     const double initialMoistureContent = 0.6;
     const double initialPressure = 101325;
-    const auto liquidPercent = 1.0;
+    constexpr auto liquidPercent = 1.0;
 
     auto state = HygroThermFEM::State(
       initialTemperature, initialMoistureContent, initialPressure, liquidPercent);
@@ -110,16 +110,16 @@ TEST_F(MultiDomainHumidityOnly_1, TestExample_1)
     }
 
     /// Create Boundary Conditions
-    const auto hc = 1.0;
-    const auto airTemperature = 20.0;
-    const auto humidity = 0.0;
+    constexpr auto hc = 1.0;
+    constexpr auto airTemperature = 20.0;
+    constexpr auto humidity = 0.0;
 
     const HygroThermFEM::FixedBCHCCoefficients bcCoeff{airTemperature, hc, humidity};
 
     domain.createBC_FixedHc(1, 2, bcCoeff);
 
-    const auto dTime = 3600;
-    const auto nSteps = 10;
+    constexpr auto dTime = 3600;
+    constexpr auto nSteps = 10;
 
     auto temperatures = NodePool::Instance().properties(HygroThermFEM::Variable::temperature);
     auto humidities = NodePool::Instance().properties(HygroThermFEM::Variable::humidity);

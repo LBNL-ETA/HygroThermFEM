@@ -24,10 +24,10 @@ TEST_F(Moisture_2D_TwoElements_2, TestExample_1)
 {
     SCOPED_TRACE("Begin Test: Simple two elements example with moisture transfer.");
 
-    const auto initialTemperature = 20;
-    const auto initialHumidity = 0.5;
-    const auto initialPressure = 101325.0;
-    const auto liquidPercent = 1.0;
+    constexpr auto initialTemperature = 20;
+    constexpr auto initialHumidity = 0.5;
+    constexpr auto initialPressure = 101325.0;
+    constexpr auto liquidPercent = 1.0;
 
     const State state(initialTemperature, initialHumidity, initialPressure, liquidPercent);
 
@@ -93,16 +93,16 @@ TEST_F(Moisture_2D_TwoElements_2, TestExample_1)
     domain.createElement(6, 4, 3, 5, material.name());
 
     // Create Boundary Conditions
-    const auto airTemperature = 0.0;
-    const auto airHumidity = 0.0;
-    const auto hc = 10.0;
+    constexpr auto airTemperature = 0.0;
+    constexpr auto airHumidity = 0.0;
+    constexpr auto hc = 10.0;
 
     const HygroThermFEM::FixedBCHCCoefficients bcCoeff{airTemperature, hc, airHumidity};
 
     domain.createBC_FixedHc(5, 6, bcCoeff);
 
-    const auto dTime = 3600;
-    const auto nSteps = 24;
+    constexpr auto dTime = 3600;
+    constexpr auto nSteps = 24;
 
     auto humidities = NodePool::Instance().properties(HygroThermFEM::Variable::humidity);
     std::vector<double> timesteps;

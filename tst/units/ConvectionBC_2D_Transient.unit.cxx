@@ -84,21 +84,21 @@ TEST_F(ConvectionBC_2D_Transient, TestExample_1)
     domain.createElement(6, 4, 3, 5, material.name());
 
     // Create Boundary Conditions
-    const auto hc1 = 2.4;
-    const auto temperatureAir1 = 20.0;
+    constexpr auto hc1 = 2.4;
+    constexpr auto temperatureAir1 = 20.0;
 
     const HygroThermFEM::FixedBCHCCoefficients bcCoeff1{temperatureAir1, hc1};
 
-    const auto hc2 = 15.0;
-    const auto temperatureAir2 = -18.0;
+    constexpr auto hc2 = 15.0;
+    constexpr auto temperatureAir2 = -18.0;
 
     const HygroThermFEM::FixedBCHCCoefficients bcCoeff2{temperatureAir2, hc2};
 
     domain.createBC_FixedHc(1, 2, bcCoeff1);
     domain.createBC_FixedHc(6, 5, bcCoeff2);
 
-    const auto dTime = 3600;
-    const auto nSteps = 4;
+    constexpr auto dTime = 3600;
+    constexpr auto nSteps = 4;
 
     auto temperatures = NodePool::Instance().properties(HygroThermFEM::Variable::temperature);
     std::vector<std::vector<double>> temperaturesSolution;

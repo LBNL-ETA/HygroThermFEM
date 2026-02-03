@@ -98,13 +98,13 @@ TEST_F(BlackBodyBC_2D_1, TestExample_1)
     domain.createElement(6, 4, 3, 5, material.name());
 
     // Create Boundary Conditions
-    const auto tRadiation = 20.0;
-    const auto surfaceEmissivity = 0.84;
+    constexpr auto tRadiation = 20.0;
+    constexpr auto surfaceEmissivity = 0.84;
 
     domain.createBC_BlackBodyRadiation(5, 6, surfaceEmissivity, tRadiation);
 
-    const auto dTime = 3600;
-    const auto nSteps = 4;
+    constexpr auto dTime = 3600;
+    constexpr auto nSteps = 4;
 
     auto temperatures = NodePool::Instance().properties(HygroThermFEM::Variable::temperature);
     std::vector<std::vector<double>> solution;

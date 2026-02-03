@@ -37,7 +37,7 @@ TEST_F(MultiDomain_2D_1, TestExample_1)
     const double initialTemperature = 20;
     const double initialMoistureContent = 0.0;
     const double initialPressure = 101325;
-    const auto liquidPercent = 1.0;
+    constexpr auto liquidPercent = 1.0;
 
     auto state = State(initialTemperature, initialMoistureContent, initialPressure, liquidPercent);
     size_t nodeIndex = 0;
@@ -122,8 +122,8 @@ TEST_F(MultiDomain_2D_1, TestExample_1)
         domain.createElement(node1, node2, node3, node4, material.name());
     }
 
-    const auto dTime = 360;
-    const auto nSteps = 10;
+    constexpr auto dTime = 360;
+    constexpr auto nSteps = 10;
 
     auto temperatures = NodePool::Instance().properties(HygroThermFEM::Variable::temperature);
     auto humidities = NodePool::Instance().properties(HygroThermFEM::Variable::humidity);
@@ -198,7 +198,7 @@ TEST_F(MultiDomain_2D_1, TestExample_1_Repeat)
     const double initialTemperature = 20;
     const double initialMoistureContent = 0.0;
     const double initialPressure = 101325;
-    const auto liquidPercent = 1.0;
+    constexpr auto liquidPercent = 1.0;
 
     auto state = State(initialTemperature, initialMoistureContent, initialPressure, liquidPercent);
     size_t nodeIndex = 0;
@@ -283,8 +283,8 @@ TEST_F(MultiDomain_2D_1, TestExample_1_Repeat)
         domain.createElement(node1, node2, node3, node4, material.name());
     }
 
-    const auto dTime = 360;
-    const auto nSteps = 10;
+    constexpr auto dTime = 360;
+    constexpr auto nSteps = 10;
 
     auto temperatures = NodePool::Instance().properties(HygroThermFEM::Variable::temperature);
     auto humidities = NodePool::Instance().properties(HygroThermFEM::Variable::humidity);

@@ -110,8 +110,8 @@ TEST_F(TestModelWithFrameCavity1, TestSingleFrameCavity)
     }
 
     // Create Boundary Conditions
-    const auto tAir = 0.0;
-    const auto hc = 30.0;
+    constexpr auto tAir = 0.0;
+    constexpr auto hc = 30.0;
 
     const HygroThermFEM::FixedBCHCCoefficients bcCoeff{tAir, hc};
 
@@ -129,8 +129,8 @@ TEST_F(TestModelWithFrameCavity1, TestSingleFrameCavity)
     }
 
     // Now perform transient calculation in order to make frame cavity update over the simulation
-    const auto dTime = 360;
-    const auto nSteps = 10;
+    constexpr auto dTime = 360;
+    constexpr auto nSteps = 10;
 
     auto temperatures = NodePool::Instance().properties(HygroThermFEM::Variable::temperature);
     std::vector<std::vector<double>> solution;

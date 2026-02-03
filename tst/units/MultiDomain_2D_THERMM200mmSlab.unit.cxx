@@ -29,7 +29,7 @@ TEST_F(MultiDomain_2D_THERMM200mmSlab, TestExample_1)
     // const double initialTemperature = 0.0;
     // const double initialMoistureContent = 0.0;
     // const double initialPressure = 101325;
-    // const auto liquidPercent = 1.0;
+    // constexpr auto liquidPercent = 1.0;
 
     // auto state = HygroThermFEM::State(
     //  initialTemperature, initialMoistureContent, initialPressure, liquidPercent);
@@ -102,9 +102,9 @@ TEST_F(MultiDomain_2D_THERMM200mmSlab, TestExample_1)
     domain.createElement(11, 13, 15, 14, material.name());
 
     /// Create Boundary Conditions
-    const auto hc = 2.0;
-    const auto airTemperature = 20.0;
-    const auto humidity = 0.4;
+    constexpr auto hc = 2.0;
+    constexpr auto airTemperature = 20.0;
+    constexpr auto humidity = 0.4;
 
     const HygroThermFEM::FixedBCHCCoefficients bcCoeff{airTemperature, hc, humidity};
     const std::vector<HygroThermFEM::FixedBCHCCoefficients> bcCoeffs{
@@ -116,8 +116,8 @@ TEST_F(MultiDomain_2D_THERMM200mmSlab, TestExample_1)
     domain.createBC_FixedHc(1, 2, bcCoeffs);
     domain.createBC_FixedHc(2, 4, bcCoeffs);
 
-    const auto dTime = 3600;
-    const auto nSteps = 20;
+    constexpr auto dTime = 3600;
+    constexpr auto nSteps = 20;
 
     auto temperatures = NodePool::Instance().properties(HygroThermFEM::Variable::temperature);
     auto humidities = NodePool::Instance().properties(HygroThermFEM::Variable::humidity);

@@ -32,9 +32,9 @@ TEST_F(Analytical_TemperatureBC_Transient, TestExample_1)
     /// Create slab that is 10 cm long and have nodes at every 1 cm
     std::vector<double> gridXCoordinates{0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0};
 
-    const auto initialTemperature = 1.0;
-    const auto initialHumidity = 0.0;
-    const auto initialPressure = 101325.0;
+    constexpr auto initialTemperature = 1.0;
+    constexpr auto initialHumidity = 0.0;
+    constexpr auto initialPressure = 101325.0;
 
     HygroThermFEM::State state(initialTemperature, initialHumidity, initialPressure, 0);
 
@@ -94,15 +94,15 @@ TEST_F(Analytical_TemperatureBC_Transient, TestExample_1)
     }
 
     // Create Boundary Conditions
-    const auto tAir = 0.0;
-    const auto hc = 1.0;
+    constexpr auto tAir = 0.0;
+    constexpr auto hc = 1.0;
 
     const HygroThermFEM::FixedBCHCCoefficients bcCoeff{tAir, hc};
 
     domain.createBC_FixedHc(21, 22, bcCoeff);
 
-    const auto dTime = 0.001;
-    const auto nSteps = 1000;
+    constexpr auto dTime = 0.001;
+    constexpr auto nSteps = 1000;
 
     auto temperatures = NodePool::Instance().properties(HygroThermFEM::Variable::temperature);
     std::vector<std::vector<double>> solution;

@@ -87,16 +87,16 @@ TEST_F(SimplifiedRadiationBC_2D_1, TestExample_1)
     domain.createElement(6, 4, 3, 5, material.name());
 
     // Create Boundary Conditions
-    const auto tRadiationTemperature = 20.0;
-    const auto radiationCoefficient = 4.0;
+    constexpr auto tRadiationTemperature = 20.0;
+    constexpr auto radiationCoefficient = 4.0;
 
     const HygroThermFEM::LinearizedRadiationBCCoefficients linRad{radiationCoefficient,
                                                                   tRadiationTemperature};
 
     domain.createBC_LinearizedRadiation(5, 6, linRad);
 
-    const auto dTime = 3600;
-    const auto nSteps = 4;
+    constexpr auto dTime = 3600;
+    constexpr auto nSteps = 4;
 
     auto temperatures = NodePool::Instance().properties(HygroThermFEM::Variable::temperature);
     std::vector<std::vector<double>> solution;

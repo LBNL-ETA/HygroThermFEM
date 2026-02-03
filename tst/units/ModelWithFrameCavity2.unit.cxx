@@ -33,9 +33,9 @@ TEST_F(TestModelWithFrameCavity2, TestDoubleFrameCavity)
     std::vector<double> gridX{0, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07};
     std::vector<double> gridY{0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35};
 
-    const auto initialTemperature = 20;
-    const auto initialHumidity = 0.0;
-    const auto initialPressure = 101325.0;
+    constexpr auto initialTemperature = 20;
+    constexpr auto initialHumidity = 0.0;
+    constexpr auto initialPressure = 101325.0;
 
     const State state(initialTemperature, initialHumidity, initialPressure);
     size_t nodeIndex = 0;
@@ -123,8 +123,8 @@ TEST_F(TestModelWithFrameCavity2, TestDoubleFrameCavity)
     }
 
     // Create Boundary Conditions
-    const auto tAir = 0.0;
-    const auto hc = 30.0;
+    constexpr auto tAir = 0.0;
+    constexpr auto hc = 30.0;
 
     const HygroThermFEM::FixedBCHCCoefficients bcCoeff{tAir, hc};
 
@@ -142,8 +142,8 @@ TEST_F(TestModelWithFrameCavity2, TestDoubleFrameCavity)
     }
 
     // Now perform transient calculation in order to make frame cavity update over the simulation
-    const auto dTime = 360;
-    const auto nSteps = 10;
+    constexpr auto dTime = 360;
+    constexpr auto nSteps = 10;
 
     auto temperatures = NodePool::Instance().properties(HygroThermFEM::Variable::temperature);
     std::vector<std::vector<double>> solution;

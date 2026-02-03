@@ -135,8 +135,8 @@ TEST_F(TestModelWithFrameCavity3, TestSingleFrameCavity)
     }
 
     // Now perform transient calculation in order to make frame cavity update over the simulation
-    const auto dTime = 36000;
-    const auto nSteps = 10;
+    constexpr auto dTime = 36000;
+    constexpr auto nSteps = 10;
 
     auto temperatures = NodePool::Instance().properties(HygroThermFEM::Variable::temperature);
     auto humidities = NodePool::Instance().properties(HygroThermFEM::Variable::humidity);

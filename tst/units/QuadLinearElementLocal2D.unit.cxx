@@ -21,7 +21,7 @@ TEST_F( TestQuadLinearElementLocal2D, TestIntegrationPoint1 ) {
     auto & aElement = HygroThermFEM::QuadrilateralLinearLocal2D::Instance();
 
     // Integration point 1
-    const auto IntegrationPoint = 0;
+    constexpr auto IntegrationPoint = 0;
 
     // Psi
     std::vector< double > correctPsi = { 0.622008468, 0.166666667, 0.044658199, 0.166666667 };
@@ -60,7 +60,7 @@ TEST_F( TestQuadLinearElementLocal2D, TestIntegrationPoint2 ) {
     auto & aElement = HygroThermFEM::QuadrilateralLinearLocal2D::Instance();
 
     // Integration point 2
-    const auto IntegrationPoint = 1;
+    constexpr auto IntegrationPoint = 1;
 
     // Psi
     std::vector< double > correctPsi = { 0.166666667, 0.622008468, 0.166666667, 0.044658199 };
@@ -99,7 +99,7 @@ TEST_F( TestQuadLinearElementLocal2D, TestIntegrationPoint3 ) {
     auto & aElement = HygroThermFEM::QuadrilateralLinearLocal2D::Instance();
 
     // Integration point 3
-    const auto IntegrationPoint = 2;
+    constexpr auto IntegrationPoint = 2;
 
     // Psi
     std::vector< double > correctPsi = { 0.044658199, 0.166666667, 0.622008468, 0.166666667 };
@@ -138,7 +138,7 @@ TEST_F( TestQuadLinearElementLocal2D, TestIntegrationPoint4 ) {
     auto & aElement = HygroThermFEM::QuadrilateralLinearLocal2D::Instance();
 
     // Integration point 4
-    const auto integrationPoint = 3;
+    constexpr auto integrationPoint = 3;
 
     // Psi
     std::vector< double > correctPsi = { 0.166666667, 0.044658199, 0.166666667, 0.622008468 };

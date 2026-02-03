@@ -31,8 +31,8 @@ TEST_F(CurveTest, TestTabularLinear)
     const TabularFunction1D curve({{1, 10}, {2, 20}, {3, 30}}, Variable::temperature);
 
     const size_t nodeNumber{0};
-    const double x_coord{0};
-    const double y_coord{0};
+    constexpr double x_coord{0};
+    constexpr double y_coord{0};
 
     const MockNode2D node(nodeNumber, x_coord, y_coord, {Variable::temperature, 2.5});
 
@@ -69,8 +69,8 @@ TEST_F(CurveTest, TestTabularLinearSinglePoint)
     const TabularFunction1D curve({{1, 10}}, Variable::temperature);
 
     const size_t nodeNumber{0};
-    const double x_coord{0};
-    const double y_coord{0};
+    constexpr double x_coord{0};
+    constexpr double y_coord{0};
 
     const MockNode2D node(nodeNumber, x_coord, y_coord,{Variable::temperature, 2.5});
 
@@ -106,7 +106,7 @@ TEST_F(CurveTest, TestTabular2D)
 
     const std::vector<point> temperatureMeasurement{{-20, 0.029}, {10, 0.035}, {80, 0.049}};
     // Temperature measurement is performed at certain humidity
-    const double temperatureMeasurementAt{0};
+    constexpr double temperatureMeasurementAt{0};
     const std::vector<point> humidityMeasurement{{0, 0.035},
                                                  {50, 0.043},
                                                  {100, 0.049},
@@ -117,7 +117,7 @@ TEST_F(CurveTest, TestTabular2D)
                                                  {950, 0.6},
                                                  {990, 0.61}};
     // Humidity measurement is performed at certain temperature
-    const double humidityMeasurementAt{10};
+    constexpr double humidityMeasurementAt{10};
 
     const TabularFunction2D table2D{temperatureMeasurement,
                                     temperatureMeasurementAt,
@@ -127,8 +127,8 @@ TEST_F(CurveTest, TestTabular2D)
                                     Variable::humidity};
 
     const size_t nodeNumber{0};
-    const double x_coord{0};
-    const double y_coord{0};
+    constexpr double x_coord{0};
+    constexpr double y_coord{0};
 
     const MockNode2D node(nodeNumber, x_coord, y_coord,{{Variable::temperature, 40}, {Variable::humidity, 220}});
 
@@ -146,7 +146,7 @@ TEST_F(CurveTest, TestTabular2DSinglePoint)
 
     const std::vector<point> temperatureMeasurement{{-20, 0.035}};
     // Temperature measurement is performed at certain humidity
-    const double temperatureMeasurementAt{0};
+    constexpr double temperatureMeasurementAt{0};
     const std::vector<point> humidityMeasurement{{0, 0.035},
                                                  {50, 0.043},
                                                  {100, 0.049},
@@ -157,7 +157,7 @@ TEST_F(CurveTest, TestTabular2DSinglePoint)
                                                  {950, 0.6},
                                                  {990, 0.61}};
     // Humidity measurement is performed at certain temperature
-    const double humidityMeasurementAt{10};
+    constexpr double humidityMeasurementAt{10};
 
     const TabularFunction2D table2D{temperatureMeasurement,
                                     temperatureMeasurementAt,
@@ -167,8 +167,8 @@ TEST_F(CurveTest, TestTabular2DSinglePoint)
                                     Variable::humidity};
 
     const size_t nodeNumber{0};
-    const double x_coord{0};
-    const double y_coord{0};
+    constexpr double x_coord{0};
+    constexpr double y_coord{0};
 
     const MockNode2D node(nodeNumber, x_coord, y_coord,{{Variable::temperature, 40}, {Variable::humidity, 220}});
 
@@ -187,8 +187,8 @@ TEST_F(CurveTest, TestTabularLogarithmic1)
                                   FenestrationCommon::Interpolation::Logarithmic);
 
     const size_t nodeNumber{0};
-    const double x_coord{0};
-    const double y_coord{0};
+    constexpr double x_coord{0};
+    constexpr double y_coord{0};
 
     const MockNode2D node(nodeNumber, x_coord, y_coord,{Variable::temperature, 2.5});
 
@@ -207,8 +207,8 @@ TEST_F(CurveTest, TestTabularLogarithmic2)
                                   FenestrationCommon::Interpolation::Logarithmic);
 
     const size_t nodeNumber{0};
-    const double x_coord{0};
-    const double y_coord{0};
+    constexpr double x_coord{0};
+    constexpr double y_coord{0};
 
     const State interpolationPoint(40, 0, 101325, 0);
     const MockNode2D node(nodeNumber, x_coord, y_coord,{Variable::temperature, 40});
@@ -227,8 +227,8 @@ TEST_F(CurveTest, TestSuctionCurve)
     LiquidTransportationCurve curve{{0.1, 10}, {0.2, 20}, {0.3, 30}};
 
     const size_t nodeNumber{0};
-    const double x_coord{0};
-    const double y_coord{0};
+    constexpr double x_coord{0};
+    constexpr double y_coord{0};
 
     const MockNode2D node(nodeNumber, x_coord, y_coord,{Variable::water, 0.15});
 
@@ -261,8 +261,8 @@ TEST_F(CurveTest, TestConstantCurve)
     const auto cons = Constant(5.0);
 
     const size_t nodeNumber{0};
-    const double x_coord{0};
-    const double y_coord{0};
+    constexpr double x_coord{0};
+    constexpr double y_coord{0};
 
     const MockNode2D node(nodeNumber, x_coord, y_coord,{Variable::temperature, 2.5});
 
@@ -278,8 +278,8 @@ TEST_F(CurveTest, TestTabularOutOfRangeBack)
     const TabularFunction1D curve({{1, 10}, {2, 20}, {3, 30}}, Variable::temperature);
 
     const size_t nodeNumber{0};
-    const double x_coord{0};
-    const double y_coord{0};
+    constexpr double x_coord{0};
+    constexpr double y_coord{0};
 
     const MockNode2D node(nodeNumber, x_coord, y_coord,{Variable::temperature, 3.5});
 
@@ -295,8 +295,8 @@ TEST_F(CurveTest, TestTabularOutOfRangeFront)
     const TabularFunction1D curve({{1, 10}, {2, 20}, {3, 30}}, Variable::temperature);
 
     const size_t nodeNumber{0};
-    const double x_coord{0};
-    const double y_coord{0};
+    constexpr double x_coord{0};
+    constexpr double y_coord{0};
 
     const MockNode2D node(nodeNumber, x_coord, y_coord,{Variable::temperature, 0.5});
 
@@ -314,8 +314,8 @@ TEST_F(CurveTest, TestComposition1)
     const auto tabular1 = tabular * 5.0;
 
     const size_t nodeNumber{0};
-    const double x_coord{0};
-    const double y_coord{0};
+    constexpr double x_coord{0};
+    constexpr double y_coord{0};
 
     const MockNode2D node(nodeNumber, x_coord, y_coord,{Variable::temperature, 2.5});
 
@@ -343,13 +343,13 @@ TEST_F(CurveTest, TestPorosityCalculation)
                                    Variable::humidity);
 
     const size_t nodeNumber{0};
-    const double x_coord{0};
-    const double y_coord{0};
+    constexpr double x_coord{0};
+    constexpr double y_coord{0};
 
     const MockNode2D node(nodeNumber, x_coord, y_coord,{{Variable::humidity, 1}, {Variable::temperature, 0}});
 
     auto maxWaterContent = waterContent.value(node);
-    const auto materialPorosity = 0.05;
+    constexpr auto materialPorosity = 0.05;
 
     auto waterFill = materialPorosity / maxWaterContent * waterContent;
 
@@ -370,8 +370,8 @@ TEST_F(CurveTest, TestSaturationFunction)
     using HygroThermFEM::MockNode2D;
 
     const size_t nodeNumber{0};
-    const double x_coord{0};
-    const double y_coord{0};
+    constexpr double x_coord{0};
+    constexpr double y_coord{0};
 
     const MockNode2D node(nodeNumber, x_coord, y_coord,{Variable::temperature, 20});
 
@@ -399,8 +399,8 @@ TEST_F(CurveTest, TestTabularDerivativeSmooth)
                                          Variable::humidity);
 
     const size_t nodeNumber{0};
-    const double x_coord{0};
-    const double y_coord{0};
+    constexpr double x_coord{0};
+    constexpr double y_coord{0};
 
     const MockNode2D node1(nodeNumber, x_coord, y_coord,{Variable::humidity, 0});
     auto result = waterContent.value(node1);
@@ -431,12 +431,12 @@ TEST_F(CurveTest, TestTotalMelting)
 {
     using HygroThermFEM::MockNode2D;
 
-    const auto currentTemperature = -1.0;
-    const auto newTemperature = 1.0;
+    constexpr auto currentTemperature = -1.0;
+    constexpr auto newTemperature = 1.0;
 
     const size_t nodeNumber{0};
-    const double x_coord{0};
-    const double y_coord{0};
+    constexpr double x_coord{0};
+    constexpr double y_coord{0};
 
     // Set nodes current state
     const MockNode2D node(nodeNumber, x_coord, y_coord,{Variable::temperature, newTemperature, currentTemperature});
@@ -451,13 +451,13 @@ TEST_F(CurveTest, TestPartialMelting)
 {
     using HygroThermFEM::MockNode2D;
 
-    const auto currentTemperature = -1.0;
-    const auto icePointRatio = 0.3; // This is actually 30% away from freezing point
+    constexpr auto currentTemperature = -1.0;
+    constexpr auto icePointRatio = 0.3; // This is actually 30% away from freezing point
     const auto newTemperature = icePointRatio * Constants::IcePoint;
 
     const size_t nodeNumber{0};
-    const double x_coord{0};
-    const double y_coord{0};
+    constexpr double x_coord{0};
+    constexpr double y_coord{0};
 
     // Set nodes current state
     const MockNode2D node(nodeNumber, x_coord, y_coord,{Variable::temperature, newTemperature, currentTemperature});
@@ -473,12 +473,12 @@ TEST_F(CurveTest, TestTotalFreezing)
 {
     using HygroThermFEM::MockNode2D;
 
-    const auto currentTemperature = 1.0;
-    const auto newTemperature = -1.0;
+    constexpr auto currentTemperature = 1.0;
+    constexpr auto newTemperature = -1.0;
 
     const size_t nodeNumber{0};
-    const double x_coord{0};
-    const double y_coord{0};
+    constexpr double x_coord{0};
+    constexpr double y_coord{0};
 
     // Set nodes current state
     const MockNode2D node(nodeNumber, x_coord, y_coord,{Variable::temperature, newTemperature, currentTemperature});
@@ -493,13 +493,13 @@ TEST_F(CurveTest, TestPartialFreezing)
 {
     using HygroThermFEM::MockNode2D;
 
-    const auto currentTemperature = 1.0;
-    const auto freezePointRatio = 0.3; // This is actually 30% away from freezing point
+    constexpr auto currentTemperature = 1.0;
+    constexpr auto freezePointRatio = 0.3; // This is actually 30% away from freezing point
     const auto newTemperature = freezePointRatio * Constants::IcePoint;
 
     const size_t nodeNumber{0};
-    const double x_coord{0};
-    const double y_coord{0};
+    constexpr double x_coord{0};
+    constexpr double y_coord{0};
 
     // Set nodes current state
     const MockNode2D node(nodeNumber, x_coord, y_coord,{Variable::temperature, newTemperature, currentTemperature});

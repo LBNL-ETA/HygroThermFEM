@@ -84,15 +84,15 @@ TEST_F(ConvectionBC_2D_SteadyState, TestExample_1)
     domain.createElement(6, 4, 3, 5, material.name());
 
     // Create Boundary Conditions
-    const auto hc1 = 20.0;
-    const auto humidity1 = 0.0;
-    const auto temperatureAir1 = -18.0;
+    constexpr auto hc1 = 20.0;
+    constexpr auto humidity1 = 0.0;
+    constexpr auto temperatureAir1 = -18.0;
 
     const HygroThermFEM::FixedBCHCCoefficients bcCoeff1{temperatureAir1, hc1, humidity1};
 
-    const auto hc2 = 2.4;
-    const auto humidity2 = 0.0;
-    const auto temperatureAir2 = 21.0;
+    constexpr auto hc2 = 2.4;
+    constexpr auto humidity2 = 0.0;
+    constexpr auto temperatureAir2 = 21.0;
 
     const HygroThermFEM::FixedBCHCCoefficients bcCoeff2{temperatureAir2, hc2, humidity2};
 

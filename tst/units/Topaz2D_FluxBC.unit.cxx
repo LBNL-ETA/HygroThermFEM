@@ -90,12 +90,12 @@ TEST_F(Topaz2D_FluxBC, TestExample_1)
 
     // Create Boundary Conditions
     // Positive flux means outside flow.
-    const auto surfaceFlux = -12.0;
+    constexpr auto surfaceFlux = -12.0;
 
     domain.createBC_FixedFlux(5, 6, surfaceFlux);
 
-    const auto dTime = 3600;
-    const auto nSteps = 4;
+    constexpr auto dTime = 3600;
+    constexpr auto nSteps = 4;
 
     auto temperatures = NodePool::Instance().properties(HygroThermFEM::Variable::temperature);
     std::vector<std::vector<double>> solution;

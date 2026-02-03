@@ -28,7 +28,7 @@ TEST_F(MultiDomain_2D_BlackBody_MultiTimestepBC, TestExample_1)
     const double initialTemperature = 0.0;
     const double initialMoistureContent = 0.0;
     const double initialPressure = 101325;
-    const auto liquidPercent = 1.0;
+    constexpr auto liquidPercent = 1.0;
 
     auto state = HygroThermFEM::State(
       initialTemperature, initialMoistureContent, initialPressure, liquidPercent);
@@ -116,8 +116,8 @@ TEST_F(MultiDomain_2D_BlackBody_MultiTimestepBC, TestExample_1)
 
     domain.createBC_BlackBodyRadiation(1, 2, bcBlackBody);
 
-    const auto dTime = 3600;
-    const auto nSteps = 10;
+    constexpr auto dTime = 3600;
+    constexpr auto nSteps = 10;
 
     auto temperatures = NodePool::Instance().properties(HygroThermFEM::Variable::temperature);
     auto humidities = NodePool::Instance().properties(HygroThermFEM::Variable::humidity);

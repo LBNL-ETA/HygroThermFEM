@@ -100,15 +100,15 @@ TEST_F(ConvectionBC_2D_TransientNoChanges, TestExample_1)
     }
 
     // Create Boundary Conditions
-    const auto tSurface = 20.0;
-    const auto hc = 1.0;
+    constexpr auto tSurface = 20.0;
+    constexpr auto hc = 1.0;
 
     const HygroThermFEM::FixedBCHCCoefficients bcCoeff{tSurface, hc};
 
     domain.createBC_FixedHc(1, 2, bcCoeff);
 
-    const auto dTime = 36000;
-    const auto nSteps = 4;
+    constexpr auto dTime = 36000;
+    constexpr auto nSteps = 4;
 
     auto temperatures = NodePool::Instance().properties(HygroThermFEM::Variable::temperature);
     std::vector<std::vector<double>> solution;

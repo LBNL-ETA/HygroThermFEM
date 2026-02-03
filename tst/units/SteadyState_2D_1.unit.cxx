@@ -24,7 +24,7 @@ TEST_F(SteadyState_2D_1, TestExample_1)
     const double initialTemperature = 21.0;
     const double initialMoistureContent = 0.0;
     const double initialPressure = 101325;
-    const auto liquidPercent = 1.0;
+    constexpr auto liquidPercent = 1.0;
 
     auto state = State(initialTemperature, initialMoistureContent, initialPressure, liquidPercent);
 
@@ -81,18 +81,18 @@ TEST_F(SteadyState_2D_1, TestExample_1)
     domain.createElement(6, 4, 3, 5, material.name());
 
     // Create Boundary Conditions
-    // const auto hc1 = 20.0;
+    // constexpr auto hc1 = 20.0;
     const auto hc1 = 1e20;
-    const auto humidity1 = 0.0;
-    // const auto temperatureAir1 = -18.0;
-    const auto temperatureAir1 = 0.0;
+    constexpr auto humidity1 = 0.0;
+    // constexpr auto temperatureAir1 = -18.0;
+    constexpr auto temperatureAir1 = 0.0;
 
     const HygroThermFEM::FixedBCHCCoefficients bcCoeff1{temperatureAir1, hc1, humidity1};
 
-    // const auto hc2 = 2.4;
+    // constexpr auto hc2 = 2.4;
     const auto hc2 = 1e20;
-    const auto humidity2 = 1.0;
-    const auto temperatureAir2 = 20.0;
+    constexpr auto humidity2 = 1.0;
+    constexpr auto temperatureAir2 = 20.0;
 
     const HygroThermFEM::FixedBCHCCoefficients bcCoeff2{temperatureAir2, hc2, humidity2};
 

@@ -28,7 +28,7 @@ TEST_F( TestQuadrilateralIntegrationPointsThreePointFormula2D, TestIntegrationPo
     SCOPED_TRACE( "Begin Test: Location and  weights for integration points." );
 
     const auto nonZero = std::sqrt( 3.0 / 5.0 );
-    const auto zero = 0;
+    constexpr auto zero = 0;
 
     const auto aElement = getIntPoints();
 

@@ -100,15 +100,15 @@ TEST_F(Topaz2D_ConvectionBC, TestExample_1)
     domain.createElement(6, 4, 3, 5, material.name());
 
     // Create Boundary Conditions
-    const auto tSurface = 20.0;
-    const auto hc = 20.0;
+    constexpr auto tSurface = 20.0;
+    constexpr auto hc = 20.0;
 
     const HygroThermFEM::FixedBCHCCoefficients bcCoeff{tSurface, hc};
 
     domain.createBC_FixedHc(5, 6, bcCoeff);
 
-    const auto dTime = 3600;
-    const auto nSteps = 4;
+    constexpr auto dTime = 3600;
+    constexpr auto nSteps = 4;
 
 
     auto temperatures = NodePool::Instance().properties(HygroThermFEM::Variable::temperature);

@@ -26,8 +26,8 @@ TEST_F(TestConvectionBC2D, TestIntegrationPoints)
     NodePool::Instance().createNode(1, 15, 5);
     NodePool::Instance().createNode(2, 15, 0);
 
-    const auto hc = 20.0;
-    const auto tAir = 255.15;
+    constexpr auto hc = 20.0;
+    constexpr auto tAir = 255.15;
 
     const HygroThermFEM::FixedBCHCCoefficients bcCoeff{tAir, hc};
 

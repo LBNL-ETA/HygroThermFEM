@@ -36,9 +36,9 @@ TEST_F(Analytical_ConvectionBC_Transient, TestExample_1)
     std::vector<double> gridXCoordinates{
       0, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1};
 
-    const auto initialTemperature = 20.0;
-    const auto initialHumidity = 0.0;
-    const auto initialPressure = 101325.0;
+    constexpr auto initialTemperature = 20.0;
+    constexpr auto initialHumidity = 0.0;
+    constexpr auto initialPressure = 101325.0;
 
     const HygroThermFEM::State state(initialTemperature, initialHumidity, initialPressure, 0);
 
@@ -97,12 +97,12 @@ TEST_F(Analytical_ConvectionBC_Transient, TestExample_1)
     }
 
     // Create Boundary Conditions
-    const auto tSurface = 0.0;
+    constexpr auto tSurface = 0.0;
 
     domain.createBC_FixedTemperature(21, 22, tSurface);
 
-    const auto dTime = 36;
-    const auto nSteps = 1000;
+    constexpr auto dTime = 36;
+    constexpr auto nSteps = 1000;
 
     auto temperatures = NodePool::Instance().properties(HygroThermFEM::Variable::temperature);
     std::vector<std::vector<double>> solution;

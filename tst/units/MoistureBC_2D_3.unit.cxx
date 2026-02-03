@@ -100,16 +100,16 @@ TEST_F(MoistureBC_2D_3, TestExample_1)
     }
 
     // Create Boundary Conditions
-    const auto ambientTemperature = 20.0;
-    const auto ambientHumidity = 0.5;
+    constexpr auto ambientTemperature = 20.0;
+    constexpr auto ambientHumidity = 0.5;
     const auto surfaceTilt{90.0};
 
     const HygroThermFEM::TARPCoefficients bcCoeff{ambientTemperature, ambientHumidity};
 
     domain.createBC_TARPHc(1, 2, bcCoeff, surfaceTilt);
 
-    const auto dTime = 36000;
-    const auto nSteps = 4;
+    constexpr auto dTime = 36000;
+    constexpr auto nSteps = 4;
 
     auto humidities = NodePool::Instance().properties(HygroThermFEM::Variable::humidity);
     std::vector<std::vector<double>> solution;

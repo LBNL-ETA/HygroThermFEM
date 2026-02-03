@@ -17,8 +17,8 @@ TEST_F(ConvectionCoefficientsTest, TestFixedCoefficient)
     using HygroThermFEM::INodes;
 
     const size_t nodeNumber{0};
-    const double x_coord{0};
-    const double y_coord{0};
+    constexpr double x_coord{0};
+    constexpr double y_coord{0};
 
     MockNode2D node1(nodeNumber, x_coord, y_coord);
     MockNode2D node2(nodeNumber, x_coord, y_coord);
@@ -45,8 +45,8 @@ TEST_F(ConvectionCoefficientsTest, TestTARPCoefficient)
     using HygroThermFEM::INodes;
 
     const size_t nodeNumber{0};
-    const double x_coord{0};
-    const double y_coord{0};
+    constexpr double x_coord{0};
+    constexpr double y_coord{0};
 
     MockNode2D node1(nodeNumber, x_coord, y_coord, {Variable::temperature, 2.5});
     MockNode2D node2(nodeNumber, x_coord, y_coord, {Variable::temperature, 3.5});
@@ -77,8 +77,8 @@ TEST_F(ConvectionCoefficientsTest, TestASHRAEOutdoorCoefficient)
     using HygroThermFEM::INodes;
 
     const size_t nodeNumber{0};
-    const double x_coord{0};
-    const double y_coord{0};
+    constexpr double x_coord{0};
+    constexpr double y_coord{0};
 
     MockNode2D node1(nodeNumber, x_coord, y_coord);
     MockNode2D node2(nodeNumber, x_coord, y_coord);
@@ -109,8 +109,8 @@ TEST_F(ConvectionCoefficientsTest, TestYazdanianKlemsLeeward)
     using HygroThermFEM::INodes;
 
     const size_t nodeNumber{0};
-    const double x_coord{0};
-    const double y_coord{0};
+    constexpr double x_coord{0};
+    constexpr double y_coord{0};
 
     MockNode2D node1(nodeNumber, x_coord, y_coord, {Variable::temperature, 2.5});
     MockNode2D node2(nodeNumber, x_coord, y_coord, {Variable::temperature, 3.5});
@@ -143,8 +143,8 @@ TEST_F(ConvectionCoefficientsTest, TestYazdanianKlemsWindward)
     using HygroThermFEM::INodes;
 
     const size_t nodeNumber{0};
-    const double x_coord{0};
-    const double y_coord{0};
+    constexpr double x_coord{0};
+    constexpr double y_coord{0};
 
     MockNode2D node1(nodeNumber, x_coord, y_coord, {Variable::temperature, 2.5});
     MockNode2D node2(nodeNumber, x_coord, y_coord, {Variable::temperature, 3.5});
@@ -177,8 +177,8 @@ TEST_F(ConvectionCoefficientsTest, TestKimuraLeeward)
     using HygroThermFEM::INodes;
 
     const size_t nodeNumber{0};
-    const double x_coord{0};
-    const double y_coord{0};
+    constexpr double x_coord{0};
+    constexpr double y_coord{0};
 
     MockNode2D node1(nodeNumber, x_coord, y_coord, {Variable::temperature, 2.5});
     MockNode2D node2(nodeNumber, x_coord, y_coord, {Variable::temperature, 3.5});
@@ -210,8 +210,8 @@ TEST_F(ConvectionCoefficientsTest, TestKimuraWindward)
     using HygroThermFEM::INodes;
 
     const size_t nodeNumber{0};
-    const double x_coord{0};
-    const double y_coord{0};
+    constexpr double x_coord{0};
+    constexpr double y_coord{0};
 
     MockNode2D node1(nodeNumber, x_coord, y_coord, {Variable::temperature, 2.5});
     MockNode2D node2(nodeNumber, x_coord, y_coord, {Variable::temperature, 3.5});
@@ -243,8 +243,8 @@ TEST_F(ConvectionCoefficientsTest, TestASHRAEInsideTilt90)
     using HygroThermFEM::INodes;
 
     const size_t nodeNumber{0};
-    const double x_coord{0};
-    const double y_coord{0};
+    constexpr double x_coord{0};
+    constexpr double y_coord{0};
 
     MockNode2D node1(nodeNumber, x_coord, y_coord, {Variable::temperature, -6.761964788});
     MockNode2D node2(nodeNumber, x_coord, y_coord, {Variable::temperature, -8.828412122});
@@ -277,8 +277,8 @@ TEST_F(ConvectionCoefficientsTest, TestASHRAEInsideTilt10)
     using HygroThermFEM::INodes;
 
     const size_t nodeNumber{0};
-    const double x_coord{0};
-    const double y_coord{0};
+    constexpr double x_coord{0};
+    constexpr double y_coord{0};
 
     MockNode2D node1(nodeNumber, x_coord, y_coord, {Variable::temperature, -6.761964788});
     MockNode2D node2(nodeNumber, x_coord, y_coord, {Variable::temperature, -7.660027885});
@@ -311,8 +311,8 @@ TEST_F(ConvectionCoefficientsTest, TestASHRAEInsideTilt150)
     using HygroThermFEM::INodes;
 
     const size_t nodeNumber{0};
-    const double x_coord{0};
-    const double y_coord{0};
+    constexpr double x_coord{0};
+    constexpr double y_coord{0};
 
     MockNode2D node1(nodeNumber, x_coord, y_coord, {Variable::temperature, -6.761964788});
     MockNode2D node2(nodeNumber, x_coord, y_coord, {Variable::temperature, -9.282372451});
@@ -345,8 +345,8 @@ TEST_F(ConvectionCoefficientsTest, TestASHRAEInsideTilt180)
     using HygroThermFEM::INodes;
 
     const size_t nodeNumber{0};
-    const double x_coord{0};
-    const double y_coord{0};
+    constexpr double x_coord{0};
+    constexpr double y_coord{0};
 
     MockNode2D node1(nodeNumber, x_coord, y_coord, {Variable::temperature, -6.761964788});
     MockNode2D node2(nodeNumber, x_coord, y_coord, {Variable::temperature, 0.508192764});

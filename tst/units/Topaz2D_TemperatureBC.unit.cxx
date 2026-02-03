@@ -98,12 +98,12 @@ TEST_F(Topaz2D_TemperatureBC, TestExample_1)
     domain.createElement(5, 3, 4, 6, material.name());
 
     // Create Boundary Conditions
-    const auto tSurface = 12.0;
+    constexpr auto tSurface = 12.0;
 
     domain.createBC_FixedTemperature(5, 6, tSurface);
 
-    const auto dTime = 3600;
-    const auto nSteps = 4;
+    constexpr auto dTime = 3600;
+    constexpr auto nSteps = 4;
 
 
     auto temperatures = NodePool::Instance().properties(HygroThermFEM::Variable::temperature);
