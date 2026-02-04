@@ -4,7 +4,6 @@
 #include "HygroThermFEM2D.hxx"
 
 using HygroThermFEM::NodePool;
-using HygroThermFEM::MaterialPool;
 
 /////////////////////////////////////////////////////////////////////////////////////
 /// Transient heat transfer example on Sandstone specimen using data from database
@@ -24,7 +23,6 @@ protected:
     void TearDown() override
     {
         NodePool::Instance().clear();
-        MaterialPool::Instance().clear();
     }
 };
 
@@ -77,21 +75,21 @@ TEST_F(BlackBodyBC_2D_1, TestExample_1)
                                                                             {0.999, 120},
                                                                             {1, 180}};
 
-    auto & material =
-      MaterialPool::Instance().createSolidMaterial("Cottaer Sandstone - non porous",
-                                                   thermalConductivityDry,
-                                                   density,
-                                                   porosity,
-                                                   specificHeatCapacityDry,
-                                                   diffusionResistanceFactor,
-                                                   thermalConductivityMoistureDependent,
-                                                   thermalConductivityMeasuredAtTemperature,
-                                                   thermalConductivityTemperatureDependent,
-                                                   thermalConductivityMeasuredAtHumidity,
-                                                   liquidTransportationCurve,
-                                                   moistureStorageFunction);
-
     HygroThermFEM::MultiDomain multiDomain(true, false);
+
+    auto & material =
+      multiDomain.materials().createSolidMaterial("Cottaer Sandstone - non porous",
+                                                  thermalConductivityDry,
+                                                  density,
+                                                  porosity,
+                                                  specificHeatCapacityDry,
+                                                  diffusionResistanceFactor,
+                                                  thermalConductivityMoistureDependent,
+                                                  thermalConductivityMeasuredAtTemperature,
+                                                  thermalConductivityTemperatureDependent,
+                                                  thermalConductivityMeasuredAtHumidity,
+                                                  liquidTransportationCurve,
+                                                  moistureStorageFunction);
 
     multiDomain.createElement(3, 4, 2, 1, material.name());
     multiDomain.createElement(6, 4, 3, 5, material.name());

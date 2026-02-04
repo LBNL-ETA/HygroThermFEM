@@ -9,19 +9,20 @@ class MaterialValidityTest : public testing::Test
 protected:
     void SetUp() override
     {
-        HygroThermFEM::MaterialPool::Instance().createSolidMaterial(materialName());
+        multiDomain.materials().createSolidMaterial(materialName());
     }
 
     void TearDown() override
     {
         HygroThermFEM::NodePool::Instance().clear();
-        HygroThermFEM::MaterialPool::Instance().clear();
     }
 
     [[nodiscard]] std::string materialName() const
     {
         return m_MaterialName;
     }
+
+    HygroThermFEM::MultiDomain multiDomain;
 
 private:
     std::string m_MaterialName{"Test"};
@@ -30,7 +31,7 @@ private:
 TEST_F(MaterialValidityTest, TestConductivity)
 {
     SCOPED_TRACE("Test for material conductivity.");
-    const auto & mat = HygroThermFEM::MaterialPool::Instance().material(materialName());
+    const auto & mat = multiDomain.materials().material(materialName());
     try
     {
         [[maybe_unused]] auto test = mat.thermalConductivityDry();
@@ -45,7 +46,7 @@ TEST_F(MaterialValidityTest, TestConductivity)
 TEST_F(MaterialValidityTest, TestDensity)
 {
     SCOPED_TRACE("Test for material conductivity.");
-    const auto & mat = HygroThermFEM::MaterialPool::Instance().material(materialName());
+    const auto & mat = multiDomain.materials().material(materialName());
     try
     {
         [[maybe_unused]] auto test = mat.density();
@@ -60,7 +61,7 @@ TEST_F(MaterialValidityTest, TestDensity)
 TEST_F(MaterialValidityTest, TestHeatCapacity)
 {
     SCOPED_TRACE("Test for material specific heat capacity.");
-    const auto & mat = HygroThermFEM::MaterialPool::Instance().material(materialName());
+    const auto & mat = multiDomain.materials().material(materialName());
     try
     {
         [[maybe_unused]] auto test = mat.heatCapacity();
@@ -75,7 +76,7 @@ TEST_F(MaterialValidityTest, TestHeatCapacity)
 TEST_F(MaterialValidityTest, TestPorosity)
 {
     SCOPED_TRACE("Test for material porosity.");
-    const auto & mat = HygroThermFEM::MaterialPool::Instance().material(materialName());
+    const auto & mat = multiDomain.materials().material(materialName());
     try
     {
         [[maybe_unused]] auto test = mat.porosity();
@@ -90,7 +91,7 @@ TEST_F(MaterialValidityTest, TestPorosity)
 TEST_F(MaterialValidityTest, TestEmissivity)
 {
     SCOPED_TRACE("Test for material emissivity.");
-    const auto & mat = HygroThermFEM::MaterialPool::Instance().material(materialName());
+    const auto & mat = multiDomain.materials().material(materialName());
     try
     {
         [[maybe_unused]] auto test = mat.emissivity();
@@ -105,7 +106,7 @@ TEST_F(MaterialValidityTest, TestEmissivity)
 TEST_F(MaterialValidityTest, TestDiffusionResistanceFactor)
 {
     SCOPED_TRACE("Test for material diffusion resistance factor.");
-    const auto & mat = HygroThermFEM::MaterialPool::Instance().material(materialName());
+    const auto & mat = multiDomain.materials().material(materialName());
     try
     {
         [[maybe_unused]] auto test = mat.diffusionResistanceFactor();

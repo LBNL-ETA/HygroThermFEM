@@ -12,7 +12,6 @@ protected:
     void TearDown() override
     {
         HygroThermFEM::NodePool::Instance().clear();
-        HygroThermFEM::MaterialPool::Instance().clear();
     }
 };
 
@@ -52,8 +51,9 @@ TEST_F(TestMaterialProperties, PropertiesExistence)
                                                                             {0.999, 120},
                                                                             {1, 180}};
 
-    auto & material =
-      HygroThermFEM::MaterialPool::Instance().createSolidMaterial("Cottaer Sandstone");
+    HygroThermFEM::MultiDomain multiDomain;
+
+    auto & material = multiDomain.materials().createSolidMaterial("Cottaer Sandstone");
 
     EXPECT_EQ(false, material.hasThermalConductivityDry());
     EXPECT_EQ(false, material.hasPorosity());

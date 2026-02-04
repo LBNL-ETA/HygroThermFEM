@@ -4,12 +4,6 @@
 
 namespace HygroThermFEM
 {
-    MaterialPool & HygroThermFEM::MaterialPool::Instance()
-    {
-        static MaterialPool m_Instance;
-        return m_Instance;
-    }
-
     void MaterialPool::clear()
     {
         m_Materials.clear();

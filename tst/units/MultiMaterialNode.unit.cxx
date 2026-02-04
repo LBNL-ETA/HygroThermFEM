@@ -3,7 +3,6 @@
 #include "HygroThermFEM2D.hxx"
 
 using HygroThermFEM::NodePool;
-using HygroThermFEM::MaterialPool;
 using HygroThermFEM::WaterContent;
 
 class MultiMaterialNode : public testing::Test
@@ -15,7 +14,6 @@ protected:
     void TearDown() override
     {
         NodePool::Instance().clear();
-        MaterialPool::Instance().clear();
     }
 };
 
@@ -31,6 +29,8 @@ TEST_F(MultiMaterialNode, TestExample_1)
     HygroThermFEM::State state(temperature, humidity, pressure, liquidPercent);
 
     auto node1 = NodePool::Instance().createNode(1, 0, 0, state);
+
+    HygroThermFEM::MultiDomain multiDomain;
 
     // Material Properties (Cottaer Sandstone)
     double thermalConductivityDry{1.8};
@@ -66,7 +66,7 @@ TEST_F(MultiMaterialNode, TestExample_1)
                                                                       {1, 180}};
 
     auto & material1 =
-      MaterialPool::Instance().createSolidMaterial("Cottaer Sandstone",
+      multiDomain.materials().createSolidMaterial("Cottaer Sandstone",
                                                    thermalConductivityDry,
                                                    density,
                                                    porosity,
@@ -108,7 +108,7 @@ TEST_F(MultiMaterialNode, TestExample_1)
                                {1, 150}};
 
     auto & material2 =
-      MaterialPool::Instance().createSolidMaterial("Concrete, w/c=0.5",
+      multiDomain.materials().createSolidMaterial("Concrete, w/c=0.5",
                                                    thermalConductivityDry,
                                                    density,
                                                    porosity,

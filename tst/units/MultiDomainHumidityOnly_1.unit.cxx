@@ -4,7 +4,6 @@
 #include "HygroThermFEM2D.hxx"
 
 using HygroThermFEM::NodePool;
-using HygroThermFEM::MaterialPool;
 
 class MultiDomainHumidityOnly_1 : public testing::Test
 {
@@ -15,7 +14,6 @@ protected:
     void TearDown() override
     {
         NodePool::Instance().clear();
-        MaterialPool::Instance().clear();
     }
 };
 
@@ -47,6 +45,10 @@ TEST_F(MultiDomainHumidityOnly_1, TestExample_1)
         ++nodeIndex;
         NodePool::Instance().createNode(nodeIndex, val, 0.05, state);
     }
+
+    const bool performThermalCalculations = false;
+    const bool performMoistureCalculations = true;
+    HygroThermFEM::MultiDomain multiDomain(performThermalCalculations, performMoistureCalculations);
 
     // Material Properties (Cottaer Sandstone)
     constexpr double thermalConductivityDry{1.8};
@@ -82,22 +84,18 @@ TEST_F(MultiDomainHumidityOnly_1, TestExample_1)
                                                                             {1, 180}};
 
     auto & material =
-      MaterialPool::Instance().createSolidMaterial("Cottaer Sandstone",
-                                                   thermalConductivityDry,
-                                                   density,
-                                                   porosity,
-                                                   specificHeatCapacityDry,
-                                                   diffusionResistanceFactor,
-                                                   thermalConductivityMoistureDependent,
-                                                   thermalConductivityMeasuredAtTemperature,
-                                                   thermalConductivityTemperatureDependent,
-                                                   thermalConductivityMeasuredAtHumidity,
-                                                   liquidTransportationCurve,
-                                                   moistureStorageFunction);
-
-    const bool performThermalCalculations = false;
-    const bool performMoistureCalculations = true;
-    HygroThermFEM::MultiDomain multiDomain(performThermalCalculations, performMoistureCalculations);
+      multiDomain.materials().createSolidMaterial("Cottaer Sandstone",
+                                                  thermalConductivityDry,
+                                                  density,
+                                                  porosity,
+                                                  specificHeatCapacityDry,
+                                                  diffusionResistanceFactor,
+                                                  thermalConductivityMoistureDependent,
+                                                  thermalConductivityMeasuredAtTemperature,
+                                                  thermalConductivityTemperatureDependent,
+                                                  thermalConductivityMeasuredAtHumidity,
+                                                  liquidTransportationCurve,
+                                                  moistureStorageFunction);
 
     /// Create elements
     for(size_t i = 1; i <= (NodePool::Instance().maxIndex() - 2) / 2; ++i)

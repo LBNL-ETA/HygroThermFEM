@@ -4,7 +4,6 @@
 #include "HygroThermFEM2D.hxx"
 
 using HygroThermFEM::NodePool;
-using HygroThermFEM::MaterialPool;
 
 class TestSingleElementMatrices2D : public testing::Test
 {
@@ -15,7 +14,6 @@ protected:
     void TearDown() override
     {
         NodePool::Instance().clear();
-        MaterialPool::Instance().clear();
     }
 };
 
@@ -30,6 +28,9 @@ TEST_F(TestSingleElementMatrices2D, TestConductionMatrix)
     NodePool::Instance().createNode(2, 5, 0);
     NodePool::Instance().createNode(3, 15, 0);
     NodePool::Instance().createNode(4, 15, 5);
+
+    // Create MultiDomain before materials
+    HygroThermFEM::MultiDomain multiDomain(true, false);
 
     // Material Properties
     constexpr double thermalConductivityDry{1.0};
@@ -65,20 +66,20 @@ TEST_F(TestSingleElementMatrices2D, TestConductionMatrix)
                                                                             {1, 180}};
 
     auto & material =
-      MaterialPool::Instance().createSolidMaterial("Test Material",
-                                                   thermalConductivityDry,
-                                                   density,
-                                                   porosity,
-                                                   specificHeatCapacityDry,
-                                                   diffusionResistanceFactor,
-                                                   thermalConductivityMoistureDependent,
-                                                   thermalConductivityMeasuredAtTemperature,
-                                                   thermalConductivityTemperatureDependent,
-                                                   thermalConductivityMeasuredAtHumidity,
-                                                   liquidTransportationCurve,
-                                                   moistureStorageFunction);
+      multiDomain.materials().createSolidMaterial("Test Material",
+                                                  thermalConductivityDry,
+                                                  density,
+                                                  porosity,
+                                                  specificHeatCapacityDry,
+                                                  diffusionResistanceFactor,
+                                                  thermalConductivityMoistureDependent,
+                                                  thermalConductivityMeasuredAtTemperature,
+                                                  thermalConductivityTemperatureDependent,
+                                                  thermalConductivityMeasuredAtHumidity,
+                                                  liquidTransportationCurve,
+                                                  moistureStorageFunction);
 
-    const HygroThermFEM::ElementThermalLinear2D aElem{MaterialPool::Instance(), 1, 2, 3, 4, material.name()};
+    const HygroThermFEM::ElementThermalLinear2D aElem{multiDomain.materials(), 1, 2, 3, 4, material.name()};
 
     auto condMat = aElem.DDuMatrices();
 

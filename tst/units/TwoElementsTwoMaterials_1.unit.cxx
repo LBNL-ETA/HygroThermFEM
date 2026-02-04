@@ -3,7 +3,6 @@
 #include "HygroThermFEM2D.hxx"
 
 using HygroThermFEM::NodePool;
-using HygroThermFEM::MaterialPool;
 using HygroThermFEM::WaterContent;
 using HygroThermFEM::MultiDomain;
 
@@ -19,7 +18,6 @@ protected:
     void TearDown() override
     {
         NodePool::Instance().clear();
-        MaterialPool::Instance().clear();
     }
 };
 
@@ -40,6 +38,8 @@ TEST_F(TwoElementsTwoMaterials_1, NodeInTwoMaterials)
     NodePool::Instance().createNode(4, 1, 1, state);
     NodePool::Instance().createNode(5, 2, 0, state);
     NodePool::Instance().createNode(6, 2, 1, state);
+
+    MultiDomain multiDomain(false, false);
 
     // Material Properties (Cottaer Sandstone)
     double thermalConductivityDry{1.8};
@@ -75,7 +75,7 @@ TEST_F(TwoElementsTwoMaterials_1, NodeInTwoMaterials)
                                                                       {1, 180}};
 
     auto & material1 =
-      MaterialPool::Instance().createSolidMaterial("Cottaer Sandstone",
+      multiDomain.materials().createSolidMaterial("Cottaer Sandstone",
                                                    thermalConductivityDry,
                                                    density,
                                                    porosity,
@@ -117,7 +117,7 @@ TEST_F(TwoElementsTwoMaterials_1, NodeInTwoMaterials)
                                {1, 150}};
 
     auto & material2 =
-      MaterialPool::Instance().createSolidMaterial("Concrete, w/c=0.5",
+      multiDomain.materials().createSolidMaterial("Concrete, w/c=0.5",
                                                    thermalConductivityDry,
                                                    density,
                                                    porosity,
@@ -129,8 +129,6 @@ TEST_F(TwoElementsTwoMaterials_1, NodeInTwoMaterials)
                                                    thermalConductivityMeasuredAtHumidity,
                                                    liquidTransportationCurve,
                                                    moistureStorageFunction);
-
-    MultiDomain multiDomain(false, false);
 
     multiDomain.createElement(1, 3, 4, 2, material1.name());
     multiDomain.createElement(3, 5, 6, 4, material2.name());

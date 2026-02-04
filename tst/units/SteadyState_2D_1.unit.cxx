@@ -3,7 +3,6 @@
 #include "HygroThermFEM2D.hxx"
 
 using HygroThermFEM::NodePool;
-using HygroThermFEM::MaterialPool;
 using HygroThermFEM::State;
 
 class SteadyState_2D_1 : public testing::Test
@@ -15,7 +14,6 @@ protected:
     void TearDown() override
     {
         NodePool::Instance().clear();
-        MaterialPool::Instance().clear();
     }
 };
 
@@ -42,6 +40,11 @@ TEST_F(SteadyState_2D_1, TestExample_1)
     NodePool::Instance().createNode(
       6, 0, 0, State(initialTemperature, 1, initialPressure, liquidPercent));
 
+    const auto simulateThermal{true};
+    const auto simulateMoisture{false};
+
+    HygroThermFEM::MultiDomain multiDomain{simulateThermal, simulateMoisture};
+
     // Material Properties
     constexpr double thermalConductivityDry{1.0};
     constexpr double density{2050.0};
@@ -59,23 +62,18 @@ TEST_F(SteadyState_2D_1, TestExample_1)
     const std::vector<FenestrationCommon::point> moistureStorageFunction = {{0, 0}, {1, 180}};
 
     auto & material =
-      MaterialPool::Instance().createSolidMaterial("Test Material",
-                                                   thermalConductivityDry,
-                                                   density,
-                                                   porosity,
-                                                   specificHeatCapacityDry,
-                                                   diffusionResistanceFactor,
-                                                   thermalConductivityMoistureDependent,
-                                                   thermalConductivityMeasuredAtTemperature,
-                                                   thermalConductivityTemperatureDependent,
-                                                   thermalConductivityMeasuredAtHumidity,
-                                                   liquidTransportationCurve,
-                                                   moistureStorageFunction);
-
-    const auto simulateThermal{true};
-    const auto simulateMoisture{false};
-
-    HygroThermFEM::MultiDomain multiDomain{simulateThermal, simulateMoisture};
+      multiDomain.materials().createSolidMaterial("Test Material",
+                                                  thermalConductivityDry,
+                                                  density,
+                                                  porosity,
+                                                  specificHeatCapacityDry,
+                                                  diffusionResistanceFactor,
+                                                  thermalConductivityMoistureDependent,
+                                                  thermalConductivityMeasuredAtTemperature,
+                                                  thermalConductivityTemperatureDependent,
+                                                  thermalConductivityMeasuredAtHumidity,
+                                                  liquidTransportationCurve,
+                                                  moistureStorageFunction);
 
     multiDomain.createElement(3, 4, 2, 1, material.name());
     multiDomain.createElement(6, 4, 3, 5, material.name());

@@ -4,7 +4,6 @@
 #include "HygroThermFEM2D.hxx"
 
 using HygroThermFEM::NodePool;
-using HygroThermFEM::MaterialPool;
 
 /////////////////////////////////////////////////////////////////////////////////////
 /// Transient heat transfer example on Sandstone specimen using data from database
@@ -24,7 +23,6 @@ protected:
     void TearDown() override
     {
         NodePool::Instance().clear();
-        MaterialPool::Instance().clear();
     }
 };
 
@@ -43,6 +41,8 @@ TEST_F(Topaz2D_TemperatureBC, TestExample_1)
     NodePool::Instance().createNode(4, 0.05, 0, state);
     NodePool::Instance().createNode(5, 0, 0.05, state);
     NodePool::Instance().createNode(6, 0, 0, state);
+
+    HygroThermFEM::MultiDomain multiDomain(true, false);
 
     // Material Properties (Cottaer Sandstone - non porous)
     constexpr double thermalConductivityDry{1.8};
@@ -78,20 +78,18 @@ TEST_F(Topaz2D_TemperatureBC, TestExample_1)
                                                                             {1, 180}};
 
     auto & material =
-      MaterialPool::Instance().createSolidMaterial("Cottaer Sandstone - non porous",
-                                                   thermalConductivityDry,
-                                                   density,
-                                                   porosity,
-                                                   specificHeatCapacityDry,
-                                                   diffusionResistanceFactor,
-                                                   thermalConductivityMoistureDependent,
-                                                   thermalConductivityMeasuredAtTemperature,
-                                                   thermalConductivityTemperatureDependent,
-                                                   thermalConductivityMeasuredAtHumidity,
-                                                   liquidTransportationCurve,
-                                                   moistureStorageFunction);
-
-    HygroThermFEM::MultiDomain multiDomain(true, false);
+      multiDomain.materials().createSolidMaterial("Cottaer Sandstone - non porous",
+                                                  thermalConductivityDry,
+                                                  density,
+                                                  porosity,
+                                                  specificHeatCapacityDry,
+                                                  diffusionResistanceFactor,
+                                                  thermalConductivityMoistureDependent,
+                                                  thermalConductivityMeasuredAtTemperature,
+                                                  thermalConductivityTemperatureDependent,
+                                                  thermalConductivityMeasuredAtHumidity,
+                                                  liquidTransportationCurve,
+                                                  moistureStorageFunction);
 
     multiDomain.createElement(1, 2, 4, 3, material.name());
     multiDomain.createElement(5, 3, 4, 6, material.name());

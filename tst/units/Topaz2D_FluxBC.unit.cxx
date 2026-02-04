@@ -4,7 +4,6 @@
 #include "HygroThermFEM2D.hxx"
 
 using HygroThermFEM::NodePool;
-using HygroThermFEM::MaterialPool;
 
 class Topaz2D_FluxBC : public testing::Test
 {
@@ -15,7 +14,6 @@ protected:
     void TearDown() override
     {
         NodePool::Instance().clear();
-        MaterialPool::Instance().clear();
     }
 };
 
@@ -68,21 +66,21 @@ TEST_F(Topaz2D_FluxBC, TestExample_1)
                                                                             {0.999, 120},
                                                                             {1, 180}};
 
-    auto & material =
-      MaterialPool::Instance().createSolidMaterial("Cottaer Sandstone - non porous",
-                                                   thermalConductivityDry,
-                                                   density,
-                                                   porosity,
-                                                   specificHeatCapacityDry,
-                                                   diffusionResistanceFactor,
-                                                   thermalConductivityMoistureDependent,
-                                                   thermalConductivityMeasuredAtTemperature,
-                                                   thermalConductivityTemperatureDependent,
-                                                   thermalConductivityMeasuredAtHumidity,
-                                                   liquidTransportationCurve,
-                                                   moistureStorageFunction);
-
     HygroThermFEM::MultiDomain multiDomain(true, false);
+
+    auto & material =
+      multiDomain.materials().createSolidMaterial("Cottaer Sandstone - non porous",
+                                                  thermalConductivityDry,
+                                                  density,
+                                                  porosity,
+                                                  specificHeatCapacityDry,
+                                                  diffusionResistanceFactor,
+                                                  thermalConductivityMoistureDependent,
+                                                  thermalConductivityMeasuredAtTemperature,
+                                                  thermalConductivityTemperatureDependent,
+                                                  thermalConductivityMeasuredAtHumidity,
+                                                  liquidTransportationCurve,
+                                                  moistureStorageFunction);
 
     multiDomain.createElement(1, 2, 4, 3, material.name());
     multiDomain.createElement(5, 3, 4, 6, material.name());

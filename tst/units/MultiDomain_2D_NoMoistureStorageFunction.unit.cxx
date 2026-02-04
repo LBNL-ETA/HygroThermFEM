@@ -4,7 +4,6 @@
 #include "HygroThermFEM2D.hxx"
 
 using HygroThermFEM::NodePool;
-using HygroThermFEM::MaterialPool;
 using HygroThermFEM::SimulationProperties;
 
 class MultiDomain_2D_NoMoistureStorageFunction : public testing::Test
@@ -16,7 +15,6 @@ protected:
     void TearDown() override
     {
         NodePool::Instance().clear();
-        MaterialPool::Instance().clear();
         SimulationProperties::Instance().reset();
     }
 };
@@ -52,6 +50,8 @@ TEST_F(MultiDomain_2D_NoMoistureStorageFunction, TestExample_1)
         NodePool::Instance().createNode(nodeIndex, val, 0.05, state);
     }
 
+    HygroThermFEM::MultiDomain multiDomain;
+
     // Material Properties to represent example without moisture storage function and liquid
     // transportation
     const auto thermalConductivityDry{1.8};
@@ -70,7 +70,7 @@ TEST_F(MultiDomain_2D_NoMoistureStorageFunction, TestExample_1)
     const std::vector<FenestrationCommon::point> moistureStorageFunction = {{0, 0}};
 
     auto & material =
-      MaterialPool::Instance().createSolidMaterial("No liquid or vapor transport curves",
+      multiDomain.materials().createSolidMaterial("No liquid or vapor transport curves",
                                                    thermalConductivityDry,
                                                    density,
                                                    porosity,
@@ -82,8 +82,6 @@ TEST_F(MultiDomain_2D_NoMoistureStorageFunction, TestExample_1)
                                                    thermalConductivityMeasuredAtHumidity,
                                                    liquidTransportationCurve,
                                                    moistureStorageFunction);
-
-    HygroThermFEM::MultiDomain multiDomain;
 
     /// Create elements
     for(size_t i = 1; i <= (NodePool::Instance().maxIndex() - 2) / 2; ++i)

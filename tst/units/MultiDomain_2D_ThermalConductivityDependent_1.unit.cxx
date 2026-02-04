@@ -4,7 +4,6 @@
 #include "HygroThermFEM2D.hxx"
 
 using HygroThermFEM::NodePool;
-using HygroThermFEM::MaterialPool;
 using HygroThermFEM::SimulationProperties;
 
 class MultiDomain_2D_ThermalConductivityDependent_1 : public testing::Test
@@ -22,7 +21,6 @@ protected:
     void TearDown() override
     {
         NodePool::Instance().clear();
-        MaterialPool::Instance().clear();
         SimulationProperties::Instance().reset();
     }
 };
@@ -94,8 +92,10 @@ TEST_F(MultiDomain_2D_ThermalConductivityDependent_1, TestExample_1)
                                                                             {0.999, 120},
                                                                             {1, 180}};
 
+    HygroThermFEM::MultiDomain multiDomain;
+
     auto & material =
-      MaterialPool::Instance().createSolidMaterial("Cottaer Sandstone",
+      multiDomain.materials().createSolidMaterial("Cottaer Sandstone",
                                                    thermalConductivityDry,
                                                    density,
                                                    porosity,
@@ -107,8 +107,6 @@ TEST_F(MultiDomain_2D_ThermalConductivityDependent_1, TestExample_1)
                                                    thermalConductivityMeasuredAtHumidity,
                                                    liquidTransportationCurve,
                                                    moistureStorageFunction);
-
-    HygroThermFEM::MultiDomain multiDomain;
 
     /// Create elements
     for(size_t i = 1; i <= (NodePool::Instance().maxIndex() - 2) / 2; ++i)

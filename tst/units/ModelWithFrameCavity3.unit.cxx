@@ -5,7 +5,6 @@
 #include "HygroThermFEM2D.hxx"
 
 using HygroThermFEM::NodePool;
-using HygroThermFEM::MaterialPool;
 using HygroThermFEM::State;
 
 class TestModelWithFrameCavity3 : public testing::Test
@@ -17,7 +16,6 @@ protected:
     void TearDown() override
     {
         NodePool::Instance().clear();
-        MaterialPool::Instance().clear();
     }
 };
 
@@ -45,6 +43,9 @@ TEST_F(TestModelWithFrameCavity3, TestSingleFrameCavity)
         }
     }
 
+    // Create multi-domain before materials
+    HygroThermFEM::MultiDomain multiDomain;
+
     // Material Properties
     constexpr double thermalConductivityDry{1.8};
     constexpr double density{2050.0};
@@ -62,7 +63,7 @@ TEST_F(TestModelWithFrameCavity3, TestSingleFrameCavity)
     const std::vector<FenestrationCommon::point> moistureStorageFunction = {{0, 0}, {1, 180}};
 
     auto & solidMaterial =
-      MaterialPool::Instance().createSolidMaterial("Material 1",
+      multiDomain.materials().createSolidMaterial("Material 1",
                                                    thermalConductivityDry,
                                                    density,
                                                    porosity,
@@ -81,14 +82,13 @@ TEST_F(TestModelWithFrameCavity3, TestSingleFrameCavity)
     gas.addGasItem(0.3, Gases::GasDef::Krypton);
     gas.addGasItem(0.3, Gases::GasDef::Xenon);
 
-    auto & frameCavity = MaterialPool::Instance().createGas(
+    auto & frameCavity = multiDomain.materials().createGas(
       "Frame Cavity 1", HygroThermFEM::CavityStandard::ISO15099, gas);
 
     // Elements that will contain frame cavity
     std::set<size_t> frameCavityElement{6, 7, 10};
 
     // Create elements grid
-    HygroThermFEM::MultiDomain multiDomain;
     size_t elementNumber{0u};
     for(auto ix = 1u; ix < gridX.size(); ++ix)
     {

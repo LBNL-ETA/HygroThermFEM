@@ -3,7 +3,6 @@
 #include "HygroThermFEM2D.hxx"
 
 using HygroThermFEM::NodePool;
-using HygroThermFEM::MaterialPool;
 using HygroThermFEM::State;
 using HygroThermFEM::SimulationProperties;
 
@@ -16,7 +15,6 @@ protected:
     void TearDown() override
     {
         NodePool::Instance().clear();
-        MaterialPool::Instance().clear();
         SimulationProperties::Instance().reset();
     }
 };
@@ -90,8 +88,13 @@ TEST_F(SteadyState_2D_ExcludeVaporDiffusion_1, TestExample_1)
                                                                             {0.999, 120},
                                                                             {1, 180}};
 
+    const auto simulateThermal{true};
+    const auto simulateMoisture{true};
+
+    HygroThermFEM::MultiDomain multiDomain{simulateThermal, simulateMoisture};
+
     auto & material =
-      MaterialPool::Instance().createSolidMaterial("Test material",
+      multiDomain.materials().createSolidMaterial("Test material",
                                                    thermalConductivityDry,
                                                    density,
                                                    porosity,
@@ -103,11 +106,6 @@ TEST_F(SteadyState_2D_ExcludeVaporDiffusion_1, TestExample_1)
                                                    thermalConductivityMeasuredAtHumidity,
                                                    liquidTransportationCurve,
                                                    moistureStorageFunction);
-
-    const auto simulateThermal{true};
-    const auto simulateMoisture{true};
-
-    HygroThermFEM::MultiDomain multiDomain{simulateThermal, simulateMoisture};
 
     multiDomain.createElement(3, 4, 2, 1, material.name());
     multiDomain.createElement(6, 4, 3, 5, material.name());

@@ -4,7 +4,6 @@
 #include "HygroThermFEM2D.hxx"
 
 using HygroThermFEM::NodePool;
-using HygroThermFEM::MaterialPool;
 using HygroThermFEM::SimulationProperties;
 
 class MultiDomain_2D_ExcludeLiquidTransport_1 : public testing::Test
@@ -22,7 +21,6 @@ protected:
     void TearDown() override
     {
         NodePool::Instance().clear();
-        MaterialPool::Instance().clear();
         SimulationProperties::Instance().reset();
     }
 };
@@ -60,6 +58,8 @@ TEST_F(MultiDomain_2D_ExcludeLiquidTransport_1, TestExample_1)
         NodePool::Instance().createNode(nodeIndex, val, 0.05, state);
     }
 
+    HygroThermFEM::MultiDomain multiDomain;
+
     // Material Properties (Cottaer Sandstone)
     constexpr double thermalConductivityDry{1.8};
     constexpr double density{2050.0};
@@ -94,20 +94,18 @@ TEST_F(MultiDomain_2D_ExcludeLiquidTransport_1, TestExample_1)
                                                                             {1, 180}};
 
     auto & material =
-      MaterialPool::Instance().createSolidMaterial("Cottaer Sandstone",
-                                                   thermalConductivityDry,
-                                                   density,
-                                                   porosity,
-                                                   specificHeatCapacityDry,
-                                                   diffusionResistanceFactor,
-                                                   thermalConductivityMoistureDependent,
-                                                   thermalConductivityMeasuredAtTemperature,
-                                                   thermalConductivityTemperatureDependent,
-                                                   thermalConductivityMeasuredAtHumidity,
-                                                   liquidTransportationCurve,
-                                                   moistureStorageFunction);
-
-    HygroThermFEM::MultiDomain multiDomain;
+      multiDomain.materials().createSolidMaterial("Cottaer Sandstone",
+                                                  thermalConductivityDry,
+                                                  density,
+                                                  porosity,
+                                                  specificHeatCapacityDry,
+                                                  diffusionResistanceFactor,
+                                                  thermalConductivityMoistureDependent,
+                                                  thermalConductivityMeasuredAtTemperature,
+                                                  thermalConductivityTemperatureDependent,
+                                                  thermalConductivityMeasuredAtHumidity,
+                                                  liquidTransportationCurve,
+                                                  moistureStorageFunction);
 
     /// Create elements
     for(size_t i = 1; i <= (NodePool::Instance().maxIndex() - 2) / 2; ++i)

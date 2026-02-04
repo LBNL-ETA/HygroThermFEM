@@ -18,7 +18,7 @@ namespace HygroThermFEM
       MaterialDataChecker::checkMaterialProperties(const bool isTransientSimulation)
     {
         MaterialsErrorCheckVector missingProperties;
-        const auto & materialPool = multiDomain.materialPool();
+        const auto & materialPool = multiDomain.materials();
         for(const auto & materialName : materialPool.getSolidMaterials())
         {
             const auto & material{materialPool.material(materialName)};

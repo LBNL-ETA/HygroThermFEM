@@ -4,7 +4,6 @@
 #include "HygroThermFEM2D.hxx"
 
 using HygroThermFEM::NodePool;
-using HygroThermFEM::MaterialPool;
 
 class MultiDomain_2D_KimuraHc_MultiTimestepBC : public testing::Test
 {
@@ -15,7 +14,6 @@ protected:
     void TearDown() override
     {
         NodePool::Instance().clear();
-        MaterialPool::Instance().clear();
     }
 };
 
@@ -40,6 +38,8 @@ TEST_F(MultiDomain_2D_KimuraHc_MultiTimestepBC, TestExample_1)
         ++nodeIndex;
         NodePool::Instance().createNode(nodeIndex, val, 0.05, state);
     }
+
+    HygroThermFEM::MultiDomain multiDomain;
 
     // Material Properties (Cottaer Sandstone)
     constexpr double thermalConductivityDry{1.8};
@@ -75,7 +75,7 @@ TEST_F(MultiDomain_2D_KimuraHc_MultiTimestepBC, TestExample_1)
                                                                             {1, 180}};
 
     auto & material =
-      MaterialPool::Instance().createSolidMaterial("Cottaer Sandstone",
+      multiDomain.materials().createSolidMaterial("Cottaer Sandstone",
                                                    thermalConductivityDry,
                                                    density,
                                                    porosity,
@@ -87,8 +87,6 @@ TEST_F(MultiDomain_2D_KimuraHc_MultiTimestepBC, TestExample_1)
                                                    thermalConductivityMeasuredAtHumidity,
                                                    liquidTransportationCurve,
                                                    moistureStorageFunction);
-
-    HygroThermFEM::MultiDomain multiDomain;
 
     /// Create elements
     for(size_t i = 1; i <= (NodePool::Instance().maxIndex() - 2) / 2; ++i)

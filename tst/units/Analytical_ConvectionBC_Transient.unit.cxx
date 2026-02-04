@@ -4,7 +4,6 @@
 #include "HygroThermFEM2D.hxx"
 
 using HygroThermFEM::NodePool;
-using HygroThermFEM::MaterialPool;
 
 /////////////////////////////////////////////////////////////////////////////////////
 /// Transient temperature boundary conditions vs Analytical solution
@@ -21,7 +20,6 @@ protected:
     void TearDown() override
     {
         NodePool::Instance().clear();
-        MaterialPool::Instance().clear();
     }
 };
 
@@ -65,21 +63,21 @@ TEST_F(Analytical_TemperatureBC_Transient, TestExample_1)
     const std::vector<FenestrationCommon::point> moistureStorageFunction = {{0, 0},
                                                                             {1, 180}};
 
-    auto & material =
-            MaterialPool::Instance().createSolidMaterial("Test Material",
-                                                         thermalConductivityDry,
-                                                         density,
-                                                         porosity,
-                                                         specificHeatCapacityDry,
-                                                         diffusionResistanceFactor,
-                                                         thermalConductivityMoistureDependent,
-                                                         thermalConductivityMeasuredAtTemperature,
-                                                         thermalConductivityTemperatureDependent,
-                                                         thermalConductivityMeasuredAtHumidity,
-                                                         liquidTransportationCurve,
-                                                         moistureStorageFunction);
-
     HygroThermFEM::MultiDomain multiDomain(true, false);
+
+    auto & material =
+            multiDomain.materials().createSolidMaterial("Test Material",
+                                                        thermalConductivityDry,
+                                                        density,
+                                                        porosity,
+                                                        specificHeatCapacityDry,
+                                                        diffusionResistanceFactor,
+                                                        thermalConductivityMoistureDependent,
+                                                        thermalConductivityMeasuredAtTemperature,
+                                                        thermalConductivityTemperatureDependent,
+                                                        thermalConductivityMeasuredAtHumidity,
+                                                        liquidTransportationCurve,
+                                                        moistureStorageFunction);
 
     /// Create elements
     for(size_t i = 1; i <= (NodePool::Instance().maxIndex() - 2) / 2; ++i)

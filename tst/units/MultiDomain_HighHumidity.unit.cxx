@@ -4,7 +4,6 @@
 #include "HygroThermFEM2D.hxx"
 
 using HygroThermFEM::NodePool;
-using HygroThermFEM::MaterialPool;
 
 class ObserveSimulationProgrees : public Timesteps::TimestepObserver
 {
@@ -37,7 +36,6 @@ protected:
     void TearDown() override
     {
         NodePool::Instance().clear();
-        MaterialPool::Instance().clear();
     }
 };
 
@@ -61,6 +59,8 @@ TEST_F(MultiDomain_HighHumidity, TestExample_1)
         ++nodeIndex;
         NodePool::Instance().createNode(nodeIndex, val, 0.00, state);
     }
+
+    HygroThermFEM::MultiDomain multiDomain;
 
     // Material Properties (Cottaer Sandstone)
     constexpr double thermalConductivityDry{1.8};
@@ -95,8 +95,8 @@ TEST_F(MultiDomain_HighHumidity, TestExample_1)
                                                                             {0.999, 120},
                                                                             {1, 180}};
 
-    auto & material =
-      MaterialPool::Instance().createSolidMaterial("Cottaer Sandstone",
+    const auto & material =
+      multiDomain.materials().createSolidMaterial("Cottaer Sandstone",
                                                    thermalConductivityDry,
                                                    density,
                                                    porosity,
@@ -108,8 +108,6 @@ TEST_F(MultiDomain_HighHumidity, TestExample_1)
                                                    thermalConductivityMeasuredAtHumidity,
                                                    liquidTransportationCurve,
                                                    moistureStorageFunction);
-
-    HygroThermFEM::MultiDomain multiDomain;
 
     ObserveSimulationProgrees progressThermal;
     multiDomain.subscribeThermal(&progressThermal);

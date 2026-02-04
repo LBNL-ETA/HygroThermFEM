@@ -9,7 +9,6 @@ namespace HygroThermFEM
     class MaterialPool
     {
     public:
-        static MaterialPool & Instance();
 
         const IMaterial & createSolidMaterial(
           const std::string & Name,

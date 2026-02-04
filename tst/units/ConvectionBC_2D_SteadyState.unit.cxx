@@ -3,7 +3,6 @@
 #include "HygroThermFEM2D.hxx"
 
 using HygroThermFEM::NodePool;
-using HygroThermFEM::MaterialPool;
 
 class ConvectionBC_2D_SteadyState : public testing::Test
 {
@@ -14,7 +13,6 @@ protected:
     void TearDown() override
     {
         NodePool::Instance().clear();
-        MaterialPool::Instance().clear();
     }
 };
 
@@ -64,8 +62,10 @@ TEST_F(ConvectionBC_2D_SteadyState, TestExample_1)
                                                                             {0.999, 120},
                                                                             {1, 180}};
 
+    HygroThermFEM::MultiDomain multiDomain;
+
     auto & material =
-      MaterialPool::Instance().createSolidMaterial("Test Material",
+      multiDomain.materials().createSolidMaterial("Test Material",
                                                    thermalConductivityDry,
                                                    density,
                                                    porosity,
@@ -77,8 +77,6 @@ TEST_F(ConvectionBC_2D_SteadyState, TestExample_1)
                                                    thermalConductivityMeasuredAtHumidity,
                                                    liquidTransportationCurve,
                                                    moistureStorageFunction);
-
-    HygroThermFEM::MultiDomain multiDomain;
 
     multiDomain.createElement(3, 4, 2, 1, material.name());
     multiDomain.createElement(6, 4, 3, 5, material.name());

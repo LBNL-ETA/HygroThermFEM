@@ -339,13 +339,13 @@ namespace HygroThermFEM
         //! @brief Deletes Geometry and boundary conditions
         void clearModel();
 
-        //! @brief Access to material pool owned by this MultiDomain
+        //! @brief Access to materials owned by this MultiDomain
         //! @return Reference to the MaterialPool instance
-        MaterialPool & materialPool();
+        MaterialPool & materials();
 
-        //! @brief Const access to material pool owned by this MultiDomain
+        //! @brief Const access to materials owned by this MultiDomain
         //! @return Const reference to the MaterialPool instance
-        const MaterialPool & materialPool() const;
+        const MaterialPool & materials() const;
 
         //! @brief Access to thermal domain for single-domain operations
         //! @return Reference to the ThermalDomain
@@ -364,8 +364,8 @@ namespace HygroThermFEM
 
         static double normError(const std::vector<double> & vec1, const std::vector<double> & vec2);
 
-        // Reference to the global MaterialPool singleton - domains depend on it during initialization
-        MaterialPool & m_MaterialPool;
+        // MaterialPool owned by MultiDomain - must be declared before domains (initialization order)
+        MaterialPool m_Materials;
         ThermalDomain m_ThermalDomain;
         MoistureDomain m_MoistureDomain;
         bool m_SimulateThermal;

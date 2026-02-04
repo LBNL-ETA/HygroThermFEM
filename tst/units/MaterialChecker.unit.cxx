@@ -4,7 +4,6 @@
 #include "HygroThermFEM2D.hxx"
 
 using HygroThermFEM::NodePool;
-using HygroThermFEM::MaterialPool;
 using HygroThermFEM::State;
 
 class TestMaterialChecker : public testing::Test
@@ -16,7 +15,6 @@ protected:
     void TearDown() override
     {
         NodePool::Instance().clear();
-        MaterialPool::Instance().clear();
         HygroThermFEM::SimulationProperties::Instance().resetCalculationParameters();
     }
 };
@@ -26,12 +24,12 @@ TEST_F(TestMaterialChecker, TestExample_1)
     SCOPED_TRACE(
       "Test for material missing properties in case of thermal and moisture simulations are on.");
 
-    // Note that material is incomplete
-    MaterialPool::Instance().createSolidMaterial("Test material");
-
     const bool SimulateThermal{true};
     const bool SimulateMoisture{true};
     HygroThermFEM::MultiDomain multiDomain{SimulateThermal, SimulateMoisture};
+
+    // Note that material is incomplete
+    multiDomain.materials().createSolidMaterial("Test material");
 
     // Check for transient simulation
     const auto matCheckTransient = multiDomain.checkForMaterialsValidity(HygroThermFEM::SimulationType::Transient);
@@ -66,20 +64,18 @@ TEST_F(TestMaterialChecker, TestExample_1)
     EXPECT_EQ(matCheckSteadyState[0].LiquidTransportationSuction, true);
     EXPECT_EQ(matCheckSteadyState[0].LiquidTransportationRedistribution, false);
     EXPECT_EQ(matCheckSteadyState[0].ThermalConductivityMoistureAndTemperatureDependent, false);
-
-    MaterialPool::Instance().clear();
 }
 
 TEST_F(TestMaterialChecker, TestExample_2)
 {
     SCOPED_TRACE("Test for material missing properties in case of only thermal simulation.");
 
-    // Note that material is incomplete
-    MaterialPool::Instance().createSolidMaterial("Test material");
-
     const bool SimulateThermal{true};
     const bool SimulateMoisture{false};
     HygroThermFEM::MultiDomain multiDomain{SimulateThermal, SimulateMoisture};
+
+    // Note that material is incomplete
+    multiDomain.materials().createSolidMaterial("Test material");
 
     // Check for transient simulation
     const auto matCheckTransient = multiDomain.checkForMaterialsValidity(HygroThermFEM::SimulationType::Transient);
@@ -114,20 +110,18 @@ TEST_F(TestMaterialChecker, TestExample_2)
     EXPECT_EQ(matCheckSteadyState[0].LiquidTransportationSuction, true);
     EXPECT_EQ(matCheckSteadyState[0].LiquidTransportationRedistribution, false);
     EXPECT_EQ(matCheckSteadyState[0].ThermalConductivityMoistureAndTemperatureDependent, false);
-
-    MaterialPool::Instance().clear();
 }
 
 TEST_F(TestMaterialChecker, TestExample_3)
 {
     SCOPED_TRACE("Test for material missing properties in case of only moisture simulation.");
 
-    // Note that material is incomplete
-    MaterialPool::Instance().createSolidMaterial("Test material");
-
     const bool SimulateThermal{false};
     const bool SimulateMoisture{true};
     HygroThermFEM::MultiDomain multiDomain{SimulateThermal, SimulateMoisture};
+
+    // Note that material is incomplete
+    multiDomain.materials().createSolidMaterial("Test material");
 
     // Check for transient simulation
     const auto matCheckTransient = multiDomain.checkForMaterialsValidity(HygroThermFEM::SimulationType::Transient);
@@ -162,8 +156,6 @@ TEST_F(TestMaterialChecker, TestExample_3)
     EXPECT_EQ(matCheckSteadyState[0].LiquidTransportationSuction, true);
     EXPECT_EQ(matCheckSteadyState[0].LiquidTransportationRedistribution, false);
     EXPECT_EQ(matCheckSteadyState[0].ThermalConductivityMoistureAndTemperatureDependent, false);
-
-    MaterialPool::Instance().clear();
 }
 
 TEST_F(TestMaterialChecker, TestExample_4)
@@ -171,12 +163,12 @@ TEST_F(TestMaterialChecker, TestExample_4)
     SCOPED_TRACE("Test for material missing properties with variable simulation parameters "
                  "(exclude water liquid transportation).");
 
-    // Note that material is incomplete
-    MaterialPool::Instance().createSolidMaterial("Test material");
-
     const bool SimulateThermal{true};
     const bool SimulateMoisture{true};
     HygroThermFEM::MultiDomain multiDomain{SimulateThermal, SimulateMoisture};
+
+    // Note that material is incomplete
+    multiDomain.materials().createSolidMaterial("Test material");
 
     // Simulation properties will have turned off liquid transportation and capillary conduction in
     // order to test need for liquid transportation curve.
@@ -226,8 +218,6 @@ TEST_F(TestMaterialChecker, TestExample_4)
     EXPECT_EQ(matCheckSteadyState[0].LiquidTransportationSuction, false);
     EXPECT_EQ(matCheckSteadyState[0].LiquidTransportationRedistribution, false);
     EXPECT_EQ(matCheckSteadyState[0].ThermalConductivityMoistureAndTemperatureDependent, false);
-
-    MaterialPool::Instance().clear();
 }
 
 TEST_F(TestMaterialChecker, TestExample_5)
@@ -235,12 +225,12 @@ TEST_F(TestMaterialChecker, TestExample_5)
     SCOPED_TRACE("Test for material missing properties with variable simulation parameters "
                  "(water vapor diffusion resistance factor not needed).");
 
-    // Note that material is incomplete
-    MaterialPool::Instance().createSolidMaterial("Test material");
-
     const bool SimulateThermal{true};
     const bool SimulateMoisture{false};
     HygroThermFEM::MultiDomain multiDomain{SimulateThermal, SimulateMoisture};
+
+    // Note that material is incomplete
+    multiDomain.materials().createSolidMaterial("Test material");
 
     // Simulation properties will have turned off liquid transportation and capillary conduction in
     // order to test need for liquid transportation curve.
@@ -290,6 +280,4 @@ TEST_F(TestMaterialChecker, TestExample_5)
     EXPECT_EQ(matCheckSteadyState[0].LiquidTransportationSuction, true);
     EXPECT_EQ(matCheckSteadyState[0].LiquidTransportationRedistribution, false);
     EXPECT_EQ(matCheckSteadyState[0].ThermalConductivityMoistureAndTemperatureDependent, false);
-
-    MaterialPool::Instance().clear();
 }

@@ -5,7 +5,6 @@
 #include "HygroThermFEM2D.hxx"
 
 using HygroThermFEM::NodePool;
-using HygroThermFEM::MaterialPool;
 
 class MultiDomain_2D_THERMM200mmSlab : public testing::Test
 {
@@ -16,7 +15,6 @@ protected:
     void TearDown() override
     {
         NodePool::Instance().clear();
-        MaterialPool::Instance().clear();
     }
 };
 
@@ -50,6 +48,8 @@ TEST_F(MultiDomain_2D_THERMM200mmSlab, TestExample_1)
     NodePool::Instance().createNode(14, -0.1, -0.009);
     NodePool::Instance().createNode(15, -0.1, 0.049);
 
+    HygroThermFEM::MultiDomain multiDomain;
+
     // Material Properties
     constexpr double thermalConductivityDry{0.1};
     constexpr double density{400.0};
@@ -76,20 +76,18 @@ TEST_F(MultiDomain_2D_THERMM200mmSlab, TestExample_1)
                                                                             {1, 380}};
 
     auto & material =
-      MaterialPool::Instance().createSolidMaterial("Aerated Concrete (density: 400 kg/m)",
-                                                   thermalConductivityDry,
-                                                   density,
-                                                   porosity,
-                                                   specificHeatCapacityDry,
-                                                   diffusionResistanceFactor,
-                                                   thermalConductivityMoistureDependent,
-                                                   thermalConductivityMeasuredAtTemperature,
-                                                   thermalConductivityTemperatureDependent,
-                                                   thermalConductivityMeasuredAtHumidity,
-                                                   liquidTransportationCurve,
-                                                   moistureStorageFunction);
-
-    HygroThermFEM::MultiDomain multiDomain;
+      multiDomain.materials().createSolidMaterial("Aerated Concrete (density: 400 kg/m)",
+                                                  thermalConductivityDry,
+                                                  density,
+                                                  porosity,
+                                                  specificHeatCapacityDry,
+                                                  diffusionResistanceFactor,
+                                                  thermalConductivityMoistureDependent,
+                                                  thermalConductivityMeasuredAtTemperature,
+                                                  thermalConductivityTemperatureDependent,
+                                                  thermalConductivityMeasuredAtHumidity,
+                                                  liquidTransportationCurve,
+                                                  moistureStorageFunction);
 
     /// Create elements
     multiDomain.createElement(3, 1, 2, 5, material.name());

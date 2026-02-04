@@ -5,7 +5,6 @@
 #include "HygroThermFEM2D.hxx"
 
 using HygroThermFEM::NodePool;
-using HygroThermFEM::MaterialPool;
 using HygroThermFEM::State;
 using HygroThermFEM::ElementsLinear2D;
 using HygroThermFEM::ElementThermalLinear2D;
@@ -20,7 +19,6 @@ protected:
     void TearDown() override
     {
         NodePool::Instance().clear();
-        MaterialPool::Instance().clear();
     }
 
 public:
@@ -50,6 +48,9 @@ TEST_F(TestModelWithFrameCavity2, TestDoubleFrameCavity)
         }
     }
 
+    // Create elements grid
+    HygroThermFEM::MultiDomain multiDomain(true, false);
+
     // Material Properties
     constexpr double thermalConductivityDry{1.8};
     constexpr double density{2050.0};
@@ -67,31 +68,28 @@ TEST_F(TestModelWithFrameCavity2, TestDoubleFrameCavity)
     const std::vector<FenestrationCommon::point> moistureStorageFunction = {{0, 0}, {1, 180}};
 
     auto & solidMaterial =
-      MaterialPool::Instance().createSolidMaterial("Material 1",
-                                                   thermalConductivityDry,
-                                                   density,
-                                                   porosity,
-                                                   specificHeatCapacityDry,
-                                                   diffusionResistanceFactor,
-                                                   thermalConductivityMoistureDependent,
-                                                   thermalConductivityMeasuredAtTemperature,
-                                                   thermalConductivityTemperatureDependent,
-                                                   thermalConductivityMeasuredAtHumidity,
-                                                   liquidTransportationCurve,
-                                                   moistureStorageFunction);
+      multiDomain.materials().createSolidMaterial("Material 1",
+                                                  thermalConductivityDry,
+                                                  density,
+                                                  porosity,
+                                                  specificHeatCapacityDry,
+                                                  diffusionResistanceFactor,
+                                                  thermalConductivityMoistureDependent,
+                                                  thermalConductivityMeasuredAtTemperature,
+                                                  thermalConductivityTemperatureDependent,
+                                                  thermalConductivityMeasuredAtHumidity,
+                                                  liquidTransportationCurve,
+                                                  moistureStorageFunction);
 
     auto & frameCavity1 =
-      MaterialPool::Instance().createGas("Frame Cavity 1", HygroThermFEM::CavityStandard::ISO15099);
+      multiDomain.materials().createGas("Frame Cavity 1", HygroThermFEM::CavityStandard::ISO15099);
 
     auto & frameCavity2 =
-      MaterialPool::Instance().createGas("Frame Cavity 2", HygroThermFEM::CavityStandard::CEN);
+      multiDomain.materials().createGas("Frame Cavity 2", HygroThermFEM::CavityStandard::CEN);
 
     // Elements that will contain frame cavity
     std::set<size_t> frameCavity1Element{10, 11, 17, 18, 23, 24, 25, 30, 31, 32};
     std::set<size_t> frameCavity2Element{20, 21, 27, 28, 34, 35, 41, 42, 47, 48, 49};
-
-    // Create elements grid
-    HygroThermFEM::MultiDomain multiDomain(true, false);
     size_t elementNumber{0u};
     for(auto ix = 1u; ix < gridX.size(); ++ix)
     {

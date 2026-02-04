@@ -4,7 +4,6 @@
 #include "HygroThermFEM2D.hxx"
 
 using HygroThermFEM::NodePool;
-using HygroThermFEM::MaterialPool;
 
 class MultiDomain_2D_2 : public testing::Test
 {
@@ -15,7 +14,6 @@ protected:
     void TearDown() override
     {
         NodePool::Instance().clear();
-        MaterialPool::Instance().clear();
     }
 };
 
@@ -42,6 +40,8 @@ TEST_F(MultiDomain_2D_2, TestExample_1)
         ++nodeIndex;
         NodePool::Instance().createNode(nodeIndex, val, 0.05, state);
     }
+
+    HygroThermFEM::MultiDomain multiDomain;
 
     // Material Properties (Cottaer Sandstone)
     constexpr double thermalConductivityDry{1.8};
@@ -77,7 +77,7 @@ TEST_F(MultiDomain_2D_2, TestExample_1)
                                                                             {1, 180}};
 
     auto & material =
-      MaterialPool::Instance().createSolidMaterial("Cottaer Sandstone",
+      multiDomain.materials().createSolidMaterial("Cottaer Sandstone",
                                                    thermalConductivityDry,
                                                    density,
                                                    porosity,
@@ -89,8 +89,6 @@ TEST_F(MultiDomain_2D_2, TestExample_1)
                                                    thermalConductivityMeasuredAtHumidity,
                                                    liquidTransportationCurve,
                                                    moistureStorageFunction);
-
-    HygroThermFEM::MultiDomain multiDomain;
 
     /// Create elements
     for(size_t i = 1; i <= (NodePool::Instance().maxIndex() - 2) / 2; ++i)
@@ -178,7 +176,8 @@ TEST_F(MultiDomain_2D_2, TestExample_1_Repeat)
     SCOPED_TRACE("Begin Test: Repeatability test.");
 
     NodePool::Instance().clear();
-    MaterialPool::Instance().clear();
+
+    HygroThermFEM::MultiDomain multiDomain;
 
     std::vector<double> gridXCoordinates{0, 0.05, 0.1};
 
@@ -232,7 +231,7 @@ TEST_F(MultiDomain_2D_2, TestExample_1_Repeat)
                                                                             {1, 180}};
 
     auto & material =
-            MaterialPool::Instance().createSolidMaterial("Cottaer Sandstone",
+            multiDomain.materials().createSolidMaterial("Cottaer Sandstone",
                                                          thermalConductivityDry,
                                                          density,
                                                          porosity,
@@ -244,8 +243,6 @@ TEST_F(MultiDomain_2D_2, TestExample_1_Repeat)
                                                          thermalConductivityMeasuredAtHumidity,
                                                          liquidTransportationCurve,
                                                          moistureStorageFunction);
-
-    HygroThermFEM::MultiDomain multiDomain;
 
     /// Create elements
     for(size_t i = 1; i <= (NodePool::Instance().maxIndex() - 2) / 2; ++i)
