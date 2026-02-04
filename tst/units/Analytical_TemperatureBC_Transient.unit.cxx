@@ -42,9 +42,9 @@ TEST_F(Analytical_ConvectionBC_Transient, TestExample_1)
     for(const auto val : gridXCoordinates)
     {
         ++nodeIndex;
-        multiDomain.nodePool().createNode(nodeIndex, val, 0.00, state);
+        multiDomain.nodes().createNode(nodeIndex, val, 0.00, state);
         ++nodeIndex;
-        multiDomain.nodePool().createNode(nodeIndex, val, 0.05, state);
+        multiDomain.nodes().createNode(nodeIndex, val, 0.05, state);
     }
 
     // Material Properties
@@ -79,7 +79,7 @@ TEST_F(Analytical_ConvectionBC_Transient, TestExample_1)
                                                 moistureStorageFunction);
 
     /// Create elements
-    for(size_t i = 1u; i <= (multiDomain.nodePool().maxIndex() - 2) / 2; ++i)
+    for(size_t i = 1u; i <= (multiDomain.nodes().maxIndex() - 2) / 2; ++i)
     {
         const auto index1 = 2u * i - 1u;
         const auto index2 = 2u * i;
@@ -97,7 +97,7 @@ TEST_F(Analytical_ConvectionBC_Transient, TestExample_1)
     constexpr auto dTime = 36;
     constexpr auto nSteps = 1000;
 
-    auto temperatures = multiDomain.nodePool().properties(HygroThermFEM::Variable::temperature);
+    auto temperatures = multiDomain.nodes().properties(HygroThermFEM::Variable::temperature);
     std::vector<std::vector<double>> solution;
 
     for(unsigned i = 0; i < nSteps; ++i)

@@ -1,7 +1,7 @@
 #include "BoundaryCondition2DThermal.hxx"
 
 #include "Common.hxx"
-#include "NodePool.hxx"
+#include "Nodes.hxx"
 #include "VectorOperators.hxx"
 
 namespace HygroThermFEM
@@ -9,7 +9,7 @@ namespace HygroThermFEM
     ////////////////////////////////////////////////////////
     /// ConstantConvectionBC
     ////////////////////////////////////////////////////////
-    ConstantConvectionBC::ConstantConvectionBC(NodePool & nodePool,
+    ConstantConvectionBC::ConstantConvectionBC(Nodes & nodePool,
                                                size_t index1,
                                                size_t index2,
                                                const FixedBCHCCoefficients & fixedBCHCCoefficients,
@@ -27,7 +27,7 @@ namespace HygroThermFEM
     ////////////////////////////////////////////////////////
     /// ThermalTARPConvectionBC
     ////////////////////////////////////////////////////////
-    ThermalTARPConvectionBC::ThermalTARPConvectionBC(NodePool & nodePool,
+    ThermalTARPConvectionBC::ThermalTARPConvectionBC(Nodes & nodePool,
                                                      size_t index1,
                                                      size_t index2,
                                                      const TARPCoefficients & varHCCoeff,
@@ -46,7 +46,7 @@ namespace HygroThermFEM
     ////////////////////////////////////////////////////////
     /// ASHRAEInsideConvectionBC
     ////////////////////////////////////////////////////////
-    ASHRAEInsideConvectionBC::ASHRAEInsideConvectionBC(NodePool & nodePool,
+    ASHRAEInsideConvectionBC::ASHRAEInsideConvectionBC(Nodes & nodePool,
                                                        size_t index1,
                                                        size_t index2,
                                                        const ASHRAEInsideCoefficients & coeff,
@@ -67,7 +67,7 @@ namespace HygroThermFEM
     ////////////////////////////////////////////////////////
     /// ASHRAEOutsideConvectionBC
     ////////////////////////////////////////////////////////
-    ASHRAEOutsideConvectionBC::ASHRAEOutsideConvectionBC(NodePool & nodePool,
+    ASHRAEOutsideConvectionBC::ASHRAEOutsideConvectionBC(Nodes & nodePool,
                                                          size_t index1,
                                                          size_t index2,
                                                          const ASHRAEOutsideCoefficients & coeff,
@@ -85,7 +85,7 @@ namespace HygroThermFEM
     ////////////////////////////////////////////////////////
     /// YazdanianKlemsConvectionBC
     ////////////////////////////////////////////////////////
-    YazdanianKlemsConvectionBC::YazdanianKlemsConvectionBC(NodePool & nodePool,
+    YazdanianKlemsConvectionBC::YazdanianKlemsConvectionBC(Nodes & nodePool,
                                                            size_t index1,
                                                            size_t index2,
                                                            const YazdanianKlemsCoefficients & coeff,
@@ -103,7 +103,7 @@ namespace HygroThermFEM
     ////////////////////////////////////////////////////////
     /// KimuraConvectionBC
     ////////////////////////////////////////////////////////
-    KimuraConvectionBC::KimuraConvectionBC(NodePool & nodePool,
+    KimuraConvectionBC::KimuraConvectionBC(Nodes & nodePool,
                                            size_t index1,
                                            size_t index2,
                                            const KimuraCoefficients & coeff,
@@ -121,7 +121,7 @@ namespace HygroThermFEM
     /// TemperatureBC
     ////////////////////////////////////////////////////////
 
-    TemperatureBC::TemperatureBC(NodePool & nodePool,
+    TemperatureBC::TemperatureBC(Nodes & nodePool,
                                  const size_t index1,
                                  const size_t index2,
                                  const double t_NodeTemperatures) :
@@ -133,7 +133,7 @@ namespace HygroThermFEM
         node2.setStateProperty(BaseVariable::temperature, t_NodeTemperatures);
     }
 
-    TemperatureBC::TemperatureBC(NodePool & nodePool,
+    TemperatureBC::TemperatureBC(Nodes & nodePool,
                                  const size_t index1,
                                  const size_t index2,
                                  const double t_Temp1,
@@ -150,7 +150,7 @@ namespace HygroThermFEM
     /// Flux BC
     ////////////////////////////////////////////////////////
 
-    FluxBC::FluxBC(NodePool & nodePool,
+    FluxBC::FluxBC(Nodes & nodePool,
                    const size_t index1,
                    const size_t index2,
                    const double t_Flux) :
@@ -177,7 +177,7 @@ namespace HygroThermFEM
     /// IRadiationBC - Base class for radiation BCs
     ////////////////////////////////////////////////////////
 
-    IRadiationBC::IRadiationBC(NodePool & nodePool,
+    IRadiationBC::IRadiationBC(Nodes & nodePool,
                                const size_t index1,
                                const size_t index2,
                                const double radiationTemperature,
@@ -200,7 +200,7 @@ namespace HygroThermFEM
     /// BlackBodyRadiationBC
     ////////////////////////////////////////////////////////
 
-    BlackBodyRadiationBC::BlackBodyRadiationBC(NodePool & nodePool,
+    BlackBodyRadiationBC::BlackBodyRadiationBC(Nodes & nodePool,
                                                const size_t index1,
                                                const size_t index2,
                                                const double emissivity,
@@ -227,7 +227,7 @@ namespace HygroThermFEM
     /// LinearizedRadiationBC
     ////////////////////////////////////////////////////////
 
-    LinearizedRadiationBC::LinearizedRadiationBC(NodePool & nodePool,
+    LinearizedRadiationBC::LinearizedRadiationBC(Nodes & nodePool,
                                                  const size_t index1,
                                                  const size_t index2,
                                                  const LinearizedRadiationBCCoefficients & linearRadBC) :

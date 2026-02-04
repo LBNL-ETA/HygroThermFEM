@@ -11,7 +11,7 @@
 #include "../src/IntegrationPoints.hxx"
 #include "../src/IBCLine2D.hxx"
 #include "../src/LineLocal1D.hxx"
-#include "../src/NodePool.hxx"
+#include "../src/Nodes.hxx"
 #include "../src/BoundaryCondition2D.hxx"
 #include "../src/BoundaryCondition2DThermal.hxx"
 #include "../src/BoundaryCondition2DMoisture.hxx"

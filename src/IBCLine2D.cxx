@@ -4,11 +4,11 @@
 #include "IntegrationPoints.hxx"
 #include "LineLocal1D.hxx"
 #include "Elements2D.hxx"
-#include "NodePool.hxx"
+#include "Nodes.hxx"
 
 namespace HygroThermFEM
 {
-    IBCLinear2D::IBCLinear2D(NodePool & nodePool,
+    IBCLinear2D::IBCLinear2D(Nodes & nodePool,
                              const size_t index1,
                              const size_t index2,
                              const bool t_Linear) :

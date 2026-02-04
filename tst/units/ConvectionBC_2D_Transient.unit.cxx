@@ -19,12 +19,12 @@ TEST_F(ConvectionBC_2D_Transient, TestExample_1)
 
     HygroThermFEM::MultiDomain multiDomain(true, false);
 
-    multiDomain.nodePool().createNode(1, 0.2, 0.05);
-    multiDomain.nodePool().createNode(2, 0.2, 0.00);
-    multiDomain.nodePool().createNode(3, 0.1, 0.05);
-    multiDomain.nodePool().createNode(4, 0.1, 0.00);
-    multiDomain.nodePool().createNode(5, 0.0, 0.05);
-    multiDomain.nodePool().createNode(6, 0.0, 0.00);
+    multiDomain.nodes().createNode(1, 0.2, 0.05);
+    multiDomain.nodes().createNode(2, 0.2, 0.00);
+    multiDomain.nodes().createNode(3, 0.1, 0.05);
+    multiDomain.nodes().createNode(4, 0.1, 0.00);
+    multiDomain.nodes().createNode(5, 0.0, 0.05);
+    multiDomain.nodes().createNode(6, 0.0, 0.00);
 
     // Material Properties
     constexpr double thermalConductivityDry{1.0};
@@ -93,7 +93,7 @@ TEST_F(ConvectionBC_2D_Transient, TestExample_1)
     constexpr auto dTime = 3600;
     constexpr auto nSteps = 4;
 
-    auto temperatures = multiDomain.nodePool().properties(HygroThermFEM::Variable::temperature);
+    auto temperatures = multiDomain.nodes().properties(HygroThermFEM::Variable::temperature);
     std::vector<std::vector<double>> temperaturesSolution;
     std::vector<std::vector<HygroThermFEM::NodeFlux>> fluxSolution;
 

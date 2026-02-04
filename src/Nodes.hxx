@@ -9,11 +9,11 @@ namespace HygroThermFEM
     //!
     //! Pool of all nodes will be used by different domains that present thermal, mass or pressure
     //! models. NodePool is owned by MultiDomain and must be cleared before new model is used.
-    class NodePool
+    class Nodes
     {
     public:
-        NodePool() = default;
-        ~NodePool() = default;
+        Nodes() = default;
+        ~Nodes() = default;
 
         //! \brief Creates node with node index and x, y coordinate and sets starting state
         //! conditions

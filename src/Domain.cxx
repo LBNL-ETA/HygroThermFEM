@@ -8,7 +8,7 @@
 #include "BoundaryCondition2D.hxx"
 #include "VectorOperators.hxx"
 #include "SimulationProperties.hxx"
-#include "NodePool.hxx"
+#include "Nodes.hxx"
 #include "TimestepData.hxx"
 #include "Materials.hxx"
 
@@ -177,7 +177,7 @@ namespace HygroThermFEM
         return m_BCs.isLinear() && m_Elements.isLinear();
     }
 
-    IDomain::IDomain(NodePool & nodePool,
+    IDomain::IDomain(Nodes & nodePool,
                      Materials & materialPool,
                      const BaseVariable property,
                      const bool automaticUpdateOfPreviousTimestep) :

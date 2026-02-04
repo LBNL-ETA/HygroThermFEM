@@ -2,7 +2,7 @@
 
 #include "GasCavities.hxx"
 #include "Materials.hxx"
-#include "NodePool.hxx"
+#include "Nodes.hxx"
 #include "Common.hxx"
 
 namespace HygroThermFEM
@@ -12,7 +12,7 @@ namespace HygroThermFEM
     ///////////////////////////////////////////////////////////////////////////////
 
     EquivalentGasCavity::EquivalentGasCavity(
-      NodePool & nodePool,
+      Nodes & nodePool,
       const std::vector<size_t> & nodes,
       IGas & gas,
       const FenestrationCommon::GravityVector & gravityVector) :
@@ -75,7 +75,7 @@ namespace HygroThermFEM
     }
 
     std::vector<EquivalentGasCavity::Segment>
-      EquivalentGasCavity::buildSegments(NodePool & nodePool, const std::vector<size_t> & nodes)
+      EquivalentGasCavity::buildSegments(Nodes & nodePool, const std::vector<size_t> & nodes)
     {
         std::vector<Segment> segments;
         for(size_t i = 0u; i < nodes.size(); ++i)
@@ -337,7 +337,7 @@ namespace HygroThermFEM
     ///  EquivalentGasCavities
     ///////////////////////////////////////////////////////////////////////////////
 
-    EquivalentGasCavities::EquivalentGasCavities(NodePool & nodePool,
+    EquivalentGasCavities::EquivalentGasCavities(Nodes & nodePool,
                                                  Materials & materialPool,
                                                  const ElementsLinear2D & elements) :
         m_NodePool(nodePool),

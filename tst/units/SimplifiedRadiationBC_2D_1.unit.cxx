@@ -22,12 +22,12 @@ TEST_F(SimplifiedRadiationBC_2D_1, TestExample_1)
     // same temperature in every node (humidity and pressure irrelevant for this example)
     const auto state = HygroThermFEM::State(0, 0, 101325, 0);
 
-    multiDomain.nodePool().createNode(1, 0.15, 0.05, state);
-    multiDomain.nodePool().createNode(2, 0.15, 0, state);
-    multiDomain.nodePool().createNode(3, 0.05, 0.05, state);
-    multiDomain.nodePool().createNode(4, 0.05, 0, state);
-    multiDomain.nodePool().createNode(5, 0, 0.05, state);
-    multiDomain.nodePool().createNode(6, 0, 0, state);
+    multiDomain.nodes().createNode(1, 0.15, 0.05, state);
+    multiDomain.nodes().createNode(2, 0.15, 0, state);
+    multiDomain.nodes().createNode(3, 0.05, 0.05, state);
+    multiDomain.nodes().createNode(4, 0.05, 0, state);
+    multiDomain.nodes().createNode(5, 0, 0.05, state);
+    multiDomain.nodes().createNode(6, 0, 0, state);
 
     // Material Properties (Cottaer Sandstone - non porous)
     constexpr double thermalConductivityDry{1.8};
@@ -91,7 +91,7 @@ TEST_F(SimplifiedRadiationBC_2D_1, TestExample_1)
     constexpr auto dTime = 3600;
     constexpr auto nSteps = 4;
 
-    auto temperatures = multiDomain.nodePool().properties(HygroThermFEM::Variable::temperature);
+    auto temperatures = multiDomain.nodes().properties(HygroThermFEM::Variable::temperature);
     std::vector<std::vector<double>> solution;
 
     for(unsigned i = 0; i < nSteps; ++i)

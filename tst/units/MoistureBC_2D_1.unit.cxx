@@ -33,9 +33,9 @@ TEST_F(MoistureBC_2D_1, TestExample_1)
     for(auto val : gridXCoordinates)
     {
         ++nodeIndex;
-        multiDomain.nodePool().createNode(nodeIndex, val, 0.00, state);
+        multiDomain.nodes().createNode(nodeIndex, val, 0.00, state);
         ++nodeIndex;
-        multiDomain.nodePool().createNode(nodeIndex, val, 0.05, state);
+        multiDomain.nodes().createNode(nodeIndex, val, 0.05, state);
     }
 
     // Material Properties (Cottaer Sandstone)
@@ -86,7 +86,7 @@ TEST_F(MoistureBC_2D_1, TestExample_1)
                                                   moistureStorageFunction);
 
     // Create elements
-    for(size_t i = 1; i <= (multiDomain.nodePool().maxIndex() - 2) / 2; ++i)
+    for(size_t i = 1; i <= (multiDomain.nodes().maxIndex() - 2) / 2; ++i)
     {
         const auto node1 = 2u * i + 1u;
         const auto node2 = 2u * i + 2u;
@@ -108,7 +108,7 @@ TEST_F(MoistureBC_2D_1, TestExample_1)
     constexpr auto dTime = 3600;
     constexpr auto nSteps = 24;
 
-    auto humidities = multiDomain.nodePool().properties(HygroThermFEM::Variable::humidity);
+    auto humidities = multiDomain.nodes().properties(HygroThermFEM::Variable::humidity);
     std::vector<std::vector<double>> waterContentSolution;
     std::vector<std::vector<HygroThermFEM::NodeFlux>> fluxSolution;
     std::vector<double> timesteps;
@@ -118,7 +118,7 @@ TEST_F(MoistureBC_2D_1, TestExample_1)
         auto solution = multiDomain.moisture().transient(humidities, dTime);
         humidities = solution.solution;
         timesteps.push_back(solution.dTime);
-        auto waterContent = multiDomain.nodePool().properties(HygroThermFEM::Variable::water);
+        auto waterContent = multiDomain.nodes().properties(HygroThermFEM::Variable::water);
         waterContentSolution.push_back(waterContent);
         fluxSolution.push_back(multiDomain.moisture().flux());
     }

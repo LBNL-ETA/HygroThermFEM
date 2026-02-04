@@ -39,7 +39,7 @@ TEST_F(TestModelWithFrameCavity1, TestSingleFrameCavity)
         for(auto xVal : gridX)
         {
             ++nodeIndex;
-            multiDomain.nodePool().createNode(nodeIndex, xVal, yVal, state);
+            multiDomain.nodes().createNode(nodeIndex, xVal, yVal, state);
         }
     }
 
@@ -128,7 +128,7 @@ TEST_F(TestModelWithFrameCavity1, TestSingleFrameCavity)
     constexpr auto dTime = 360;
     constexpr auto nSteps = 10;
 
-    auto temperatures = multiDomain.nodePool().properties(HygroThermFEM::Variable::temperature);
+    auto temperatures = multiDomain.nodes().properties(HygroThermFEM::Variable::temperature);
     std::vector<std::vector<double>> solution;
 
     for(unsigned i = 0; i < nSteps; ++i)

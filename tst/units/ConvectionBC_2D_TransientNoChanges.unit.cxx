@@ -30,9 +30,9 @@ TEST_F(ConvectionBC_2D_TransientNoChanges, TestExample_1)
     for(auto val : gridXCoordinates)
     {
         ++nodeIndex;
-        multiDomain.nodePool().createNode(nodeIndex, val, 0.00, state);
+        multiDomain.nodes().createNode(nodeIndex, val, 0.00, state);
         ++nodeIndex;
-        multiDomain.nodePool().createNode(nodeIndex, val, 0.05, state);
+        multiDomain.nodes().createNode(nodeIndex, val, 0.05, state);
     }
 
     // Material Properties (Cottaer Sandstone)
@@ -83,7 +83,7 @@ TEST_F(ConvectionBC_2D_TransientNoChanges, TestExample_1)
                                                   moistureStorageFunction);
 
     /// Create elements
-    for(size_t idx = 1u; idx <= (multiDomain.nodePool().maxIndex() - 2) / 2; ++idx)
+    for(size_t idx = 1u; idx <= (multiDomain.nodes().maxIndex() - 2) / 2; ++idx)
     {
         const auto index1 = 2u * idx + 1u;
         const auto index2 = 2u * idx + 2u;
@@ -103,7 +103,7 @@ TEST_F(ConvectionBC_2D_TransientNoChanges, TestExample_1)
     constexpr auto dTime = 36000;
     constexpr auto nSteps = 4;
 
-    auto temperatures = multiDomain.nodePool().properties(HygroThermFEM::Variable::temperature);
+    auto temperatures = multiDomain.nodes().properties(HygroThermFEM::Variable::temperature);
     std::vector<std::vector<double>> solution;
 
     for(unsigned i = 0; i < nSteps; ++i)

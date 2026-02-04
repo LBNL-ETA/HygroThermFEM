@@ -19,12 +19,12 @@ TEST_F(TestBoundaryConditions2D_test1, TestIntegrationPoints)
     HygroThermFEM::MultiDomain multiDomain(true, false);
 
     // Enter nodes. Arguments are: node number, x-coordinate, y-coordinate
-    multiDomain.nodePool().createNode(1, 15, 5);
-    multiDomain.nodePool().createNode(2, 15, 0);
-    multiDomain.nodePool().createNode(3, 5, 5);
-    multiDomain.nodePool().createNode(4, 5, 0);
-    multiDomain.nodePool().createNode(5, 0, 5);
-    multiDomain.nodePool().createNode(6, 0, 0);
+    multiDomain.nodes().createNode(1, 15, 5);
+    multiDomain.nodes().createNode(2, 15, 0);
+    multiDomain.nodes().createNode(3, 5, 5);
+    multiDomain.nodes().createNode(4, 5, 0);
+    multiDomain.nodes().createNode(5, 0, 5);
+    multiDomain.nodes().createNode(6, 0, 0);
 
     auto const hc1 = 20.0;
     auto const Tair1 = 255.15;
@@ -37,10 +37,10 @@ TEST_F(TestBoundaryConditions2D_test1, TestIntegrationPoints)
     const HygroThermFEM::FixedBCHCCoefficients bcCoeff2{Tair2, hc2};
 
     HygroThermFEM::BoundaryConditions2D BCs;
-    BCs.assignBC(fem::make_unique<HygroThermFEM::ConstantConvectionBC>(multiDomain.nodePool(), 1, 2, bcCoeff1));
-    BCs.assignBC(fem::make_unique<HygroThermFEM::ConstantConvectionBC>(multiDomain.nodePool(), 6, 5, bcCoeff2));
+    BCs.assignBC(fem::make_unique<HygroThermFEM::ConstantConvectionBC>(multiDomain.nodes(), 1, 2, bcCoeff1));
+    BCs.assignBC(fem::make_unique<HygroThermFEM::ConstantConvectionBC>(multiDomain.nodes(), 6, 5, bcCoeff2));
 
-    auto maxNodeIndex = multiDomain.nodePool().maxIndex();
+    auto maxNodeIndex = multiDomain.nodes().maxIndex();
     auto HMat = BCs.HMatrix(maxNodeIndex);
 
     std::vector<std::vector<double>> correctH{{33.33333333, 16.66666667, 0, 0, 0, 0},

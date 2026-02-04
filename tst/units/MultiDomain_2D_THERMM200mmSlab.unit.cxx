@@ -30,21 +30,21 @@ TEST_F(MultiDomain_2D_THERMM200mmSlab, TestExample_1)
     // auto state = HygroThermFEM::State(
     //  initialTemperature, initialMoistureContent, initialPressure, liquidPercent);
 
-    multiDomain.nodePool().createNode(1, 0.1, -0.049);
-    multiDomain.nodePool().createNode(2, 0.1, -0.009);
-    multiDomain.nodePool().createNode(3, 0.06, -0.049);
-    multiDomain.nodePool().createNode(4, 0.1, 0.049);
-    multiDomain.nodePool().createNode(5, 0.06, -0.009);
-    multiDomain.nodePool().createNode(6, 0, -0.049);
-    multiDomain.nodePool().createNode(7, 0.06, 0.049);
-    multiDomain.nodePool().createNode(8, 0, -0.009);
-    multiDomain.nodePool().createNode(9, -0.06, -0.049);
-    multiDomain.nodePool().createNode(10, 0, 0.049);
-    multiDomain.nodePool().createNode(11, -0.06, -0.009);
-    multiDomain.nodePool().createNode(12, -0.1, -0.049);
-    multiDomain.nodePool().createNode(13, -0.06, 0.049);
-    multiDomain.nodePool().createNode(14, -0.1, -0.009);
-    multiDomain.nodePool().createNode(15, -0.1, 0.049);
+    multiDomain.nodes().createNode(1, 0.1, -0.049);
+    multiDomain.nodes().createNode(2, 0.1, -0.009);
+    multiDomain.nodes().createNode(3, 0.06, -0.049);
+    multiDomain.nodes().createNode(4, 0.1, 0.049);
+    multiDomain.nodes().createNode(5, 0.06, -0.009);
+    multiDomain.nodes().createNode(6, 0, -0.049);
+    multiDomain.nodes().createNode(7, 0.06, 0.049);
+    multiDomain.nodes().createNode(8, 0, -0.009);
+    multiDomain.nodes().createNode(9, -0.06, -0.049);
+    multiDomain.nodes().createNode(10, 0, 0.049);
+    multiDomain.nodes().createNode(11, -0.06, -0.009);
+    multiDomain.nodes().createNode(12, -0.1, -0.049);
+    multiDomain.nodes().createNode(13, -0.06, 0.049);
+    multiDomain.nodes().createNode(14, -0.1, -0.009);
+    multiDomain.nodes().createNode(15, -0.1, 0.049);
 
     // Material Properties
     constexpr double thermalConductivityDry{0.1};
@@ -113,8 +113,8 @@ TEST_F(MultiDomain_2D_THERMM200mmSlab, TestExample_1)
     constexpr auto dTime = 3600;
     constexpr auto nSteps = 20;
 
-    auto temperatures = multiDomain.nodePool().properties(HygroThermFEM::Variable::temperature);
-    auto humidities = multiDomain.nodePool().properties(HygroThermFEM::Variable::humidity);
+    auto temperatures = multiDomain.nodes().properties(HygroThermFEM::Variable::temperature);
+    auto humidities = multiDomain.nodes().properties(HygroThermFEM::Variable::humidity);
     std::vector<std::vector<double>> temperatureSolution;
     std::vector<std::vector<double>> humiditySolution;
     size_t timestepIndex{0u};

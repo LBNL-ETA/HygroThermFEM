@@ -27,12 +27,12 @@ TEST_F(Moisture_2D_TwoElements_1, TestExample_1)
     constexpr auto liquidPercent = 1.0;
 
     const State state(initialTemperature, initialHumidity, initialPressure, liquidPercent);
-    multiDomain.nodePool().createNode(1, 0.15, 0.05, state);
-    multiDomain.nodePool().createNode(2, 0.15, 0, state);
-    multiDomain.nodePool().createNode(3, 0.05, 0.05, state);
-    multiDomain.nodePool().createNode(4, 0.05, 0, state);
-    multiDomain.nodePool().createNode(5, 0, 0.05, state);
-    multiDomain.nodePool().createNode(6, 0, 0, state);
+    multiDomain.nodes().createNode(1, 0.15, 0.05, state);
+    multiDomain.nodes().createNode(2, 0.15, 0, state);
+    multiDomain.nodes().createNode(3, 0.05, 0.05, state);
+    multiDomain.nodes().createNode(4, 0.05, 0, state);
+    multiDomain.nodes().createNode(5, 0, 0.05, state);
+    multiDomain.nodes().createNode(6, 0, 0, state);
 
     // Material Properties (Cottaer Sandstone)
     constexpr double thermalConductivityDry{1.8};
@@ -97,7 +97,7 @@ TEST_F(Moisture_2D_TwoElements_1, TestExample_1)
     constexpr auto dTime = 3600;
     constexpr auto nSteps = 24;
 
-    auto humidities = multiDomain.nodePool().properties(HygroThermFEM::Variable::humidity);
+    auto humidities = multiDomain.nodes().properties(HygroThermFEM::Variable::humidity);
     std::vector<double> timesteps;
     std::vector<std::vector<double>> waterContentSolution;
     std::vector<std::vector<HygroThermFEM::NodeFlux>> fluxSolution;
@@ -107,7 +107,7 @@ TEST_F(Moisture_2D_TwoElements_1, TestExample_1)
         auto solution = multiDomain.moisture().transient(humidities, dTime);
         humidities = solution.solution;
         timesteps.push_back(solution.dTime);
-        auto waterContent = multiDomain.nodePool().properties(HygroThermFEM::Variable::water);
+        auto waterContent = multiDomain.nodes().properties(HygroThermFEM::Variable::water);
         waterContentSolution.push_back(waterContent);
         fluxSolution.push_back(multiDomain.moisture().flux());
     }

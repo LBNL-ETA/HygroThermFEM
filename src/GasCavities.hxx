@@ -10,7 +10,7 @@
 
 namespace HygroThermFEM
 {
-    class NodePool;
+    class Nodes;
     ///////////////////////////////////////////////////////////////////////////////
     ///  EquivalentGasCavity
     ///////////////////////////////////////////////////////////////////////////////
@@ -28,7 +28,7 @@ namespace HygroThermFEM
         //! \param nodes Nodes from which frame cavity has been created
         //! \param gas Frame cavity is filled with this gas
         //! \param gravityVector Gravity vector in (x, y, z) coordinate system
-        explicit EquivalentGasCavity(NodePool & nodePool,
+        explicit EquivalentGasCavity(Nodes & nodePool,
                                      const std::vector<size_t> & nodes,
                                      IGas & gas,
                                      const FenestrationCommon::GravityVector & gravityVector = {
@@ -130,7 +130,7 @@ namespace HygroThermFEM
         static std::optional<std::reference_wrapper<const IMaterial>>
             findCommonMaterial(const Node2D & node1, const Node2D & node2);
 
-        static std::vector<Segment> buildSegments(NodePool & nodePool, const std::vector<size_t> & nodes);
+        static std::vector<Segment> buildSegments(Nodes & nodePool, const std::vector<size_t> & nodes);
 
         [[nodiscard]] Size calcSize(double area) const;
 
@@ -174,7 +174,7 @@ namespace HygroThermFEM
         //! \param nodePool: Reference to NodePool for node lookup
         //! \param materialPool: Reference to MaterialPool for gas lookups
         //! \param elements: All elements from the domain.
-        explicit EquivalentGasCavities(NodePool & nodePool,
+        explicit EquivalentGasCavities(Nodes & nodePool,
                                        Materials & materialPool,
                                        const ElementsLinear2D & elements);
 
@@ -226,7 +226,7 @@ namespace HygroThermFEM
         //! \return Sorted vector of nodes that form frame cavity boundary
         static std::vector<size_t> edgeNodesOrdered(std::set<line> & allEdges);
 
-        NodePool & m_NodePool;
+        Nodes & m_NodePool;
         Materials & m_MaterialPool;
         const ElementsLinear2D & m_Elements;
 

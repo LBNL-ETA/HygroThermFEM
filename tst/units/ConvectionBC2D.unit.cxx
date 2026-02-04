@@ -20,15 +20,15 @@ TEST_F(TestConvectionBC2D, TestIntegrationPoints)
 
     // Enter nodes. Arguments are: node number, x-coordinate, y-coordinate
 
-    multiDomain.nodePool().createNode(1, 15, 5);
-    multiDomain.nodePool().createNode(2, 15, 0);
+    multiDomain.nodes().createNode(1, 15, 5);
+    multiDomain.nodes().createNode(2, 15, 0);
 
     constexpr auto hc = 20.0;
     constexpr auto tAir = 255.15;
 
     const HygroThermFEM::FixedBCHCCoefficients bcCoeff{tAir, hc};
 
-    auto aBc = HygroThermFEM::ConstantConvectionBC(multiDomain.nodePool(), 1, 2, bcCoeff);
+    auto aBc = HygroThermFEM::ConstantConvectionBC(multiDomain.nodes(), 1, 2, bcCoeff);
 
     auto h = aBc.H_Matrix();
 

@@ -6,7 +6,7 @@
 #include "Material.hxx"
 #include "Materials.hxx"
 #include "Node2D.hxx"
-#include "NodePool.hxx"
+#include "Nodes.hxx"
 #include "Quadrilateral2D.hxx"
 #include "SquareMatrix.hxx"
 
@@ -133,7 +133,7 @@ namespace HygroThermFEM
         //! doing averaging, program will have information about how much of weight one node
         //! this element will have.
         IElementLinear2D(
-          NodePool & nodePool,                //!< Reference to NodePool for node lookup
+          Nodes & nodePool,                //!< Reference to NodePool for node lookup
           Materials & materialPool,           //!< Reference to MaterialPool for material lookup
           size_t index1,                      //!< Node 1 index
           size_t index2,                      //!< Node 2 index
@@ -469,7 +469,7 @@ namespace HygroThermFEM
     {
     public:
         ElementThermalLinear2D(
-          NodePool & nodePool,               //!< Reference to NodePool for node lookup
+          Nodes & nodePool,               //!< Reference to NodePool for node lookup
           Materials & materialPool,          //!< Reference to MaterialPool for material lookup
           size_t index1,                     //!< Node 1 index
           size_t index2,                     //!< Node 2 index
@@ -488,7 +488,7 @@ namespace HygroThermFEM
     {
     public:
         ElementMoistureLinear2D(
-          NodePool & nodePool,               //!< Reference to NodePool for node lookup
+          Nodes & nodePool,               //!< Reference to NodePool for node lookup
           Materials & materialPool,          //!< Reference to MaterialPool for material lookup
           size_t index1,                     //!< Node 1 index
           size_t index2,                     //!< Node 2 index

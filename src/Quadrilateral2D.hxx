@@ -85,7 +85,6 @@ namespace HygroThermFEM
             double det() const;
 
         private:
-            size_t m_Index;   // Index of gauss point withing global element
             double m_Xg;
             double m_Yg;
             double m_JacobiDet;

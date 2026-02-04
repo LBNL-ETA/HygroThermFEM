@@ -23,10 +23,10 @@ protected:
         const State state(20.0, 0.5, 101325.0);
 
         // Create 4 nodes for a single quad element
-        multiDomain.nodePool().createNode(1, 0.0, 0.0, state);
-        multiDomain.nodePool().createNode(2, 1.0, 0.0, state);
-        multiDomain.nodePool().createNode(3, 1.0, 1.0, state);
-        multiDomain.nodePool().createNode(4, 0.0, 1.0, state);
+        multiDomain.nodes().createNode(1, 0.0, 0.0, state);
+        multiDomain.nodes().createNode(2, 1.0, 0.0, state);
+        multiDomain.nodes().createNode(3, 1.0, 1.0, state);
+        multiDomain.nodes().createNode(4, 0.0, 1.0, state);
 
         // Create material
         constexpr double thermalConductivityDry{1.0};
@@ -65,12 +65,12 @@ protected:
         const State state(20.0, 0.0, 101325.0);
 
         // Create 6 nodes for 2 elements (one solid, one cavity)
-        multiDomain.nodePool().createNode(1, 0.0, 0.0, state);
-        multiDomain.nodePool().createNode(2, 0.01, 0.0, state);
-        multiDomain.nodePool().createNode(3, 0.02, 0.0, state);
-        multiDomain.nodePool().createNode(4, 0.0, 0.05, state);
-        multiDomain.nodePool().createNode(5, 0.01, 0.05, state);
-        multiDomain.nodePool().createNode(6, 0.02, 0.05, state);
+        multiDomain.nodes().createNode(1, 0.0, 0.0, state);
+        multiDomain.nodes().createNode(2, 0.01, 0.0, state);
+        multiDomain.nodes().createNode(3, 0.02, 0.0, state);
+        multiDomain.nodes().createNode(4, 0.0, 0.05, state);
+        multiDomain.nodes().createNode(5, 0.01, 0.05, state);
+        multiDomain.nodes().createNode(6, 0.02, 0.05, state);
 
         // Create solid material
         constexpr double thermalConductivityDry{1.8};
@@ -115,14 +115,14 @@ TEST_F(TestDomainClearModelAndGravity, TestClearModelRemovesNodesAndMaterials)
     createSimpleModel(multiDomain);
 
     // Verify model was created
-    const auto nodeCountBefore = multiDomain.nodePool().properties(Variable::temperature).size();
+    const auto nodeCountBefore = multiDomain.nodes().properties(Variable::temperature).size();
     EXPECT_EQ(nodeCountBefore, 4u);
 
     // Clear the model
     multiDomain.thermal().clearModel();
 
     // Verify pools are cleared
-    const auto nodeCountAfter = multiDomain.nodePool().properties(Variable::temperature).size();
+    const auto nodeCountAfter = multiDomain.nodes().properties(Variable::temperature).size();
     EXPECT_EQ(nodeCountAfter, 0u);
 }
 
@@ -138,16 +138,16 @@ TEST_F(TestDomainClearModelAndGravity, TestClearModelAllowsNewModel)
 
     // Create a new model - should not throw
     const State state(25.0, 0.6, 101325.0);
-    multiDomain.nodePool().createNode(1, 0.0, 0.0, state);
-    multiDomain.nodePool().createNode(2, 2.0, 0.0, state);
-    multiDomain.nodePool().createNode(3, 2.0, 2.0, state);
-    multiDomain.nodePool().createNode(4, 0.0, 2.0, state);
+    multiDomain.nodes().createNode(1, 0.0, 0.0, state);
+    multiDomain.nodes().createNode(2, 2.0, 0.0, state);
+    multiDomain.nodes().createNode(3, 2.0, 2.0, state);
+    multiDomain.nodes().createNode(4, 0.0, 2.0, state);
 
-    const auto nodeCount = multiDomain.nodePool().properties(Variable::temperature).size();
+    const auto nodeCount = multiDomain.nodes().properties(Variable::temperature).size();
     EXPECT_EQ(nodeCount, 4u);
 
     // Verify new initial temperature is used
-    const auto temperatures = multiDomain.nodePool().properties(Variable::temperature);
+    const auto temperatures = multiDomain.nodes().properties(Variable::temperature);
     EXPECT_DOUBLE_EQ(temperatures[0], 25.0);
 }
 
@@ -163,7 +163,7 @@ TEST_F(TestDomainClearModelAndGravity, TestSetGravityVectorDefault)
     multiDomain.thermal().createBC_FixedHc(1, 4, bcCoeff);
 
     // Run transient to initialize gas cavities
-    auto temperatures = multiDomain.nodePool().properties(Variable::temperature);
+    auto temperatures = multiDomain.nodes().properties(Variable::temperature);
     const auto result = multiDomain.thermal().transient(temperatures, 360.0);
 
     // Should complete without error with default gravity
@@ -182,7 +182,7 @@ TEST_F(TestDomainClearModelAndGravity, TestSetGravityVectorCustom)
     multiDomain.thermal().createBC_FixedHc(1, 4, bcCoeff);
 
     // Run first transient step with default gravity to initialize cavities
-    auto temperatures = multiDomain.nodePool().properties(Variable::temperature);
+    auto temperatures = multiDomain.nodes().properties(Variable::temperature);
     multiDomain.thermal().transient(temperatures, 360.0);
 
     // Set horizontal gravity (tilted system)
@@ -190,7 +190,7 @@ TEST_F(TestDomainClearModelAndGravity, TestSetGravityVectorCustom)
     multiDomain.thermal().setGravityVector(horizontalGravity);
 
     // Run another transient step - should use new gravity
-    temperatures = multiDomain.nodePool().properties(Variable::temperature);
+    temperatures = multiDomain.nodes().properties(Variable::temperature);
     const auto result = multiDomain.thermal().transient(temperatures, 360.0);
 
     // Should complete without error
@@ -213,7 +213,7 @@ TEST_F(TestDomainClearModelAndGravity, TestSetGravityVectorBeforeCavityInit)
     multiDomain.thermal().createBC_FixedHc(1, 4, bcCoeff);
 
     // Run transient - should initialize cavities with custom gravity
-    auto temperatures = multiDomain.nodePool().properties(Variable::temperature);
+    auto temperatures = multiDomain.nodes().properties(Variable::temperature);
     const auto result = multiDomain.thermal().transient(temperatures, 360.0);
 
     EXPECT_FALSE(result.solution.empty());

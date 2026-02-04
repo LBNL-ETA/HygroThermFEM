@@ -25,10 +25,10 @@ TEST_F(TestQLEDDuIntegrator2D, TestConductionMatrix)
 
     // Enter nodes. Arguments are: node number, x-coordinate, y-coordinate
 
-    auto node1 = multiDomain.nodePool().createNode(1, 0, 0);
-    auto node2 = multiDomain.nodePool().createNode(2, 5, 0);
-    auto node3 = multiDomain.nodePool().createNode(3, 5, 5);
-    auto node4 = multiDomain.nodePool().createNode(4, 0, 5);
+    auto node1 = multiDomain.nodes().createNode(1, 0, 0);
+    auto node2 = multiDomain.nodes().createNode(2, 5, 0);
+    auto node3 = multiDomain.nodes().createNode(3, 5, 5);
+    auto node4 = multiDomain.nodes().createNode(4, 0, 5);
 
     QuadrilateralLinearGlobal2D element{node1, node2, node3, node4};
 

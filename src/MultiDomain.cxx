@@ -5,7 +5,7 @@
 #include "MultiDomain.hxx"
 #include "Common.hxx"
 #include "FEMMath.hxx"
-#include "NodePool.hxx"
+#include "Nodes.hxx"
 #include "SimulationProperties.hxx"
 #include "MaterialDataChecker.hxx"
 
@@ -14,25 +14,23 @@ namespace HygroThermFEM
     // passing false to subdomains means that previous timestep values will not be automatically
     // updated. This mean that multidomain must update its values once solution converged.
     MultiDomain::MultiDomain(const bool performThermal, const bool performMoisture) :
-        m_NodePool(),
-        m_Materials(),
-        m_ThermalDomain(m_NodePool, m_Materials),
-        m_MoistureDomain(m_NodePool, m_Materials),
+        m_ThermalDomain(m_Nodes, m_Materials),
+        m_MoistureDomain(m_Nodes, m_Materials),
         m_SimulateThermal(performThermal),
         m_SimulateMoisture(performMoisture)
     {}
 
-    Solution MultiDomain::transient(std::vector<double> & temperature,
-                                    std::vector<double> & humidity,
+    Solution MultiDomain::transient(const std::vector<double> & temperature,
+                                    const std::vector<double> & humidity,
                                     const double t_DTime,
-                                    size_t timestepIndex)
+                                    const size_t timestepIndex)
     {
         const auto ConvergenceError{SimulationProperties::Instance().errorTolerance()};
         auto temperatureError{std::numeric_limits<double>::max()};
         auto humidityError{std::numeric_limits<double>::max()};
         auto currentTemperature{temperature};
         auto currentHumidity{humidity};
-        double dTime{t_DTime};
+        const double dTime{t_DTime};
         SingleSolution temperatureSolution{temperature, t_DTime};
         SingleSolution humiditySolution{humidity, t_DTime};
 
@@ -76,7 +74,7 @@ namespace HygroThermFEM
 
             if(m_SimulateMoisture)
             {
-                m_NodePool.updateNodeValues(
+                m_Nodes.updateNodeValues(
                   temperatureSolution.solution, BaseVariable::temperature, false);
                 humiditySolution = m_MoistureDomain.transient(humidity, dTime, timestepIndex);
                 humidityError = normError(humiditySolution.solution, currentHumidity);
@@ -85,7 +83,7 @@ namespace HygroThermFEM
 
             if(m_SimulateThermal)
             {
-                m_NodePool.updateNodeValues(
+                m_Nodes.updateNodeValues(
                   humiditySolution.solution, BaseVariable::humidity, false);
                 temperatureSolution = m_ThermalDomain.transient(temperature, dTime, timestepIndex);
                 temperatureError = normError(temperatureSolution.solution, currentTemperature);
@@ -98,18 +96,18 @@ namespace HygroThermFEM
         while((temperatureError > ConvergenceError && humidityError > ConvergenceError)
               || currentIteration > MaxIterations);
 
-        m_NodePool.updateNodeValues(
+        m_Nodes.updateNodeValues(
           temperatureSolution.solution, BaseVariable::temperature, true);
-        m_NodePool.updateNodeValues(
+        m_Nodes.updateNodeValues(
           humiditySolution.solution, BaseVariable::humidity, true);
 
-        m_NodePool.updateNodeValues(currentHumidity, BaseVariable::humidity, true);
-        m_NodePool.updateNodeValues(currentTemperature, BaseVariable::temperature, true);
+        m_Nodes.updateNodeValues(currentHumidity, BaseVariable::humidity, true);
+        m_Nodes.updateNodeValues(currentTemperature, BaseVariable::temperature, true);
 
-        const auto waterContent = m_NodePool.properties(Variable::water);
-        const auto liquidContent = m_NodePool.properties(Variable::liquid);
-        const auto vaporContent = m_NodePool.properties(Variable::vapor);
-        const auto iceContent = m_NodePool.properties(Variable::ice);
+        const auto waterContent = m_Nodes.properties(Variable::water);
+        const auto liquidContent = m_Nodes.properties(Variable::liquid);
+        const auto vaporContent = m_Nodes.properties(Variable::vapor);
+        const auto iceContent = m_Nodes.properties(Variable::ice);
 
         const auto heatFlux = m_ThermalDomain.flux();
         const auto waterFlux = m_MoistureDomain.flux();
@@ -134,9 +132,9 @@ namespace HygroThermFEM
         auto humidityError{std::numeric_limits<double>::max()};
         const auto MaxIterations = SimulationProperties::Instance().maxNumberOfIterations();
         size_t currentIteration{0};
-        auto humidity = m_NodePool.properties(Variable::humidity);
+        auto humidity = m_Nodes.properties(Variable::humidity);
         auto previousHumidity = humidity;
-        auto temperature = m_NodePool.properties(Variable::temperature);
+        auto temperature = m_Nodes.properties(Variable::temperature);
         auto previousTemperature = temperature;
         do
         {
@@ -145,7 +143,7 @@ namespace HygroThermFEM
                 humidity = m_MoistureDomain.steadyState();
                 humidityError = normError(humidity, previousHumidity);
                 previousHumidity = humidity;
-                m_NodePool.updateNodeValues(humidity, BaseVariable::humidity);
+                m_Nodes.updateNodeValues(humidity, BaseVariable::humidity);
             }
             else
             {
@@ -156,7 +154,7 @@ namespace HygroThermFEM
                 temperature = m_ThermalDomain.steadyState();
                 temperatureError = normError(temperature, previousTemperature);
                 previousTemperature = temperature;
-                m_NodePool.updateNodeValues(temperature, BaseVariable::temperature);
+                m_Nodes.updateNodeValues(temperature, BaseVariable::temperature);
             }
             else
             {
@@ -166,13 +164,13 @@ namespace HygroThermFEM
         } while(temperatureError > ConvergenceError || humidityError > ConvergenceError
                 || currentIteration > MaxIterations);
 
-        m_NodePool.updateNodeValues(humidity, BaseVariable::humidity, true);
-        m_NodePool.updateNodeValues(temperature, BaseVariable::temperature, true);
+        m_Nodes.updateNodeValues(humidity, BaseVariable::humidity, true);
+        m_Nodes.updateNodeValues(temperature, BaseVariable::temperature, true);
 
-        const auto waterContent = m_NodePool.properties(Variable::water);
-        const auto liquidContent = m_NodePool.properties(Variable::liquid);
-        const auto vaporContent = m_NodePool.properties(Variable::vapor);
-        const auto iceContent = m_NodePool.properties(Variable::ice);
+        const auto waterContent = m_Nodes.properties(Variable::water);
+        const auto liquidContent = m_Nodes.properties(Variable::liquid);
+        const auto vaporContent = m_Nodes.properties(Variable::vapor);
+        const auto iceContent = m_Nodes.properties(Variable::ice);
 
         const auto heatFlux = m_ThermalDomain.flux();
         const auto waterFlux = m_MoistureDomain.flux();
@@ -474,7 +472,7 @@ namespace HygroThermFEM
 
     std::vector<double> MultiDomain::property(const Variable property) const
     {
-        return m_NodePool.properties(property);
+        return m_Nodes.properties(property);
     }
 
     void MultiDomain::setGravityVector(const FenestrationCommon::GravityVector & gravityVector)
@@ -568,14 +566,14 @@ namespace HygroThermFEM
         return m_MoistureDomain;
     }
 
-    NodePool & MultiDomain::nodePool()
+    Nodes & MultiDomain::nodes()
     {
-        return m_NodePool;
+        return m_Nodes;
     }
 
-    const NodePool & MultiDomain::nodePool() const
+    const Nodes & MultiDomain::nodes() const
     {
-        return m_NodePool;
+        return m_Nodes;
     }
 
     Solution::Solution(const double dtime,

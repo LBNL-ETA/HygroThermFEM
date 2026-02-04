@@ -2,7 +2,7 @@
 
 #include "HygroThermFEM2D.hxx"
 
-using HygroThermFEM::NodePool;
+using HygroThermFEM::Nodes;
 using HygroThermFEM::State;
 
 class SteadyState_2D_1 : public testing::Test
@@ -30,17 +30,17 @@ TEST_F(SteadyState_2D_1, TestExample_1)
     HygroThermFEM::MultiDomain multiDomain{simulateThermal, simulateMoisture};
 
     // Enter nodes. Arguments are: node number, x-coordinate, y-coordinate
-    multiDomain.nodePool().createNode(
+    multiDomain.nodes().createNode(
       1, 1, 5, State(initialTemperature, 0, initialPressure, liquidPercent));
-    multiDomain.nodePool().createNode(
+    multiDomain.nodes().createNode(
       2, 1, 0, State(initialTemperature, 0, initialPressure, liquidPercent));
-    multiDomain.nodePool().createNode(
+    multiDomain.nodes().createNode(
       3, 0.5, 5, State(initialTemperature, 0.5, initialPressure, liquidPercent));
-    multiDomain.nodePool().createNode(
+    multiDomain.nodes().createNode(
       4, 0.5, 0, State(initialTemperature, 0.5, initialPressure, liquidPercent));
-    multiDomain.nodePool().createNode(
+    multiDomain.nodes().createNode(
       5, 0, 5, State(initialTemperature, 1, initialPressure, liquidPercent));
-    multiDomain.nodePool().createNode(
+    multiDomain.nodes().createNode(
       6, 0, 0, State(initialTemperature, 1, initialPressure, liquidPercent));
 
     // Material Properties

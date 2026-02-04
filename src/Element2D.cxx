@@ -3,7 +3,7 @@
 #include "Common.hxx"
 #include "Element2D.hxx"
 #include "IntegrationPoints.hxx"
-#include "NodePool.hxx"
+#include "Nodes.hxx"
 #include "Materials.hxx"
 #include "QuadrilateralLocal2D.hxx"
 #include "VectorOperators.hxx"
@@ -145,7 +145,7 @@ namespace HygroThermFEM
     ///  IElementLinear2D
     //////////////////////////////////////////////////////////////////////////////
 
-    IElementLinear2D::IElementLinear2D(NodePool & nodePool,
+    IElementLinear2D::IElementLinear2D(Nodes & nodePool,
                                        Materials & materialPool,
                                        const size_t index1,
                                        const size_t index2,
@@ -374,7 +374,7 @@ namespace HygroThermFEM
     ///  ElementThermalLinear2D
     //////////////////////////////////////////////////////////////////////////////
 
-    ElementThermalLinear2D::ElementThermalLinear2D(NodePool & nodePool,
+    ElementThermalLinear2D::ElementThermalLinear2D(Nodes & nodePool,
                                                    Materials & materialPool,
                                                    const size_t index1,
                                                    const size_t index2,
@@ -493,7 +493,7 @@ namespace HygroThermFEM
     ///  ElementMoistureLinear2D
     //////////////////////////////////////////////////////////////////////////////
 
-    ElementMoistureLinear2D::ElementMoistureLinear2D(NodePool & nodePool,
+    ElementMoistureLinear2D::ElementMoistureLinear2D(Nodes & nodePool,
                                                      Materials & materialPool,
                                                      const size_t index1,
                                                      const size_t index2,

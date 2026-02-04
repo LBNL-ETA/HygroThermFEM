@@ -28,7 +28,7 @@ TEST_F(MultiMaterialNode, TestExample_1)
 
     MultiDomain multiDomain;
 
-    auto node1 = multiDomain.nodePool().createNode(1, 0, 0, state);
+    auto node1 = multiDomain.nodes().createNode(1, 0, 0, state);
 
     // Material Properties (Cottaer Sandstone)
     double thermalConductivityDry{1.8};

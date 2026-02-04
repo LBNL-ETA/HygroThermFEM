@@ -20,12 +20,12 @@ TEST_F(ConvectionBC_2D_SteadyState, TestExample_1)
 
     // Enter nodes. Arguments are: node number, x-coordinate, y-coordinate
 
-    multiDomain.nodePool().createNode(1, 15, 5);
-    multiDomain.nodePool().createNode(2, 15, 0);
-    multiDomain.nodePool().createNode(3, 5, 5);
-    multiDomain.nodePool().createNode(4, 5, 0);
-    multiDomain.nodePool().createNode(5, 0, 5);
-    multiDomain.nodePool().createNode(6, 0, 0);
+    multiDomain.nodes().createNode(1, 15, 5);
+    multiDomain.nodes().createNode(2, 15, 0);
+    multiDomain.nodes().createNode(3, 5, 5);
+    multiDomain.nodes().createNode(4, 5, 0);
+    multiDomain.nodes().createNode(5, 0, 5);
+    multiDomain.nodes().createNode(6, 0, 0);
 
     // Material Properties
     constexpr double thermalConductivityDry{1.0};

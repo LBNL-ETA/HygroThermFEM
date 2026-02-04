@@ -18,7 +18,7 @@ namespace HygroThermFEM
         //! @param fixedBCHCCoefficients Structure that holds necessary coefficients in other to
         //! create constant film coefficient boundary condition
         //! @param simulateVaporFluxEnergy Need to be true if we want to include vapor flux energy
-        ConstantConvectionBC(NodePool & nodePool,
+        ConstantConvectionBC(Nodes & nodePool,
                              size_t index1,
                              size_t index2,
                              const FixedBCHCCoefficients & fixedBCHCCoefficients,
@@ -41,7 +41,7 @@ namespace HygroThermFEM
         //! @param surfaceTilt Surface tilt at the boundary
         //! @param simulateVaporFluxEnergy Indicates whether or not moisture will be calculated at
         //! the boundary
-        ThermalTARPConvectionBC(NodePool & nodePool,
+        ThermalTARPConvectionBC(Nodes & nodePool,
                                 size_t index1,
                                 size_t index2,
                                 const TARPCoefficients & varHCCoeff,
@@ -68,7 +68,7 @@ namespace HygroThermFEM
         //! @param surfaceTilt Surface tilt at the boundary [degrees]
         //! @param simulateVaporFluxEnergy Indicates whether energy from vapor flow should be
         //! included in calculations.
-        ASHRAEInsideConvectionBC(NodePool & nodePool,
+        ASHRAEInsideConvectionBC(Nodes & nodePool,
                                  size_t index1,
                                  size_t index2,
                                  const ASHRAEInsideCoefficients & coeff,
@@ -93,7 +93,7 @@ namespace HygroThermFEM
         //! \param coeff Coefficients for that are variable within timestep
         //! \param simulateVaporFluxEnergy Flag to indicate whether or not to include energy from
         //! vapor and water flux.
-        ASHRAEOutsideConvectionBC(NodePool & nodePool,
+        ASHRAEOutsideConvectionBC(Nodes & nodePool,
                                   size_t index1,
                                   size_t index2,
                                   const ASHRAEOutsideCoefficients & coeff,
@@ -117,7 +117,7 @@ namespace HygroThermFEM
         //! within timestep
         //! \param simulateVaporFluxEnergy Flag to indicate whether or not to
         //! include energy from vapor and water flux.
-        YazdanianKlemsConvectionBC(NodePool & nodePool,
+        YazdanianKlemsConvectionBC(Nodes & nodePool,
                                    size_t index1,
                                    size_t index2,
                                    const YazdanianKlemsCoefficients & coeff,
@@ -141,7 +141,7 @@ namespace HygroThermFEM
         //! within timestep
         //! \param simulateVaporFluxEnergy Flag to indicate whether or not to include energy from
         //! vapor and water flux.
-        KimuraConvectionBC(NodePool & nodePool,
+        KimuraConvectionBC(Nodes & nodePool,
                            size_t index1,
                            size_t index2,
                            const KimuraCoefficients & coeff,
@@ -161,7 +161,7 @@ namespace HygroThermFEM
     public:
         //! Construction of temperature boundary condition with two nodes and identical temperatures
         //! in both of them
-        TemperatureBC(NodePool & nodePool,        //!< Reference to NodePool for node lookup
+        TemperatureBC(Nodes & nodePool,        //!< Reference to NodePool for node lookup
                       size_t index1,              //!< Node 1 index
                       size_t index2,              //!< Node 2 index
                       double t_NodeTemperatures   //!< Temperature at both nodes
@@ -169,7 +169,7 @@ namespace HygroThermFEM
 
         //! Construction of temperature boundary condition with two nodes and temperature at each of
         //! them
-        TemperatureBC(NodePool & nodePool,  //!< Reference to NodePool for node lookup
+        TemperatureBC(Nodes & nodePool,  //!< Reference to NodePool for node lookup
                       size_t index1,        //!< Node 1 index
                       size_t index2,        //!< Node 2 index
                       double t_Temp1,       //!< Temperature at node 1
@@ -190,7 +190,7 @@ namespace HygroThermFEM
     {
     public:
         //! Construction of constant flux boundary condition with two nodes and constant flux.
-        FluxBC(NodePool & nodePool,  //!< Reference to NodePool for node lookup
+        FluxBC(Nodes & nodePool,  //!< Reference to NodePool for node lookup
                size_t index1,        //!< Node 1 index
                size_t index2,        //!< Node 2 index
                double t_Flux         //!< Constant flux at both nodes
@@ -228,7 +228,7 @@ namespace HygroThermFEM
 
     protected:
         //! Construction of radiation boundary condition base.
-        IRadiationBC(NodePool & nodePool,            //!< Reference to NodePool for node lookup
+        IRadiationBC(Nodes & nodePool,            //!< Reference to NodePool for node lookup
                      size_t index1,                  //!< Node 1 index
                      size_t index2,                  //!< Node 2 index
                      double radiationTemperature,    //!< Outside radiation temperature in celsius.
@@ -256,7 +256,7 @@ namespace HygroThermFEM
         //! Black body radiation boundary condition with two nodes, emissivity and radiation
         //! temperature
         BlackBodyRadiationBC(
-          NodePool & nodePool,            //!< Reference to NodePool for node lookup
+          Nodes & nodePool,            //!< Reference to NodePool for node lookup
           size_t index1,                  //!< Node 1 index
           size_t index2,                  //!< Node 2 index
           double emissivity,              //!< Boundary condition surface emissivity at both nodes.
@@ -282,7 +282,7 @@ namespace HygroThermFEM
     class LinearizedRadiationBC : public IRadiationBC
     {
     public:
-        LinearizedRadiationBC(NodePool & nodePool,
+        LinearizedRadiationBC(Nodes & nodePool,
                               size_t index1,
                               size_t index2,
                               const LinearizedRadiationBCCoefficients & linearRadBC);

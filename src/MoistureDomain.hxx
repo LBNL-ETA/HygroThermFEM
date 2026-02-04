@@ -13,7 +13,7 @@ namespace HygroThermFEM
 
     private:
         //! Simple constructor - only accessible via MultiDomain
-        explicit MoistureDomain(NodePool & nodePool,
+        explicit MoistureDomain(Nodes & nodePool,
                                 Materials & materialPool,
                                 bool automaticUpdatePreviousTimestep = true);
 

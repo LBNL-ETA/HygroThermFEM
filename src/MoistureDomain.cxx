@@ -182,7 +182,7 @@ namespace HygroThermFEM
         m_BCs.assignTimestepBCs(std::move(timestepBCs));
     }
 
-    MoistureDomain::MoistureDomain(NodePool & nodePool,
+    MoistureDomain::MoistureDomain(Nodes & nodePool,
                                      Materials & materialPool,
                                      const bool automaticUpdatePreviousTimestep) :
         IDomain(nodePool, materialPool, BaseVariable::humidity, automaticUpdatePreviousTimestep)

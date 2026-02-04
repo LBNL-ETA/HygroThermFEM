@@ -32,11 +32,11 @@ TEST_F(TwoElementsTwoMaterials_2, NodeInTwoMaterials)
 
     MultiDomain multiDomain(false, false);
 
-    multiDomain.nodePool().createNode(1, 0, 1, state);
-    multiDomain.nodePool().createNode(2, 1, 0, state);
-    multiDomain.nodePool().createNode(3, 1, 1, state);
-    multiDomain.nodePool().createNode(4, 2, 0, state);
-    multiDomain.nodePool().createNode(5, 2, 1, state);
+    multiDomain.nodes().createNode(1, 0, 1, state);
+    multiDomain.nodes().createNode(2, 1, 0, state);
+    multiDomain.nodes().createNode(3, 1, 1, state);
+    multiDomain.nodes().createNode(4, 2, 0, state);
+    multiDomain.nodes().createNode(5, 2, 1, state);
 
     // Material Properties (Cottaer Sandstone)
     double thermalConductivityDry{1.8};

@@ -83,7 +83,6 @@ namespace HygroThermFEM
                                                                         const Node2D & t_Node3,
                                                                         const Node2D & t_Node4,
                                                                         const size_t Index) :
-        m_Index(Index),
         m_Xg(0),
         m_Yg(0)
     {
@@ -99,27 +98,16 @@ namespace HygroThermFEM
         double j21 = 0;
         double j22 = 0;
 
-        // global derivatives
-        double dxdksi = 0;
-        double dydksi = 0;
-        double dxdeta = 0;
-        double dydeta = 0;
-
-        for(unsigned i = 0; i < 4; ++i)
+        for(unsigned idx = 0; idx < 4; ++idx)
         {
-            auto aNode = node[i].get();
-            m_Xg += aNode.X() * aElement.Psi(Index, i);
-            m_Yg += aNode.Y() * aElement.Psi(Index, i);
+            const auto & aNode = node[idx].get();
+            m_Xg += aNode.X() * aElement.Psi(Index, idx);
+            m_Yg += aNode.Y() * aElement.Psi(Index, idx);
 
-            dxdksi += aNode.X() * aElement.PsiDKsi(Index, i);
-            dydksi += aNode.Y() * aElement.PsiDKsi(Index, i);
-            dxdeta += aNode.X() * aElement.PsiDEta(Index, i);
-            dydeta += aNode.Y() * aElement.PsiDEta(Index, i);
-
-            j11 += aNode.X() * aElement.PsiDKsi(Index, i);
-            j12 += aNode.Y() * aElement.PsiDKsi(Index, i);
-            j21 += aNode.X() * aElement.PsiDEta(Index, i);
-            j22 += aNode.Y() * aElement.PsiDEta(Index, i);
+            j11 += aNode.X() * aElement.PsiDKsi(Index, idx);
+            j12 += aNode.Y() * aElement.PsiDKsi(Index, idx);
+            j21 += aNode.X() * aElement.PsiDEta(Index, idx);
+            j22 += aNode.Y() * aElement.PsiDEta(Index, idx);
         }
 
         m_JacobiDet = j11 * j22 - j21 * j12;

@@ -1,7 +1,7 @@
 #include <cassert>
 #include <algorithm>
 
-#include "NodePool.hxx"
+#include "Nodes.hxx"
 
 #ifdef STL_MULTITHREADING
 #include <execution>
@@ -9,7 +9,7 @@
 
 namespace HygroThermFEM
 {
-    Node2D & NodePool::createNode(const std::size_t t_NodeNumber,
+    Node2D & Nodes::createNode(const std::size_t t_NodeNumber,
                                   const double t_x,
                                   const double t_y,
                                   const State & t_Prop)
@@ -18,13 +18,13 @@ namespace HygroThermFEM
         return m_Nodes.back();
     }
 
-    Node2D & NodePool::getNode(const size_t Index)
+    Node2D & Nodes::getNode(const size_t Index)
     {
         assert(Index <= m_Nodes.size());
         return m_Nodes[Index - 1];
     }
 
-    size_t NodePool::maxIndex() const
+    size_t Nodes::maxIndex() const
     {
         Node2D aNode =
           *max_element(m_Nodes.begin(), m_Nodes.end(), [](const Node2D & a, const Node2D & b) {
@@ -33,7 +33,7 @@ namespace HygroThermFEM
         return aNode.getNodeNumber();
     }
 
-    std::vector<double> NodePool::properties(const Variable t_Property) const
+    std::vector<double> Nodes::properties(const Variable t_Property) const
     {
         std::vector<double> aVector;
         for(const Node2D & aNode : m_Nodes)
@@ -43,7 +43,7 @@ namespace HygroThermFEM
         return aVector;
     }
 
-    void NodePool::updateNodeValues(const std::vector<double> & t_values,
+    void Nodes::updateNodeValues(const std::vector<double> & t_values,
                                     const BaseVariable t_property,
                                     bool updatePreviousTimestep)
     {
@@ -64,7 +64,7 @@ namespace HygroThermFEM
 #endif
     }
 
-    void NodePool::clear()
+    void Nodes::clear()
     {
         m_Nodes.clear();
     }

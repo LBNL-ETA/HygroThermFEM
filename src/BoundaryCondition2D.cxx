@@ -1,7 +1,7 @@
 #include <algorithm>
 
 #include "BoundaryCondition2D.hxx"
-#include "NodePool.hxx"
+#include "Nodes.hxx"
 #include "Materials.hxx"
 #include "VectorOperators.hxx"
 #include "Common.hxx"
@@ -14,7 +14,7 @@ namespace HygroThermFEM
     /// IConvectiveBCBase
     ////////////////////////////////////////////////////////
 
-    IConvectiveBCBase::IConvectiveBCBase(NodePool & nodePool,
+    IConvectiveBCBase::IConvectiveBCBase(Nodes & nodePool,
                                          const size_t index1,
                                          const size_t index2,
                                          const double airTemperature,
@@ -30,7 +30,7 @@ namespace HygroThermFEM
     /// IConvectionBC
     ////////////////////////////////////////////////////////
 
-    IConvectionBC::IConvectionBC(NodePool & nodePool,
+    IConvectionBC::IConvectionBC(Nodes & nodePool,
                                  const size_t index1,
                                  const size_t index2,
                                  const double airTemperature,
@@ -80,7 +80,7 @@ namespace HygroThermFEM
     /// IMoistureBC
     /////////////////////////////////////////////////////
 
-    IMoistureBC::IMoistureBC(NodePool & nodePool,
+    IMoistureBC::IMoistureBC(Nodes & nodePool,
                              Materials & materialPool,
                              const size_t index1,
                              const size_t index2,

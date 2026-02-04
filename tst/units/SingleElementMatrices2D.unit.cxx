@@ -23,10 +23,10 @@ TEST_F(TestSingleElementMatrices2D, TestConductionMatrix)
 
     // Enter nodes. Arguments are: node number, x-coordinate, y-coordinate
 
-    multiDomain.nodePool().createNode(1, 5, 5);
-    multiDomain.nodePool().createNode(2, 5, 0);
-    multiDomain.nodePool().createNode(3, 15, 0);
-    multiDomain.nodePool().createNode(4, 15, 5);
+    multiDomain.nodes().createNode(1, 5, 5);
+    multiDomain.nodes().createNode(2, 5, 0);
+    multiDomain.nodes().createNode(3, 15, 0);
+    multiDomain.nodes().createNode(4, 15, 5);
 
     // Material Properties
     constexpr double thermalConductivityDry{1.0};
@@ -75,7 +75,7 @@ TEST_F(TestSingleElementMatrices2D, TestConductionMatrix)
                                                   liquidTransportationCurve,
                                                   moistureStorageFunction);
 
-    const HygroThermFEM::ElementThermalLinear2D aElem{multiDomain.nodePool(), multiDomain.materials(), 1, 2, 3, 4, material.name()};
+    const HygroThermFEM::ElementThermalLinear2D aElem{multiDomain.nodes(), multiDomain.materials(), 1, 2, 3, 4, material.name()};
 
     auto condMat = aElem.DDuMatrices();
 

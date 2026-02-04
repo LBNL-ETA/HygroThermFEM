@@ -4,7 +4,7 @@
 
 #include "SquareMatrix.hxx"
 #include "Node2D.hxx"
-#include "NodePool.hxx"
+#include "Nodes.hxx"
 
 namespace HygroThermFEM
 {
@@ -29,7 +29,7 @@ namespace HygroThermFEM
         IBCLinear2D() = delete;
 
         //! Basic construction of boundary condition.
-        IBCLinear2D(NodePool & nodePool,   //!< Reference to NodePool for node lookup
+        IBCLinear2D(Nodes & nodePool,   //!< Reference to NodePool for node lookup
                     size_t index1,         //!< Index of first node.
                     size_t index2,         //!< Index of second node.
                     bool t_Linear = true   //!< Linearity of the boundary condition.
