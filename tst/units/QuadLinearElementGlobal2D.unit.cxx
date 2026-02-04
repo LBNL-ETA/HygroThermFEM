@@ -4,8 +4,6 @@
 
 #include "HygroThermFEM2D.hxx"
 
-using HygroThermFEM::NodePool;
-
 class TestQuadLinearElementGlobal2D : public testing::Test
 {
 protected:
@@ -13,9 +11,7 @@ protected:
     {}
 
     void TearDown() override
-    {
-        NodePool::Instance().clear();
-    }
+    {}
 };
 
 TEST_F(TestQuadLinearElementGlobal2D, TestIntegrationPoint1)
@@ -23,12 +19,14 @@ TEST_F(TestQuadLinearElementGlobal2D, TestIntegrationPoint1)
     SCOPED_TRACE(
       "Begin Test: Quadrilateral linear element 2D in global coordinates - Gauss points.");
 
+    HygroThermFEM::MultiDomain multiDomain(true, false);
+
     // Enter nodes. Arguments are: node number, x-coordinate, y-coordinate
 
-    auto node1 = NodePool::Instance().createNode(1, 0, 0);
-    auto node2 = NodePool::Instance().createNode(2, 5, 0);
-    auto node3 = NodePool::Instance().createNode(3, 5, 5);
-    auto node4 = NodePool::Instance().createNode(4, 0, 5);
+    auto node1 = multiDomain.nodePool().createNode(1, 0, 0);
+    auto node2 = multiDomain.nodePool().createNode(2, 5, 0);
+    auto node3 = multiDomain.nodePool().createNode(3, 5, 5);
+    auto node4 = multiDomain.nodePool().createNode(4, 0, 5);
 
     auto aElement = HygroThermFEM::QuadrilateralLinearGlobal2D(node1, node2, node3, node4);
 

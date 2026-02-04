@@ -10,9 +10,7 @@ protected:
     {}
 
     void TearDown() override
-    {
-        HygroThermFEM::NodePool::Instance().clear();
-    }
+    {}
 };
 
 TEST_F(TestMaterialProperties, PropertiesExistence)

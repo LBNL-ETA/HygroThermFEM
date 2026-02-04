@@ -2,7 +2,6 @@
 
 #include "HygroThermFEM2D.hxx"
 
-using HygroThermFEM::NodePool;
 using HygroThermFEM::State;
 using HygroThermFEM::SimulationProperties;
 
@@ -14,7 +13,6 @@ protected:
 
     void TearDown() override
     {
-        NodePool::Instance().clear();
         SimulationProperties::Instance().reset();
     }
 };
@@ -41,18 +39,23 @@ TEST_F(SteadyState_2D_ExcludeLiquidTransport_1, TestExample_1)
 
     auto state = State(initialTemperature, initialMoistureContent, initialPressure, liquidPercent);
 
+    const auto simulateThermal{true};
+    const auto simulateMoisture{true};
+
+    HygroThermFEM::MultiDomain multiDomain{simulateThermal, simulateMoisture};
+
     // Enter nodes. Arguments are: node number, x-coordinate, y-coordinate
-    NodePool::Instance().createNode(
+    multiDomain.nodePool().createNode(
       1, 1, 5, State(initialTemperature, 0, initialPressure, liquidPercent));
-    NodePool::Instance().createNode(
+    multiDomain.nodePool().createNode(
       2, 1, 0, State(initialTemperature, 0, initialPressure, liquidPercent));
-    NodePool::Instance().createNode(
+    multiDomain.nodePool().createNode(
       3, 0.5, 5, State(initialTemperature, 0.5, initialPressure, liquidPercent));
-    NodePool::Instance().createNode(
+    multiDomain.nodePool().createNode(
       4, 0.5, 0, State(initialTemperature, 0.5, initialPressure, liquidPercent));
-    NodePool::Instance().createNode(
+    multiDomain.nodePool().createNode(
       5, 0, 5, State(initialTemperature, 1, initialPressure, liquidPercent));
-    NodePool::Instance().createNode(
+    multiDomain.nodePool().createNode(
       6, 0, 0, State(initialTemperature, 1, initialPressure, liquidPercent));
 
     // Material Properties
@@ -87,11 +90,6 @@ TEST_F(SteadyState_2D_ExcludeLiquidTransport_1, TestExample_1)
                                                                             {0.995, 83},
                                                                             {0.999, 120},
                                                                             {1, 180}};
-
-    const auto simulateThermal{true};
-    const auto simulateMoisture{true};
-
-    HygroThermFEM::MultiDomain multiDomain{simulateThermal, simulateMoisture};
 
     auto & material =
       multiDomain.materials().createSolidMaterial("Test Material",

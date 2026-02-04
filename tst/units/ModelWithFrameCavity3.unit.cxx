@@ -4,7 +4,6 @@
 
 #include "HygroThermFEM2D.hxx"
 
-using HygroThermFEM::NodePool;
 using HygroThermFEM::State;
 
 class TestModelWithFrameCavity3 : public testing::Test
@@ -14,14 +13,15 @@ protected:
     {}
 
     void TearDown() override
-    {
-        NodePool::Instance().clear();
-    }
+    {}
 };
 
 TEST_F(TestModelWithFrameCavity3, TestSingleFrameCavity)
 {
     SCOPED_TRACE("Begin Test: Model with single frame cavity.");
+
+    // Create multi-domain before materials
+    HygroThermFEM::MultiDomain multiDomain;
 
     std::vector<double> gridX{0, 0.01, 0.02, 0.03, 0.04};
     std::vector<double> gridY{0, 0.05, 0.1, 0.15, 0.2};
@@ -34,17 +34,14 @@ TEST_F(TestModelWithFrameCavity3, TestSingleFrameCavity)
     size_t nodeIndex = 0;
 
     // Crating grid nodes
-    for(auto y : gridY)
+    for(auto yVal : gridY)
     {
-        for(auto x : gridX)
+        for(auto xVal : gridX)
         {
             ++nodeIndex;
-            NodePool::Instance().createNode(nodeIndex, x, y, state);
+            multiDomain.nodePool().createNode(nodeIndex, xVal, yVal, state);
         }
     }
-
-    // Create multi-domain before materials
-    HygroThermFEM::MultiDomain multiDomain;
 
     // Material Properties
     constexpr double thermalConductivityDry{1.8};
@@ -138,8 +135,8 @@ TEST_F(TestModelWithFrameCavity3, TestSingleFrameCavity)
     constexpr auto dTime = 36000;
     constexpr auto nSteps = 10;
 
-    auto temperatures = NodePool::Instance().properties(HygroThermFEM::Variable::temperature);
-    auto humidities = NodePool::Instance().properties(HygroThermFEM::Variable::humidity);
+    auto temperatures = multiDomain.nodePool().properties(HygroThermFEM::Variable::temperature);
+    auto humidities = multiDomain.nodePool().properties(HygroThermFEM::Variable::humidity);
     std::vector<std::vector<double>> temperatureSolution;
     std::vector<std::vector<double>> waterContentSolution;
 

@@ -3,8 +3,6 @@
 
 #include "HygroThermFEM2D.hxx"
 
-using HygroThermFEM::NodePool;
-
 class ConvectionBC_2D_TransientNoChanges : public testing::Test
 {
 protected:
@@ -12,14 +10,14 @@ protected:
     {}
 
     void TearDown() override
-    {
-        NodePool::Instance().clear();
-    }
+    {}
 };
 
 TEST_F(ConvectionBC_2D_TransientNoChanges, TestExample_1)
 {
     SCOPED_TRACE("Begin Test: Three elements with simple convection BC.");
+
+    HygroThermFEM::MultiDomain multiDomain(true, false);
 
     std::vector<double> gridXCoordinates{0, 0.05, 0.1, 0.15};
 
@@ -32,9 +30,9 @@ TEST_F(ConvectionBC_2D_TransientNoChanges, TestExample_1)
     for(auto val : gridXCoordinates)
     {
         ++nodeIndex;
-        NodePool::Instance().createNode(nodeIndex, val, 0.00, state);
+        multiDomain.nodePool().createNode(nodeIndex, val, 0.00, state);
         ++nodeIndex;
-        NodePool::Instance().createNode(nodeIndex, val, 0.05, state);
+        multiDomain.nodePool().createNode(nodeIndex, val, 0.05, state);
     }
 
     // Material Properties (Cottaer Sandstone)
@@ -70,8 +68,6 @@ TEST_F(ConvectionBC_2D_TransientNoChanges, TestExample_1)
                                                                             {0.999, 120},
                                                                             {1, 180}};
 
-    HygroThermFEM::MultiDomain multiDomain(true, false);
-
     auto & material =
       multiDomain.materials().createSolidMaterial("Cottaer Sandstone",
                                                   thermalConductivityDry,
@@ -87,12 +83,12 @@ TEST_F(ConvectionBC_2D_TransientNoChanges, TestExample_1)
                                                   moistureStorageFunction);
 
     /// Create elements
-    for(size_t i = 1u; i <= (NodePool::Instance().maxIndex() - 2) / 2; ++i)
+    for(size_t idx = 1u; idx <= (multiDomain.nodePool().maxIndex() - 2) / 2; ++idx)
     {
-        const auto index1 = 2u * i + 1u;
-        const auto index2 = 2u * i + 2u;
-        const auto index3 = 2u * i;
-        const auto index4 = 2u * i - 1u;
+        const auto index1 = 2u * idx + 1u;
+        const auto index2 = 2u * idx + 2u;
+        const auto index3 = 2u * idx;
+        const auto index4 = 2u * idx - 1u;
         multiDomain.createElement(index1, index2, index3, index4, material.name());
     }
 
@@ -107,7 +103,7 @@ TEST_F(ConvectionBC_2D_TransientNoChanges, TestExample_1)
     constexpr auto dTime = 36000;
     constexpr auto nSteps = 4;
 
-    auto temperatures = NodePool::Instance().properties(HygroThermFEM::Variable::temperature);
+    auto temperatures = multiDomain.nodePool().properties(HygroThermFEM::Variable::temperature);
     std::vector<std::vector<double>> solution;
 
     for(unsigned i = 0; i < nSteps; ++i)

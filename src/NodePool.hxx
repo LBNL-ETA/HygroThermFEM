@@ -5,15 +5,15 @@
 
 namespace HygroThermFEM
 {
-    //! \brief Singleton class holds poll of nodes used in one domain.
+    //! \brief Class holds pool of nodes used in one domain.
     //!
     //! Pool of all nodes will be used by different domains that present thermal, mass or pressure
-    //! models. NodePool must be cleared up before new model is used.
+    //! models. NodePool is owned by MultiDomain and must be cleared before new model is used.
     class NodePool
     {
     public:
-        //! Access to NodePool singleton
-        static NodePool & Instance();
+        NodePool() = default;
+        ~NodePool() = default;
 
         //! \brief Creates node with node index and x, y coordinate and sets starting state
         //! conditions
@@ -40,7 +40,7 @@ namespace HygroThermFEM
         //! Returns state values (temperature, water content or pressure) at all nodes.
         std::vector<double>
           properties(Variable t_Property   //!< Variable for which values are obtained.
-          );
+          ) const;
 
         //! Update all node values for given state property.
         //!
@@ -56,9 +56,6 @@ namespace HygroThermFEM
         void clear();
 
     private:
-        NodePool() = default;
-        ~NodePool() = default;
-
         //! Storage for nodes in NodePool.
         std::vector<Node2D> m_Nodes;
     };

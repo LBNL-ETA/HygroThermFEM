@@ -12,10 +12,11 @@ namespace HygroThermFEM
     ///////////////////////////////////////////////////////////////////////////////
 
     EquivalentGasCavity::EquivalentGasCavity(
+      NodePool & nodePool,
       const std::vector<size_t> & nodes,
       IGas & gas,
       const FenestrationCommon::GravityVector & gravityVector) :
-        m_Segments(buildSegments(nodes)),
+        m_Segments(buildSegments(nodePool, nodes)),
         m_SideSegments(groupSegmentSides(m_Segments)),
         m_Side{
           {Side::Top, {0, 0}}, {Side::Bottom, {0, 0}}, {Side::Left, {0, 0}}, {Side::Right, {0, 0}}},
@@ -74,14 +75,14 @@ namespace HygroThermFEM
     }
 
     std::vector<EquivalentGasCavity::Segment>
-      EquivalentGasCavity::buildSegments(const std::vector<size_t> & nodes)
+      EquivalentGasCavity::buildSegments(NodePool & nodePool, const std::vector<size_t> & nodes)
     {
         std::vector<Segment> segments;
         for(size_t i = 0u; i < nodes.size(); ++i)
         {
             const auto firstIndex = i == 0 ? nodes.size() - 1 : i - 1;
-            const auto & node1 = NodePool::Instance().getNode(nodes[firstIndex]);
-            const auto & node2 = NodePool::Instance().getNode(nodes[i]);
+            const auto & node1 = nodePool.getNode(nodes[firstIndex]);
+            const auto & node2 = nodePool.getNode(nodes[i]);
             auto emissivity{0.0};
             const auto commonMaterial = findCommonMaterial(node1, node2);
             if(commonMaterial.has_value())
@@ -336,7 +337,10 @@ namespace HygroThermFEM
     ///  EquivalentGasCavities
     ///////////////////////////////////////////////////////////////////////////////
 
-    EquivalentGasCavities::EquivalentGasCavities(Materials & materialPool, const ElementsLinear2D & elements) :
+    EquivalentGasCavities::EquivalentGasCavities(NodePool & nodePool,
+                                                 Materials & materialPool,
+                                                 const ElementsLinear2D & elements) :
+        m_NodePool(nodePool),
         m_MaterialPool(materialPool),
         m_Elements(elements)
     {
@@ -359,7 +363,7 @@ namespace HygroThermFEM
             }
             auto edges = getEdges(elementNodes);
             auto & gas = m_MaterialPool.gas(frameCavity);
-            m_Cavities.emplace_back(edgeNodesOrdered(edges), gas);
+            m_Cavities.emplace_back(m_NodePool, edgeNodesOrdered(edges), gas);
         }
     }
 

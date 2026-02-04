@@ -4,8 +4,6 @@
 
 #include "HygroThermFEM2D.hxx"
 
-using HygroThermFEM::NodePool;
-
 class MultiDomain_2D_THERMM200mmSlab : public testing::Test
 {
 protected:
@@ -13,13 +11,13 @@ protected:
     {}
 
     void TearDown() override
-    {
-        NodePool::Instance().clear();
-    }
+    {}
 };
 
 TEST_F(MultiDomain_2D_THERMM200mmSlab, TestExample_1)
 {
+    HygroThermFEM::MultiDomain multiDomain;
+
     // Enter nodes. Arguments are: node number, x-coordinate, y-coordinate
 
     std::vector<double> gridXCoordinates{0, 0.05, 0.1};
@@ -32,23 +30,21 @@ TEST_F(MultiDomain_2D_THERMM200mmSlab, TestExample_1)
     // auto state = HygroThermFEM::State(
     //  initialTemperature, initialMoistureContent, initialPressure, liquidPercent);
 
-    NodePool::Instance().createNode(1, 0.1, -0.049);
-    NodePool::Instance().createNode(2, 0.1, -0.009);
-    NodePool::Instance().createNode(3, 0.06, -0.049);
-    NodePool::Instance().createNode(4, 0.1, 0.049);
-    NodePool::Instance().createNode(5, 0.06, -0.009);
-    NodePool::Instance().createNode(6, 0, -0.049);
-    NodePool::Instance().createNode(7, 0.06, 0.049);
-    NodePool::Instance().createNode(8, 0, -0.009);
-    NodePool::Instance().createNode(9, -0.06, -0.049);
-    NodePool::Instance().createNode(10, 0, 0.049);
-    NodePool::Instance().createNode(11, -0.06, -0.009);
-    NodePool::Instance().createNode(12, -0.1, -0.049);
-    NodePool::Instance().createNode(13, -0.06, 0.049);
-    NodePool::Instance().createNode(14, -0.1, -0.009);
-    NodePool::Instance().createNode(15, -0.1, 0.049);
-
-    HygroThermFEM::MultiDomain multiDomain;
+    multiDomain.nodePool().createNode(1, 0.1, -0.049);
+    multiDomain.nodePool().createNode(2, 0.1, -0.009);
+    multiDomain.nodePool().createNode(3, 0.06, -0.049);
+    multiDomain.nodePool().createNode(4, 0.1, 0.049);
+    multiDomain.nodePool().createNode(5, 0.06, -0.009);
+    multiDomain.nodePool().createNode(6, 0, -0.049);
+    multiDomain.nodePool().createNode(7, 0.06, 0.049);
+    multiDomain.nodePool().createNode(8, 0, -0.009);
+    multiDomain.nodePool().createNode(9, -0.06, -0.049);
+    multiDomain.nodePool().createNode(10, 0, 0.049);
+    multiDomain.nodePool().createNode(11, -0.06, -0.009);
+    multiDomain.nodePool().createNode(12, -0.1, -0.049);
+    multiDomain.nodePool().createNode(13, -0.06, 0.049);
+    multiDomain.nodePool().createNode(14, -0.1, -0.009);
+    multiDomain.nodePool().createNode(15, -0.1, 0.049);
 
     // Material Properties
     constexpr double thermalConductivityDry{0.1};
@@ -117,8 +113,8 @@ TEST_F(MultiDomain_2D_THERMM200mmSlab, TestExample_1)
     constexpr auto dTime = 3600;
     constexpr auto nSteps = 20;
 
-    auto temperatures = NodePool::Instance().properties(HygroThermFEM::Variable::temperature);
-    auto humidities = NodePool::Instance().properties(HygroThermFEM::Variable::humidity);
+    auto temperatures = multiDomain.nodePool().properties(HygroThermFEM::Variable::temperature);
+    auto humidities = multiDomain.nodePool().properties(HygroThermFEM::Variable::humidity);
     std::vector<std::vector<double>> temperatureSolution;
     std::vector<std::vector<double>> humiditySolution;
     size_t timestepIndex{0u};

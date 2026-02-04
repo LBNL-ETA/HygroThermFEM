@@ -13,9 +13,7 @@ protected:
     }
 
     void TearDown() override
-    {
-        HygroThermFEM::NodePool::Instance().clear();
-    }
+    {}
 
     [[nodiscard]] std::string materialName() const
     {

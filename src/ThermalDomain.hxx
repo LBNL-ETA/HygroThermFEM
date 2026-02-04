@@ -13,7 +13,8 @@ namespace HygroThermFEM
 
     private:
         //! Simple constructor - only accessible via MultiDomain
-        explicit ThermalDomain(Materials & materialPool,
+        explicit ThermalDomain(NodePool & nodePool,
+                               Materials & materialPool,
                                bool automaticUpdatePreviousTimestep = true);
 
         //! \brief Creates and adds element into domain - only accessible via MultiDomain

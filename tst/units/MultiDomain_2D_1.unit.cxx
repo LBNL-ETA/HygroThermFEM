@@ -19,14 +19,14 @@ protected:
     {}
 
     void TearDown() override
-    {
-        NodePool::Instance().clear();
-    }
+    {}
 };
 
 TEST_F(MultiDomain_2D_1, TestExample_1)
 {
     SCOPED_TRACE("Begin Test: Simple two elements example with moisture and heat transfer.");
+
+    HygroThermFEM::MultiDomain multiDomain;
 
     // Enter nodes. Arguments are: node number, x-coordinate, y-coordinate
 
@@ -46,13 +46,13 @@ TEST_F(MultiDomain_2D_1, TestExample_1)
     for(auto val : gridXCoordinates)
     {
         ++nodeIndex;
-        NodePool::Instance().createNode(
+        multiDomain.nodePool().createNode(
           nodeIndex,
           val,
           0.00,
           State(initialTemperature + T, initialMoistureContent + H, initialPressure, 0));
         ++nodeIndex;
-        NodePool::Instance().createNode(
+        multiDomain.nodePool().createNode(
           nodeIndex,
           val,
           0.05,
@@ -60,8 +60,6 @@ TEST_F(MultiDomain_2D_1, TestExample_1)
         T += deltaT;
         H += deltaH;
     }
-
-    HygroThermFEM::MultiDomain multiDomain;
 
     // Material Properties (Cottaer Sandstone)
     constexpr double thermalConductivityDry{1.8};
@@ -111,7 +109,7 @@ TEST_F(MultiDomain_2D_1, TestExample_1)
                                                   moistureStorageFunction);
 
     /// Create elements
-    for(size_t i = 1; i <= (NodePool::Instance().maxIndex() - 2) / 2; ++i)
+    for(size_t i = 1; i <= (multiDomain.nodePool().maxIndex() - 2) / 2; ++i)
     {
         const auto node1 = 2u * i + 1u;
         const auto node2 = 2u * i + 2u;
@@ -123,8 +121,8 @@ TEST_F(MultiDomain_2D_1, TestExample_1)
     constexpr auto dTime = 360;
     constexpr auto nSteps = 10;
 
-    auto temperatures = NodePool::Instance().properties(HygroThermFEM::Variable::temperature);
-    auto humidities = NodePool::Instance().properties(HygroThermFEM::Variable::humidity);
+    auto temperatures = multiDomain.nodePool().properties(HygroThermFEM::Variable::temperature);
+    auto humidities = multiDomain.nodePool().properties(HygroThermFEM::Variable::humidity);
     std::vector<std::vector<double>> temperatureSolution;
     std::vector<std::vector<double>> waterContentSolution;
 
@@ -186,8 +184,6 @@ TEST_F(MultiDomain_2D_1, TestExample_1_Repeat)
 {
     SCOPED_TRACE("Begin Test: Repeatability test.");
 
-    NodePool::Instance().clear();
-
     HygroThermFEM::MultiDomain multiDomain;
 
     // Enter nodes. Arguments are: node number, x-coordinate, y-coordinate
@@ -208,13 +204,13 @@ TEST_F(MultiDomain_2D_1, TestExample_1_Repeat)
     for(auto val : gridXCoordinates)
     {
         ++nodeIndex;
-        NodePool::Instance().createNode(
+        multiDomain.nodePool().createNode(
                 nodeIndex,
                 val,
                 0.00,
                 State(initialTemperature + T, initialMoistureContent + H, initialPressure, 0));
         ++nodeIndex;
-        NodePool::Instance().createNode(
+        multiDomain.nodePool().createNode(
                 nodeIndex,
                 val,
                 0.05,
@@ -271,7 +267,7 @@ TEST_F(MultiDomain_2D_1, TestExample_1_Repeat)
                                                         moistureStorageFunction);
 
     /// Create elements
-    for(size_t i = 1; i <= (NodePool::Instance().maxIndex() - 2) / 2; ++i)
+    for(size_t i = 1; i <= (multiDomain.nodePool().maxIndex() - 2) / 2; ++i)
     {
         const auto node1 = 2u * i + 1u;
         const auto node2 = 2u * i + 2u;
@@ -283,8 +279,8 @@ TEST_F(MultiDomain_2D_1, TestExample_1_Repeat)
     constexpr auto dTime = 360;
     constexpr auto nSteps = 10;
 
-    auto temperatures = NodePool::Instance().properties(HygroThermFEM::Variable::temperature);
-    auto humidities = NodePool::Instance().properties(HygroThermFEM::Variable::humidity);
+    auto temperatures = multiDomain.nodePool().properties(HygroThermFEM::Variable::temperature);
+    auto humidities = multiDomain.nodePool().properties(HygroThermFEM::Variable::humidity);
     std::vector<std::vector<double>> temperatureSolution;
     std::vector<std::vector<double>> waterContentSolution;
 

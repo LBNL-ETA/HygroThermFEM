@@ -16,7 +16,7 @@ namespace HygroThermFEM
 {
     SquareMatrix IDomain::steadyStateLeftHandSide()
     {
-        const auto maxNodeIndex = NodePool::Instance().maxIndex();
+        const auto maxNodeIndex = m_NodePool.maxIndex();
         auto condMat = m_Elements.conductanceMatrix(maxNodeIndex);
         const auto boundaryHMatrix = m_BCs.HMatrix(maxNodeIndex);
         condMat += boundaryHMatrix;
@@ -26,12 +26,12 @@ namespace HygroThermFEM
 
     std::vector<double> IDomain::steadyStateRightHandSide() const
     {
-        return m_BCs.RVector(NodePool::Instance().maxIndex());
+        return m_BCs.RVector(m_NodePool.maxIndex());
     }
 
     SquareMatrix IDomain::transientM_K_H_Matrix(const double t_DTime, const size_t timestepIndex)
     {
-        const auto maxNodeIndex = NodePool::Instance().maxIndex();
+        const auto maxNodeIndex = m_NodePool.maxIndex();
         const auto MassVec = m_Elements.getLumpedMass(maxNodeIndex, t_DTime);
         auto M_K_H = m_Elements.conductanceMatrix(maxNodeIndex);
         M_K_H = M_K_H.addDiagonal(MassVec);
@@ -45,7 +45,7 @@ namespace HygroThermFEM
                                     const double t_DTime,
                                     const size_t timestepIndex)
     {
-        const auto maxNodeIndex = NodePool::Instance().maxIndex();
+        const auto maxNodeIndex = m_NodePool.maxIndex();
         const std::vector<double> MassVec{m_Elements.getLumpedMass(maxNodeIndex, t_DTime)};
         const auto vecR = m_BCs.RVector(maxNodeIndex, timestepIndex)
                           + m_Elements.RVector(maxNodeIndex);
@@ -153,7 +153,7 @@ namespace HygroThermFEM
 
                 ++numOfIterations;
 
-                NodePool::Instance().updateNodeValues(
+                m_NodePool.updateNodeValues(
                   solution, m_Property, m_AutomaticUpdatePreviousTimestep);
 
                 A = transientM_K_H_Matrix(t_DTime, timestepIndex);
@@ -166,7 +166,7 @@ namespace HygroThermFEM
             }
         }
 
-        NodePool::Instance().updateNodeValues(
+        m_NodePool.updateNodeValues(
           solution, m_Property, m_AutomaticUpdatePreviousTimestep);
 
         return std::make_pair(solution, converged);
@@ -177,9 +177,11 @@ namespace HygroThermFEM
         return m_BCs.isLinear() && m_Elements.isLinear();
     }
 
-    IDomain::IDomain(Materials & materialPool,
+    IDomain::IDomain(NodePool & nodePool,
+                     Materials & materialPool,
                      const BaseVariable property,
                      const bool automaticUpdateOfPreviousTimestep) :
+        m_NodePool(nodePool),
         m_MaterialPool(materialPool),
         m_Property(property),
         gasCavities(nullptr),
@@ -188,14 +190,14 @@ namespace HygroThermFEM
 
     std::vector<NodeFlux> IDomain::flux() const
     {
-        return m_Elements.flux(NodePool::Instance().maxIndex());
+        return m_Elements.flux(m_NodePool.maxIndex());
     }
 
     void IDomain::postProcess(std::vector<double> &)
     {
         if(gasCavities == nullptr)
         {
-            gasCavities = std::make_unique<EquivalentGasCavities>(m_MaterialPool, m_Elements);
+            gasCavities = std::make_unique<EquivalentGasCavities>(m_NodePool, m_MaterialPool, m_Elements);
             gasCavities->setGravityVector(m_GravityVector);
         }
         gasCavities->update();
@@ -212,7 +214,7 @@ namespace HygroThermFEM
 
     void IDomain::clearModel()
     {
-        NodePool::Instance().clear();
+        m_NodePool.clear();
         m_MaterialPool.clear();
         m_BCs.clear();
         m_Elements.clearElements();

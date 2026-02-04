@@ -2,9 +2,6 @@
 
 #include "HygroThermFEM2D.hxx"
 
-using HygroThermFEM::NodePool;
-
-
 class TestConvectionBC2D : public testing::Test
 {
 protected:
@@ -12,26 +9,26 @@ protected:
     {}
 
     void TearDown() override
-    {
-        NodePool::Instance().clear();
-    }
+    {}
 };
 
 TEST_F(TestConvectionBC2D, TestIntegrationPoints)
 {
     SCOPED_TRACE("Begin Test: Convection boundary condition.");
 
+    HygroThermFEM::MultiDomain multiDomain(true, false);
+
     // Enter nodes. Arguments are: node number, x-coordinate, y-coordinate
 
-    NodePool::Instance().createNode(1, 15, 5);
-    NodePool::Instance().createNode(2, 15, 0);
+    multiDomain.nodePool().createNode(1, 15, 5);
+    multiDomain.nodePool().createNode(2, 15, 0);
 
     constexpr auto hc = 20.0;
     constexpr auto tAir = 255.15;
 
     const HygroThermFEM::FixedBCHCCoefficients bcCoeff{tAir, hc};
 
-    auto aBc = HygroThermFEM::ConstantConvectionBC(1, 2, bcCoeff);
+    auto aBc = HygroThermFEM::ConstantConvectionBC(multiDomain.nodePool(), 1, 2, bcCoeff);
 
     auto h = aBc.H_Matrix();
 

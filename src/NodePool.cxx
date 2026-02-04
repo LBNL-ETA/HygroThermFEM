@@ -9,12 +9,6 @@
 
 namespace HygroThermFEM
 {
-    NodePool & NodePool::Instance()
-    {
-        static NodePool m_Instance;
-        return m_Instance;
-    }
-
     Node2D & NodePool::createNode(const std::size_t t_NodeNumber,
                                   const double t_x,
                                   const double t_y,
@@ -39,10 +33,10 @@ namespace HygroThermFEM
         return aNode.getNodeNumber();
     }
 
-    std::vector<double> NodePool::properties(const Variable t_Property)
+    std::vector<double> NodePool::properties(const Variable t_Property) const
     {
         std::vector<double> aVector;
-        for(Node2D & aNode : m_Nodes)
+        for(const Node2D & aNode : m_Nodes)
         {
             aVector.push_back(aNode.property(t_Property));
         }

@@ -3,8 +3,6 @@
 
 #include "HygroThermFEM2D.hxx"
 
-using HygroThermFEM::NodePool;
-
 class SimplifiedRadiationBC_2D_1 : public testing::Test
 {
 protected:
@@ -12,26 +10,24 @@ protected:
     {}
 
     void TearDown() override
-    {
-        NodePool::Instance().clear();
-    }
+    {}
 };
 
 TEST_F(SimplifiedRadiationBC_2D_1, TestExample_1)
 {
     SCOPED_TRACE("Begin Test: Two elementsCreator example with transient.");
 
-    // same temperature in every node (humidity and pressure irrelevant for this example)
-    auto state = HygroThermFEM::State(0, 0, 101325, 0);
-
-    NodePool::Instance().createNode(1, 0.15, 0.05, state);
-    NodePool::Instance().createNode(2, 0.15, 0, state);
-    NodePool::Instance().createNode(3, 0.05, 0.05, state);
-    NodePool::Instance().createNode(4, 0.05, 0, state);
-    NodePool::Instance().createNode(5, 0, 0.05, state);
-    NodePool::Instance().createNode(6, 0, 0, state);
-
     HygroThermFEM::MultiDomain multiDomain(true, false);
+
+    // same temperature in every node (humidity and pressure irrelevant for this example)
+    const auto state = HygroThermFEM::State(0, 0, 101325, 0);
+
+    multiDomain.nodePool().createNode(1, 0.15, 0.05, state);
+    multiDomain.nodePool().createNode(2, 0.15, 0, state);
+    multiDomain.nodePool().createNode(3, 0.05, 0.05, state);
+    multiDomain.nodePool().createNode(4, 0.05, 0, state);
+    multiDomain.nodePool().createNode(5, 0, 0.05, state);
+    multiDomain.nodePool().createNode(6, 0, 0, state);
 
     // Material Properties (Cottaer Sandstone - non porous)
     constexpr double thermalConductivityDry{1.8};
@@ -95,7 +91,7 @@ TEST_F(SimplifiedRadiationBC_2D_1, TestExample_1)
     constexpr auto dTime = 3600;
     constexpr auto nSteps = 4;
 
-    auto temperatures = NodePool::Instance().properties(HygroThermFEM::Variable::temperature);
+    auto temperatures = multiDomain.nodePool().properties(HygroThermFEM::Variable::temperature);
     std::vector<std::vector<double>> solution;
 
     for(unsigned i = 0; i < nSteps; ++i)

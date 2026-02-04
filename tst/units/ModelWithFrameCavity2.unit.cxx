@@ -4,7 +4,6 @@
 
 #include "HygroThermFEM2D.hxx"
 
-using HygroThermFEM::NodePool;
 using HygroThermFEM::State;
 using HygroThermFEM::ElementsLinear2D;
 using HygroThermFEM::ElementThermalLinear2D;
@@ -17,9 +16,7 @@ protected:
     {}
 
     void TearDown() override
-    {
-        NodePool::Instance().clear();
-    }
+    {}
 
 public:
 };
@@ -27,6 +24,9 @@ public:
 TEST_F(TestModelWithFrameCavity2, TestDoubleFrameCavity)
 {
     SCOPED_TRACE("Begin Test: Model with two frame cavities.");
+
+    // Create elements grid
+    HygroThermFEM::MultiDomain multiDomain(true, false);
 
     std::vector<double> gridX{0, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07};
     std::vector<double> gridY{0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35};
@@ -39,17 +39,14 @@ TEST_F(TestModelWithFrameCavity2, TestDoubleFrameCavity)
     size_t nodeIndex = 0;
 
     // Crating grid nodes
-    for(auto y : gridY)
+    for(auto yVal : gridY)
     {
-        for(auto x : gridX)
+        for(auto xVal : gridX)
         {
             ++nodeIndex;
-            NodePool::Instance().createNode(nodeIndex, x, y, state);
+            multiDomain.nodePool().createNode(nodeIndex, xVal, yVal, state);
         }
     }
-
-    // Create elements grid
-    HygroThermFEM::MultiDomain multiDomain(true, false);
 
     // Material Properties
     constexpr double thermalConductivityDry{1.8};
@@ -142,7 +139,7 @@ TEST_F(TestModelWithFrameCavity2, TestDoubleFrameCavity)
     constexpr auto dTime = 360;
     constexpr auto nSteps = 10;
 
-    auto temperatures = NodePool::Instance().properties(HygroThermFEM::Variable::temperature);
+    auto temperatures = multiDomain.nodePool().properties(HygroThermFEM::Variable::temperature);
     std::vector<std::vector<double>> solution;
 
     for(unsigned i = 0; i < nSteps; ++i)

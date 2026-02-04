@@ -9,11 +9,13 @@ namespace HygroThermFEM
     ////////////////////////////////////////////////////////
     /// ConstantConvectionBC
     ////////////////////////////////////////////////////////
-    ConstantConvectionBC::ConstantConvectionBC(size_t index1,
+    ConstantConvectionBC::ConstantConvectionBC(NodePool & nodePool,
+                                               size_t index1,
                                                size_t index2,
                                                const FixedBCHCCoefficients & fixedBCHCCoefficients,
                                                const bool simulateVaporFluxEnergy) :
-        IConvectionBC(index1,
+        IConvectionBC(nodePool,
+                      index1,
                       index2,
                       fixedBCHCCoefficients.AirTemperature,
                       ConvectionModelFactory::createFixedFilmCoefficient(
@@ -25,12 +27,14 @@ namespace HygroThermFEM
     ////////////////////////////////////////////////////////
     /// ThermalTARPConvectionBC
     ////////////////////////////////////////////////////////
-    ThermalTARPConvectionBC::ThermalTARPConvectionBC(size_t index1,
+    ThermalTARPConvectionBC::ThermalTARPConvectionBC(NodePool & nodePool,
+                                                     size_t index1,
                                                      size_t index2,
                                                      const TARPCoefficients & varHCCoeff,
                                                      const double surfaceTilt,
                                                      const bool simulateVaporFluxEnergy) :
-        IConvectionBC(index1,
+        IConvectionBC(nodePool,
+                      index1,
                       index2,
                       varHCCoeff.AirTemperature,
                       ConvectionModelFactory::createTARPFilmCoefficient(
@@ -42,13 +46,15 @@ namespace HygroThermFEM
     ////////////////////////////////////////////////////////
     /// ASHRAEInsideConvectionBC
     ////////////////////////////////////////////////////////
-    ASHRAEInsideConvectionBC::ASHRAEInsideConvectionBC(size_t index1,
+    ASHRAEInsideConvectionBC::ASHRAEInsideConvectionBC(NodePool & nodePool,
+                                                       size_t index1,
                                                        size_t index2,
                                                        const ASHRAEInsideCoefficients & coeff,
                                                        double surfaceHeight,
                                                        double surfaceTilt,
                                                        bool simulateVaporFluxEnergy) :
         IConvectionBC(
+          nodePool,
           index1,
           index2,
           coeff.AirTemperature,
@@ -61,11 +67,13 @@ namespace HygroThermFEM
     ////////////////////////////////////////////////////////
     /// ASHRAEOutsideConvectionBC
     ////////////////////////////////////////////////////////
-    ASHRAEOutsideConvectionBC::ASHRAEOutsideConvectionBC(size_t index1,
+    ASHRAEOutsideConvectionBC::ASHRAEOutsideConvectionBC(NodePool & nodePool,
+                                                         size_t index1,
                                                          size_t index2,
                                                          const ASHRAEOutsideCoefficients & coeff,
                                                          bool simulateVaporFluxEnergy) :
         IConvectionBC(
+          nodePool,
           index1,
           index2,
           coeff.AirTemperature,
@@ -77,11 +85,13 @@ namespace HygroThermFEM
     ////////////////////////////////////////////////////////
     /// YazdanianKlemsConvectionBC
     ////////////////////////////////////////////////////////
-    YazdanianKlemsConvectionBC::YazdanianKlemsConvectionBC(size_t index1,
+    YazdanianKlemsConvectionBC::YazdanianKlemsConvectionBC(NodePool & nodePool,
+                                                           size_t index1,
                                                            size_t index2,
                                                            const YazdanianKlemsCoefficients & coeff,
                                                            bool simulateVaporFluxEnergy) :
-        IConvectionBC(index1,
+        IConvectionBC(nodePool,
+                      index1,
                       index2,
                       coeff.AirTemperature,
                       ConvectionModelFactory::createYazdanianKlemsFilmCoefficient(
@@ -91,13 +101,15 @@ namespace HygroThermFEM
     {}
 
     ////////////////////////////////////////////////////////
-    /// YazdanianKlemsConvectionBC
+    /// KimuraConvectionBC
     ////////////////////////////////////////////////////////
-    KimuraConvectionBC::KimuraConvectionBC(size_t index1,
+    KimuraConvectionBC::KimuraConvectionBC(NodePool & nodePool,
+                                           size_t index1,
                                            size_t index2,
                                            const KimuraCoefficients & coeff,
                                            bool simulateVaporFluxEnergy) :
-        IConvectionBC(index1,
+        IConvectionBC(nodePool,
+                      index1,
                       index2,
                       coeff.AirTemperature,
                       ConvectionModelFactory::createKimuraFilmCoefficient(
@@ -109,25 +121,27 @@ namespace HygroThermFEM
     /// TemperatureBC
     ////////////////////////////////////////////////////////
 
-    TemperatureBC::TemperatureBC(const size_t index1,
+    TemperatureBC::TemperatureBC(NodePool & nodePool,
+                                 const size_t index1,
                                  const size_t index2,
                                  const double t_NodeTemperatures) :
-        ConstantConvectionBC(index1, index2, {t_NodeTemperatures, hugeFilmCoefficient})
+        ConstantConvectionBC(nodePool, index1, index2, {t_NodeTemperatures, hugeFilmCoefficient})
     {
-        auto & node1 = NodePool::Instance().getNode(index1);
-        auto & node2 = NodePool::Instance().getNode(index2);
+        auto & node1 = nodePool.getNode(index1);
+        auto & node2 = nodePool.getNode(index2);
         node1.setStateProperty(BaseVariable::temperature, t_NodeTemperatures);
         node2.setStateProperty(BaseVariable::temperature, t_NodeTemperatures);
     }
 
-    TemperatureBC::TemperatureBC(const size_t index1,
+    TemperatureBC::TemperatureBC(NodePool & nodePool,
+                                 const size_t index1,
                                  const size_t index2,
                                  const double t_Temp1,
                                  const double t_Temp2) :
-        ConstantConvectionBC(index1, index2, {(t_Temp1 + t_Temp2) / 2, hugeFilmCoefficient})
+        ConstantConvectionBC(nodePool, index1, index2, {(t_Temp1 + t_Temp2) / 2, hugeFilmCoefficient})
     {
-        auto & node1 = NodePool::Instance().getNode(index1);
-        auto & node2 = NodePool::Instance().getNode(index2);
+        auto & node1 = nodePool.getNode(index1);
+        auto & node2 = nodePool.getNode(index2);
         node1.setStateProperty(BaseVariable::temperature, t_Temp1);
         node2.setStateProperty(BaseVariable::temperature, t_Temp2);
     }
@@ -136,8 +150,11 @@ namespace HygroThermFEM
     /// Flux BC
     ////////////////////////////////////////////////////////
 
-    FluxBC::FluxBC(const size_t index1, const size_t index2, const double t_Flux) :
-        IBCLinear2D(index1, index2),
+    FluxBC::FluxBC(NodePool & nodePool,
+                   const size_t index1,
+                   const size_t index2,
+                   const double t_Flux) :
+        IBCLinear2D(nodePool, index1, index2),
         m_Flux(t_Flux)
     {}
 
@@ -160,11 +177,12 @@ namespace HygroThermFEM
     /// IRadiationBC - Base class for radiation BCs
     ////////////////////////////////////////////////////////
 
-    IRadiationBC::IRadiationBC(const size_t index1,
+    IRadiationBC::IRadiationBC(NodePool & nodePool,
+                               const size_t index1,
                                const size_t index2,
                                const double radiationTemperature,
                                const bool isLinear) :
-        IBCLinear2D(index1, index2, isLinear),
+        IBCLinear2D(nodePool, index1, index2, isLinear),
         m_RadiationTemperature{radiationTemperature}
     {}
 
@@ -182,11 +200,12 @@ namespace HygroThermFEM
     /// BlackBodyRadiationBC
     ////////////////////////////////////////////////////////
 
-    BlackBodyRadiationBC::BlackBodyRadiationBC(const size_t index1,
+    BlackBodyRadiationBC::BlackBodyRadiationBC(NodePool & nodePool,
+                                               const size_t index1,
                                                const size_t index2,
                                                const double emissivity,
                                                const double radiationTemperature) :
-        IRadiationBC(index1, index2, radiationTemperature, false),
+        IRadiationBC(nodePool, index1, index2, radiationTemperature, false),
         m_Emissivity{emissivity}
     {}
 
@@ -208,9 +227,11 @@ namespace HygroThermFEM
     /// LinearizedRadiationBC
     ////////////////////////////////////////////////////////
 
-    LinearizedRadiationBC::LinearizedRadiationBC(
-      const size_t index1, const size_t index2, const LinearizedRadiationBCCoefficients & linearRadBC) :
-        IRadiationBC(index1, index2, linearRadBC.RadiationTemperature, true),
+    LinearizedRadiationBC::LinearizedRadiationBC(NodePool & nodePool,
+                                                 const size_t index1,
+                                                 const size_t index2,
+                                                 const LinearizedRadiationBCCoefficients & linearRadBC) :
+        IRadiationBC(nodePool, index1, index2, linearRadBC.RadiationTemperature, true),
         m_RadiationCoefficient(linearRadBC.RadiationCoefficient)
     {}
 

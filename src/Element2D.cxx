@@ -145,7 +145,8 @@ namespace HygroThermFEM
     ///  IElementLinear2D
     //////////////////////////////////////////////////////////////////////////////
 
-    IElementLinear2D::IElementLinear2D(Materials & materialPool,
+    IElementLinear2D::IElementLinear2D(NodePool & nodePool,
+                                       Materials & materialPool,
                                        const size_t index1,
                                        const size_t index2,
                                        const size_t index3,
@@ -155,14 +156,14 @@ namespace HygroThermFEM
                                        const bool isLinear) :
         m_Material{materialPool.material(materialName)},
         m_FluxVariable(variable),
-        m_Nodes{NodePool::Instance().getNode(index1),
-                NodePool::Instance().getNode(index2),
-                NodePool::Instance().getNode(index3),
-                NodePool::Instance().getNode(index4)},
-        m_Global2D{NodePool::Instance().getNode(index1),
-                   NodePool::Instance().getNode(index2),
-                   NodePool::Instance().getNode(index3),
-                   NodePool::Instance().getNode(index4)},
+        m_Nodes{nodePool.getNode(index1),
+                nodePool.getNode(index2),
+                nodePool.getNode(index3),
+                nodePool.getNode(index4)},
+        m_Global2D{nodePool.getNode(index1),
+                   nodePool.getNode(index2),
+                   nodePool.getNode(index3),
+                   nodePool.getNode(index4)},
         m_QLECapacitance2D{m_Global2D},
         m_Linear{isLinear && m_Material.isLinear()}
     {
@@ -174,9 +175,9 @@ namespace HygroThermFEM
         while(!m_Nodes.last())
         {
             /// Form triangle of nodes. node1 is in center and angle is calculated at that node.
-            auto & node1 = NodePool::Instance().getNode(m_Nodes.current().getNodeNumber());
-            auto & node2 = NodePool::Instance().getNode(m_Nodes.previous().getNodeNumber());
-            auto & node3 = NodePool::Instance().getNode(m_Nodes.next().getNodeNumber());
+            auto & node1 = nodePool.getNode(m_Nodes.current().getNodeNumber());
+            auto & node2 = nodePool.getNode(m_Nodes.previous().getNodeNumber());
+            auto & node3 = nodePool.getNode(m_Nodes.next().getNodeNumber());
 
             /// Weighting coefficient depends on angle that is form by nodes next to node1.
             /// That coefficient is fraction of full circle.
@@ -373,13 +374,14 @@ namespace HygroThermFEM
     ///  ElementThermalLinear2D
     //////////////////////////////////////////////////////////////////////////////
 
-    ElementThermalLinear2D::ElementThermalLinear2D(Materials & materialPool,
+    ElementThermalLinear2D::ElementThermalLinear2D(NodePool & nodePool,
+                                                   Materials & materialPool,
                                                    const size_t index1,
                                                    const size_t index2,
                                                    const size_t index3,
                                                    const size_t index4,
                                                    const std::string & materialName) :
-        IElementLinear2D(materialPool, index1, index2, index3, index4, materialName, Variable::temperature)
+        IElementLinear2D(nodePool, materialPool, index1, index2, index3, index4, materialName, Variable::temperature)
     {
         //////////////////////////////////////////////////////////////////////////////////////
         /// Capacitance functions
@@ -491,13 +493,14 @@ namespace HygroThermFEM
     ///  ElementMoistureLinear2D
     //////////////////////////////////////////////////////////////////////////////
 
-    ElementMoistureLinear2D::ElementMoistureLinear2D(Materials & materialPool,
+    ElementMoistureLinear2D::ElementMoistureLinear2D(NodePool & nodePool,
+                                                     Materials & materialPool,
                                                      const size_t index1,
                                                      const size_t index2,
                                                      const size_t index3,
                                                      const size_t index4,
                                                      const std::string & materialName) :
-        IElementLinear2D(materialPool, index1, index2, index3, index4, materialName, Variable::humidity, false)
+        IElementLinear2D(nodePool, materialPool, index1, index2, index3, index4, materialName, Variable::humidity, false)
     {
         //////////////////////////////////////////////////////////////////////////////
         /// Water vapor diffusion

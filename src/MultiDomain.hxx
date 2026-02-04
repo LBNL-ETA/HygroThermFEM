@@ -5,6 +5,7 @@
 #include "MoistureDomain.hxx"
 #include "MaterialMissingProperties.hxx"
 #include "Materials.hxx"
+#include "NodePool.hxx"
 
 namespace Timesteps
 {
@@ -81,7 +82,7 @@ namespace HygroThermFEM
         //! \brief Checks if thermal simulation is ON
         bool isThermalSimulationON() const;
 
-        static std::vector<double> property(Variable property);
+        std::vector<double> property(Variable property) const;
 
         //! \brief Creates element with material reference
         //! @param index1 Node 1 index
@@ -355,6 +356,14 @@ namespace HygroThermFEM
         //! @return Reference to the MoistureDomain
         MoistureDomain & moisture();
 
+        //! @brief Access to node pool used by this MultiDomain
+        //! @return Reference to the NodePool instance
+        NodePool & nodePool();
+
+        //! @brief Const access to node pool used by this MultiDomain
+        //! @return Const reference to the NodePool instance
+        [[nodiscard]] const NodePool & nodePool() const;
+
     private:
         //! \brief Checks validity of materials for transient simulation
         [[nodiscard]] MaterialsErrorCheckVector checkMaterialsForTransientSimulation() const;
@@ -364,6 +373,8 @@ namespace HygroThermFEM
 
         static double normError(const std::vector<double> & vec1, const std::vector<double> & vec2);
 
+        // NodePool owned by MultiDomain - each MultiDomain has its own node pool
+        NodePool m_NodePool;
         // MaterialPool owned by MultiDomain - must be declared before domains (initialization order)
         Materials m_Materials;
         ThermalDomain m_ThermalDomain;

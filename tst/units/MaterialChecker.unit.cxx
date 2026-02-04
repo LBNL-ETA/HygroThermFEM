@@ -3,7 +3,6 @@
 
 #include "HygroThermFEM2D.hxx"
 
-using HygroThermFEM::NodePool;
 using HygroThermFEM::State;
 
 class TestMaterialChecker : public testing::Test
@@ -14,7 +13,6 @@ protected:
 
     void TearDown() override
     {
-        NodePool::Instance().clear();
         HygroThermFEM::SimulationProperties::Instance().resetCalculationParameters();
     }
 };

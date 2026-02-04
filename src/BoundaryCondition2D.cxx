@@ -14,12 +14,13 @@ namespace HygroThermFEM
     /// IConvectiveBCBase
     ////////////////////////////////////////////////////////
 
-    IConvectiveBCBase::IConvectiveBCBase(const size_t index1,
+    IConvectiveBCBase::IConvectiveBCBase(NodePool & nodePool,
+                                         const size_t index1,
                                          const size_t index2,
                                          const double airTemperature,
                                          const double airHumidity,
                                          std::unique_ptr<IConvectiveCoefficient> convectiveCoeffCalc) :
-        IBCLinear2D(index1, index2),
+        IBCLinear2D(nodePool, index1, index2),
         m_AirTemperature(airTemperature),
         m_AirHumidity(airHumidity),
         m_ConvectiveCoeffCalc(std::move(convectiveCoeffCalc))
@@ -29,13 +30,14 @@ namespace HygroThermFEM
     /// IConvectionBC
     ////////////////////////////////////////////////////////
 
-    IConvectionBC::IConvectionBC(const size_t index1,
+    IConvectionBC::IConvectionBC(NodePool & nodePool,
+                                 const size_t index1,
                                  const size_t index2,
                                  const double airTemperature,
                                  std::unique_ptr<IConvectiveCoefficient> convectiveCoeffCalc,
                                  const double airHumidity,
                                  const bool simulateMoisture) :
-        IConvectiveBCBase(index1, index2, airTemperature, airHumidity, std::move(convectiveCoeffCalc)),
+        IConvectiveBCBase(nodePool, index1, index2, airTemperature, airHumidity, std::move(convectiveCoeffCalc)),
         m_SimulateVaporFluxEnergy(simulateMoisture)
     {}
 
@@ -78,14 +80,15 @@ namespace HygroThermFEM
     /// IMoistureBC
     /////////////////////////////////////////////////////
 
-    IMoistureBC::IMoistureBC(Materials & materialPool,
+    IMoistureBC::IMoistureBC(NodePool & nodePool,
+                             Materials & materialPool,
                              const size_t index1,
                              const size_t index2,
                              const std::string & materialName,
                              const double airHumidity,
                              const double airTemperature,
                              std::unique_ptr<IConvectiveCoefficient> convectiveCoeffCalc) :
-        IConvectiveBCBase(index1, index2, airTemperature, airHumidity, std::move(convectiveCoeffCalc)),
+        IConvectiveBCBase(nodePool, index1, index2, airTemperature, airHumidity, std::move(convectiveCoeffCalc)),
         m_Material(materialPool.material(materialName))
     {}
 

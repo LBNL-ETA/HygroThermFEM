@@ -10,6 +10,7 @@
 
 namespace HygroThermFEM
 {
+    class NodePool;
     ///////////////////////////////////////////////////////////////////////////////
     ///  EquivalentGasCavity
     ///////////////////////////////////////////////////////////////////////////////
@@ -23,10 +24,12 @@ namespace HygroThermFEM
     public:
         //! \brief Equivalent frame cavity constructor
         //!
+        //! \param nodePool Reference to NodePool for node lookup
         //! \param nodes Nodes from which frame cavity has been created
         //! \param gas Frame cavity is filled with this gas
         //! \param gravityVector Gravity vector in (x, y, z) coordinate system
-        explicit EquivalentGasCavity(const std::vector<size_t> & nodes,
+        explicit EquivalentGasCavity(NodePool & nodePool,
+                                     const std::vector<size_t> & nodes,
                                      IGas & gas,
                                      const FenestrationCommon::GravityVector & gravityVector = {
                                          0, -1, 0});
@@ -127,7 +130,7 @@ namespace HygroThermFEM
         static std::optional<std::reference_wrapper<const IMaterial>>
             findCommonMaterial(const Node2D & node1, const Node2D & node2);
 
-        static std::vector<Segment> buildSegments(const std::vector<size_t> & nodes);
+        static std::vector<Segment> buildSegments(NodePool & nodePool, const std::vector<size_t> & nodes);
 
         [[nodiscard]] Size calcSize(double area) const;
 
@@ -168,9 +171,12 @@ namespace HygroThermFEM
     public:
         //! Construction of frame cavities.
         //!
+        //! \param nodePool: Reference to NodePool for node lookup
         //! \param materialPool: Reference to MaterialPool for gas lookups
         //! \param elements: All elements from the domain.
-        explicit EquivalentGasCavities(Materials & materialPool, const ElementsLinear2D & elements);
+        explicit EquivalentGasCavities(NodePool & nodePool,
+                                       Materials & materialPool,
+                                       const ElementsLinear2D & elements);
 
         //! \brief Updates frame cavities with new temperatures.
         void update();
@@ -220,6 +226,7 @@ namespace HygroThermFEM
         //! \return Sorted vector of nodes that form frame cavity boundary
         static std::vector<size_t> edgeNodesOrdered(std::set<line> & allEdges);
 
+        NodePool & m_NodePool;
         Materials & m_MaterialPool;
         const ElementsLinear2D & m_Elements;
 

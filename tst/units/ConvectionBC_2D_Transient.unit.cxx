@@ -3,8 +3,6 @@
 
 #include "HygroThermFEM2D.hxx"
 
-using HygroThermFEM::NodePool;
-
 class ConvectionBC_2D_Transient : public testing::Test
 {
 protected:
@@ -12,21 +10,21 @@ protected:
     {}
 
     void TearDown() override
-    {
-        NodePool::Instance().clear();
-    }
+    {}
 };
 
 TEST_F(ConvectionBC_2D_Transient, TestExample_1)
 {
     SCOPED_TRACE("Begin Test: Three elements with simple convection BC.");
 
-    NodePool::Instance().createNode(1, 0.2, 0.05);
-    NodePool::Instance().createNode(2, 0.2, 0.00);
-    NodePool::Instance().createNode(3, 0.1, 0.05);
-    NodePool::Instance().createNode(4, 0.1, 0.00);
-    NodePool::Instance().createNode(5, 0.0, 0.05);
-    NodePool::Instance().createNode(6, 0.0, 0.00);
+    HygroThermFEM::MultiDomain multiDomain(true, false);
+
+    multiDomain.nodePool().createNode(1, 0.2, 0.05);
+    multiDomain.nodePool().createNode(2, 0.2, 0.00);
+    multiDomain.nodePool().createNode(3, 0.1, 0.05);
+    multiDomain.nodePool().createNode(4, 0.1, 0.00);
+    multiDomain.nodePool().createNode(5, 0.0, 0.05);
+    multiDomain.nodePool().createNode(6, 0.0, 0.00);
 
     // Material Properties
     constexpr double thermalConductivityDry{1.0};
@@ -60,8 +58,6 @@ TEST_F(ConvectionBC_2D_Transient, TestExample_1)
                                                                             {0.995, 83},
                                                                             {0.999, 120},
                                                                             {1, 180}};
-
-    HygroThermFEM::MultiDomain multiDomain(true, false);
 
     auto & material =
       multiDomain.materials().createSolidMaterial("Test Material",
@@ -97,7 +93,7 @@ TEST_F(ConvectionBC_2D_Transient, TestExample_1)
     constexpr auto dTime = 3600;
     constexpr auto nSteps = 4;
 
-    auto temperatures = NodePool::Instance().properties(HygroThermFEM::Variable::temperature);
+    auto temperatures = multiDomain.nodePool().properties(HygroThermFEM::Variable::temperature);
     std::vector<std::vector<double>> temperaturesSolution;
     std::vector<std::vector<HygroThermFEM::NodeFlux>> fluxSolution;
 

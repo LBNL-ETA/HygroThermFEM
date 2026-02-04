@@ -3,8 +3,6 @@
 
 #include "HygroThermFEM2D.hxx"
 
-using HygroThermFEM::NodePool;
-
 /////////////////////////////////////////////////////////////////////////////////////
 /// Transient temperature boundary conditions vs Analytical solution
 ///
@@ -18,14 +16,14 @@ protected:
     {}
 
     void TearDown() override
-    {
-        NodePool::Instance().clear();
-    }
+    {}
 };
 
 TEST_F(Analytical_TemperatureBC_Transient, TestExample_1)
 {
     SCOPED_TRACE("Begin Test: Example.");
+
+    HygroThermFEM::MultiDomain multiDomain(true, false);
 
     /// Create slab that is 10 cm long and have nodes at every 1 cm
     std::vector<double> gridXCoordinates{0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0};
@@ -40,9 +38,9 @@ TEST_F(Analytical_TemperatureBC_Transient, TestExample_1)
     for(auto val : gridXCoordinates)
     {
         ++nodeIndex;
-        NodePool::Instance().createNode(nodeIndex, val, 0.00, state);
+        multiDomain.nodePool().createNode(nodeIndex, val, 0.00, state);
         ++nodeIndex;
-        NodePool::Instance().createNode(nodeIndex, val, 0.05, state);
+        multiDomain.nodePool().createNode(nodeIndex, val, 0.05, state);
     }
 
     // Material Properties
@@ -63,8 +61,6 @@ TEST_F(Analytical_TemperatureBC_Transient, TestExample_1)
     const std::vector<FenestrationCommon::point> moistureStorageFunction = {{0, 0},
                                                                             {1, 180}};
 
-    HygroThermFEM::MultiDomain multiDomain(true, false);
-
     auto & material =
             multiDomain.materials().createSolidMaterial("Test Material",
                                                         thermalConductivityDry,
@@ -80,12 +76,12 @@ TEST_F(Analytical_TemperatureBC_Transient, TestExample_1)
                                                         moistureStorageFunction);
 
     /// Create elements
-    for(size_t i = 1; i <= (NodePool::Instance().maxIndex() - 2) / 2; ++i)
+    for(size_t idx = 1; idx <= (multiDomain.nodePool().maxIndex() - 2) / 2; ++idx)
     {
-        const auto node1 = 2u * i - 1u;
-        const auto node2 = 2u * i + 1u;
-        const auto node3 = 2u * i + 2u;
-        const auto node4 = 2u * i;
+        const auto node1 = 2u * idx - 1u;
+        const auto node2 = 2u * idx + 1u;
+        const auto node3 = 2u * idx + 2u;
+        const auto node4 = 2u * idx;
 
         multiDomain.createElement(node1, node2, node3, node4, material.name());
     }
@@ -101,7 +97,7 @@ TEST_F(Analytical_TemperatureBC_Transient, TestExample_1)
     constexpr auto dTime = 0.001;
     constexpr auto nSteps = 1000;
 
-    auto temperatures = NodePool::Instance().properties(HygroThermFEM::Variable::temperature);
+    auto temperatures = multiDomain.nodePool().properties(HygroThermFEM::Variable::temperature);
     std::vector<std::vector<double>> solution;
 
     for(unsigned i = 0; i < nSteps; ++i)

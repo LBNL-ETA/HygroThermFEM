@@ -3,8 +3,6 @@
 
 #include "HygroThermFEM2D.hxx"
 
-using HygroThermFEM::NodePool;
-
 class TestSingleElementMatrices2D : public testing::Test
 {
 protected:
@@ -12,9 +10,7 @@ protected:
     {}
 
     void TearDown() override
-    {
-        NodePool::Instance().clear();
-    }
+    {}
 };
 
 TEST_F(TestSingleElementMatrices2D, TestConductionMatrix)
@@ -22,15 +18,15 @@ TEST_F(TestSingleElementMatrices2D, TestConductionMatrix)
     SCOPED_TRACE("Begin Test: Single element isothropic conduction matrix and "
                  "RhoCp matrix.");
 
+    // Create MultiDomain before nodes
+    HygroThermFEM::MultiDomain multiDomain(true, false);
+
     // Enter nodes. Arguments are: node number, x-coordinate, y-coordinate
 
-    NodePool::Instance().createNode(1, 5, 5);
-    NodePool::Instance().createNode(2, 5, 0);
-    NodePool::Instance().createNode(3, 15, 0);
-    NodePool::Instance().createNode(4, 15, 5);
-
-    // Create MultiDomain before materials
-    HygroThermFEM::MultiDomain multiDomain(true, false);
+    multiDomain.nodePool().createNode(1, 5, 5);
+    multiDomain.nodePool().createNode(2, 5, 0);
+    multiDomain.nodePool().createNode(3, 15, 0);
+    multiDomain.nodePool().createNode(4, 15, 5);
 
     // Material Properties
     constexpr double thermalConductivityDry{1.0};
@@ -79,7 +75,7 @@ TEST_F(TestSingleElementMatrices2D, TestConductionMatrix)
                                                   liquidTransportationCurve,
                                                   moistureStorageFunction);
 
-    const HygroThermFEM::ElementThermalLinear2D aElem{multiDomain.materials(), 1, 2, 3, 4, material.name()};
+    const HygroThermFEM::ElementThermalLinear2D aElem{multiDomain.nodePool(), multiDomain.materials(), 1, 2, 3, 4, material.name()};
 
     auto condMat = aElem.DDuMatrices();
 

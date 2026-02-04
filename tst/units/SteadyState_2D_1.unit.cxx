@@ -12,9 +12,7 @@ protected:
     {}
 
     void TearDown() override
-    {
-        NodePool::Instance().clear();
-    }
+    {}
 };
 
 TEST_F(SteadyState_2D_1, TestExample_1)
@@ -26,24 +24,24 @@ TEST_F(SteadyState_2D_1, TestExample_1)
 
     auto state = State(initialTemperature, initialMoistureContent, initialPressure, liquidPercent);
 
-    // Enter nodes. Arguments are: node number, x-coordinate, y-coordinate
-    NodePool::Instance().createNode(
-      1, 1, 5, State(initialTemperature, 0, initialPressure, liquidPercent));
-    NodePool::Instance().createNode(
-      2, 1, 0, State(initialTemperature, 0, initialPressure, liquidPercent));
-    NodePool::Instance().createNode(
-      3, 0.5, 5, State(initialTemperature, 0.5, initialPressure, liquidPercent));
-    NodePool::Instance().createNode(
-      4, 0.5, 0, State(initialTemperature, 0.5, initialPressure, liquidPercent));
-    NodePool::Instance().createNode(
-      5, 0, 5, State(initialTemperature, 1, initialPressure, liquidPercent));
-    NodePool::Instance().createNode(
-      6, 0, 0, State(initialTemperature, 1, initialPressure, liquidPercent));
-
     const auto simulateThermal{true};
     const auto simulateMoisture{false};
 
     HygroThermFEM::MultiDomain multiDomain{simulateThermal, simulateMoisture};
+
+    // Enter nodes. Arguments are: node number, x-coordinate, y-coordinate
+    multiDomain.nodePool().createNode(
+      1, 1, 5, State(initialTemperature, 0, initialPressure, liquidPercent));
+    multiDomain.nodePool().createNode(
+      2, 1, 0, State(initialTemperature, 0, initialPressure, liquidPercent));
+    multiDomain.nodePool().createNode(
+      3, 0.5, 5, State(initialTemperature, 0.5, initialPressure, liquidPercent));
+    multiDomain.nodePool().createNode(
+      4, 0.5, 0, State(initialTemperature, 0.5, initialPressure, liquidPercent));
+    multiDomain.nodePool().createNode(
+      5, 0, 5, State(initialTemperature, 1, initialPressure, liquidPercent));
+    multiDomain.nodePool().createNode(
+      6, 0, 0, State(initialTemperature, 1, initialPressure, liquidPercent));
 
     // Material Properties
     constexpr double thermalConductivityDry{1.0};

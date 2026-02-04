@@ -191,9 +191,7 @@ namespace HygroThermFEM
       Variable secondProperty,
       const FenestrationCommon::Interpolator & interpolator) :
         TabularFunction1D(secondValues, secondProperty, interpolator),
-        m_FirstTable(firstValues, firstProperty, interpolator),
-        m_FirstTableMeasuredAt{firstTableMeasuredAt},
-        m_SecondTableMeasuredAt{secondTableMeasureAt}
+        m_FirstTable(firstValues, firstProperty, interpolator)
     {
         const double tolerance{1e-6};
         const double y1{findValueAtPoint(firstValues, secondTableMeasureAt)};

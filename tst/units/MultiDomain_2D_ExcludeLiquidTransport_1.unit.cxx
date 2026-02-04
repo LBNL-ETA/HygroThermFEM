@@ -20,7 +20,6 @@ protected:
 
     void TearDown() override
     {
-        NodePool::Instance().clear();
         SimulationProperties::Instance().reset();
     }
 };
@@ -40,6 +39,8 @@ TEST_F(MultiDomain_2D_ExcludeLiquidTransport_1, TestExample_1)
       excludeVaporDiffusionConduction,
       thermalConductivityMoistureAndTemperatureDependent);
 
+    HygroThermFEM::MultiDomain multiDomain;
+
     std::vector<double> gridXCoordinates{0, 0.05, 0.1};
 
     const double initialTemperature = 0.0;
@@ -53,12 +54,10 @@ TEST_F(MultiDomain_2D_ExcludeLiquidTransport_1, TestExample_1)
     for(auto val : gridXCoordinates)
     {
         ++nodeIndex;
-        NodePool::Instance().createNode(nodeIndex, val, 0.00, state);
+        multiDomain.nodePool().createNode(nodeIndex, val, 0.00, state);
         ++nodeIndex;
-        NodePool::Instance().createNode(nodeIndex, val, 0.05, state);
+        multiDomain.nodePool().createNode(nodeIndex, val, 0.05, state);
     }
-
-    HygroThermFEM::MultiDomain multiDomain;
 
     // Material Properties (Cottaer Sandstone)
     constexpr double thermalConductivityDry{1.8};
@@ -108,7 +107,7 @@ TEST_F(MultiDomain_2D_ExcludeLiquidTransport_1, TestExample_1)
                                                   moistureStorageFunction);
 
     /// Create elements
-    for(size_t i = 1; i <= (NodePool::Instance().maxIndex() - 2) / 2; ++i)
+    for(size_t i = 1; i <= (multiDomain.nodePool().maxIndex() - 2) / 2; ++i)
     {
         const auto node1 = 2u * i + 1u;
         const auto node2 = 2u * i + 2u;
@@ -130,8 +129,8 @@ TEST_F(MultiDomain_2D_ExcludeLiquidTransport_1, TestExample_1)
     constexpr auto dTime = 3600;
     constexpr auto nSteps = 24;
 
-    auto temperatures = NodePool::Instance().properties(HygroThermFEM::Variable::temperature);
-    auto humidities = NodePool::Instance().properties(HygroThermFEM::Variable::humidity);
+    auto temperatures = multiDomain.nodePool().properties(HygroThermFEM::Variable::temperature);
+    auto humidities = multiDomain.nodePool().properties(HygroThermFEM::Variable::humidity);
     std::vector<std::vector<double>> temperatureSolution;
     std::vector<std::vector<double>> waterContentSolution;
 

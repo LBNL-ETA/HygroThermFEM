@@ -436,10 +436,6 @@ namespace HygroThermFEM
 
         TabularFunction1D m_FirstTable;
 
-        // These two tables should share common
-        double m_FirstTableMeasuredAt{0};
-        double m_SecondTableMeasuredAt{0};
-
         // Both tables need to match resulting value at measured properties
         double m_CommonValueAtMeasuredTables;
     };

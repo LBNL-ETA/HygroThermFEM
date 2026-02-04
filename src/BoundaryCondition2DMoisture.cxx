@@ -5,13 +5,15 @@ namespace HygroThermFEM
     /////////////////////////////////////////////////////
     /// MoistureBCTARPHc
     /////////////////////////////////////////////////////
-    MoistureBCTARPHc::MoistureBCTARPHc(Materials & materialPool,
+    MoistureBCTARPHc::MoistureBCTARPHc(NodePool & nodePool,
+                                       Materials & materialPool,
                                        const size_t index1,
                                        const size_t index2,
                                        const std::string & materialName,
                                        const TARPCoefficients & varHCCoeff,
                                        const double surfaceTilt) :
-        IMoistureBC(materialPool,
+        IMoistureBC(nodePool,
+                    materialPool,
                     index1,
                     index2,
                     materialName,
@@ -24,7 +26,8 @@ namespace HygroThermFEM
     /////////////////////////////////////////////////////
     /// MoistureBCASHRAEInside
     /////////////////////////////////////////////////////
-    MoistureBCASHRAEInside::MoistureBCASHRAEInside(Materials & materialPool,
+    MoistureBCASHRAEInside::MoistureBCASHRAEInside(NodePool & nodePool,
+                                                   Materials & materialPool,
                                                    const size_t index1,
                                                    const size_t index2,
                                                    const std::string & materialName,
@@ -32,6 +35,7 @@ namespace HygroThermFEM
                                                    const double surfaceHeight,
                                                    const double surfaceTilt) :
         IMoistureBC(
+          nodePool,
           materialPool,
           index1,
           index2,
@@ -45,12 +49,14 @@ namespace HygroThermFEM
     /////////////////////////////////////////////////////
     /// MoistureBCASHRAEOutside
     /////////////////////////////////////////////////////
-    MoistureBCASHRAEOutside::MoistureBCASHRAEOutside(Materials & materialPool,
+    MoistureBCASHRAEOutside::MoistureBCASHRAEOutside(NodePool & nodePool,
+                                                     Materials & materialPool,
                                                      const size_t index1,
                                                      const size_t index2,
                                                      const std::string & materialName,
                                                      const ASHRAEOutsideCoefficients & coeffs) :
         IMoistureBC(
+          nodePool,
           materialPool,
           index1,
           index2,
@@ -63,12 +69,14 @@ namespace HygroThermFEM
     /////////////////////////////////////////////////////
     /// MoistureYazdanianKlemsBC
     /////////////////////////////////////////////////////
-    MoistureYazdanianKlemsBC::MoistureYazdanianKlemsBC(Materials & materialPool,
+    MoistureYazdanianKlemsBC::MoistureYazdanianKlemsBC(NodePool & nodePool,
+                                                       Materials & materialPool,
                                                        const size_t index1,
                                                        const size_t index2,
                                                        const std::string & materialName,
                                                        const YazdanianKlemsCoefficients & coeffs) :
-        IMoistureBC(materialPool,
+        IMoistureBC(nodePool,
+                    materialPool,
                     index1,
                     index2,
                     materialName,
@@ -81,24 +89,34 @@ namespace HygroThermFEM
     /////////////////////////////////////////////////////
     /// MoistureKimuraBC
     /////////////////////////////////////////////////////
-    MoistureKimuraBC::MoistureKimuraBC(Materials & materialPool,
+    MoistureKimuraBC::MoistureKimuraBC(NodePool & nodePool,
+                                       Materials & materialPool,
                                        const size_t index1,
                                        const size_t index2,
                                        const std::string & materialName,
                                        const KimuraCoefficients & coeffs) :
-    IMoistureBC(materialPool, index1, index2, materialName, coeffs.AirHumidity, coeffs.AirTemperature,
-                    ConvectionModelFactory::createKimuraFilmCoefficient(m_Nodes, coeffs.WindSpeed, coeffs.WindDir))
+        IMoistureBC(nodePool,
+                    materialPool,
+                    index1,
+                    index2,
+                    materialName,
+                    coeffs.AirHumidity,
+                    coeffs.AirTemperature,
+                    ConvectionModelFactory::createKimuraFilmCoefficient(
+                      m_Nodes, coeffs.WindSpeed, coeffs.WindDir))
     {}
 
     /////////////////////////////////////////////////////
     /// MoistureBCFixedHc
     /////////////////////////////////////////////////////
-    MoistureBCFixedHc::MoistureBCFixedHc(Materials & materialPool,
+    MoistureBCFixedHc::MoistureBCFixedHc(NodePool & nodePool,
+                                         Materials & materialPool,
                                          const size_t index1,
                                          const size_t index2,
                                          const std::string & materialName,
                                          const FixedBCHCCoefficients & fixedBchcCoefficients) :
-        IMoistureBC(materialPool,
+        IMoistureBC(nodePool,
+                    materialPool,
                     index1,
                     index2,
                     materialName,

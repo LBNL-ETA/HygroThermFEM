@@ -8,8 +8,11 @@
 
 namespace HygroThermFEM
 {
-    IBCLinear2D::IBCLinear2D(const size_t index1, const size_t index2, const bool t_Linear) :
-        m_Nodes(NodePool::Instance().getNode(index1), NodePool::Instance().getNode(index2)),
+    IBCLinear2D::IBCLinear2D(NodePool & nodePool,
+                             const size_t index1,
+                             const size_t index2,
+                             const bool t_Linear) :
+        m_Nodes(nodePool.getNode(index1), nodePool.getNode(index2)),
         m_Linear(t_Linear),
         m_PsiPsiMatrix(numOfBCNodes),
         m_PsiVector(numOfBCNodes, 0)

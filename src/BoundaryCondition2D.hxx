@@ -23,7 +23,8 @@ namespace HygroThermFEM
 
     protected:
         //! Constructor for convective boundary condition base.
-        IConvectiveBCBase(size_t index1,
+        IConvectiveBCBase(NodePool & nodePool,
+                          size_t index1,
                           size_t index2,
                           double airTemperature,
                           double airHumidity,
@@ -46,7 +47,8 @@ namespace HygroThermFEM
     {
     public:
         //! Constructor for convection boundary condition that is common between models
-        IConvectionBC(size_t index1,
+        IConvectionBC(NodePool & nodePool,
+                      size_t index1,
                       size_t index2,
                       double airTemperature,
                       std::unique_ptr<IConvectiveCoefficient> convectiveCoeffCalc,
@@ -76,7 +78,8 @@ namespace HygroThermFEM
     {
     public:
         //! Construction for moisture boundary condition.
-        IMoistureBC(Materials & materialPool,
+        IMoistureBC(NodePool & nodePool,
+                    Materials & materialPool,
                     size_t index1,
                     size_t index2,
                     const std::string & materialName,

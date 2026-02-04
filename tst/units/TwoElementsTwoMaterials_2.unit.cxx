@@ -2,7 +2,6 @@
 
 #include "HygroThermFEM2D.hxx"
 
-using HygroThermFEM::NodePool;
 using HygroThermFEM::WaterContent;
 using HygroThermFEM::MultiDomain;
 
@@ -16,9 +15,7 @@ protected:
     {}
 
     void TearDown() override
-    {
-        NodePool::Instance().clear();
-    }
+    {}
 };
 
 TEST_F(TwoElementsTwoMaterials_2, NodeInTwoMaterials)
@@ -33,13 +30,13 @@ TEST_F(TwoElementsTwoMaterials_2, NodeInTwoMaterials)
 
     HygroThermFEM::State state(temperature, humidity, pressure, liquidPercent);
 
-    NodePool::Instance().createNode(1, 0, 1, state);
-    NodePool::Instance().createNode(2, 1, 0, state);
-    NodePool::Instance().createNode(3, 1, 1, state);
-    NodePool::Instance().createNode(4, 2, 0, state);
-    NodePool::Instance().createNode(5, 2, 1, state);
-
     MultiDomain multiDomain(false, false);
+
+    multiDomain.nodePool().createNode(1, 0, 1, state);
+    multiDomain.nodePool().createNode(2, 1, 0, state);
+    multiDomain.nodePool().createNode(3, 1, 1, state);
+    multiDomain.nodePool().createNode(4, 2, 0, state);
+    multiDomain.nodePool().createNode(5, 2, 1, state);
 
     // Material Properties (Cottaer Sandstone)
     double thermalConductivityDry{1.8};

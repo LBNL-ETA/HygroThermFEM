@@ -3,8 +3,6 @@
 
 #include "HygroThermFEM2D.hxx"
 
-using HygroThermFEM::NodePool;
-
 /////////////////////////////////////////////////////////////////////////////////////
 /// Transient heat transfer example on Sandstone specimen using data from database
 ///   Lumped mass matrix
@@ -21,26 +19,26 @@ protected:
     {}
 
     void TearDown() override
-    {
-        NodePool::Instance().clear();
-    }
+    {}
 };
 
 TEST_F(BlackBodyBC_2D_1, TestExample_1)
 {
     SCOPED_TRACE("Begin Test: Two elementsCreator example with transient.");
 
+    HygroThermFEM::MultiDomain multiDomain(true, false);
+
     // Enter nodes. Arguments are: node number, x-coordinate, y-coordinate, initial temperature
 
     // same temperature in every node (humidity and pressure irrelevant for this example)
-    auto state = HygroThermFEM::State(0, 0, 101325, 0);
+    const auto state = HygroThermFEM::State(0, 0, 101325, 0);
 
-    NodePool::Instance().createNode(1, 0.15, 0.05, state);
-    NodePool::Instance().createNode(2, 0.15, 0, state);
-    NodePool::Instance().createNode(3, 0.05, 0.05, state);
-    NodePool::Instance().createNode(4, 0.05, 0, state);
-    NodePool::Instance().createNode(5, 0, 0.05, state);
-    NodePool::Instance().createNode(6, 0, 0, state);
+    multiDomain.nodePool().createNode(1, 0.15, 0.05, state);
+    multiDomain.nodePool().createNode(2, 0.15, 0, state);
+    multiDomain.nodePool().createNode(3, 0.05, 0.05, state);
+    multiDomain.nodePool().createNode(4, 0.05, 0, state);
+    multiDomain.nodePool().createNode(5, 0, 0.05, state);
+    multiDomain.nodePool().createNode(6, 0, 0, state);
 
     // Material Properties (Cottaer Sandstone - non porous)
     constexpr double thermalConductivityDry{1.8};
@@ -75,8 +73,6 @@ TEST_F(BlackBodyBC_2D_1, TestExample_1)
                                                                             {0.999, 120},
                                                                             {1, 180}};
 
-    HygroThermFEM::MultiDomain multiDomain(true, false);
-
     auto & material =
       multiDomain.materials().createSolidMaterial("Cottaer Sandstone - non porous",
                                                   thermalConductivityDry,
@@ -103,7 +99,7 @@ TEST_F(BlackBodyBC_2D_1, TestExample_1)
     constexpr auto dTime = 3600;
     constexpr auto nSteps = 4;
 
-    auto temperatures = NodePool::Instance().properties(HygroThermFEM::Variable::temperature);
+    auto temperatures = multiDomain.nodePool().properties(HygroThermFEM::Variable::temperature);
     std::vector<std::vector<double>> solution;
 
     for(unsigned i = 0; i < nSteps; ++i)
