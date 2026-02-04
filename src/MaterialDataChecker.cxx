@@ -1,6 +1,6 @@
 #include "MaterialDataChecker.hxx"
 #include "MultiDomain.hxx"
-#include "MaterialPool.hxx"
+#include "Materials.hxx"
 #include "Material.hxx"
 #include "SimulationProperties.hxx"
 

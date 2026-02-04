@@ -547,12 +547,12 @@ namespace HygroThermFEM
         m_MoistureDomain.clearModel();
     }
 
-    MaterialPool & MultiDomain::materials()
+    Materials & MultiDomain::materials()
     {
         return m_Materials;
     }
 
-    const MaterialPool & MultiDomain::materials() const
+    const Materials & MultiDomain::materials() const
     {
         return m_Materials;
     }

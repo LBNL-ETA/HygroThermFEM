@@ -2,7 +2,7 @@
 
 #include "IBCLine2D.hxx"
 #include "Material.hxx"
-#include "MaterialPool.hxx"
+#include "Materials.hxx"
 #include "BoundaryConditionCoefficients.hxx"
 #include "ConvectiveCoefficient.hxx"
 
@@ -76,7 +76,7 @@ namespace HygroThermFEM
     {
     public:
         //! Construction for moisture boundary condition.
-        IMoistureBC(MaterialPool & materialPool,
+        IMoistureBC(Materials & materialPool,
                     size_t index1,
                     size_t index2,
                     const std::string & materialName,

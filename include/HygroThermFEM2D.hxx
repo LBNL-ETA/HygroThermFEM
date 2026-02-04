@@ -23,7 +23,7 @@
 #include "../src/Domain.hxx"
 #include "../src/Functions.hxx"
 #include "../src/Interpolator.hxx"
-#include "../src/MaterialPool.hxx"
+#include "../src/Materials.hxx"
 #include "../src/FEMMath.hxx"
 #include "../src/MultiDomain.hxx"
 #include "../src/Common.hxx"

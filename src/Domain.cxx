@@ -10,7 +10,7 @@
 #include "SimulationProperties.hxx"
 #include "NodePool.hxx"
 #include "TimestepData.hxx"
-#include "MaterialPool.hxx"
+#include "Materials.hxx"
 
 namespace HygroThermFEM
 {
@@ -173,7 +173,7 @@ namespace HygroThermFEM
         return m_BCs.isLinear() && m_Elements.isLinear();
     }
 
-    IDomain::IDomain(MaterialPool & materialPool,
+    IDomain::IDomain(Materials & materialPool,
                      const BaseVariable property,
                      const bool automaticUpdateOfPreviousTimestep) :
         m_MaterialPool(materialPool),

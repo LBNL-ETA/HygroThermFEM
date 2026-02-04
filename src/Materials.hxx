@@ -6,7 +6,7 @@
 
 namespace HygroThermFEM
 {
-    class MaterialPool
+    class Materials
     {
     public:
 
@@ -44,14 +44,14 @@ namespace HygroThermFEM
         [[nodiscard]] std::vector<std::string> getGases() const;
 
         // Public constructor/destructor for ownership by MultiDomain
-        MaterialPool() = default;
-        ~MaterialPool() = default;
+        Materials() = default;
+        ~Materials() = default;
 
         // Non-copyable, non-movable
-        MaterialPool(const MaterialPool &) = delete;
-        MaterialPool & operator=(const MaterialPool &) = delete;
-        MaterialPool(MaterialPool &&) = delete;
-        MaterialPool & operator=(MaterialPool &&) = delete;
+        Materials(const Materials &) = delete;
+        Materials & operator=(const Materials &) = delete;
+        Materials(Materials &&) = delete;
+        Materials & operator=(Materials &&) = delete;
 
     private:
 

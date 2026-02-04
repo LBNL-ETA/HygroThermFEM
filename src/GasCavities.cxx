@@ -1,7 +1,7 @@
 #include <KeffCavity.hxx>
 
 #include "GasCavities.hxx"
-#include "MaterialPool.hxx"
+#include "Materials.hxx"
 #include "NodePool.hxx"
 #include "Common.hxx"
 
@@ -336,7 +336,7 @@ namespace HygroThermFEM
     ///  EquivalentGasCavities
     ///////////////////////////////////////////////////////////////////////////////
 
-    EquivalentGasCavities::EquivalentGasCavities(MaterialPool & materialPool, const ElementsLinear2D & elements) :
+    EquivalentGasCavities::EquivalentGasCavities(Materials & materialPool, const ElementsLinear2D & elements) :
         m_MaterialPool(materialPool),
         m_Elements(elements)
     {

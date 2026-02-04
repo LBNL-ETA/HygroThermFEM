@@ -8,7 +8,7 @@
 #include "BoundaryConditionCoefficients.hxx"
 #include "TimestepNotifier.hxx"
 #include "TimestepObserver.hxx"
-#include "MaterialPool.hxx"
+#include "Materials.hxx"
 
 namespace HygroThermFEM
 {
@@ -31,7 +31,7 @@ namespace HygroThermFEM
         //! Domain construction. It is necessary to set up base variable that will be considered
         //! unknown.
         explicit IDomain(
-          MaterialPool & materialPool,   //!< Reference to the MaterialPool for material lookups
+          Materials & materialPool,   //!< Reference to the MaterialPool for material lookups
           BaseVariable property,   //!< State variable which will be considered unknown.
           bool automaticUpdateOfPreviousTimestep =
             true   //!< When solver finds solution, previous timestep will be automatically updated
@@ -116,7 +116,7 @@ namespace HygroThermFEM
           double t_DTime,         //!< Timestep in transient solution
           size_t timestepIndex);
 
-        MaterialPool & m_MaterialPool;
+        Materials & m_MaterialPool;
         BaseVariable m_Property;
         ElementsLinear2D m_Elements;
         BoundaryConditions2D m_BCs;

@@ -4,7 +4,7 @@
 #include "ThermalDomain.hxx"
 #include "MoistureDomain.hxx"
 #include "MaterialMissingProperties.hxx"
-#include "MaterialPool.hxx"
+#include "Materials.hxx"
 
 namespace Timesteps
 {
@@ -341,11 +341,11 @@ namespace HygroThermFEM
 
         //! @brief Access to materials owned by this MultiDomain
         //! @return Reference to the MaterialPool instance
-        MaterialPool & materials();
+        Materials & materials();
 
         //! @brief Const access to materials owned by this MultiDomain
         //! @return Const reference to the MaterialPool instance
-        const MaterialPool & materials() const;
+        [[nodiscard]] const Materials & materials() const;
 
         //! @brief Access to thermal domain for single-domain operations
         //! @return Reference to the ThermalDomain
@@ -365,7 +365,7 @@ namespace HygroThermFEM
         static double normError(const std::vector<double> & vec1, const std::vector<double> & vec2);
 
         // MaterialPool owned by MultiDomain - must be declared before domains (initialization order)
-        MaterialPool m_Materials;
+        Materials m_Materials;
         ThermalDomain m_ThermalDomain;
         MoistureDomain m_MoistureDomain;
         bool m_SimulateThermal;

@@ -23,7 +23,7 @@ namespace HygroThermFEM
         //! calculations. Structure contain only coefficients that are variable through every
         //! timestep.
         //! @param surafceTilt Surface tilt at the boundary. [degrees]
-        MoistureBCTARPHc(MaterialPool & materialPool,
+        MoistureBCTARPHc(Materials & materialPool,
                          size_t index1,
                          size_t index2,
                          const std::string & materialName,
@@ -50,7 +50,7 @@ namespace HygroThermFEM
         //! @param coeffs Coefficients that are necessary for ASHRAE inside convection heat transfer
         //! coefficient calculation Structure only contain coefficients that are variable through
         //! every timestep.
-        MoistureBCASHRAEInside(MaterialPool & materialPool,
+        MoistureBCASHRAEInside(Materials & materialPool,
                                size_t index1,
                                size_t index2,
                                const std::string & materialName,
@@ -78,7 +78,7 @@ namespace HygroThermFEM
         //! \param coeffs Coefficients that are necessary for ASHRAE outside convection heat
         //! transfer coefficients calculation. Structure only contain coefficients that are variable
         //! through timestep.
-        MoistureBCASHRAEOutside(MaterialPool & materialPool,
+        MoistureBCASHRAEOutside(Materials & materialPool,
                                 size_t index1,
                                 size_t index2,
                                 const std::string & materialName,
@@ -104,7 +104,7 @@ namespace HygroThermFEM
         //! \param coeffs Coefficients that are necessary for Yazdanian-Klems outside convection
         //! heat transfer coefficients calculation. Structure only contain coefficients that are
         //! variable through timestep.
-        MoistureYazdanianKlemsBC(MaterialPool & materialPool,
+        MoistureYazdanianKlemsBC(Materials & materialPool,
                                  size_t index1,
                                  size_t index2,
                                  const std::string & materialName,
@@ -126,7 +126,7 @@ namespace HygroThermFEM
         //! \param coeffs Coefficients that are necessary for Kmura outside convection heat transfer
         //! coefficient calculation. Structure only contain coefficients that are variable through
         //! timestep.
-        MoistureKimuraBC(MaterialPool & materialPool,
+        MoistureKimuraBC(Materials & materialPool,
                          size_t index1,
                          size_t index2,
                          const std::string & materialName,
@@ -141,7 +141,7 @@ namespace HygroThermFEM
     class MoistureBCFixedHc : public IMoistureBC
     {
     public:
-        MoistureBCFixedHc(MaterialPool & materialPool,
+        MoistureBCFixedHc(Materials & materialPool,
                           size_t index1,
                           size_t index2,
                           const std::string & materialName,
@@ -155,7 +155,7 @@ namespace HygroThermFEM
     class MoistureBCFixedHumidity : public MoistureBCFixedHc
     {
     public:
-        MoistureBCFixedHumidity(MaterialPool & materialPool,
+        MoistureBCFixedHumidity(Materials & materialPool,
                                 size_t index1,
                                 size_t index2,
                                 const std::string & materialName,

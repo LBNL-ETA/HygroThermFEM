@@ -303,7 +303,7 @@ namespace HygroThermFEM
     //! used as storage.
     class SolidMaterial : public IMaterial
     {
-        friend class MaterialPool;
+        friend class Materials;
 
     public:
         SolidMaterial() = delete;
@@ -377,7 +377,7 @@ namespace HygroThermFEM
 
     class Gas : public IGas
     {
-        friend class MaterialPool;
+        friend class Materials;
 
     public:
         Gas() = delete;

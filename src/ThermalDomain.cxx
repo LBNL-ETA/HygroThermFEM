@@ -275,7 +275,7 @@ namespace HygroThermFEM
         }
     }
 
-    ThermalDomain::ThermalDomain(MaterialPool & materialPool,
+    ThermalDomain::ThermalDomain(Materials & materialPool,
                                    const bool automaticUpdatePreviousTimestep) :
         IDomain(materialPool, BaseVariable::temperature, automaticUpdatePreviousTimestep)
     {}

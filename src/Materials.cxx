@@ -1,16 +1,16 @@
 #include <stdexcept>
 
-#include "MaterialPool.hxx"
+#include "Materials.hxx"
 
 namespace HygroThermFEM
 {
-    void MaterialPool::clear()
+    void Materials::clear()
     {
         m_Materials.clear();
         m_Gases.clear();
     }
 
-    const IMaterial & MaterialPool::createSolidMaterial(
+    const IMaterial & Materials::createSolidMaterial(
       const std::string & Name,
       const double ThermalConductivityDry,
       const double Density,
@@ -44,7 +44,7 @@ namespace HygroThermFEM
         return *m_Materials.at(Name);
     }
 
-    IMaterial & MaterialPool::createSolidMaterial(
+    IMaterial & Materials::createSolidMaterial(
       std::string Name)
     {
         checkIfMaterialExists(Name);
@@ -52,14 +52,14 @@ namespace HygroThermFEM
         return *m_Materials.at(Name);
     }
 
-    const IGas & MaterialPool::createGas(const std::string & name,
+    const IGas & Materials::createGas(const std::string & name,
                                          const CavityStandard cavityStandard, Gases::CGas gas)
     {
         m_Gases[name] = std::make_unique<Gas>(name, cavityStandard, gas);
         return *m_Gases.at(name);
     }
 
-    IMaterial & MaterialPool::material(const std::string & name) const
+    IMaterial & Materials::material(const std::string & name) const
     {
         if(m_Gases.find(name) != m_Gases.end())
         {
@@ -68,12 +68,12 @@ namespace HygroThermFEM
         return *m_Materials.at(name);
     }
 
-    IGas & MaterialPool::gas(const std::string & name) const
+    IGas & Materials::gas(const std::string & name) const
     {
         return *m_Gases.at(name);
     }
 
-    std::vector<std::string> MaterialPool::getMaterials() const
+    std::vector<std::string> Materials::getMaterials() const
     {
         std::vector<std::string> result{getSolidMaterials()};
         std::vector<std::string> gases{getGases()};
@@ -81,7 +81,7 @@ namespace HygroThermFEM
         return result;
     }
 
-    std::vector<std::string> MaterialPool::getSolidMaterials() const
+    std::vector<std::string> Materials::getSolidMaterials() const
     {
         std::vector<std::string> result;
         for(auto & mat : m_Materials)
@@ -91,7 +91,7 @@ namespace HygroThermFEM
         return result;
     }
 
-    std::vector<std::string> MaterialPool::getGases() const
+    std::vector<std::string> Materials::getGases() const
     {
         std::vector<std::string> result;
         for(auto & gas : m_Gases)
@@ -101,7 +101,7 @@ namespace HygroThermFEM
         return result;
     }
 
-    void MaterialPool::checkIfMaterialExists(const std::string & materialName) const
+    void Materials::checkIfMaterialExists(const std::string & materialName) const
     {
         if(m_Gases.find(materialName) != m_Gases.end())
         {

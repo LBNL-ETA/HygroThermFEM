@@ -2,7 +2,7 @@
 
 #include "BoundaryCondition2D.hxx"
 #include "NodePool.hxx"
-#include "MaterialPool.hxx"
+#include "Materials.hxx"
 #include "VectorOperators.hxx"
 #include "Common.hxx"
 #include "SimulationProperties.hxx"
@@ -78,7 +78,7 @@ namespace HygroThermFEM
     /// IMoistureBC
     /////////////////////////////////////////////////////
 
-    IMoistureBC::IMoistureBC(MaterialPool & materialPool,
+    IMoistureBC::IMoistureBC(Materials & materialPool,
                              const size_t index1,
                              const size_t index2,
                              const std::string & materialName,

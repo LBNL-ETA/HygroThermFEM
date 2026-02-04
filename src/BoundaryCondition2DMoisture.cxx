@@ -5,7 +5,7 @@ namespace HygroThermFEM
     /////////////////////////////////////////////////////
     /// MoistureBCTARPHc
     /////////////////////////////////////////////////////
-    MoistureBCTARPHc::MoistureBCTARPHc(MaterialPool & materialPool,
+    MoistureBCTARPHc::MoistureBCTARPHc(Materials & materialPool,
                                        const size_t index1,
                                        const size_t index2,
                                        const std::string & materialName,
@@ -24,7 +24,7 @@ namespace HygroThermFEM
     /////////////////////////////////////////////////////
     /// MoistureBCASHRAEInside
     /////////////////////////////////////////////////////
-    MoistureBCASHRAEInside::MoistureBCASHRAEInside(MaterialPool & materialPool,
+    MoistureBCASHRAEInside::MoistureBCASHRAEInside(Materials & materialPool,
                                                    const size_t index1,
                                                    const size_t index2,
                                                    const std::string & materialName,
@@ -45,7 +45,7 @@ namespace HygroThermFEM
     /////////////////////////////////////////////////////
     /// MoistureBCASHRAEOutside
     /////////////////////////////////////////////////////
-    MoistureBCASHRAEOutside::MoistureBCASHRAEOutside(MaterialPool & materialPool,
+    MoistureBCASHRAEOutside::MoistureBCASHRAEOutside(Materials & materialPool,
                                                      const size_t index1,
                                                      const size_t index2,
                                                      const std::string & materialName,
@@ -63,7 +63,7 @@ namespace HygroThermFEM
     /////////////////////////////////////////////////////
     /// MoistureYazdanianKlemsBC
     /////////////////////////////////////////////////////
-    MoistureYazdanianKlemsBC::MoistureYazdanianKlemsBC(MaterialPool & materialPool,
+    MoistureYazdanianKlemsBC::MoistureYazdanianKlemsBC(Materials & materialPool,
                                                        const size_t index1,
                                                        const size_t index2,
                                                        const std::string & materialName,
@@ -81,7 +81,7 @@ namespace HygroThermFEM
     /////////////////////////////////////////////////////
     /// MoistureKimuraBC
     /////////////////////////////////////////////////////
-    MoistureKimuraBC::MoistureKimuraBC(MaterialPool & materialPool,
+    MoistureKimuraBC::MoistureKimuraBC(Materials & materialPool,
                                        const size_t index1,
                                        const size_t index2,
                                        const std::string & materialName,
@@ -93,7 +93,7 @@ namespace HygroThermFEM
     /////////////////////////////////////////////////////
     /// MoistureBCFixedHc
     /////////////////////////////////////////////////////
-    MoistureBCFixedHc::MoistureBCFixedHc(MaterialPool & materialPool,
+    MoistureBCFixedHc::MoistureBCFixedHc(Materials & materialPool,
                                          const size_t index1,
                                          const size_t index2,
                                          const std::string & materialName,
