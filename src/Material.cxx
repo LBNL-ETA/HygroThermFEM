@@ -382,6 +382,22 @@ namespace HygroThermFEM
     SolidMaterial::SolidMaterial(std::string name) : IMaterial(std::move(name))
     {}
 
+    SolidMaterial::SolidMaterial(SolidMaterialParams params) :
+        SolidMaterial(std::move(params.name),
+                      params.thermalConductivityDry,
+                      params.density,
+                      params.porosity,
+                      params.heatCapacity,
+                      params.diffusionResistanceFactor,
+                      params.thermalConductivityMoistureDependent,
+                      params.moistureDependentMeasurementTemperature,
+                      params.thermalConductivityTemperatureDependent,
+                      params.temperatureDependentMeasurementHumidity,
+                      params.liquidTransportCurve,
+                      params.sorptionCurve,
+                      params.emissivity)
+    {}
+
     Water SolidMaterial::waterContent(const INode2D & node) const
     {
         return {

@@ -294,6 +294,28 @@ namespace HygroThermFEM
     };
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
+    // SolidMaterialParams
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+
+    //! \brief Parameters for creating a SolidMaterial with designated initializers (C++20)
+    struct SolidMaterialParams
+    {
+        std::string name;
+        double thermalConductivityDry = 0.0;
+        double density = 0.0;
+        double porosity = 0.0;
+        double heatCapacity = 0.0;
+        double diffusionResistanceFactor = 0.0;
+        std::vector<FenestrationCommon::point> thermalConductivityMoistureDependent = {};
+        double moistureDependentMeasurementTemperature = 0.0;
+        std::vector<FenestrationCommon::point> thermalConductivityTemperatureDependent = {};
+        double temperatureDependentMeasurementHumidity = 0.0;
+        std::vector<FenestrationCommon::point> liquidTransportCurve = {};
+        std::vector<FenestrationCommon::point> sorptionCurve = {};
+        double emissivity = 0.9;
+    };
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////
     // SolidMaterial
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -303,30 +325,8 @@ namespace HygroThermFEM
     //! used as storage.
     class SolidMaterial : public IMaterial
     {
-        friend class Materials;
-
     public:
         SolidMaterial() = delete;
-
-        //! \brief Water content in given node.
-        //!
-        //! \param node Node for which water content is required.
-        //! \param waterContent Water content property (total, liquid, vapor or ice).
-        //! \return Value of water content.
-        [[nodiscard]] Water waterContent(const INode2D & node) const override;
-
-    private:
-        //! Returns total water content in given node.
-        [[nodiscard]] double totalWaterContent(const INode2D & node) const;
-
-        //! Returns vapor content in given node.
-        [[nodiscard]] double vaporContent(const INode2D & node) const;
-
-        //! Returns liquid content in given node.
-        [[nodiscard]] double liquidWaterContent(const INode2D & node) const;
-
-        //! Returns ice content in given node.
-        [[nodiscard]] double iceContent(const INode2D & node) const;
 
         //! \brief SolidMaterial construction is done through singleton class
         //!
@@ -363,6 +363,29 @@ namespace HygroThermFEM
           double emissivity = 0.9);
 
         explicit SolidMaterial(std::string name);
+
+        //! \brief Construct SolidMaterial from params struct (C++20 designated initializers)
+        explicit SolidMaterial(SolidMaterialParams params);
+
+        //! \brief Water content in given node.
+        //!
+        //! \param node Node for which water content is required.
+        //! \param waterContent Water content property (total, liquid, vapor or ice).
+        //! \return Value of water content.
+        [[nodiscard]] Water waterContent(const INode2D & node) const override;
+
+    private:
+        //! Returns total water content in given node.
+        [[nodiscard]] double totalWaterContent(const INode2D & node) const;
+
+        //! Returns vapor content in given node.
+        [[nodiscard]] double vaporContent(const INode2D & node) const;
+
+        //! Returns liquid content in given node.
+        [[nodiscard]] double liquidWaterContent(const INode2D & node) const;
+
+        //! Returns ice content in given node.
+        [[nodiscard]] double iceContent(const INode2D & node) const;
 
         //! Calculates amount of pores filled with liquid. Necessary for water content calculations.
         [[nodiscard]] double liquidPorosity(const INode2D & node) const;

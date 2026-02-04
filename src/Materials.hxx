@@ -25,6 +25,9 @@ namespace HygroThermFEM
           const std::vector<FenestrationCommon::point> & SorptionCurve,
           double emissivity = 0.9);
 
+        //! \brief Create SolidMaterial using params struct (C++20 designated initializers)
+        const IMaterial & createSolidMaterial(SolidMaterialParams params);
+
         IMaterial & createSolidMaterial(std::string Name);
 
         const IGas & createGas(const std::string & name,

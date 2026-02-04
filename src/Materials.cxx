@@ -26,30 +26,37 @@ namespace HygroThermFEM
       const double emissivity)
     {
         checkIfMaterialExists(Name);
-        m_Materials.emplace(std::make_pair(
-          Name,
-          std::unique_ptr<SolidMaterial>(new SolidMaterial(Name,
-                                                           ThermalConductivityDry,
-                                                           Density,
-                                                           Porosity,
-                                                           HeatCapacity,
-                                                           DiffusionResistanceFactor,
-                                                           thermalConductivityMoistureDependent,
-                                                           moistureDependentMeasurementTemperature,
-                                                           thermalConductivityTemperatureDependent,
-                                                           temperatureDependentMeasurementHumidity,
-                                                           LiquidTransportCurve,
-                                                           SorptionCurve,
-                                                           emissivity))));
+        m_Materials.emplace(Name,
+                            std::make_unique<SolidMaterial>(Name,
+                                                            ThermalConductivityDry,
+                                                            Density,
+                                                            Porosity,
+                                                            HeatCapacity,
+                                                            DiffusionResistanceFactor,
+                                                            thermalConductivityMoistureDependent,
+                                                            moistureDependentMeasurementTemperature,
+                                                            thermalConductivityTemperatureDependent,
+                                                            temperatureDependentMeasurementHumidity,
+                                                            LiquidTransportCurve,
+                                                            SorptionCurve,
+                                                            emissivity));
         return *m_Materials.at(Name);
     }
 
-    IMaterial & Materials::createSolidMaterial(
-      std::string Name)
+    const IMaterial & Materials::createSolidMaterial(SolidMaterialParams params)
+    {
+        checkIfMaterialExists(params.name);
+        const auto name = params.name;
+        m_Materials.emplace(name, std::make_unique<SolidMaterial>(std::move(params)));
+        return *m_Materials.at(name);
+    }
+
+    IMaterial & Materials::createSolidMaterial(std::string Name)
     {
         checkIfMaterialExists(Name);
-        m_Materials.emplace(std::make_pair(Name,new SolidMaterial(Name)));
-        return *m_Materials.at(Name);
+        const auto name = Name;
+        m_Materials.emplace(name, std::make_unique<SolidMaterial>(std::move(Name)));
+        return *m_Materials.at(name);
     }
 
     const IGas & Materials::createGas(const std::string & name,
@@ -61,7 +68,7 @@ namespace HygroThermFEM
 
     IMaterial & Materials::material(const std::string & name) const
     {
-        if(m_Gases.find(name) != m_Gases.end())
+        if(m_Gases.contains(name))
         {
             return *m_Gases.at(name);
         }

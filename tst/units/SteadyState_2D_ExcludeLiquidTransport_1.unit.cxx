@@ -58,52 +58,23 @@ TEST_F(SteadyState_2D_ExcludeLiquidTransport_1, TestExample_1)
     multiDomain.nodes().createNode(
       6, 0, 0, State(initialTemperature, 1, initialPressure, liquidPercent));
 
-    // Material Properties
-    constexpr double thermalConductivityDry{1.0};
-    constexpr double density{2050.0};
-    constexpr double porosity{0.18};
-    constexpr double specificHeatCapacityDry{850.0};
-    constexpr double diffusionResistanceFactor{15.0};
-    const std::vector<FenestrationCommon::point> thermalConductivityMoistureDependent = {
-      {0.0, 1.0}, {180, 1.0}};
-    constexpr double thermalConductivityMeasuredAtTemperature{0};
-    const std::vector<FenestrationCommon::point> thermalConductivityTemperatureDependent = {
-      {0.0, 1.0}, {1, 1.0}};
-    constexpr double thermalConductivityMeasuredAtHumidity{0};
-    const std::vector<FenestrationCommon::point> liquidTransportationCurve = {{0, 0},
-                                                                              {27, 1E-8},
-                                                                              {45, 1.1E-8},
-                                                                              {90, 2E-8},
-                                                                              {126, 3.5E-8},
-                                                                              {144, 5E-8},
-                                                                              {162, 1E-7},
-                                                                              {171, 2E-7},
-                                                                              {180, 7E-7}};
-
-    const std::vector<FenestrationCommon::point> moistureStorageFunction = {{0, 0},
-                                                                            {0.5, 5.3},
-                                                                            {0.65, 8.4},
-                                                                            {0.8, 12},
-                                                                            {0.93, 17},
-                                                                            {0.95, 25},
-                                                                            {0.99, 63},
-                                                                            {0.995, 83},
-                                                                            {0.999, 120},
-                                                                            {1, 180}};
-
-    auto & material =
-      multiDomain.materials().createSolidMaterial("Test Material",
-                                                   thermalConductivityDry,
-                                                   density,
-                                                   porosity,
-                                                   specificHeatCapacityDry,
-                                                   diffusionResistanceFactor,
-                                                   thermalConductivityMoistureDependent,
-                                                   thermalConductivityMeasuredAtTemperature,
-                                                   thermalConductivityTemperatureDependent,
-                                                   thermalConductivityMeasuredAtHumidity,
-                                                   liquidTransportationCurve,
-                                                   moistureStorageFunction);
+    // Material Properties (using C++20 designated initializers)
+    const auto & material = multiDomain.materials().createSolidMaterial({
+        .name = "Test Material",
+        .thermalConductivityDry = 1.0,
+        .density = 2050.0,
+        .porosity = 0.18,
+        .heatCapacity = 850.0,
+        .diffusionResistanceFactor = 15.0,
+        .thermalConductivityMoistureDependent = {{0.0, 1.0}, {180, 1.0}},
+        .moistureDependentMeasurementTemperature = 0.0,
+        .thermalConductivityTemperatureDependent = {{0.0, 1.0}, {1, 1.0}},
+        .temperatureDependentMeasurementHumidity = 0.0,
+        .liquidTransportCurve = {{0, 0}, {27, 1E-8}, {45, 1.1E-8}, {90, 2E-8}, {126, 3.5E-8},
+                                 {144, 5E-8}, {162, 1E-7}, {171, 2E-7}, {180, 7E-7}},
+        .sorptionCurve = {{0, 0}, {0.5, 5.3}, {0.65, 8.4}, {0.8, 12}, {0.93, 17},
+                          {0.95, 25}, {0.99, 63}, {0.995, 83}, {0.999, 120}, {1, 180}}
+    });
 
     multiDomain.createElement(3, 4, 2, 1, material.name());
     multiDomain.createElement(6, 4, 3, 5, material.name());

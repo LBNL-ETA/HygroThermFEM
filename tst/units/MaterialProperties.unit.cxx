@@ -17,17 +17,10 @@ TEST_F(TestMaterialProperties, PropertiesExistence)
 {
     SCOPED_TRACE("Material properties.");
 
-    constexpr double thermalConductivityDry{1.8};
-    constexpr double density{2050.0};
-    constexpr double porosity{0.22};
-    constexpr double specificHeatCapacityDry{850.0};
-    constexpr double diffusionResistanceFactor{15.0};
     const std::vector<FenestrationCommon::point> thermalConductivityMoistureDependent = {
       {0.0, 1.8}, {180, 1.8}};
-    constexpr double thermalConductivityMeasuredAtTemperature{0};
     const std::vector<FenestrationCommon::point> thermalConductivityTemperatureDependent = {
       {0.0, 1.8}, {1, 1.8}};
-    constexpr double thermalConductivityMeasuredAtHumidity{0};
     const std::vector<FenestrationCommon::point> liquidTransportationCurve = {{0, 0},
                                                                               {27, 1E-8},
                                                                               {45, 1.1E-8},
@@ -62,18 +55,18 @@ TEST_F(TestMaterialProperties, PropertiesExistence)
     EXPECT_EQ(false, material.hasSorptionCurve());
     EXPECT_EQ(false, material.hasThermalConductivityMoistureAndTemperatureDependent());
 
-    material.setThermalConductivity(thermalConductivityDry);
-    material.setPorosity(porosity);
-    material.setDensity(density);
-    material.setHeatCapacity(specificHeatCapacityDry);
-    material.setDiffusionResistanceFactor(diffusionResistanceFactor);
+    material.setThermalConductivity(1.8);
+    material.setPorosity(0.22);
+    material.setDensity(2050.0);
+    material.setHeatCapacity(850.0);
+    material.setDiffusionResistanceFactor(15.0);
     material.setLiquidTransportationCurve(liquidTransportationCurve);
     material.setSorptionCurve(moistureStorageFunction);
     material.setThermalConductivityMoistureAndTemperatureDependent(
       thermalConductivityMoistureDependent,
-      thermalConductivityMeasuredAtTemperature,
+      0,
       thermalConductivityTemperatureDependent,
-      thermalConductivityMeasuredAtHumidity);
+      0);
 
     EXPECT_EQ(true, material.hasThermalConductivityDry());
     EXPECT_EQ(true, material.hasPorosity());

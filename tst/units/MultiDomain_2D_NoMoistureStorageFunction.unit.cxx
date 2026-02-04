@@ -53,34 +53,20 @@ TEST_F(MultiDomain_2D_NoMoistureStorageFunction, TestExample_1)
 
     // Material Properties to represent example without moisture storage function and liquid
     // transportation
-    const auto thermalConductivityDry{1.8};
-    const auto density{2050.0};
-    const auto porosity{0.22};
-    const auto specificHeatCapacityDry{850.0};
-    const auto diffusionResistanceFactor{15.0};
-    const std::vector<FenestrationCommon::point> thermalConductivityMoistureDependent = {
-      {0.0, 1.8}, {180, 1.8}};
-    constexpr double thermalConductivityMeasuredAtTemperature{0};
-    const std::vector<FenestrationCommon::point> thermalConductivityTemperatureDependent = {
-      {0.0, 1.8}, {1, 1.8}};
-    constexpr double thermalConductivityMeasuredAtHumidity{0};
-    const std::vector<FenestrationCommon::point> liquidTransportationCurve = {{0, 0}};
-
-    const std::vector<FenestrationCommon::point> moistureStorageFunction = {{0, 0}};
-
-    auto & material =
-      multiDomain.materials().createSolidMaterial("No liquid or vapor transport curves",
-                                                   thermalConductivityDry,
-                                                   density,
-                                                   porosity,
-                                                   specificHeatCapacityDry,
-                                                   diffusionResistanceFactor,
-                                                   thermalConductivityMoistureDependent,
-                                                   thermalConductivityMeasuredAtTemperature,
-                                                   thermalConductivityTemperatureDependent,
-                                                   thermalConductivityMeasuredAtHumidity,
-                                                   liquidTransportationCurve,
-                                                   moistureStorageFunction);
+    const auto & material = multiDomain.materials().createSolidMaterial({
+        .name = "No liquid or vapor transport curves",
+        .thermalConductivityDry = 1.8,
+        .density = 2050.0,
+        .porosity = 0.22,
+        .heatCapacity = 850.0,
+        .diffusionResistanceFactor = 15.0,
+        .thermalConductivityMoistureDependent = {{0.0, 1.8}, {180, 1.8}},
+        .moistureDependentMeasurementTemperature = 0,
+        .thermalConductivityTemperatureDependent = {{0.0, 1.8}, {1, 1.8}},
+        .temperatureDependentMeasurementHumidity = 0,
+        .liquidTransportCurve = {{0, 0}},
+        .sorptionCurve = {{0, 0}}
+    });
 
     /// Create elements
     for(size_t i = 1; i <= (multiDomain.nodes().maxIndex() - 2) / 2; ++i)

@@ -29,32 +29,20 @@ protected:
         multiDomain.nodes().createNode(4, 0.0, 1.0, state);
 
         // Create material
-        constexpr double thermalConductivityDry{1.0};
-        constexpr double density{1000.0};
-        constexpr double porosity{0.1};
-        constexpr double specificHeatCapacityDry{1000.0};
-        constexpr double diffusionResistanceFactor{10.0};
-        const std::vector<FenestrationCommon::point> thermalConductivityMoistureDependent = {
-          {0.0, 1.0}, {180, 1.0}};
-        constexpr double thermalConductivityMeasuredAtTemperature{0};
-        const std::vector<FenestrationCommon::point> thermalConductivityTemperatureDependent = {
-          {0.0, 1.0}, {100.0, 1.0}};
-        constexpr double thermalConductivityMeasuredAtHumidity{0};
-        const std::vector<FenestrationCommon::point> liquidTransportationCurve = {{0, 0}, {180, 1e-6}};
-        const std::vector<FenestrationCommon::point> moistureStorageFunction = {{0, 0}, {1, 180}};
-
-        multiDomain.materials().createSolidMaterial("TestMaterial",
-                                                    thermalConductivityDry,
-                                                    density,
-                                                    porosity,
-                                                    specificHeatCapacityDry,
-                                                    diffusionResistanceFactor,
-                                                    thermalConductivityMoistureDependent,
-                                                    thermalConductivityMeasuredAtTemperature,
-                                                    thermalConductivityTemperatureDependent,
-                                                    thermalConductivityMeasuredAtHumidity,
-                                                    liquidTransportationCurve,
-                                                    moistureStorageFunction);
+        multiDomain.materials().createSolidMaterial({
+            .name = "TestMaterial",
+            .thermalConductivityDry = 1.0,
+            .density = 1000.0,
+            .porosity = 0.1,
+            .heatCapacity = 1000.0,
+            .diffusionResistanceFactor = 10.0,
+            .thermalConductivityMoistureDependent = {{0.0, 1.0}, {180, 1.0}},
+            .moistureDependentMeasurementTemperature = 0,
+            .thermalConductivityTemperatureDependent = {{0.0, 1.0}, {100.0, 1.0}},
+            .temperatureDependentMeasurementHumidity = 0,
+            .liquidTransportCurve = {{0, 0}, {180, 1e-6}},
+            .sorptionCurve = {{0, 0}, {1, 180}}
+        });
 
         multiDomain.createElement(1, 2, 3, 4, "TestMaterial");
     }
@@ -73,30 +61,20 @@ protected:
         multiDomain.nodes().createNode(6, 0.02, 0.05, state);
 
         // Create solid material
-        constexpr double thermalConductivityDry{1.8};
-        constexpr double density{2050.0};
-        constexpr double porosity{0.22};
-        constexpr double specificHeatCapacityDry{850.0};
-        constexpr double diffusionResistanceFactor{15.0};
-        const std::vector<FenestrationCommon::point> thermalConductivityMoistureDependent = {
-          {0.0, 1.8}, {180, 1.8}};
-        const std::vector<FenestrationCommon::point> thermalConductivityTemperatureDependent = {
-          {0.0, 1.8}, {100.0, 1.8}};
-        const std::vector<FenestrationCommon::point> liquidTransportationCurve = {{0, 0}, {180, 2e-6}};
-        const std::vector<FenestrationCommon::point> moistureStorageFunction = {{0, 0}, {1, 180}};
-
-        multiDomain.materials().createSolidMaterial("SolidMaterial",
-                                                    thermalConductivityDry,
-                                                    density,
-                                                    porosity,
-                                                    specificHeatCapacityDry,
-                                                    diffusionResistanceFactor,
-                                                    thermalConductivityMoistureDependent,
-                                                    0.0,
-                                                    thermalConductivityTemperatureDependent,
-                                                    0.0,
-                                                    liquidTransportationCurve,
-                                                    moistureStorageFunction);
+        multiDomain.materials().createSolidMaterial({
+            .name = "SolidMaterial",
+            .thermalConductivityDry = 1.8,
+            .density = 2050.0,
+            .porosity = 0.22,
+            .heatCapacity = 850.0,
+            .diffusionResistanceFactor = 15.0,
+            .thermalConductivityMoistureDependent = {{0.0, 1.8}, {180, 1.8}},
+            .moistureDependentMeasurementTemperature = 0.0,
+            .thermalConductivityTemperatureDependent = {{0.0, 1.8}, {100.0, 1.8}},
+            .temperatureDependentMeasurementHumidity = 0.0,
+            .liquidTransportCurve = {{0, 0}, {180, 2e-6}},
+            .sorptionCurve = {{0, 0}, {1, 180}}
+        });
 
         // Create frame cavity (gas)
         multiDomain.materials().createGas("FrameCavity", HygroThermFEM::CavityStandard::ISO15099);

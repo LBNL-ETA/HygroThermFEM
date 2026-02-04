@@ -47,36 +47,23 @@ TEST_F(Analytical_ConvectionBC_Transient, TestExample_1)
         multiDomain.nodes().createNode(nodeIndex, val, 0.05, state);
     }
 
-    // Material Properties
-    constexpr double thermalConductivityDry{1.8};
-    constexpr double density{2050.0};
-    constexpr double porosity{0.22};
-    constexpr double specificHeatCapacityDry{850.0};
-    constexpr double diffusionResistanceFactor{15.0};
-    const std::vector<FenestrationCommon::point> thermalConductivityMoistureDependent = {
-      {0.0, 1.8}, {180, 1.8}};
-    constexpr double thermalConductivityMeasuredAtTemperature{0};
-    const std::vector<FenestrationCommon::point> thermalConductivityTemperatureDependent = {
-      {0.0, 1.8}, {1, 1.8}};
-    constexpr double thermalConductivityMeasuredAtHumidity{0};
-    const std::vector<FenestrationCommon::point> liquidTransportationCurve = {{0, 0}, {180, 7E-7}};
-
-    const std::vector<FenestrationCommon::point> moistureStorageFunction = {{0, 0}, {1, 180}};
-
+    // Material Properties (using C++20 designated initializers)
     const std::string materialName{"Test Material"};
 
-    multiDomain.materials().createSolidMaterial(materialName,
-                                                thermalConductivityDry,
-                                                density,
-                                                porosity,
-                                                specificHeatCapacityDry,
-                                                diffusionResistanceFactor,
-                                                thermalConductivityMoistureDependent,
-                                                thermalConductivityMeasuredAtTemperature,
-                                                thermalConductivityTemperatureDependent,
-                                                thermalConductivityMeasuredAtHumidity,
-                                                liquidTransportationCurve,
-                                                moistureStorageFunction);
+    multiDomain.materials().createSolidMaterial({
+        .name = materialName,
+        .thermalConductivityDry = 1.8,
+        .density = 2050.0,
+        .porosity = 0.22,
+        .heatCapacity = 850.0,
+        .diffusionResistanceFactor = 15.0,
+        .thermalConductivityMoistureDependent = {{0.0, 1.8}, {180, 1.8}},
+        .moistureDependentMeasurementTemperature = 0.0,
+        .thermalConductivityTemperatureDependent = {{0.0, 1.8}, {1, 1.8}},
+        .temperatureDependentMeasurementHumidity = 0.0,
+        .liquidTransportCurve = {{0, 0}, {180, 7E-7}},
+        .sorptionCurve = {{0, 0}, {1, 180}}
+    });
 
     /// Create elements
     for(size_t i = 1u; i <= (multiDomain.nodes().maxIndex() - 2) / 2; ++i)

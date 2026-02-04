@@ -48,35 +48,20 @@ TEST_F(TestModelWithFrameCavity2, TestDoubleFrameCavity)
         }
     }
 
-    // Material Properties
-    constexpr double thermalConductivityDry{1.8};
-    constexpr double density{2050.0};
-    constexpr double porosity{0.22};
-    constexpr double specificHeatCapacityDry{850.0};
-    constexpr double diffusionResistanceFactor{15.0};
-    const std::vector<FenestrationCommon::point> thermalConductivityMoistureDependent = {
-      {0.0, 1.8}, {180, 1.8}};
-    constexpr double thermalConductivityMeasuredAtTemperature{0};
-    const std::vector<FenestrationCommon::point> thermalConductivityTemperatureDependent = {
-      {0.0, 1.8}, {1, 1.8}};
-    constexpr double thermalConductivityMeasuredAtHumidity{0};
-    const std::vector<FenestrationCommon::point> liquidTransportationCurve = {{0, 0}, {180, 2e-6}};
-
-    const std::vector<FenestrationCommon::point> moistureStorageFunction = {{0, 0}, {1, 180}};
-
-    auto & solidMaterial =
-      multiDomain.materials().createSolidMaterial("Material 1",
-                                                  thermalConductivityDry,
-                                                  density,
-                                                  porosity,
-                                                  specificHeatCapacityDry,
-                                                  diffusionResistanceFactor,
-                                                  thermalConductivityMoistureDependent,
-                                                  thermalConductivityMeasuredAtTemperature,
-                                                  thermalConductivityTemperatureDependent,
-                                                  thermalConductivityMeasuredAtHumidity,
-                                                  liquidTransportationCurve,
-                                                  moistureStorageFunction);
+    const auto & solidMaterial = multiDomain.materials().createSolidMaterial({
+        .name = "Material 1",
+        .thermalConductivityDry = 1.8,
+        .density = 2050.0,
+        .porosity = 0.22,
+        .heatCapacity = 850.0,
+        .diffusionResistanceFactor = 15.0,
+        .thermalConductivityMoistureDependent = {{0.0, 1.8}, {180, 1.8}},
+        .moistureDependentMeasurementTemperature = 0,
+        .thermalConductivityTemperatureDependent = {{0.0, 1.8}, {1, 1.8}},
+        .temperatureDependentMeasurementHumidity = 0,
+        .liquidTransportCurve = {{0, 0}, {180, 2e-6}},
+        .sorptionCurve = {{0, 0}, {1, 180}}
+    });
 
     auto & frameCavity1 =
       multiDomain.materials().createGas("Frame Cavity 1", HygroThermFEM::CavityStandard::ISO15099);

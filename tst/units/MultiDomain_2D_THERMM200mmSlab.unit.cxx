@@ -46,44 +46,20 @@ TEST_F(MultiDomain_2D_THERMM200mmSlab, TestExample_1)
     multiDomain.nodes().createNode(14, -0.1, -0.009);
     multiDomain.nodes().createNode(15, -0.1, 0.049);
 
-    // Material Properties
-    constexpr double thermalConductivityDry{0.1};
-    constexpr double density{400.0};
-    constexpr double porosity{0.81};
-    constexpr double specificHeatCapacityDry{850.0};
-    constexpr double diffusionResistanceFactor{7.9};
-    const std::vector<FenestrationCommon::point> thermalConductivityMoistureDependent = {
-      {0.0, 0.1}, {380, 0.1}};
-    constexpr double thermalConductivityMeasuredAtTemperature{0};
-    const std::vector<FenestrationCommon::point> thermalConductivityTemperatureDependent = {
-      {0.0, 0.1}, {1, 0.1}};
-    constexpr double thermalConductivityMeasuredAtHumidity{0};
-    const std::vector<FenestrationCommon::point> liquidTransportationCurve = {
-      {0, 0}, {3.1, 2e-10}, {38, 5.4e-09}, {265, 1.1e-08}, {342, 2e-08}, {380, 1e-07}};
-
-    const std::vector<FenestrationCommon::point> moistureStorageFunction = {{0, 0},
-                                                                            {0.5, 3.1},
-                                                                            {0.8, 8.4},
-                                                                            {0.93, 18},
-                                                                            {0.964, 116},
-                                                                            {0.99, 266},
-                                                                            {0.995, 269},
-                                                                            {0.999, 277},
-                                                                            {1, 380}};
-
-    auto & material =
-      multiDomain.materials().createSolidMaterial("Aerated Concrete (density: 400 kg/m)",
-                                                  thermalConductivityDry,
-                                                  density,
-                                                  porosity,
-                                                  specificHeatCapacityDry,
-                                                  diffusionResistanceFactor,
-                                                  thermalConductivityMoistureDependent,
-                                                  thermalConductivityMeasuredAtTemperature,
-                                                  thermalConductivityTemperatureDependent,
-                                                  thermalConductivityMeasuredAtHumidity,
-                                                  liquidTransportationCurve,
-                                                  moistureStorageFunction);
+    const auto & material = multiDomain.materials().createSolidMaterial({
+        .name = "Aerated Concrete (density: 400 kg/m)",
+        .thermalConductivityDry = 0.1,
+        .density = 400.0,
+        .porosity = 0.81,
+        .heatCapacity = 850.0,
+        .diffusionResistanceFactor = 7.9,
+        .thermalConductivityMoistureDependent = {{0.0, 0.1}, {380, 0.1}},
+        .moistureDependentMeasurementTemperature = 0,
+        .thermalConductivityTemperatureDependent = {{0.0, 0.1}, {1, 0.1}},
+        .temperatureDependentMeasurementHumidity = 0,
+        .liquidTransportCurve = {{0, 0}, {3.1, 2e-10}, {38, 5.4e-09}, {265, 1.1e-08}, {342, 2e-08}, {380, 1e-07}},
+        .sorptionCurve = {{0, 0}, {0.5, 3.1}, {0.8, 8.4}, {0.93, 18}, {0.964, 116}, {0.99, 266}, {0.995, 269}, {0.999, 277}, {1, 380}}
+    });
 
     /// Create elements
     multiDomain.createElement(3, 1, 2, 5, material.name());
