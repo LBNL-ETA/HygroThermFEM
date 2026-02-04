@@ -177,6 +177,21 @@ namespace HygroThermFEM
         return names;
     }
 
+    std::optional<std::reference_wrapper<const IMaterial>>
+        Node2D::findCommonSolidMaterial(const Node2D & other) const
+    {
+        std::optional<std::reference_wrapper<const IMaterial>> result = std::nullopt;
+        // Iterate through all materials to find the LAST common one (matching original behavior)
+        for(const auto & [name, container] : m_Materials)
+        {
+            if(other.m_Materials.find(name) != other.m_Materials.end())
+            {
+                result = std::cref(container.material);
+            }
+        }
+        return result;
+    }
+
     ////////////////////////////////////////////////////////////////////////////
     ///   INodesStorage
     ////////////////////////////////////////////////////////////////////////////

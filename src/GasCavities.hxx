@@ -1,5 +1,8 @@
 #pragma once
 
+#include <optional>
+#include <functional>
+
 #include <KeffCavity.hxx>
 #include "Elements2D.hxx"
 #include "EnumerationTemplate.hpp"
@@ -121,7 +124,8 @@ namespace HygroThermFEM
         //! Calculates frame cavity area out of segments
         [[nodiscard]] double calcArea() const;
 
-        static std::string findCommonMaterial(const Node2D & node1, const Node2D & node2);
+        static std::optional<std::reference_wrapper<const IMaterial>>
+            findCommonMaterial(const Node2D & node1, const Node2D & node2);
 
         static std::vector<Segment> buildSegments(const std::vector<size_t> & nodes);
 

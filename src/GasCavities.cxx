@@ -83,10 +83,10 @@ namespace HygroThermFEM
             const auto & node1 = NodePool::Instance().getNode(nodes[firstIndex]);
             const auto & node2 = NodePool::Instance().getNode(nodes[i]);
             auto emissivity{0.0};
-            const auto materialName = findCommonMaterial(node1, node2);
-            if(!materialName.empty())
+            const auto commonMaterial = findCommonMaterial(node1, node2);
+            if(commonMaterial.has_value())
             {
-                const auto & material = MaterialPool::Instance().material(materialName);
+                const auto & material = commonMaterial.value().get();
 
                 // This is possible if two frame cavities are next to each other
                 if(material.hasEmissivity())
@@ -123,25 +123,10 @@ namespace HygroThermFEM
         return m_Side.at(flowMap.at(screenFlow));
     }
 
-    std::string EquivalentGasCavity::findCommonMaterial(const Node2D & node1, const Node2D & node2)
+    std::optional<std::reference_wrapper<const IMaterial>>
+        EquivalentGasCavity::findCommonMaterial(const Node2D & node1, const Node2D & node2)
     {
-        std::string name;
-        auto node1Materials = node1.getSolidMaterialNames();
-        auto node2Materials = node2.getSolidMaterialNames();
-
-        for(const auto & mat1 : node1Materials)
-        {
-            for(const auto & mat2 : node2Materials)
-            {
-                if(mat1 == mat2)
-                {
-                    name = mat1;
-                    break;
-                }
-            }
-        }
-
-        return name;
+        return node1.findCommonSolidMaterial(node2);
     }
 
     double EquivalentGasCavity::calcArea() const
