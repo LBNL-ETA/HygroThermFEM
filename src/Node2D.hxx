@@ -7,40 +7,12 @@
 
 #include "State.hxx"
 #include "Material.hxx"
-#include "Node2D.hxx"
+#include "LocalPoint.hxx"
 #include "Functions.hxx"
 
 
 namespace HygroThermFEM
 {
-    ////////////////////////////////////////////////////////////////////////////
-    ///   LocalPoint1D
-    ////////////////////////////////////////////////////////////////////////////
-
-    //! Holds local point coordinate in 1D
-    struct LocalPoint1D
-    {
-        explicit LocalPoint1D(double t_ksi);
-
-        LocalPoint1D(const LocalPoint1D & t_LocalPoint);
-
-        double ksi{0};
-    };
-
-    ////////////////////////////////////////////////////////////////////////////
-    ///   LocalPoint2D
-    ////////////////////////////////////////////////////////////////////////////
-
-    //! \brief Holds local point coordinates in 2D
-    struct LocalPoint2D
-    {
-        LocalPoint2D(double t_ksi, double t_eta);
-
-        LocalPoint2D(const LocalPoint2D & t_LocalPoint);
-
-        double ksi{0};
-        double eta{0};
-    };
 
     //! \brief Main enumeration for accessing calculated or master properties.
     enum class Variable

@@ -3,11 +3,10 @@
 #include <vector>
 #include <memory>
 
+#include "LocalPoint.hxx"
+
 namespace HygroThermFEM
 {
-    struct LocalPoint2D;
-    struct LocalPoint1D;
-
     // Virtual class used in strategy pattern to define number of points for numerical integration
     // in one dimensional space
     ////////////////////////////////////////////////////////////////////////////
