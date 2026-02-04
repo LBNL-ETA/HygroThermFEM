@@ -18,6 +18,12 @@ namespace HygroThermFEM
         return m_Nodes.back();
     }
 
+    Node2D & Nodes::createNode(const double x, const double y, const State & state)
+    {
+        const auto nodeIndex = m_Nodes.size() + 1;
+        return createNode(nodeIndex, x, y, state);
+    }
+
     Node2D & Nodes::getNode(const size_t Index)
     {
         assert(Index <= m_Nodes.size());

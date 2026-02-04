@@ -28,6 +28,15 @@ namespace HygroThermFEM
                             double y,
                             const State & state = State(0, 0, 0, 0));
 
+        //! \brief Creates node with auto-generated index
+        //!
+        //! Node index is automatically assigned as the next sequential value.
+        //! \param x x-coordinate.
+        //! \param y y-coordinate
+        //! \param state State of variables in the node.
+        //! \return Reference to newly created node
+        Node2D & createNode(double x, double y, const State & state = State(0, 0, 0, 0));
+
         //! \brief Returns node at given index.
         //!
         //! \param Index Node index.
