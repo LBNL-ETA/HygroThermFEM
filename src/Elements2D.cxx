@@ -5,13 +5,12 @@
 #endif
 
 #include "Elements2D.hxx"
-#include "NodePool.hxx"
 
 namespace HygroThermFEM
 {
-    SquareMatrix ElementsLinear2D::conductanceMatrix()
+    SquareMatrix ElementsLinear2D::conductanceMatrix(const size_t maxNodeIndex)
     {
-        SquareMatrix result{NodePool::Instance().maxIndex()};
+        SquareMatrix result{maxNodeIndex};
 
 #ifdef STL_MULTITHREADING
 
@@ -58,9 +57,10 @@ namespace HygroThermFEM
         return result;
     }
 
-    std::vector<double> ElementsLinear2D::getLumpedMass(const double DTime) const
+    std::vector<double> ElementsLinear2D::getLumpedMass(const size_t maxNodeIndex,
+                                                        const double DTime) const
     {
-        const auto numOfNodes{NodePool::Instance().maxIndex()};
+        const auto numOfNodes{maxNodeIndex};
         std::vector<std::vector<double>> Capacitance(numOfNodes,
                                                      std::vector<double>(numOfNodes, 0));
 
@@ -116,9 +116,9 @@ namespace HygroThermFEM
         return M;
     }
 
-    SquareMatrix ElementsLinear2D::getMassMatrix(const double DTime) const
+    SquareMatrix ElementsLinear2D::getMassMatrix(const size_t maxNodeIndex, const double DTime) const
     {
-        SquareMatrix Capacitance{NodePool::Instance().maxIndex()};
+        SquareMatrix Capacitance{maxNodeIndex};
 
 #ifdef STL_MULTITHREADING
 
@@ -191,9 +191,9 @@ namespace HygroThermFEM
         m_Elements.push_back(std::move(el));
     }
 
-    std::vector<double> ElementsLinear2D::RVector() const
+    std::vector<double> ElementsLinear2D::RVector(const size_t maxNodeIndex) const
     {
-        std::vector<double> result(NodePool::Instance().maxIndex(), 0);
+        std::vector<double> result(maxNodeIndex, 0);
 
 #ifdef STL_MULTITHREADING
 
@@ -228,12 +228,11 @@ namespace HygroThermFEM
         return result;
     }
 
-    std::vector<NodeFlux> ElementsLinear2D::flux() const
+    std::vector<NodeFlux> ElementsLinear2D::flux(const size_t maxNodeIndex) const
     {
-        std::vector<NodeFlux> result(NodePool::Instance().maxIndex(), {0, 0});
+        std::vector<NodeFlux> result(maxNodeIndex, {0, 0});
 
-        std::vector<std::vector<NodeFlux>> fluxes(NodePool::Instance().maxIndex(),
-                                                  std::vector<NodeFlux>());
+        std::vector<std::vector<NodeFlux>> fluxes(maxNodeIndex, std::vector<NodeFlux>());
 
 #ifdef STL_MULTITHREADING
         std::mutex mtx;

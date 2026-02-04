@@ -28,14 +28,16 @@ namespace HygroThermFEM
         BoundaryConditions2D(const BoundaryConditions2D & other) = delete;
 
         //! \brief Assembled H matrix from all boundary conditions.
+        //! @param maxNodeIndex Maximum node index for matrix sizing.
         //! @param timestepIndex Timestep index for which matrix being calculated. It is defaulted
         //! to zero for single boundary condition input
-        SquareMatrix HMatrix(size_t timestepIndex = 0) const;
+        SquareMatrix HMatrix(size_t maxNodeIndex, size_t timestepIndex = 0) const;
 
         //! \brief Assembled R vector from all boundary conditions.
+        //! @param maxNodeIndex Maximum node index for vector sizing.
         //! @param timestepIndex Timestep index for which matrix being calculated. It is defaulted
         //! to zero for single boundary condition input
-        std::vector<double> RVector(size_t timestepIndex = 0) const;
+        std::vector<double> RVector(size_t maxNodeIndex, size_t timestepIndex = 0) const;
 
         //! Returns linearity of the problem. It is important for domain to know what set of
         //! equations should be applied.

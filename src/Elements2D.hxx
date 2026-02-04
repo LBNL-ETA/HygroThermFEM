@@ -14,25 +14,30 @@ namespace HygroThermFEM
         explicit ElementsLinear2D() = default;
 
         //! Conductance matrix calculated for the entire domain.
-        SquareMatrix conductanceMatrix();
+        //! \param maxNodeIndex Maximum node index for matrix sizing.
+        SquareMatrix conductanceMatrix(size_t maxNodeIndex);
 
         //! Creates lumped mass matrix that includes time derivative
         //!
+        //! \param maxNodeIndex Maximum node index for matrix sizing.
         //! \param DTime Timestep value for which matrix will be evaluated.
         //! \return Vector of mass values in nodes.
-        std::vector<double> getLumpedMass(double DTime) const;
+        std::vector<double> getLumpedMass(size_t maxNodeIndex, double DTime) const;
 
         //! Mass matrix in full form (not lumped)
         //!
+        //! \param maxNodeIndex Maximum node index for matrix sizing.
         //! \param DTime Timestep value for which matrix will be evaluated.
         //! \return Mass matrix values.
-        SquareMatrix getMassMatrix(double DTime) const;
+        SquareMatrix getMassMatrix(size_t maxNodeIndex, double DTime) const;
 
         //! Right hand side vector of the domain.
-        std::vector<double> RVector() const;
+        //! \param maxNodeIndex Maximum node index for vector sizing.
+        std::vector<double> RVector(size_t maxNodeIndex) const;
 
         //! Vector of fluxes for the entire domain.
-        std::vector<NodeFlux> flux() const;
+        //! \param maxNodeIndex Maximum node index for vector sizing.
+        std::vector<NodeFlux> flux(size_t maxNodeIndex) const;
 
         //! Flag that shows if domain can be solved as linear.
         bool isLinear() const;

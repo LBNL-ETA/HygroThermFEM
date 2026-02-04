@@ -16,8 +16,9 @@ namespace HygroThermFEM
 {
     SquareMatrix IDomain::steadyStateLeftHandSide()
     {
-        auto condMat = m_Elements.conductanceMatrix();
-        const auto boundaryHMatrix = m_BCs.HMatrix();
+        const auto maxNodeIndex = NodePool::Instance().maxIndex();
+        auto condMat = m_Elements.conductanceMatrix(maxNodeIndex);
+        const auto boundaryHMatrix = m_BCs.HMatrix(maxNodeIndex);
         condMat += boundaryHMatrix;
 
         return condMat;
@@ -25,15 +26,16 @@ namespace HygroThermFEM
 
     std::vector<double> IDomain::steadyStateRightHandSide() const
     {
-        return m_BCs.RVector();
+        return m_BCs.RVector(NodePool::Instance().maxIndex());
     }
 
     SquareMatrix IDomain::transientM_K_H_Matrix(const double t_DTime, const size_t timestepIndex)
     {
-        const auto M = m_Elements.getLumpedMass(t_DTime);
-        auto M_K_H = m_Elements.conductanceMatrix();
-        M_K_H = M_K_H.addDiagonal(M);
-        M_K_H += m_BCs.HMatrix(timestepIndex);
+        const auto maxNodeIndex = NodePool::Instance().maxIndex();
+        const auto MassVec = m_Elements.getLumpedMass(maxNodeIndex, t_DTime);
+        auto M_K_H = m_Elements.conductanceMatrix(maxNodeIndex);
+        M_K_H = M_K_H.addDiagonal(MassVec);
+        M_K_H += m_BCs.HMatrix(maxNodeIndex, timestepIndex);
 
         return M_K_H;
     }
@@ -43,12 +45,14 @@ namespace HygroThermFEM
                                     const double t_DTime,
                                     const size_t timestepIndex)
     {
-        const std::vector<double> M{m_Elements.getLumpedMass(t_DTime)};
-        const auto R = m_BCs.RVector(timestepIndex) + m_Elements.RVector();
+        const auto maxNodeIndex = NodePool::Instance().maxIndex();
+        const std::vector<double> MassVec{m_Elements.getLumpedMass(maxNodeIndex, t_DTime)};
+        const auto vecR = m_BCs.RVector(maxNodeIndex, timestepIndex)
+                          + m_Elements.RVector(maxNodeIndex);
 
-        auto B = t_PreviousSolution * M + R;
+        auto vecB = t_PreviousSolution * MassVec + vecR;
 
-        return B;
+        return vecB;
     }
 
     std::vector<double> IDomain::steadyState()
@@ -184,7 +188,7 @@ namespace HygroThermFEM
 
     std::vector<NodeFlux> IDomain::flux() const
     {
-        return m_Elements.flux();
+        return m_Elements.flux(NodePool::Instance().maxIndex());
     }
 
     void IDomain::postProcess(std::vector<double> &)

@@ -42,7 +42,8 @@ TEST_F(TestBoundaryConditions2D_test1, TestIntegrationPoints)
     BCs.assignBC(fem::make_unique<HygroThermFEM::ConstantConvectionBC>(1, 2, bcCoeff1));
     BCs.assignBC(fem::make_unique<HygroThermFEM::ConstantConvectionBC>(6, 5, bcCoeff2));
 
-    auto H = BCs.HMatrix();
+    auto maxNodeIndex = NodePool::Instance().maxIndex();
+    auto HMat = BCs.HMatrix(maxNodeIndex);
 
     std::vector<std::vector<double>> correctH{{33.33333333, 16.66666667, 0, 0, 0, 0},
                                               {16.66666667, 33.33333333, 0, 0, 0, 0},
@@ -50,24 +51,24 @@ TEST_F(TestBoundaryConditions2D_test1, TestIntegrationPoints)
                                               {0, 0, 0, 0, 0, 0},
                                               {0, 0, 0, 0, 4, 2},
                                               {0, 0, 0, 0, 2, 4}};
-    EXPECT_EQ(correctH.size(), H.size());
+    EXPECT_EQ(correctH.size(), HMat.size());
 
-    for(auto i = 0u; i < correctH.size(); ++i)
+    for(auto idx = 0u; idx < correctH.size(); ++idx)
     {
-        for(auto j = 0u; j < correctH.size(); ++j)
+        for(auto jdx = 0u; jdx < correctH.size(); ++jdx)
         {
-            EXPECT_NEAR(correctH[i][j], H(i, j), 1e-6);
+            EXPECT_NEAR(correctH[idx][jdx], HMat(idx, jdx), 1e-6);
         }
     }
 
-    auto R = BCs.RVector();
+    auto vecR = BCs.RVector(maxNodeIndex);
 
     std::vector<double> correctR{12757.5, 12757.5, 0, 0, 1764.9, 1764.9};
 
-    EXPECT_EQ(R.size(), correctR.size());
+    EXPECT_EQ(vecR.size(), correctR.size());
 
-    for(auto i = 0u; i < correctR.size(); ++i)
+    for(auto idx = 0u; idx < correctR.size(); ++idx)
     {
-        EXPECT_NEAR(correctR[i], R[i], 1e-6);
+        EXPECT_NEAR(correctR[idx], vecR[idx], 1e-6);
     }
 }
