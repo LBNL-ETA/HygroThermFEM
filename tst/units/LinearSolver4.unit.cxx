@@ -52,8 +52,6 @@ TEST_F(TestLinearSolver4, Test1)
 
     const SquareMatrix aMatrix{size, tripletList};
 
-    auto aSolver = GetSolver();
-
     const auto startTime = std::chrono::high_resolution_clock::now();
     auto aSolution = CLinearSolver::solveEigen(aMatrix, aVector);
     const auto endTime = std::chrono::high_resolution_clock::now();

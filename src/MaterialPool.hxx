@@ -44,10 +44,17 @@ namespace HygroThermFEM
 
         [[nodiscard]] std::vector<std::string> getGases() const;
 
-    private:
+        // Public constructor/destructor for ownership by MultiDomain
         MaterialPool() = default;
-
         ~MaterialPool() = default;
+
+        // Non-copyable, non-movable
+        MaterialPool(const MaterialPool &) = delete;
+        MaterialPool & operator=(const MaterialPool &) = delete;
+        MaterialPool(MaterialPool &&) = delete;
+        MaterialPool & operator=(MaterialPool &&) = delete;
+
+    private:
 
         //! Important check if material has already been created. Program should not allow user to
         //! create two materials with same name because first material will be overwritten and

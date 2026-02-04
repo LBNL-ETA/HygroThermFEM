@@ -12,7 +12,7 @@ namespace HygroThermFEM
                                        const std::string & materialName)
     {
         m_Elements.assignElement(
-          std::make_unique<ElementMoistureLinear2D>(index1, index2, index3, index4, materialName));
+          std::make_unique<ElementMoistureLinear2D>(m_MaterialPool, index1, index2, index3, index4, materialName));
     }
 
     void MoistureDomain::createBC_TARPHc(const size_t index1,
@@ -23,7 +23,7 @@ namespace HygroThermFEM
         /// Need to pull material for current moisture boundary condition
         auto & Material = m_Elements.findElement(index1, index2)->getMaterial();
         m_BCs.assignBC(std::make_unique<MoistureBCTARPHc>(
-          index1, index2, Material.name(), varHCCoeff, surfaceTilt));
+          m_MaterialPool, index1, index2, Material.name(), varHCCoeff, surfaceTilt));
     }
 
     void MoistureDomain::createBC_TARPHc(size_t index1,
@@ -36,7 +36,7 @@ namespace HygroThermFEM
         for(const auto & coeff : varCoeff)
         {
             timestepBCs.push_back(std::make_unique<MoistureBCTARPHc>(
-              index1, index2, Material.name(), coeff, surfaceTilt));
+              m_MaterialPool, index1, index2, Material.name(), coeff, surfaceTilt));
         }
         m_BCs.assignTimestepBCs(std::move(timestepBCs));
     }
@@ -49,7 +49,7 @@ namespace HygroThermFEM
     {
         const auto & Material = m_Elements.findElement(index1, index2)->getMaterial();
         m_BCs.assignBC(std::make_unique<MoistureBCASHRAEInside>(
-          index1, index2, Material.name(), coeff, surfaceHeight, surfaceTilt));
+          m_MaterialPool, index1, index2, Material.name(), coeff, surfaceHeight, surfaceTilt));
     }
 
     void MoistureDomain::createBC_ASHRAEInsideHc(size_t index1,
@@ -63,7 +63,7 @@ namespace HygroThermFEM
         for(const auto & cf : coeff)
         {
             timestepBCs.push_back(std::make_unique<MoistureBCASHRAEInside>(
-              index1, index2, Material.name(), cf, surfaceHeight, surfaceTilt));
+              m_MaterialPool, index1, index2, Material.name(), cf, surfaceHeight, surfaceTilt));
         }
         m_BCs.assignTimestepBCs(std::move(timestepBCs));
     }
@@ -74,7 +74,7 @@ namespace HygroThermFEM
     {
         const auto & Material = m_Elements.findElement(index1, index2)->getMaterial();
         m_BCs.assignBC(std::make_unique<MoistureBCASHRAEOutside>(
-          index1, index2, Material.name(), coeff));
+          m_MaterialPool, index1, index2, Material.name(), coeff));
     }
 
     void MoistureDomain::createBC_ASHRAEOutsideHc(
@@ -85,7 +85,7 @@ namespace HygroThermFEM
         for(const auto & cf : coeff)
         {
             timestepBCs.push_back(std::make_unique<MoistureBCASHRAEOutside>(
-              index1, index2, Material.name(), cf));
+              m_MaterialPool, index1, index2, Material.name(), cf));
         }
         m_BCs.assignTimestepBCs(std::move(timestepBCs));
     }
@@ -96,7 +96,7 @@ namespace HygroThermFEM
     {
         const auto & Material = m_Elements.findElement(index1, index2)->getMaterial();
         m_BCs.assignBC(std::make_unique<MoistureYazdanianKlemsBC>(
-          index1, index2, Material.name(), coeff));
+          m_MaterialPool, index1, index2, Material.name(), coeff));
     }
 
     void MoistureDomain::createBC_YazdanianKlemsHc(
@@ -107,7 +107,7 @@ namespace HygroThermFEM
         for(const auto & cf : coeff)
         {
             timestepBCs.push_back(std::make_unique<MoistureYazdanianKlemsBC>(
-              index1, index2, Material.name(), cf));
+              m_MaterialPool, index1, index2, Material.name(), cf));
         }
         m_BCs.assignTimestepBCs(std::move(timestepBCs));
     }
@@ -118,7 +118,7 @@ namespace HygroThermFEM
     {
         const auto & Material = m_Elements.findElement(index1, index2)->getMaterial();
         m_BCs.assignBC(std::make_unique<MoistureKimuraBC>(
-          index1, index2, Material.name(), coeff));
+          m_MaterialPool, index1, index2, Material.name(), coeff));
     }
 
     void MoistureDomain::createBC_KimuraHc(size_t index1,
@@ -130,7 +130,7 @@ namespace HygroThermFEM
         for(const auto & cf : coeff)
         {
             timestepBCs.push_back(std::make_unique<MoistureKimuraBC>(
-              index1, index2, Material.name(), cf));
+              m_MaterialPool, index1, index2, Material.name(), cf));
         }
         m_BCs.assignTimestepBCs(std::move(timestepBCs));
     }
@@ -142,7 +142,7 @@ namespace HygroThermFEM
         /// Need to pull material for current moisture boundary condition
         auto & Material = m_Elements.findElement(index1, index2)->getMaterial();
         m_BCs.assignBC(std::make_unique<MoistureBCFixedHc>(
-          index1, index2, Material.name(), fixedBchcCoefficients));
+          m_MaterialPool, index1, index2, Material.name(), fixedBchcCoefficients));
     }
 
     void MoistureDomain::createBC_FixedHc(
@@ -155,7 +155,7 @@ namespace HygroThermFEM
         std::for_each(
           fixedBchcCoefficients.begin(), fixedBchcCoefficients.end(), [&](const auto & bc) {
               timestepBCs.push_back(
-                std::make_unique<MoistureBCFixedHc>(index1, index2, Material.name(), bc));
+                std::make_unique<MoistureBCFixedHc>(m_MaterialPool, index1, index2, Material.name(), bc));
           });
         m_BCs.assignTimestepBCs(std::move(timestepBCs));
     }
@@ -166,7 +166,7 @@ namespace HygroThermFEM
     {
         auto & Material = m_Elements.findElement(index1, index2)->getMaterial();
         m_BCs.assignBC(std::make_unique<MoistureBCFixedHumidity>(
-          index1, index2, Material.name(), values));
+          m_MaterialPool, index1, index2, Material.name(), values));
     }
 
     void MoistureDomain::createBC_FixedHumidity(size_t index1,
@@ -177,13 +177,14 @@ namespace HygroThermFEM
         auto & Material = m_Elements.findElement(index1, index2)->getMaterial();
         for(size_t i = 0u; i < values.size(); ++i)
         {
-            timestepBCs[i] = std::make_unique<MoistureBCFixedHumidity>(index1, index2, Material.name(), values[i]);
+            timestepBCs[i] = std::make_unique<MoistureBCFixedHumidity>(m_MaterialPool, index1, index2, Material.name(), values[i]);
         }
         m_BCs.assignTimestepBCs(std::move(timestepBCs));
     }
 
-    MoistureDomain::MoistureDomain(bool automaticUpdatePreviousTimestep) :
-        IDomain(BaseVariable::humidity, automaticUpdatePreviousTimestep)
+    MoistureDomain::MoistureDomain(MaterialPool & materialPool,
+                                     const bool automaticUpdatePreviousTimestep) :
+        IDomain(materialPool, BaseVariable::humidity, automaticUpdatePreviousTimestep)
     {}
 
     void MoistureDomain::postProcess(std::vector<double> & solution)

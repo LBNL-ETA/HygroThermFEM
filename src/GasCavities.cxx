@@ -351,15 +351,16 @@ namespace HygroThermFEM
     ///  EquivalentGasCavities
     ///////////////////////////////////////////////////////////////////////////////
 
-    EquivalentGasCavities::EquivalentGasCavities(const ElementsLinear2D & m_Elements) :
-        m_Elements(m_Elements)
+    EquivalentGasCavities::EquivalentGasCavities(MaterialPool & materialPool, const ElementsLinear2D & elements) :
+        m_MaterialPool(materialPool),
+        m_Elements(elements)
     {
         createEquivalentFrameCavities();
     }
 
     void EquivalentGasCavities::createEquivalentFrameCavities()
     {
-        auto frameCavities = MaterialPool::Instance().getGases();
+        auto frameCavities = m_MaterialPool.getGases();
 
         for(const auto & frameCavity : frameCavities)
         {
@@ -372,7 +373,7 @@ namespace HygroThermFEM
                 }
             }
             auto edges = getEdges(elementNodes);
-            auto & gas = MaterialPool::Instance().gas(frameCavity);
+            auto & gas = m_MaterialPool.gas(frameCavity);
             m_Cavities.emplace_back(edgeNodesOrdered(edges), gas);
         }
     }

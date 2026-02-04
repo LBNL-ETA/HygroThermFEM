@@ -54,7 +54,7 @@ namespace HygroThermFEM
         double X() const;
         double Y() const;
 
-        virtual void assignMaterial(const std::string & t_Material,
+        virtual void assignMaterial(const IMaterial & material,
                                     double weightingCoefficient) = 0;
 
         virtual double property(Variable property,
@@ -105,9 +105,9 @@ namespace HygroThermFEM
 
         //! Assigning material to current node.
         void assignMaterial(
-            const std::string &
-            t_Material,
-            //!< SolidMaterial name. It must be assigned to MaterialPool first.
+            const IMaterial &
+            material,
+            //!< SolidMaterial reference. It must be assigned to MaterialPool first.
             double weightingCoefficient //!< Weighting coefficient that represents influence of the
                                         //!< material to current node.
             ) override;

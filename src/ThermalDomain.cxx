@@ -256,7 +256,7 @@ namespace HygroThermFEM
                                       const std::string & materialName)
     {
         m_Elements.assignElement(
-          std::make_unique<ElementThermalLinear2D>(index1, index2, index3, index4, materialName));
+          std::make_unique<ElementThermalLinear2D>(m_MaterialPool, index1, index2, index3, index4, materialName));
     }
 
     void ThermalDomain::postProcess(std::vector<double> & solution)
@@ -275,7 +275,8 @@ namespace HygroThermFEM
         }
     }
 
-    ThermalDomain::ThermalDomain(bool automaticUpdatePreviousTimestep) :
-        IDomain(BaseVariable::temperature, automaticUpdatePreviousTimestep)
+    ThermalDomain::ThermalDomain(MaterialPool & materialPool,
+                                   const bool automaticUpdatePreviousTimestep) :
+        IDomain(materialPool, BaseVariable::temperature, automaticUpdatePreviousTimestep)
     {}
 }   // namespace HygroThermFEM

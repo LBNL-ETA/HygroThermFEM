@@ -145,14 +145,15 @@ namespace HygroThermFEM
     ///  IElementLinear2D
     //////////////////////////////////////////////////////////////////////////////
 
-    IElementLinear2D::IElementLinear2D(const size_t index1,
+    IElementLinear2D::IElementLinear2D(MaterialPool & materialPool,
+                                       const size_t index1,
                                        const size_t index2,
                                        const size_t index3,
                                        const size_t index4,
                                        const std::string & materialName,
                                        const Variable variable,
                                        const bool isLinear) :
-        m_Material{MaterialPool::Instance().material(materialName)},
+        m_Material{materialPool.material(materialName)},
         m_FluxVariable(variable),
         m_Nodes{NodePool::Instance().getNode(index1),
                 NodePool::Instance().getNode(index2),
@@ -182,8 +183,8 @@ namespace HygroThermFEM
             const auto weightingCoefficient =
               angleBetweenNodes(node1, node2, node3) / (2 * Constants::PI_HTF);
             /// Node will have possibility to calculate certain properties that will be
-            /// material dependent.
-            node1.assignMaterial(materialName, weightingCoefficient);
+            /// material dependent. Pass the already-resolved material reference directly.
+            node1.assignMaterial(m_Material, weightingCoefficient);
             m_Nodes.moveToNext();
         }
     }
@@ -372,12 +373,13 @@ namespace HygroThermFEM
     ///  ElementThermalLinear2D
     //////////////////////////////////////////////////////////////////////////////
 
-    ElementThermalLinear2D::ElementThermalLinear2D(const size_t index1,
+    ElementThermalLinear2D::ElementThermalLinear2D(MaterialPool & materialPool,
+                                                   const size_t index1,
                                                    const size_t index2,
                                                    const size_t index3,
                                                    const size_t index4,
                                                    const std::string & materialName) :
-        IElementLinear2D(index1, index2, index3, index4, materialName, Variable::temperature)
+        IElementLinear2D(materialPool, index1, index2, index3, index4, materialName, Variable::temperature)
     {
         //////////////////////////////////////////////////////////////////////////////////////
         /// Capacitance functions
@@ -489,12 +491,13 @@ namespace HygroThermFEM
     ///  ElementMoistureLinear2D
     //////////////////////////////////////////////////////////////////////////////
 
-    ElementMoistureLinear2D::ElementMoistureLinear2D(const size_t index1,
+    ElementMoistureLinear2D::ElementMoistureLinear2D(MaterialPool & materialPool,
+                                                     const size_t index1,
                                                      const size_t index2,
                                                      const size_t index3,
                                                      const size_t index4,
                                                      const std::string & materialName) :
-        IElementLinear2D(index1, index2, index3, index4, materialName, Variable::humidity, false)
+        IElementLinear2D(materialPool, index1, index2, index3, index4, materialName, Variable::humidity, false)
     {
         //////////////////////////////////////////////////////////////////////////////
         /// Water vapor diffusion

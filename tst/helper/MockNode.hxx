@@ -33,7 +33,7 @@ namespace HygroThermFEM
         MockNode2D & operator=(const MockNode2D &) = default;
         MockNode2D & operator=(MockNode2D &&) = default;
 
-        void assignMaterial(const std::string &, double) override;
+        void assignMaterial(const IMaterial &, double) override;
 
         void setStateProperty(BaseVariable, double, bool) override;
 

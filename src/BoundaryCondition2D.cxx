@@ -78,14 +78,15 @@ namespace HygroThermFEM
     /// IMoistureBC
     /////////////////////////////////////////////////////
 
-    IMoistureBC::IMoistureBC(const size_t index1,
+    IMoistureBC::IMoistureBC(MaterialPool & materialPool,
+                             const size_t index1,
                              const size_t index2,
                              const std::string & materialName,
                              const double airHumidity,
                              const double airTemperature,
                              std::unique_ptr<IConvectiveCoefficient> convectiveCoeffCalc) :
         IConvectiveBCBase(index1, index2, airTemperature, airHumidity, std::move(convectiveCoeffCalc)),
-        m_Material(MaterialPool::Instance().material(materialName))
+        m_Material(materialPool.material(materialName))
     {}
 
     std::vector<double> IMoistureBC::R_Vector() const

@@ -78,7 +78,7 @@ TEST_F(TestSingleElementMatrices2D, TestConductionMatrix)
                                                    liquidTransportationCurve,
                                                    moistureStorageFunction);
 
-    const HygroThermFEM::ElementThermalLinear2D aElem{1, 2, 3, 4, material.name()};
+    const HygroThermFEM::ElementThermalLinear2D aElem{MaterialPool::Instance(), 1, 2, 3, 4, material.name()};
 
     auto condMat = aElem.DDuMatrices();
 

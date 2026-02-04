@@ -50,7 +50,7 @@ namespace HygroThermFEM
         return m_Property.at(variable).at(timestep);
     }
 
-    void MockNode2D::assignMaterial(const std::string &, double)
+    void MockNode2D::assignMaterial(const IMaterial &, double)
     {}
 
     void MockNode2D::setStateProperty(BaseVariable, double, bool)

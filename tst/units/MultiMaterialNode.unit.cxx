@@ -121,8 +121,8 @@ TEST_F(MultiMaterialNode, TestExample_1)
                                                    liquidTransportationCurve,
                                                    moistureStorageFunction);
 
-    node1.assignMaterial(material1.name(), 0.5);
-    node1.assignMaterial(material2.name(), 0.5);
+    node1.assignMaterial(material1, 0.5);
+    node1.assignMaterial(material2, 0.5);
 
     EXPECT_NEAR(node1.property(HygroThermFEM::Variable::ice), 0, 1e-6);
     EXPECT_NEAR(node1.property(HygroThermFEM::Variable::vapor), 0.001062, 1e-6);

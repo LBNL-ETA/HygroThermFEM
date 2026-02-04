@@ -15,6 +15,7 @@ namespace HygroThermFEM
         //! \brief Construction of boundary condition with TARP algorithm for convective heat
         //! transfer calculations
         //!
+        //! @param materialPool Reference to MaterialPool for material lookup
         //! @param index1 Node 1 index
         //! @param index2 Node 2 index
         //! @param materialName Material name for which boundary is associated with
@@ -22,7 +23,8 @@ namespace HygroThermFEM
         //! calculations. Structure contain only coefficients that are variable through every
         //! timestep.
         //! @param surafceTilt Surface tilt at the boundary. [degrees]
-        MoistureBCTARPHc(size_t index1,
+        MoistureBCTARPHc(MaterialPool & materialPool,
+                         size_t index1,
                          size_t index2,
                          const std::string & materialName,
                          const TARPCoefficients & varHCCoeff,
@@ -41,13 +43,15 @@ namespace HygroThermFEM
         //! \brief Moisture boundary condition that calculates convective coefficient based on
         //! ASHRAE inside algorithm
         //!
+        //! @param materialPool Reference to MaterialPool for material lookup
         //! @param index1 Node 1 index
         //! @param index2 Node 2 index
         //! @param materialName Material that is adjacent to the boundary
         //! @param coeffs Coefficients that are necessary for ASHRAE inside convection heat transfer
         //! coefficient calculation Structure only contain coefficients that are variable through
         //! every timestep.
-        MoistureBCASHRAEInside(size_t index1,
+        MoistureBCASHRAEInside(MaterialPool & materialPool,
+                               size_t index1,
                                size_t index2,
                                const std::string & materialName,
                                const ASHRAEInsideCoefficients & coeffs,
@@ -67,13 +71,15 @@ namespace HygroThermFEM
         //! \brief Moisture boundary condition that calculates convective coefficient based on
         //! ASHRAE outside algorithm.
         //!
+        //! \param materialPool Reference to MaterialPool for material lookup
         //! \param index1 Node 1 index
         //! \param index2 Node 2 index
         //! \param materialName Material that is adjacent to the boundary
         //! \param coeffs Coefficients that are necessary for ASHRAE outside convection heat
         //! transfer coefficients calculation. Structure only contain coefficients that are variable
         //! through timestep.
-        MoistureBCASHRAEOutside(size_t index1,
+        MoistureBCASHRAEOutside(MaterialPool & materialPool,
+                                size_t index1,
                                 size_t index2,
                                 const std::string & materialName,
                                 const ASHRAEOutsideCoefficients & coeffs);
@@ -91,13 +97,15 @@ namespace HygroThermFEM
         //! \brief Moisture boundary condition that calculates convective coefficient based on
         //! Yazdanian-Klems outside algorithm.
         //!
+        //! \param materialPool Reference to MaterialPool for material lookup
         //! \param index1 Node 1 index
         //! \param index2 Node 2 index
         //! \param materialName Material that is adjacent to the boundary
         //! \param coeffs Coefficients that are necessary for Yazdanian-Klems outside convection
         //! heat transfer coefficients calculation. Structure only contain coefficients that are
         //! variable through timestep.
-        MoistureYazdanianKlemsBC(size_t index1,
+        MoistureYazdanianKlemsBC(MaterialPool & materialPool,
+                                 size_t index1,
                                  size_t index2,
                                  const std::string & materialName,
                                  const YazdanianKlemsCoefficients & coeffs);
@@ -111,13 +119,15 @@ namespace HygroThermFEM
         //! \brief Moisture boundary condition that calculates convective coefficient based on
         //! Kimura model.
         //!
+        //! \param materialPool Reference to MaterialPool for material lookup
         //! \param index1 Node 1 index
         //! \param index2 Node 2 index
         //! \param materialName Material that is adjacent to the boundary
         //! \param coeffs Coefficients that are necessary for Kmura outside convection heat transfer
         //! coefficient calculation. Structure only contain coefficients that are variable through
         //! timestep.
-        MoistureKimuraBC(size_t index1,
+        MoistureKimuraBC(MaterialPool & materialPool,
+                         size_t index1,
                          size_t index2,
                          const std::string & materialName,
                          const KimuraCoefficients & coeffs);
@@ -131,7 +141,8 @@ namespace HygroThermFEM
     class MoistureBCFixedHc : public IMoistureBC
     {
     public:
-        MoistureBCFixedHc(size_t index1,
+        MoistureBCFixedHc(MaterialPool & materialPool,
+                          size_t index1,
                           size_t index2,
                           const std::string & materialName,
                           const FixedBCHCCoefficients & fixedBchcCoefficients);
@@ -144,11 +155,13 @@ namespace HygroThermFEM
     class MoistureBCFixedHumidity : public MoistureBCFixedHc
     {
     public:
-        MoistureBCFixedHumidity(size_t index1,
+        MoistureBCFixedHumidity(MaterialPool & materialPool,
+                                size_t index1,
                                 size_t index2,
                                 const std::string & materialName,
                                 TemperatureAndHumidity values) :
-            MoistureBCFixedHc(index1,
+            MoistureBCFixedHc(materialPool,
+                              index1,
                               index2,
                               materialName,
                               {values.Temperature, hugeFilmCoefficient, values.Humidity})

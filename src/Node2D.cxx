@@ -1,7 +1,6 @@
 #include <stdexcept>
 
 #include "Node2D.hxx"
-#include "MaterialPool.hxx"
 
 namespace HygroThermFEM
 {
@@ -119,15 +118,15 @@ namespace HygroThermFEM
         updateWaterContent();
     }
 
-    void Node2D::assignMaterial(const std::string & t_Material, double weightingCoefficient)
+    void Node2D::assignMaterial(const IMaterial & material, const double weightingCoefficient)
     {
-        auto & material = MaterialPool::Instance().material(t_Material);
-        const auto isAlreadyThere{m_Materials.find(t_Material)};
+        const auto & materialName = material.name();
+        const auto isAlreadyThere{m_Materials.find(materialName)};
         if(isAlreadyThere != m_Materials.end())
         {
-            m_Materials.at(t_Material).addWeight(weightingCoefficient);
+            m_Materials.at(materialName).addWeight(weightingCoefficient);
         }
-        m_Materials.emplace(t_Material, MaterialContainer{weightingCoefficient, material});
+        m_Materials.emplace(materialName, MaterialContainer{weightingCoefficient, material});
         updateWaterContent();
     }
 

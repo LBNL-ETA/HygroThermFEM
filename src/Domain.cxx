@@ -173,7 +173,10 @@ namespace HygroThermFEM
         return m_BCs.isLinear() && m_Elements.isLinear();
     }
 
-    IDomain::IDomain(const BaseVariable property, bool automaticUpdateOfPreviousTimestep) :
+    IDomain::IDomain(MaterialPool & materialPool,
+                     const BaseVariable property,
+                     const bool automaticUpdateOfPreviousTimestep) :
+        m_MaterialPool(materialPool),
         m_Property(property),
         gasCavities(nullptr),
         m_AutomaticUpdatePreviousTimestep(automaticUpdateOfPreviousTimestep)
@@ -188,7 +191,7 @@ namespace HygroThermFEM
     {
         if(gasCavities == nullptr)
         {
-            gasCavities = std::make_unique<EquivalentGasCavities>(m_Elements);
+            gasCavities = std::make_unique<EquivalentGasCavities>(m_MaterialPool, m_Elements);
             gasCavities->setGravityVector(m_GravityVector);
         }
         gasCavities->update();
@@ -206,7 +209,7 @@ namespace HygroThermFEM
     void IDomain::clearModel()
     {
         NodePool::Instance().clear();
-        MaterialPool::Instance().clear();
+        m_MaterialPool.clear();
         m_BCs.clear();
         m_Elements.clearElements();
     }        

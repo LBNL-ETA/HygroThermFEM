@@ -3,6 +3,7 @@
 #include <KeffCavity.hxx>
 #include "Elements2D.hxx"
 #include "EnumerationTemplate.hpp"
+#include "MaterialPool.hxx"
 
 namespace HygroThermFEM
 {
@@ -163,8 +164,9 @@ namespace HygroThermFEM
     public:
         //! Construction of frame cavities.
         //!
+        //! \param materialPool: Reference to MaterialPool for gas lookups
         //! \param elements: All elements from the domain.
-        explicit EquivalentGasCavities(const ElementsLinear2D & elements);
+        explicit EquivalentGasCavities(MaterialPool & materialPool, const ElementsLinear2D & elements);
 
         //! \brief Updates frame cavities with new temperatures.
         void update();
@@ -214,6 +216,7 @@ namespace HygroThermFEM
         //! \return Sorted vector of nodes that form frame cavity boundary
         static std::vector<size_t> edgeNodesOrdered(std::set<line> & allEdges);
 
+        MaterialPool & m_MaterialPool;
         const ElementsLinear2D & m_Elements;
 
         //! Keeps boundary nodes for every frame cavity in the domain.
