@@ -192,6 +192,17 @@ class IterativeSolver : public ISolverStrategy { /* CG, GMRES */ };
    - Phase 2: Created `IEnvironmentCoefficients` base struct for 6 coefficient structs
    - Phase 3: Created `IConvectiveBCBase` for IConvectionBC and IMoistureBC
 
+4. ✓ **Enforce unified element creation through MultiDomain** - Completed
+   - Made `createElement()` private in `ThermalDomain` and `MoistureDomain`
+   - All element creation now goes through `MultiDomain::createElement()`
+   - Ensures mesh consistency between thermal and moisture domains
+   - Added simulation flag guards: elements created based on `m_SimulateThermal`/`m_SimulateMoisture`
+
+5. ✓ **Simplify domain accessor API** - Completed
+   - Renamed `thermalDomain()` → `thermal()` and `moistureDomain()` → `moisture()`
+   - Removed intermediate domain variables in tests
+   - New usage pattern: `multiDomain.thermal().createBC_FixedHc(...)`
+
 **Additional completed work:**
 - Removed dead code: checkSingularity(), degrees(), State operators, TimestepData setters
 - Fixed bug: ThermalConductivityDry missing from isMissingAnyProperty()
@@ -328,6 +339,16 @@ void subscribeMoisture(TimestepObserver* observer)
 void unsubscribeMoisture(TimestepObserver* observer)
 void subscribeThermal(TimestepObserver* observer)
 void unsubscribeThermal(TimestepObserver* observer)
+
+// Element creation (only way to create elements - domain methods are private)
+void createElement(size_t index1, size_t index2, size_t index3, size_t index4, const string& materialName)
+
+// Domain accessors for BC creation
+ThermalDomain& thermal()      // was thermalDomain()
+MoistureDomain& moisture()    // was moistureDomain()
+
+// Material pool accessor
+static MaterialPool& materialPool()
 ```
 
 #### Boundary Condition Creation Methods
@@ -427,3 +448,11 @@ enum class WindDirection { Windward, Leeward };
 - Adding const qualifiers to existing methods
 - Performance optimizations
 - New optional parameters with defaults
+
+### Recent API Changes (February 2026)
+
+| Change | Old API | New API | Therm Impact |
+|--------|---------|---------|--------------|
+| Domain accessors renamed | `multiDomain.thermalDomain()` | `multiDomain.thermal()` | None (not used) |
+| Domain accessors renamed | `multiDomain.moistureDomain()` | `multiDomain.moisture()` | None (not used) |
+| Element creation privatized | `domain.createElement(...)` | `multiDomain.createElement(...)` | None (already used MultiDomain) |
