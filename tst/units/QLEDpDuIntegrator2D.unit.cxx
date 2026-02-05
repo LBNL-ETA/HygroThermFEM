@@ -6,17 +6,7 @@
 using HygroThermFEM::QuadrilateralLinearGlobal2D;
 using HygroThermFEM::QLEDpDuIntegrator2D;
 
-class TestQLEDpDuIntegrator2D : public testing::Test
-{
-protected:
-    void SetUp() override
-    {}
-
-    void TearDown() override
-    {}
-};
-
-TEST_F(TestQLEDpDuIntegrator2D, TestConductionMatrix)
+TEST(TestQLEDpDuIntegrator2D, TestConductionMatrix)
 {
     SCOPED_TRACE("Begin Test: Test for single matrix integration "
                  "of conduction matrix.");

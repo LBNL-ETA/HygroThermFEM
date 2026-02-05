@@ -8,17 +8,7 @@ using HygroThermFEM::MultiDomain;
 /// This is example of water content calculation in nodes that are shared between two elements
 /// with different material. In this case, one of the elements is triangular which will lead
 /// to different water content solution at the shared nodes.
-class TwoElementsTwoMaterials_2 : public testing::Test
-{
-protected:
-    void SetUp() override
-    {}
-
-    void TearDown() override
-    {}
-};
-
-TEST_F(TwoElementsTwoMaterials_2, NodeInTwoMaterials)
+TEST(TwoElementsTwoMaterials_2, NodeInTwoMaterials)
 {
     SCOPED_TRACE("Begin Test: Node as part of two elements that have different material and one "
                  "element is triangular.");

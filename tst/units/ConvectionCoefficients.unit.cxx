@@ -5,10 +5,7 @@
 
 using HygroThermFEM::Variable;
 
-class ConvectionCoefficientsTest : public testing::Test
-{};
-
-TEST_F(ConvectionCoefficientsTest, TestFixedCoefficient)
+TEST(ConvectionCoefficientsTest, TestFixedCoefficient)
 {
     SCOPED_TRACE("Begin Test: Test fixed convection coefficient.");
     using HygroThermFEM::MockNode2D;
@@ -16,7 +13,7 @@ TEST_F(ConvectionCoefficientsTest, TestFixedCoefficient)
     using HygroThermFEM::ConvectionModelFactory;
     using HygroThermFEM::INodes;
 
-    const size_t nodeNumber{0};
+    constexpr size_t nodeNumber{0};
     constexpr double x_coord{0};
     constexpr double y_coord{0};
 
@@ -25,7 +22,7 @@ TEST_F(ConvectionCoefficientsTest, TestFixedCoefficient)
 
     MockNodes2D line{node1, node2};
 
-    const auto fixedFilmCoefficient{22.0};
+    constexpr auto fixedFilmCoefficient{22.0};
     const auto fixedConvection{
       ConvectionModelFactory::createFixedFilmCoefficient(line, fixedFilmCoefficient)};
     const auto result{fixedConvection->convectiveCoefficients()};
@@ -36,7 +33,7 @@ TEST_F(ConvectionCoefficientsTest, TestFixedCoefficient)
     EXPECT_NEAR(fixedFilmCoefficient, result[1], 1e-6);
 }
 
-TEST_F(ConvectionCoefficientsTest, TestTARPCoefficient)
+TEST(ConvectionCoefficientsTest, TestTARPCoefficient)
 {
     SCOPED_TRACE("Begin Test: Test comprehensive natural convection model.");
     using HygroThermFEM::MockNode2D;
@@ -44,7 +41,7 @@ TEST_F(ConvectionCoefficientsTest, TestTARPCoefficient)
     using HygroThermFEM::ConvectionModelFactory;
     using HygroThermFEM::INodes;
 
-    const size_t nodeNumber{0};
+    constexpr size_t nodeNumber{0};
     constexpr double x_coord{0};
     constexpr double y_coord{0};
 
@@ -53,7 +50,7 @@ TEST_F(ConvectionCoefficientsTest, TestTARPCoefficient)
 
     MockNodes2D line{node1, node2};
 
-    const auto airTemperature{21.0};
+    constexpr auto airTemperature{21.0};
     const auto tarpConvection{
       ConvectionModelFactory::createTARPFilmCoefficient(line, airTemperature)};
 
@@ -68,7 +65,7 @@ TEST_F(ConvectionCoefficientsTest, TestTARPCoefficient)
     EXPECT_NEAR(correctCoeffNode2, result[1], 1e-6);
 }
 
-TEST_F(ConvectionCoefficientsTest, TestASHRAEOutdoorCoefficient)
+TEST(ConvectionCoefficientsTest, TestASHRAEOutdoorCoefficient)
 {
     SCOPED_TRACE("Begin Test: Test ASHREA outdoor film coefficient.");
     using HygroThermFEM::MockNode2D;
@@ -100,7 +97,7 @@ TEST_F(ConvectionCoefficientsTest, TestASHRAEOutdoorCoefficient)
     EXPECT_NEAR(correctCoeffNode2, result[1], 1e-6);
 }
 
-TEST_F(ConvectionCoefficientsTest, TestYazdanianKlemsLeeward)
+TEST(ConvectionCoefficientsTest, TestYazdanianKlemsLeeward)
 {
     SCOPED_TRACE("Begin Test: Test Yazdanian-Klems film coefficient - Leeward direction.");
     using HygroThermFEM::MockNode2D;
@@ -134,7 +131,7 @@ TEST_F(ConvectionCoefficientsTest, TestYazdanianKlemsLeeward)
     EXPECT_NEAR(correctCoeffNode2, result[1], 1e-6);
 }
 
-TEST_F(ConvectionCoefficientsTest, TestYazdanianKlemsWindward)
+TEST(ConvectionCoefficientsTest, TestYazdanianKlemsWindward)
 {
     SCOPED_TRACE("Begin Test: Test Yazdanian-Klems film coefficient - Windward direction.");
     using HygroThermFEM::MockNode2D;
@@ -168,7 +165,7 @@ TEST_F(ConvectionCoefficientsTest, TestYazdanianKlemsWindward)
     EXPECT_NEAR(correctCoeffNode2, result[1], 1e-6);
 }
 
-TEST_F(ConvectionCoefficientsTest, TestKimuraLeeward)
+TEST(ConvectionCoefficientsTest, TestKimuraLeeward)
 {
     SCOPED_TRACE("Begin Test: Test Kimura - Leeward direction.");
     using HygroThermFEM::MockNode2D;
@@ -201,7 +198,7 @@ TEST_F(ConvectionCoefficientsTest, TestKimuraLeeward)
     EXPECT_NEAR(correctCoeffNode2, result[1], 1e-6);
 }
 
-TEST_F(ConvectionCoefficientsTest, TestKimuraWindward)
+TEST(ConvectionCoefficientsTest, TestKimuraWindward)
 {
     SCOPED_TRACE("Begin Test: Test Kimura - Windward direction.");
     using HygroThermFEM::MockNode2D;
@@ -234,7 +231,7 @@ TEST_F(ConvectionCoefficientsTest, TestKimuraWindward)
     EXPECT_NEAR(correctCoeffNode2, result[1], 1e-6);
 }
 
-TEST_F(ConvectionCoefficientsTest, TestASHRAEInsideTilt90)
+TEST(ConvectionCoefficientsTest, TestASHRAEInsideTilt90)
 {
     SCOPED_TRACE("Begin Test: ASHRAE inside tilt = 90 degrees.");
     using HygroThermFEM::MockNode2D;
@@ -268,7 +265,7 @@ TEST_F(ConvectionCoefficientsTest, TestASHRAEInsideTilt90)
     EXPECT_NEAR(correctCoeffNode2, result[1], 1e-6);
 }
 
-TEST_F(ConvectionCoefficientsTest, TestASHRAEInsideTilt10)
+TEST(ConvectionCoefficientsTest, TestASHRAEInsideTilt10)
 {
     SCOPED_TRACE("Begin Test: ASHRAE inside tilt = 10 degrees.");
     using HygroThermFEM::MockNode2D;
@@ -302,7 +299,7 @@ TEST_F(ConvectionCoefficientsTest, TestASHRAEInsideTilt10)
     EXPECT_NEAR(correctCoeffNode2, result[1], 1e-6);
 }
 
-TEST_F(ConvectionCoefficientsTest, TestASHRAEInsideTilt150)
+TEST(ConvectionCoefficientsTest, TestASHRAEInsideTilt150)
 {
     SCOPED_TRACE("Begin Test: ASHRAE inside tilt = 150 degrees.");
     using HygroThermFEM::MockNode2D;
@@ -336,7 +333,7 @@ TEST_F(ConvectionCoefficientsTest, TestASHRAEInsideTilt150)
     EXPECT_NEAR(correctCoeffNode2, result[1], 1e-6);
 }
 
-TEST_F(ConvectionCoefficientsTest, TestASHRAEInsideTilt180)
+TEST(ConvectionCoefficientsTest, TestASHRAEInsideTilt180)
 {
     SCOPED_TRACE("Begin Test: ASHRAE inside tilt = 180 degrees.");
     using HygroThermFEM::MockNode2D;
@@ -363,8 +360,8 @@ TEST_F(ConvectionCoefficientsTest, TestASHRAEInsideTilt180)
 
     EXPECT_EQ(2u, result.size());
 
-    const auto correctCoeffNode1{21.500899};
-    const auto correctCoeffNode2{19.348982};
+    constexpr auto correctCoeffNode1{21.500899};
+    constexpr auto correctCoeffNode2{19.348982};
 
     EXPECT_NEAR(correctCoeffNode1, result[0], 1e-6);
     EXPECT_NEAR(correctCoeffNode2, result[1], 1e-6);

@@ -5,14 +5,7 @@
 
 using HygroThermFEM::SquareMatrix;
 
-class TestInverseMatrix : public testing::Test
-{
-protected:
-    void SetUp() override
-    {}
-};
-
-TEST_F(TestInverseMatrix, Test1)
+TEST(TestInverseMatrix, Test1)
 {
     SCOPED_TRACE("Begin Test: Test Inverse Matrix (3x3).");
 
@@ -33,7 +26,7 @@ TEST_F(TestInverseMatrix, Test1)
     }
 }
 
-TEST_F(TestInverseMatrix, Test2)
+TEST(TestInverseMatrix, Test2)
 {
     SCOPED_TRACE("Begin Test: Test Inverse Matrix (3x3).");
 

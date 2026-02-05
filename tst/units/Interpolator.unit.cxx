@@ -5,17 +5,7 @@
 
 using FenestrationCommon::Interpolation;
 
-class InterpolatorTest : public testing::Test
-{
-protected:
-    void SetUp() override
-    {}
-
-    void TearDown() override
-    {}
-};
-
-TEST_F(InterpolatorTest, TestLinear)
+TEST(InterpolatorTest, TestLinear)
 {
     SCOPED_TRACE("Begin Test: Linear interpolation.");
 
@@ -29,7 +19,7 @@ TEST_F(InterpolatorTest, TestLinear)
     EXPECT_NEAR(5.714285714, res, 1e-6);
 }
 
-TEST_F(InterpolatorTest, TestLogarithmic)
+TEST(InterpolatorTest, TestLogarithmic)
 {
     SCOPED_TRACE("Begin Test: Logarithmic interpolation.");
 

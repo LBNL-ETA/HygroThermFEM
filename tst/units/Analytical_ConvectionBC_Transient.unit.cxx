@@ -9,17 +9,7 @@
 /// This is test against analytical solution obtained from Carslaw-Jeager: page 97
 /////////////////////////////////////////////////////////////////////////////////////
 
-class Analytical_TemperatureBC_Transient : public testing::Test
-{
-protected:
-    void SetUp() override
-    {}
-
-    void TearDown() override
-    {}
-};
-
-TEST_F(Analytical_TemperatureBC_Transient, TestExample_1)
+TEST(Analytical_TemperatureBC_Transient, TestExample_1)
 {
     SCOPED_TRACE("Begin Test: Example.");
 

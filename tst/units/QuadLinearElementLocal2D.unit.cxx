@@ -6,16 +6,7 @@
 
 #include "HygroThermFEM2D.hxx"
 
-class TestQuadLinearElementLocal2D : public testing::Test {
-
-protected:
-    void
-    SetUp() override {
-    }
-
-};
-
-TEST_F( TestQuadLinearElementLocal2D, TestIntegrationPoint1 ) {
+TEST( TestQuadLinearElementLocal2D, TestIntegrationPoint1 ) {
     SCOPED_TRACE( "Begin Test: Quadrilateral linear element 2D in local coordinates." );
 
     auto & aElement = HygroThermFEM::QuadrilateralLinearLocal2D::Instance();
@@ -54,7 +45,7 @@ TEST_F( TestQuadLinearElementLocal2D, TestIntegrationPoint1 ) {
     }
 }
 
-TEST_F( TestQuadLinearElementLocal2D, TestIntegrationPoint2 ) {
+TEST( TestQuadLinearElementLocal2D, TestIntegrationPoint2 ) {
     SCOPED_TRACE( "Begin Test: Quadrilateral linear element 2D in local coordinates." );
 
     auto & aElement = HygroThermFEM::QuadrilateralLinearLocal2D::Instance();
@@ -93,7 +84,7 @@ TEST_F( TestQuadLinearElementLocal2D, TestIntegrationPoint2 ) {
     }
 }
 
-TEST_F( TestQuadLinearElementLocal2D, TestIntegrationPoint3 ) {
+TEST( TestQuadLinearElementLocal2D, TestIntegrationPoint3 ) {
     SCOPED_TRACE( "Begin Test: Quadrilateral linear element 2D in local coordinates." );
 
     auto & aElement = HygroThermFEM::QuadrilateralLinearLocal2D::Instance();
@@ -132,7 +123,7 @@ TEST_F( TestQuadLinearElementLocal2D, TestIntegrationPoint3 ) {
     }
 }
 
-TEST_F( TestQuadLinearElementLocal2D, TestIntegrationPoint4 ) {
+TEST( TestQuadLinearElementLocal2D, TestIntegrationPoint4 ) {
     SCOPED_TRACE( "Begin Test: Quadrilateral linear element 2D in local coordinates." );
 
     auto & aElement = HygroThermFEM::QuadrilateralLinearLocal2D::Instance();

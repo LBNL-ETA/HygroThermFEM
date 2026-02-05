@@ -27,17 +27,7 @@ private:
     std::map<unsigned, unsigned> m_SimulationCalls{{1,0}, {2,0}, {3,0}};
 };
 
-class MultiDomain_HighHumidity : public testing::Test
-{
-protected:
-    void SetUp() override
-    {}
-
-    void TearDown() override
-    {}
-};
-
-TEST_F(MultiDomain_HighHumidity, TestExample_1)
+TEST(MultiDomain_HighHumidity, TestExample_1)
 {
     SCOPED_TRACE("Begin Test: Simple two elements example with moisture transfer.");
 

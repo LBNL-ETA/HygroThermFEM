@@ -3,17 +3,7 @@
 
 #include "HygroThermFEM2D.hxx"
 
-class Topaz2D_FluxBC : public testing::Test
-{
-protected:
-    void SetUp() override
-    {}
-
-    void TearDown() override
-    {}
-};
-
-TEST_F(Topaz2D_FluxBC, TestExample_1)
+TEST(Topaz2D_FluxBC, TestExample_1)
 {
     SCOPED_TRACE("Begin Test: Two elementsCreator example with transient.");
 

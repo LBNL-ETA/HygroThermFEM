@@ -4,14 +4,7 @@
 
 using HygroThermFEM::MaterialMissingProperties;
 
-class TestMaterialMissingPropertiesMessage : public testing::Test
-{
-protected:
-    void SetUp() override
-    {}
-};
-
-TEST_F(TestMaterialMissingPropertiesMessage, NoMissingProperties)
+TEST(TestMaterialMissingPropertiesMessage, NoMissingProperties)
 {
     SCOPED_TRACE("Begin Test: No missing properties returns empty message.");
 
@@ -24,7 +17,7 @@ TEST_F(TestMaterialMissingPropertiesMessage, NoMissingProperties)
     EXPECT_TRUE(message.empty());
 }
 
-TEST_F(TestMaterialMissingPropertiesMessage, MissingDensity)
+TEST(TestMaterialMissingPropertiesMessage, MissingDensity)
 {
     SCOPED_TRACE("Begin Test: Missing Density property.");
 
@@ -39,7 +32,7 @@ TEST_F(TestMaterialMissingPropertiesMessage, MissingDensity)
     EXPECT_EQ(message[1], "- Density");
 }
 
-TEST_F(TestMaterialMissingPropertiesMessage, MissingEmissivity)
+TEST(TestMaterialMissingPropertiesMessage, MissingEmissivity)
 {
     SCOPED_TRACE("Begin Test: Missing Emissivity property.");
 
@@ -53,7 +46,7 @@ TEST_F(TestMaterialMissingPropertiesMessage, MissingEmissivity)
     EXPECT_EQ(message[1], "- Emissivity");
 }
 
-TEST_F(TestMaterialMissingPropertiesMessage, MissingPorosity)
+TEST(TestMaterialMissingPropertiesMessage, MissingPorosity)
 {
     SCOPED_TRACE("Begin Test: Missing Porosity property.");
 
@@ -67,7 +60,7 @@ TEST_F(TestMaterialMissingPropertiesMessage, MissingPorosity)
     EXPECT_EQ(message[1], "- Porosity");
 }
 
-TEST_F(TestMaterialMissingPropertiesMessage, MissingSpecificHeatCapacityDry)
+TEST(TestMaterialMissingPropertiesMessage, MissingSpecificHeatCapacityDry)
 {
     SCOPED_TRACE("Begin Test: Missing SpecificHeatCapacityDry property.");
 
@@ -81,7 +74,7 @@ TEST_F(TestMaterialMissingPropertiesMessage, MissingSpecificHeatCapacityDry)
     EXPECT_EQ(message[1], "- Specific Heat Capacity Dry");
 }
 
-TEST_F(TestMaterialMissingPropertiesMessage, MissingThermalConductivityDry)
+TEST(TestMaterialMissingPropertiesMessage, MissingThermalConductivityDry)
 {
     SCOPED_TRACE("Begin Test: Missing ThermalConductivityDry property.");
 
@@ -95,7 +88,7 @@ TEST_F(TestMaterialMissingPropertiesMessage, MissingThermalConductivityDry)
     EXPECT_EQ(message[1], "- Thermal Conductivity Dry");
 }
 
-TEST_F(TestMaterialMissingPropertiesMessage, MissingWaterVaporDiffusionResistanceFactor)
+TEST(TestMaterialMissingPropertiesMessage, MissingWaterVaporDiffusionResistanceFactor)
 {
     SCOPED_TRACE("Begin Test: Missing WaterVaporDiffusionResistanceFactor property.");
 
@@ -109,7 +102,7 @@ TEST_F(TestMaterialMissingPropertiesMessage, MissingWaterVaporDiffusionResistanc
     EXPECT_EQ(message[1], "- Water Vapor Diffusion Resistance Factor");
 }
 
-TEST_F(TestMaterialMissingPropertiesMessage, MissingMoistureStorageFunction)
+TEST(TestMaterialMissingPropertiesMessage, MissingMoistureStorageFunction)
 {
     SCOPED_TRACE("Begin Test: Missing MoistureStorageFunction property.");
 
@@ -123,7 +116,7 @@ TEST_F(TestMaterialMissingPropertiesMessage, MissingMoistureStorageFunction)
     EXPECT_EQ(message[1], "- Moisture Storage Function");
 }
 
-TEST_F(TestMaterialMissingPropertiesMessage, MissingLiquidTransportationSuction)
+TEST(TestMaterialMissingPropertiesMessage, MissingLiquidTransportationSuction)
 {
     SCOPED_TRACE("Begin Test: Missing LiquidTransportationSuction property.");
 
@@ -137,7 +130,7 @@ TEST_F(TestMaterialMissingPropertiesMessage, MissingLiquidTransportationSuction)
     EXPECT_EQ(message[1], "- Liquid Transportation Suction Curve");
 }
 
-TEST_F(TestMaterialMissingPropertiesMessage, MissingLiquidTransportationRedistribution)
+TEST(TestMaterialMissingPropertiesMessage, MissingLiquidTransportationRedistribution)
 {
     SCOPED_TRACE("Begin Test: Missing LiquidTransportationRedistribution property.");
 
@@ -151,7 +144,7 @@ TEST_F(TestMaterialMissingPropertiesMessage, MissingLiquidTransportationRedistri
     EXPECT_EQ(message[1], "- Liquid Transportation Redistribution Curve");
 }
 
-TEST_F(TestMaterialMissingPropertiesMessage, MissingThermalConductivityMoistureAndTemperatureDependent)
+TEST(TestMaterialMissingPropertiesMessage, MissingThermalConductivityMoistureAndTemperatureDependent)
 {
     SCOPED_TRACE("Begin Test: Missing ThermalConductivityMoistureAndTemperatureDependent property.");
 
@@ -165,7 +158,7 @@ TEST_F(TestMaterialMissingPropertiesMessage, MissingThermalConductivityMoistureA
     EXPECT_EQ(message[1], "- Thermal Conductivity Moisture and Temperature Dependent");
 }
 
-TEST_F(TestMaterialMissingPropertiesMessage, MultiplePropertiesMissing)
+TEST(TestMaterialMissingPropertiesMessage, MultiplePropertiesMissing)
 {
     SCOPED_TRACE("Begin Test: Multiple properties missing.");
 
@@ -184,7 +177,7 @@ TEST_F(TestMaterialMissingPropertiesMessage, MultiplePropertiesMissing)
     EXPECT_EQ(message[3], "- Moisture Storage Function");
 }
 
-TEST_F(TestMaterialMissingPropertiesMessage, AllPropertiesMissing)
+TEST(TestMaterialMissingPropertiesMessage, AllPropertiesMissing)
 {
     SCOPED_TRACE("Begin Test: All properties missing.");
 

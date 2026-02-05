@@ -6,15 +6,7 @@
 
 using HygroThermFEM::SquareMatrix;
 
-class SquareMatrixTest : public testing::Test {
-
-protected:
-  void SetUp() override {}
-
-  void TearDown() override {}
-};
-
-TEST_F(SquareMatrixTest, TestAddition) {
+TEST(SquareMatrixTest, TestAddition) {
   SCOPED_TRACE("Begin Test: Matrix addition.");
   SquareMatrix a{{1, 2}, {3, 4}};
 
@@ -33,7 +25,7 @@ TEST_F(SquareMatrixTest, TestAddition) {
   }
 }
 
-TEST_F(SquareMatrixTest, TestMultiplication) {
+TEST(SquareMatrixTest, TestMultiplication) {
   SCOPED_TRACE("Begin Test: Matrix multiplication.");
   SquareMatrix a{{1, 2}, {3, 4}};
 
@@ -65,7 +57,7 @@ TEST_F(SquareMatrixTest, TestMultiplication) {
   }
 }
 
-TEST_F(SquareMatrixTest, TestMultiplicationBySingleValue) {
+TEST(SquareMatrixTest, TestMultiplicationBySingleValue) {
   SCOPED_TRACE("Begin Test: Matrix multiplication by single value.");
   SquareMatrix a{{1, 2}, {3, 4}};
 
@@ -95,7 +87,7 @@ TEST_F(SquareMatrixTest, TestMultiplicationBySingleValue) {
   }
 }
 
-TEST_F(SquareMatrixTest, TestMultiplicationWithVectors) {
+TEST(SquareMatrixTest, TestMultiplicationWithVectors) {
   SCOPED_TRACE("Begin Test: Matrix multiplication with vector.");
   SquareMatrix a{{1, 2}, {3, 4}};
 
@@ -123,7 +115,7 @@ TEST_F(SquareMatrixTest, TestMultiplicationWithVectors) {
   }
 }
 
-TEST_F(SquareMatrixTest, TestMmultRow) {
+TEST(SquareMatrixTest, TestMmultRow) {
 	SCOPED_TRACE("Begin Test: Matrix addition.");
 	SquareMatrix a{{1, 2}, {3, 4}};
 

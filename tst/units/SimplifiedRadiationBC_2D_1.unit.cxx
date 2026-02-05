@@ -3,17 +3,7 @@
 
 #include "HygroThermFEM2D.hxx"
 
-class SimplifiedRadiationBC_2D_1 : public testing::Test
-{
-protected:
-    void SetUp() override
-    {}
-
-    void TearDown() override
-    {}
-};
-
-TEST_F(SimplifiedRadiationBC_2D_1, TestExample_1)
+TEST(SimplifiedRadiationBC_2D_1, TestExample_1)
 {
     SCOPED_TRACE("Begin Test: Two elementsCreator example with transient.");
 

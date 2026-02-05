@@ -12,17 +12,7 @@
 ///   Solution achieved with linear solver (no iterations required in this case
 /////////////////////////////////////////////////////////////////////////////////////
 
-class Topaz2D_TemperatureBC : public testing::Test
-{
-protected:
-    void SetUp() override
-    {}
-
-    void TearDown() override
-    {}
-};
-
-TEST_F(Topaz2D_TemperatureBC, TestExample_1)
+TEST(Topaz2D_TemperatureBC, TestExample_1)
 {
     SCOPED_TRACE("Begin Test: Two elementsCreator example with transient.");
 

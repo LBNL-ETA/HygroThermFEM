@@ -6,23 +6,7 @@
 using HygroThermFEM::SquareMatrix;
 using HygroThermFEM::CLinearSolver;
 
-class TestLinearSolver1 : public testing::Test
-{
-private:
-    CLinearSolver m_Solver;
-
-protected:
-    void SetUp() override
-    {}
-
-public:
-    CLinearSolver & GetSolver()
-    {
-        return m_Solver;
-    }
-};
-
-TEST_F(TestLinearSolver1, Test1)
+TEST(TestLinearSolver1, Test1)
 {
     SCOPED_TRACE("Begin Test: Test Linear Solver (1) - Solving simple matrix.");
 
@@ -32,7 +16,7 @@ TEST_F(TestLinearSolver1, Test1)
 
     auto aSolution = CLinearSolver::solveEigen(aMatrix, aVector);
 
-    std::vector<double> correctSolution{0.3, 0.4, 0.0};
+    std::vector correctSolution{0.3, 0.4, 0.0};
 
     for(auto i = 0u; i < correctSolution.size(); ++i)
     {
@@ -40,7 +24,7 @@ TEST_F(TestLinearSolver1, Test1)
     }
 }
 
-TEST_F(TestLinearSolver1, Test2)
+TEST(TestLinearSolver1, Test2)
 {
     SCOPED_TRACE("Begin Test: Test Linear Solver (1) - Solving simple matrix.");
 
@@ -58,7 +42,7 @@ TEST_F(TestLinearSolver1, Test2)
     }
 }
 
-TEST_F(TestLinearSolver1, Test3)
+TEST(TestLinearSolver1, Test3)
 {
     SCOPED_TRACE("Begin Test: Test Linear Solver (2) - Solving simple matrix.");
 

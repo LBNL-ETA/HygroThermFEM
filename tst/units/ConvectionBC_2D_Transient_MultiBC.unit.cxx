@@ -3,17 +3,7 @@
 
 #include "HygroThermFEM2D.hxx"
 
-class ConvectionBC_2D_Transient_MultiBC : public testing::Test
-{
-protected:
-    void SetUp() override
-    {}
-
-    void TearDown() override
-    {}
-};
-
-TEST_F(ConvectionBC_2D_Transient_MultiBC, TestExample_1)
+TEST(ConvectionBC_2D_Transient_MultiBC, TestExample_1)
 {
     SCOPED_TRACE("Begin Test: Three elements with simple convection BC.");
 

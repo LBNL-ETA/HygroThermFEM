@@ -3,17 +3,7 @@
 
 #include "HygroThermFEM2D.hxx"
 
-class MoistureBC_2D_4 : public testing::Test
-{
-protected:
-    void SetUp() override
-    {}
-
-    void TearDown() override
-    {}
-};
-
-TEST_F(MoistureBC_2D_4, TestExample_1)
+TEST(MoistureBC_2D_4, TestExample_1)
 {
     SCOPED_TRACE("Begin Test: Simple two elements example with moisture transfer.");
 

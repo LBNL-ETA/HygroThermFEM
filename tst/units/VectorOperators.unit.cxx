@@ -3,14 +3,7 @@
 
 #include "HygroThermFEM2D.hxx"
 
-class TestVectorOperators : public testing::Test
-{
-protected:
-    void SetUp() override
-    {}
-};
-
-TEST_F(TestVectorOperators, TestAddition)
+TEST(TestVectorOperators, TestAddition)
 {
     SCOPED_TRACE("Begin Test: Test Vector Operator - Addition.");
 
@@ -29,7 +22,7 @@ TEST_F(TestVectorOperators, TestAddition)
     }
 }
 
-TEST_F(TestVectorOperators, TestSubtration)
+TEST(TestVectorOperators, TestSubtration)
 {
     SCOPED_TRACE("Begin Test: Test Vector Operator - Subtraction.");
 
@@ -57,7 +50,7 @@ TEST_F(TestVectorOperators, TestSubtration)
     }
 }
 
-TEST_F(TestVectorOperators, TestMultiplication)
+TEST(TestVectorOperators, TestMultiplication)
 {
     SCOPED_TRACE("Begin Test: Test Vector Operator - Multiplication.");
 
@@ -96,7 +89,7 @@ TEST_F(TestVectorOperators, TestMultiplication)
     }
 }
 
-TEST_F(TestVectorOperators, TestDivision)
+TEST(TestVectorOperators, TestDivision)
 {
     SCOPED_TRACE("Begin Test: Test Vector Operator - Division.");
 

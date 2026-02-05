@@ -3,17 +3,7 @@
 
 #include "HygroThermFEM2D.hxx"
 
-class MultiDomain_2D_LinearizedRadiation_MultiTimestepBC : public testing::Test
-{
-protected:
-    void SetUp() override
-    {}
-
-    void TearDown() override
-    {}
-};
-
-TEST_F(MultiDomain_2D_LinearizedRadiation_MultiTimestepBC, TestExample_1)
+TEST(MultiDomain_2D_LinearizedRadiation_MultiTimestepBC, TestExample_1)
 {
     // Enter nodes. Arguments are: node number, x-coordinate, y-coordinate
 

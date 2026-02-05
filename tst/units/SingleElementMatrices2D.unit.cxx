@@ -3,17 +3,7 @@
 
 #include "HygroThermFEM2D.hxx"
 
-class TestSingleElementMatrices2D : public testing::Test
-{
-protected:
-    void SetUp() override
-    {}
-
-    void TearDown() override
-    {}
-};
-
-TEST_F(TestSingleElementMatrices2D, TestConductionMatrix)
+TEST(TestSingleElementMatrices2D, TestConductionMatrix)
 {
     SCOPED_TRACE("Begin Test: Single element isothropic conduction matrix and "
                  "RhoCp matrix.");

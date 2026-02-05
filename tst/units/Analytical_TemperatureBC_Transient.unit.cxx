@@ -10,17 +10,7 @@
 /// NOTE: Carslaw-Jeager equation works only for specific coefficients (as used in example).
 /////////////////////////////////////////////////////////////////////////////////////
 
-class Analytical_ConvectionBC_Transient : public testing::Test
-{
-protected:
-    void SetUp() override
-    {}
-
-    void TearDown() override
-    {}
-};
-
-TEST_F(Analytical_ConvectionBC_Transient, TestExample_1)
+TEST(Analytical_ConvectionBC_Transient, TestExample_1)
 {
     SCOPED_TRACE("Begin Test: Example.");
 

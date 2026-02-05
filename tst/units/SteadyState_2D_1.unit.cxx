@@ -5,17 +5,7 @@
 using HygroThermFEM::Nodes;
 using HygroThermFEM::State;
 
-class SteadyState_2D_1 : public testing::Test
-{
-protected:
-    void SetUp() override
-    {}
-
-    void TearDown() override
-    {}
-};
-
-TEST_F(SteadyState_2D_1, TestExample_1)
+TEST(SteadyState_2D_1, TestExample_1)
 {
     const double initialTemperature = 21.0;
     const double initialMoistureContent = 0.0;

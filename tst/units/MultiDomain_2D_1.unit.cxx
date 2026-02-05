@@ -12,17 +12,7 @@ using HygroThermFEM::State;
 /// that domain will try to reach equilibrium
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-class MultiDomain_2D_1 : public testing::Test
-{
-protected:
-    void SetUp() override
-    {}
-
-    void TearDown() override
-    {}
-};
-
-TEST_F(MultiDomain_2D_1, TestExample_1)
+TEST(MultiDomain_2D_1, TestExample_1)
 {
     SCOPED_TRACE("Begin Test: Simple two elements example with moisture and heat transfer.");
 
@@ -166,7 +156,7 @@ TEST_F(MultiDomain_2D_1, TestExample_1)
     }
 }
 
-TEST_F(MultiDomain_2D_1, TestExample_1_Repeat)
+TEST(MultiDomain_2D_1, TestExample_1_Repeat)
 {
     SCOPED_TRACE("Begin Test: Repeatability test.");
 

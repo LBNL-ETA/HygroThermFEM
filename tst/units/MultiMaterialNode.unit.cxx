@@ -5,17 +5,7 @@
 using HygroThermFEM::WaterContent;
 using HygroThermFEM::MultiDomain;
 
-class MultiMaterialNode : public testing::Test
-{
-protected:
-    void SetUp() override
-    {}
-
-    void TearDown() override
-    {}
-};
-
-TEST_F(MultiMaterialNode, TestExample_1)
+TEST(MultiMaterialNode, TestExample_1)
 {
     SCOPED_TRACE("Begin Test: Node with multiple materials in it.");
 

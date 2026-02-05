@@ -8,16 +8,9 @@ using HygroThermFEM::ThermalDomain;
 using HygroThermFEM::MultiDomain;
 using HygroThermFEM::Variable;
 
-class TestDomainClearModelAndGravity : public testing::Test
+
+namespace
 {
-protected:
-    void SetUp() override
-    {}
-
-    void TearDown() override
-    {}
-
-    // Helper to create a simple 2x2 model with one element
     void createSimpleModel(MultiDomain & multiDomain)
     {
         const State state(20.0, 0.5, 101325.0);
@@ -29,20 +22,19 @@ protected:
         multiDomain.nodes().createNode(4, 0.0, 1.0, state);
 
         // Create material
-        multiDomain.materials().createSolidMaterial({
-            .name = "TestMaterial",
-            .thermalConductivityDry = 1.0,
-            .density = 1000.0,
-            .porosity = 0.1,
-            .heatCapacity = 1000.0,
-            .diffusionResistanceFactor = 10.0,
-            .thermalConductivityMoistureDependent = {{0.0, 1.0}, {180, 1.0}},
-            .moistureDependentMeasurementTemperature = 0,
-            .thermalConductivityTemperatureDependent = {{0.0, 1.0}, {100.0, 1.0}},
-            .temperatureDependentMeasurementHumidity = 0,
-            .liquidTransportCurve = {{0, 0}, {180, 1e-6}},
-            .sorptionCurve = {{0, 0}, {1, 180}}
-        });
+        multiDomain.materials().createSolidMaterial(
+          {.name = "TestMaterial",
+           .thermalConductivityDry = 1.0,
+           .density = 1000.0,
+           .porosity = 0.1,
+           .heatCapacity = 1000.0,
+           .diffusionResistanceFactor = 10.0,
+           .thermalConductivityMoistureDependent = {{0.0, 1.0}, {180, 1.0}},
+           .moistureDependentMeasurementTemperature = 0,
+           .thermalConductivityTemperatureDependent = {{0.0, 1.0}, {100.0, 1.0}},
+           .temperatureDependentMeasurementHumidity = 0,
+           .liquidTransportCurve = {{0, 0}, {180, 1e-6}},
+           .sorptionCurve = {{0, 0}, {1, 180}}});
 
         multiDomain.createElement(1, 2, 3, 4, "TestMaterial");
     }
@@ -61,20 +53,19 @@ protected:
         multiDomain.nodes().createNode(6, 0.02, 0.05, state);
 
         // Create solid material
-        multiDomain.materials().createSolidMaterial({
-            .name = "SolidMaterial",
-            .thermalConductivityDry = 1.8,
-            .density = 2050.0,
-            .porosity = 0.22,
-            .heatCapacity = 850.0,
-            .diffusionResistanceFactor = 15.0,
-            .thermalConductivityMoistureDependent = {{0.0, 1.8}, {180, 1.8}},
-            .moistureDependentMeasurementTemperature = 0.0,
-            .thermalConductivityTemperatureDependent = {{0.0, 1.8}, {100.0, 1.8}},
-            .temperatureDependentMeasurementHumidity = 0.0,
-            .liquidTransportCurve = {{0, 0}, {180, 2e-6}},
-            .sorptionCurve = {{0, 0}, {1, 180}}
-        });
+        multiDomain.materials().createSolidMaterial(
+          {.name = "SolidMaterial",
+           .thermalConductivityDry = 1.8,
+           .density = 2050.0,
+           .porosity = 0.22,
+           .heatCapacity = 850.0,
+           .diffusionResistanceFactor = 15.0,
+           .thermalConductivityMoistureDependent = {{0.0, 1.8}, {180, 1.8}},
+           .moistureDependentMeasurementTemperature = 0.0,
+           .thermalConductivityTemperatureDependent = {{0.0, 1.8}, {100.0, 1.8}},
+           .temperatureDependentMeasurementHumidity = 0.0,
+           .liquidTransportCurve = {{0, 0}, {180, 2e-6}},
+           .sorptionCurve = {{0, 0}, {1, 180}}});
 
         // Create frame cavity (gas)
         multiDomain.materials().createGas("FrameCavity", HygroThermFEM::CavityStandard::ISO15099);
@@ -83,9 +74,10 @@ protected:
         multiDomain.createElement(1, 2, 5, 4, "SolidMaterial");
         multiDomain.createElement(2, 3, 6, 5, "FrameCavity");
     }
-};
+}   // namespace
 
-TEST_F(TestDomainClearModelAndGravity, TestClearModelRemovesNodesAndMaterials)
+
+TEST(TestDomainClearModelAndGravity, TestClearModelRemovesNodesAndMaterials)
 {
     SCOPED_TRACE("Begin Test: clearModel removes nodes and materials.");
 
@@ -104,7 +96,7 @@ TEST_F(TestDomainClearModelAndGravity, TestClearModelRemovesNodesAndMaterials)
     EXPECT_EQ(nodeCountAfter, 0u);
 }
 
-TEST_F(TestDomainClearModelAndGravity, TestClearModelAllowsNewModel)
+TEST(TestDomainClearModelAndGravity, TestClearModelAllowsNewModel)
 {
     SCOPED_TRACE("Begin Test: clearModel allows creating new model.");
 
@@ -129,7 +121,7 @@ TEST_F(TestDomainClearModelAndGravity, TestClearModelAllowsNewModel)
     EXPECT_DOUBLE_EQ(temperatures[0], 25.0);
 }
 
-TEST_F(TestDomainClearModelAndGravity, TestSetGravityVectorDefault)
+TEST(TestDomainClearModelAndGravity, TestSetGravityVectorDefault)
 {
     SCOPED_TRACE("Begin Test: Default gravity vector is (0, -1, 0).");
 
@@ -148,7 +140,7 @@ TEST_F(TestDomainClearModelAndGravity, TestSetGravityVectorDefault)
     EXPECT_FALSE(result.solution.empty());
 }
 
-TEST_F(TestDomainClearModelAndGravity, TestSetGravityVectorCustom)
+TEST(TestDomainClearModelAndGravity, TestSetGravityVectorCustom)
 {
     SCOPED_TRACE("Begin Test: Custom gravity vector affects frame cavity.");
 
@@ -175,7 +167,7 @@ TEST_F(TestDomainClearModelAndGravity, TestSetGravityVectorCustom)
     EXPECT_FALSE(result.solution.empty());
 }
 
-TEST_F(TestDomainClearModelAndGravity, TestSetGravityVectorBeforeCavityInit)
+TEST(TestDomainClearModelAndGravity, TestSetGravityVectorBeforeCavityInit)
 {
     SCOPED_TRACE("Begin Test: Set gravity vector before cavity initialization.");
 

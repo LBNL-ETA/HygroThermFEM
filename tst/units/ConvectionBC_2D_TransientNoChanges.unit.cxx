@@ -3,17 +3,7 @@
 
 #include "HygroThermFEM2D.hxx"
 
-class ConvectionBC_2D_TransientNoChanges : public testing::Test
-{
-protected:
-    void SetUp() override
-    {}
-
-    void TearDown() override
-    {}
-};
-
-TEST_F(ConvectionBC_2D_TransientNoChanges, TestExample_1)
+TEST(ConvectionBC_2D_TransientNoChanges, TestExample_1)
 {
     SCOPED_TRACE("Begin Test: Three elements with simple convection BC.");
 
@@ -21,18 +11,15 @@ TEST_F(ConvectionBC_2D_TransientNoChanges, TestExample_1)
 
     std::vector<double> gridXCoordinates{0, 0.05, 0.1, 0.15};
 
-    const double initialTemperature = 20;
-    const double initialMoistureContent = 0;
-    const double initialPressure = 101325;
+    constexpr double initialTemperature = 20;
+    constexpr double initialMoistureContent = 0;
+    constexpr double initialPressure = 101325;
 
     HygroThermFEM::State state(initialTemperature, initialMoistureContent, initialPressure, 0);
-    size_t nodeIndex = 0;
     for(auto val : gridXCoordinates)
     {
-        ++nodeIndex;
-        multiDomain.nodes().createNode(nodeIndex, val, 0.00, state);
-        ++nodeIndex;
-        multiDomain.nodes().createNode(nodeIndex, val, 0.05, state);
+        multiDomain.nodes().createNode(val, 0.00, state);
+        multiDomain.nodes().createNode(val, 0.05, state);
     }
 
     // Material Properties (Cottaer Sandstone, using C++20 designated initializers)

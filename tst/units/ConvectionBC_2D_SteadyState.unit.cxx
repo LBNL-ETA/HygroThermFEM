@@ -2,17 +2,7 @@
 
 #include "HygroThermFEM2D.hxx"
 
-class ConvectionBC_2D_SteadyState : public testing::Test
-{
-protected:
-    void SetUp() override
-    {}
-
-    void TearDown() override
-    {}
-};
-
-TEST_F(ConvectionBC_2D_SteadyState, TestExample_1)
+TEST(ConvectionBC_2D_SteadyState, TestExample_1)
 {
     SCOPED_TRACE("Begin Test: Two elementsCreator example with simple conduction.");
 
@@ -20,12 +10,12 @@ TEST_F(ConvectionBC_2D_SteadyState, TestExample_1)
 
     // Enter nodes. Arguments are: node number, x-coordinate, y-coordinate
 
-    multiDomain.nodes().createNode(1, 15, 5);
-    multiDomain.nodes().createNode(2, 15, 0);
-    multiDomain.nodes().createNode(3, 5, 5);
-    multiDomain.nodes().createNode(4, 5, 0);
-    multiDomain.nodes().createNode(5, 0, 5);
-    multiDomain.nodes().createNode(6, 0, 0);
+    multiDomain.nodes().createNode(15, 5);
+    multiDomain.nodes().createNode(15, 0);
+    multiDomain.nodes().createNode(5, 5);
+    multiDomain.nodes().createNode(5, 0);
+    multiDomain.nodes().createNode(0, 5);
+    multiDomain.nodes().createNode(0, 0);
 
     // Material Properties (using C++20 designated initializers)
     const auto & material = multiDomain.materials().createSolidMaterial({

@@ -5,17 +5,7 @@
 
 using HygroThermFEM::State;
 
-class Moisture_2D_TwoElements_2 : public testing::Test
-{
-protected:
-    void SetUp() override
-    {}
-
-    void TearDown() override
-    {}
-};
-
-TEST_F(Moisture_2D_TwoElements_2, TestExample_1)
+TEST(Moisture_2D_TwoElements_2, TestExample_1)
 {
     SCOPED_TRACE("Begin Test: Simple two elements example with moisture transfer.");
 

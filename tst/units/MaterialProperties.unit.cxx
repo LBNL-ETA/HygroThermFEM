@@ -3,17 +3,7 @@
 
 #include "HygroThermFEM2D.hxx"
 
-class TestMaterialProperties : public testing::Test
-{
-protected:
-    void SetUp() override
-    {}
-
-    void TearDown() override
-    {}
-};
-
-TEST_F(TestMaterialProperties, PropertiesExistence)
+TEST(TestMaterialProperties, PropertiesExistence)
 {
     SCOPED_TRACE("Material properties.");
 

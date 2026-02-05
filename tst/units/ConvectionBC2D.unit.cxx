@@ -2,17 +2,7 @@
 
 #include "HygroThermFEM2D.hxx"
 
-class TestConvectionBC2D : public testing::Test
-{
-protected:
-    void SetUp() override
-    {}
-
-    void TearDown() override
-    {}
-};
-
-TEST_F(TestConvectionBC2D, TestIntegrationPoints)
+TEST(TestConvectionBC2D, TestIntegrationPoints)
 {
     SCOPED_TRACE("Begin Test: Convection boundary condition.");
 

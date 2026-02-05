@@ -6,17 +6,7 @@
 
 using HygroThermFEM::State;
 
-class TestModelWithFrameCavity3 : public testing::Test
-{
-protected:
-    void SetUp() override
-    {}
-
-    void TearDown() override
-    {}
-};
-
-TEST_F(TestModelWithFrameCavity3, TestSingleFrameCavity)
+TEST(TestModelWithFrameCavity3, TestSingleFrameCavity)
 {
     SCOPED_TRACE("Begin Test: Model with single frame cavity.");
 

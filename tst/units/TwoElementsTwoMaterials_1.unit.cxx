@@ -8,17 +8,7 @@ using HygroThermFEM::MultiDomain;
 /// This is example of water content calculation in nodes that are shared between two elements
 /// with different material. In this case influence of materials to the nodes is identical.
 
-class TwoElementsTwoMaterials_1 : public testing::Test
-{
-protected:
-    void SetUp() override
-    {}
-
-    void TearDown() override
-    {}
-};
-
-TEST_F(TwoElementsTwoMaterials_1, NodeInTwoMaterials)
+TEST(TwoElementsTwoMaterials_1, NodeInTwoMaterials)
 {
     SCOPED_TRACE("Begin Test: Node as part of two elements that have different material.");
 

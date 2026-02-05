@@ -4,17 +4,7 @@
 
 #include "HygroThermFEM2D.hxx"
 
-class TestQuadLinearElementGlobal2D : public testing::Test
-{
-protected:
-    void SetUp() override
-    {}
-
-    void TearDown() override
-    {}
-};
-
-TEST_F(TestQuadLinearElementGlobal2D, TestIntegrationPoint1)
+TEST(TestQuadLinearElementGlobal2D, TestIntegrationPoint1)
 {
     SCOPED_TRACE(
       "Begin Test: Quadrilateral linear element 2D in global coordinates - Gauss points.");

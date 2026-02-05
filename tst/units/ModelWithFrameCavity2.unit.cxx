@@ -9,19 +9,7 @@ using HygroThermFEM::ElementsLinear2D;
 using HygroThermFEM::ElementThermalLinear2D;
 
 
-class TestModelWithFrameCavity2 : public testing::Test
-{
-protected:
-    void SetUp() override
-    {}
-
-    void TearDown() override
-    {}
-
-public:
-};
-
-TEST_F(TestModelWithFrameCavity2, TestDoubleFrameCavity)
+TEST(TestModelWithFrameCavity2, TestDoubleFrameCavity)
 {
     SCOPED_TRACE("Begin Test: Model with two frame cavities.");
 

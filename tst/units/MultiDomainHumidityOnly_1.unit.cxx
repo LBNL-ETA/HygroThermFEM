@@ -5,22 +5,12 @@
 
 using HygroThermFEM::Nodes;
 
-class MultiDomainHumidityOnly_1 : public testing::Test
-{
-protected:
-    void SetUp() override
-    {}
-
-    void TearDown() override
-    {}
-};
-
 //////////////////////////////////////////////////////////////////////////////////////////////////
 // Test case with multi domain where only humidity calculations are performed while temperature is
 // kept identical
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
-TEST_F(MultiDomainHumidityOnly_1, TestExample_1)
+TEST(MultiDomainHumidityOnly_1, TestExample_1)
 {
     SCOPED_TRACE("Begin Test: Simple two elements example with moisture and heat transfer.");
 

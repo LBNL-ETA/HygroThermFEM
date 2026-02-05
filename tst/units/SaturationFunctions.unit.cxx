@@ -3,14 +3,7 @@
 
 #include "HygroThermFEM2D.hxx"
 
-class TestSaturationFunctions : public testing::Test
-{
-protected:
-    void SetUp() override
-    {}
-};
-
-TEST_F(TestSaturationFunctions, BoundarySaturation)
+TEST(TestSaturationFunctions, BoundarySaturation)
 {
     constexpr auto temperature = 20.0;
 
@@ -21,7 +14,7 @@ TEST_F(TestSaturationFunctions, BoundarySaturation)
     EXPECT_NEAR(correctResult, result, 1e-6);
 }
 
-TEST_F(TestSaturationFunctions, Saturation)
+TEST(TestSaturationFunctions, Saturation)
 {
     constexpr auto temperature = 20.0;
 

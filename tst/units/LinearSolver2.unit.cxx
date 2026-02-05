@@ -6,23 +6,7 @@
 using HygroThermFEM::SquareMatrix;
 using HygroThermFEM::CLinearSolver;
 
-class TestLinearSolver2 : public testing::Test
-{
-private:
-    CLinearSolver m_Solver;
-
-protected:
-    void SetUp() override
-    {}
-
-public:
-    CLinearSolver & GetSolver()
-    {
-        return m_Solver;
-    }
-};
-
-TEST_F(TestLinearSolver2, Test1)
+TEST(TestLinearSolver2, Test1)
 {
     SCOPED_TRACE("Begin Test: Test Linear Solver (2) - Solving 100 x 100 matrix.");
 

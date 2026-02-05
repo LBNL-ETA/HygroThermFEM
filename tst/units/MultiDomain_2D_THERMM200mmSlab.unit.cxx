@@ -4,17 +4,7 @@
 
 #include "HygroThermFEM2D.hxx"
 
-class MultiDomain_2D_THERMM200mmSlab : public testing::Test
-{
-protected:
-    void SetUp() override
-    {}
-
-    void TearDown() override
-    {}
-};
-
-TEST_F(MultiDomain_2D_THERMM200mmSlab, TestExample_1)
+TEST(MultiDomain_2D_THERMM200mmSlab, TestExample_1)
 {
     HygroThermFEM::MultiDomain multiDomain;
 

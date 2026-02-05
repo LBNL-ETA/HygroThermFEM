@@ -12,19 +12,9 @@
 ///   Solution achieved with linear solver (no iterations required in this case
 /////////////////////////////////////////////////////////////////////////////////////
 
-class Topaz2D_ConvectionBC : public testing::Test
-{
-protected:
-    void SetUp() override
-    {}
-
-    void TearDown() override
-    {}
-};
-
 /// Transient convection BC. Example is tested in EXCEL and Topaz2D.
 
-TEST_F(Topaz2D_ConvectionBC, TestExample_1)
+TEST(Topaz2D_ConvectionBC, TestExample_1)
 {
     SCOPED_TRACE("Begin Test: Two elementsCreator example with transient.");
 

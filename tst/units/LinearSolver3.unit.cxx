@@ -5,18 +5,7 @@
 using HygroThermFEM::SquareMatrix;
 using HygroThermFEM::CLinearSolver;
 
-class TestLinearSolver3 : public testing::Test {
-private:
-  CLinearSolver m_Solver;
-
-protected:
-  void SetUp() override {}
-
-public:
-  CLinearSolver &GetSolver() { return m_Solver; }
-};
-
-TEST_F(TestLinearSolver3, Test1) {
+TEST(TestLinearSolver3, Test1) {
   SCOPED_TRACE("Begin Test: Test Linear Solver (3) - Solving sparse matrix.");
 
   const SquareMatrix aMatrix{
