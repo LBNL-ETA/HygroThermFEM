@@ -72,7 +72,7 @@ TEST_F(MultiDomain_2D_NoMoistureStorageFunction, TestExample_1)
         const auto node2 = 2u * i + 2u;
         const auto node3 = 2u * i;
         const auto node4 = 2u * i - 1u;
-        multiDomain.createElement(node1, node2, node3, node4, material.name());
+        multiDomain.createElement({.node1 = node1, .node2 = node2, .node3 = node3, .node4 = node4, .material = material.name()});
     }
 
     /// Create Boundary Conditions

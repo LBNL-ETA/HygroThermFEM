@@ -61,7 +61,7 @@ TEST(Analytical_ConvectionBC_Transient, TestExample_1)
         const auto index3 = 2u * i + 2u;
         const auto index4 = 2u * i + 1u;
 
-        multiDomain.createElement(index1, index2, index3, index4, materialName);
+        multiDomain.createElement({.node1 = index1, .node2 = index2, .node3 = index3, .node4 = index4, .material = materialName});
     }
 
     // Create Boundary Conditions

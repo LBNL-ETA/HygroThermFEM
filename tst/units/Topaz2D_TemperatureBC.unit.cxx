@@ -68,8 +68,8 @@ TEST(Topaz2D_TemperatureBC, TestExample_1)
                           {1, 180}}
     });
 
-    multiDomain.createElement(1, 2, 4, 3, material.name());
-    multiDomain.createElement(5, 3, 4, 6, material.name());
+    multiDomain.createElement({.node1 = 1, .node2 = 2, .node3 = 4, .node4 = 3, .material = material.name()});
+    multiDomain.createElement({.node1 = 5, .node2 = 3, .node3 = 4, .node4 = 6, .material = material.name()});
 
     // Create Boundary Conditions
     constexpr auto tSurface = 12.0;

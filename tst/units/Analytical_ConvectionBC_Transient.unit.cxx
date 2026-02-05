@@ -55,7 +55,7 @@ TEST(Analytical_TemperatureBC_Transient, TestExample_1)
         const auto node3 = 2u * idx + 2u;
         const auto node4 = 2u * idx;
 
-        multiDomain.createElement(node1, node2, node3, node4, material.name());
+        multiDomain.createElement({.node1 = node1, .node2 = node2, .node3 = node3, .node4 = node4, .material = material.name()});
     }
 
     // Create Boundary Conditions

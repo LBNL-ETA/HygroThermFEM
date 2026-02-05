@@ -197,6 +197,11 @@ namespace HygroThermFEM
         m_SimulateThermal = val;
     }
 
+    void MultiDomain::createElement(const ElementParams & params)
+    {
+        createElement(params.node1, params.node2, params.node3, params.node4, params.material);
+    }
+
     void MultiDomain::createElement(const size_t index1,
                                     const size_t index2,
                                     const size_t index3,

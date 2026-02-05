@@ -21,6 +21,16 @@ namespace HygroThermFEM
         bool performMoisture = true;
     };
 
+    //! \brief Parameters for creating an element with designated initializers (C++20)
+    struct ElementParams
+    {
+        size_t node1 = 0;
+        size_t node2 = 0;
+        size_t node3 = 0;
+        size_t node4 = 0;
+        std::string material;
+    };
+
     //! \brief Keeps solution from current timestep for every node in the domain.
     struct Solution
     {
@@ -95,7 +105,11 @@ namespace HygroThermFEM
 
         std::vector<double> property(Variable property) const;
 
-        //! \brief Creates element with material reference
+        //! \brief Creates element with material reference using C++20 designated initializers
+        //! @param params Element parameters (node1, node2, node3, node4, material)
+        void createElement(const ElementParams & params);
+
+        //! \brief Creates element with material reference (legacy interface)
         //! @param index1 Node 1 index
         //! @param index2 Node 2 index
         //! @param index3 Node 3 index

@@ -94,8 +94,8 @@ TEST_F(SteadyState_2D_ExcludeLiquidTransport_1, TestExample_1)
                           {0.95, 25}, {0.99, 63}, {0.995, 83}, {0.999, 120}, {1, 180}}
     });
 
-    multiDomain.createElement(3, 4, 2, 1, material.name());
-    multiDomain.createElement(6, 4, 3, 5, material.name());
+    multiDomain.createElement({.node1 = 3, .node2 = 4, .node3 = 2, .node4 = 1, .material = material.name()});
+    multiDomain.createElement({.node1 = 6, .node2 = 4, .node3 = 3, .node4 = 5, .material = material.name()});
 
     // Create Boundary Conditions
     // constexpr auto hc1 = 20.0;

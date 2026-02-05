@@ -40,7 +40,7 @@ namespace
            .liquidTransportCurve = {{0, 0}, {180, 1e-6}},
            .sorptionCurve = {{0, 0}, {1, 180}}});
 
-        multiDomain.createElement(1, 2, 3, 4, "TestMaterial");
+        multiDomain.createElement({.node1 = 1, .node2 = 2, .node3 = 3, .node4 = 4, .material = "TestMaterial"});
     }
 
     // Helper to create model with frame cavity for gravity tests
@@ -79,8 +79,8 @@ namespace
         multiDomain.materials().createGas("FrameCavity", HygroThermFEM::CavityStandard::ISO15099);
 
         // Create elements: one solid and one frame cavity
-        multiDomain.createElement(1, 2, 5, 4, "SolidMaterial");
-        multiDomain.createElement(2, 3, 6, 5, "FrameCavity");
+        multiDomain.createElement({.node1 = 1, .node2 = 2, .node3 = 5, .node4 = 4, .material = "SolidMaterial"});
+        multiDomain.createElement({.node1 = 2, .node2 = 3, .node3 = 6, .node4 = 5, .material = "FrameCavity"});
     }
 }   // namespace
 

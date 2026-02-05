@@ -52,14 +52,14 @@ TEST(MultiDomain_2D_THERMM200mmSlab, TestExample_1)
     });
 
     /// Create elements
-    multiDomain.createElement(3, 1, 2, 5, material.name());
-    multiDomain.createElement(2, 4, 7, 5, material.name());
-    multiDomain.createElement(6, 3, 5, 8, material.name());
-    multiDomain.createElement(5, 7, 10, 8, material.name());
-    multiDomain.createElement(9, 6, 8, 11, material.name());
-    multiDomain.createElement(11, 14, 12, 9, material.name());
-    multiDomain.createElement(11, 8, 10, 13, material.name());
-    multiDomain.createElement(11, 13, 15, 14, material.name());
+    multiDomain.createElement({.node1 = 3, .node2 = 1, .node3 = 2, .node4 = 5, .material = material.name()});
+    multiDomain.createElement({.node1 = 2, .node2 = 4, .node3 = 7, .node4 = 5, .material = material.name()});
+    multiDomain.createElement({.node1 = 6, .node2 = 3, .node3 = 5, .node4 = 8, .material = material.name()});
+    multiDomain.createElement({.node1 = 5, .node2 = 7, .node3 = 10, .node4 = 8, .material = material.name()});
+    multiDomain.createElement({.node1 = 9, .node2 = 6, .node3 = 8, .node4 = 11, .material = material.name()});
+    multiDomain.createElement({.node1 = 11, .node2 = 14, .node3 = 12, .node4 = 9, .material = material.name()});
+    multiDomain.createElement({.node1 = 11, .node2 = 8, .node3 = 10, .node4 = 13, .material = material.name()});
+    multiDomain.createElement({.node1 = 11, .node2 = 13, .node3 = 15, .node4 = 14, .material = material.name()});
 
     /// Create Boundary Conditions
     constexpr auto hc = 2.0;

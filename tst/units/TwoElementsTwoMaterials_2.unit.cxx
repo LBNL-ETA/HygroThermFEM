@@ -95,8 +95,8 @@ TEST(TwoElementsTwoMaterials_2, NodeInTwoMaterials)
                           {1, 150}}
     });
 
-    multiDomain.createElement(1, 1, 2, 3, material1.name());
-    multiDomain.createElement(2, 4, 5, 3, material2.name());
+    multiDomain.createElement({.node1 = 1, .node2 = 1, .node3 = 2, .node4 = 3, .material = material1.name()});
+    multiDomain.createElement({.node1 = 2, .node2 = 4, .node3 = 5, .node4 = 3, .material = material2.name()});
 
     auto iceContent = multiDomain.property(HygroThermFEM::Variable::ice);
     auto vaporContent = multiDomain.property(HygroThermFEM::Variable::vapor);

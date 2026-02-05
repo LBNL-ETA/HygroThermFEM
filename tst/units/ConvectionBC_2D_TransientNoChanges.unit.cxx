@@ -48,7 +48,7 @@ TEST(ConvectionBC_2D_TransientNoChanges, TestExample_1)
         const auto index2 = 2u * idx + 2u;
         const auto index3 = 2u * idx;
         const auto index4 = 2u * idx - 1u;
-        multiDomain.createElement(index1, index2, index3, index4, material.name());
+        multiDomain.createElement({.node1 = index1, .node2 = index2, .node3 = index3, .node4 = index4, .material = material.name()});
     }
 
     // Create Boundary Conditions
