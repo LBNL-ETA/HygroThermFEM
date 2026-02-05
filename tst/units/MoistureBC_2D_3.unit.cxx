@@ -11,14 +11,10 @@ TEST(MoistureBC_2D_3, TestExample_1)
 
     std::vector<double> gridXCoordinates{0, 0.05, 0.1, 0.15};
 
-    const double initialTemperature = 20;
-    const double initialMoistureContent = 0;
-    const double initialPressure = 0;
-
-    HygroThermFEM::State state({
-        .temperature = initialTemperature,
-        .humidity = initialMoistureContent,
-        .pressure = initialPressure,
+    const HygroThermFEM::State state({
+        .temperature = 20.0,
+        .humidity = 0.0,
+        .pressure = 0.0,
         .liquidPercent = 0
     });
     size_t nodeIndex = 0;

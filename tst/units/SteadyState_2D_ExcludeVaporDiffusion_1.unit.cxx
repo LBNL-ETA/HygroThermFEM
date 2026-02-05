@@ -34,16 +34,8 @@ TEST_F(SteadyState_2D_ExcludeVaporDiffusion_1, TestExample_1)
       thermalConductivityMoistureAndTemperatureDependent);
 
     const double initialTemperature = 21.0;
-    const double initialMoistureContent = 0.0;
-    const double initialPressure = 101325;
+    const double initialPressure = 101325.0;
     constexpr auto liquidPercent = 1.0;
-
-    auto state = State({
-        .temperature = initialTemperature,
-        .humidity = initialMoistureContent,
-        .pressure = initialPressure,
-        .liquidPercent = liquidPercent
-    });
 
     const auto simulateThermal{true};
     const auto simulateMoisture{true};

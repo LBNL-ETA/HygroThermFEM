@@ -23,17 +23,10 @@ TEST(MultiDomain_2D_1, TestExample_1)
 
     std::vector<double> gridXCoordinates{0, 0.05, 0.1};
 
-    const double initialTemperature = 20;
+    const double initialTemperature = 20.0;
     const double initialMoistureContent = 0.0;
-    const double initialPressure = 101325;
-    constexpr auto liquidPercent = 1.0;
+    const double initialPressure = 101325.0;
 
-    auto state = State({
-        .temperature = initialTemperature,
-        .humidity = initialMoistureContent,
-        .pressure = initialPressure,
-        .liquidPercent = liquidPercent
-    });
     size_t nodeIndex = 0;
     auto T = 0.0;
     auto deltaT = 10.0;
@@ -182,17 +175,10 @@ TEST(MultiDomain_2D_1, TestExample_1_Repeat)
 
     std::vector<double> gridXCoordinates{0, 0.05, 0.1};
 
-    const double initialTemperature = 20;
+    const double initialTemperature = 20.0;
     const double initialMoistureContent = 0.0;
-    const double initialPressure = 101325;
-    constexpr auto liquidPercent = 1.0;
+    const double initialPressure = 101325.0;
 
-    auto state = State({
-        .temperature = initialTemperature,
-        .humidity = initialMoistureContent,
-        .pressure = initialPressure,
-        .liquidPercent = liquidPercent
-    });
     size_t nodeIndex = 0;
     auto T = 0.0;
     auto deltaT = 10.0;

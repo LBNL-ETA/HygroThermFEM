@@ -11,14 +11,10 @@ TEST(ConvectionBC_2D_TransientNoChanges, TestExample_1)
 
     std::vector<double> gridXCoordinates{0, 0.05, 0.1, 0.15};
 
-    constexpr double initialTemperature = 20;
-    constexpr double initialMoistureContent = 0;
-    constexpr double initialPressure = 101325;
-
-    HygroThermFEM::State state({
-        .temperature = initialTemperature,
-        .humidity = initialMoistureContent,
-        .pressure = initialPressure,
+    const HygroThermFEM::State state({
+        .temperature = 20.0,
+        .humidity = 0.0,
+        .pressure = 101325.0,
         .liquidPercent = 0
     });
     for(auto val : gridXCoordinates)

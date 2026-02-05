@@ -11,16 +11,11 @@ TEST(MultiDomain_2D_BlackBody_MultiTimestepBC, TestExample_1)
 
     std::vector<double> gridXCoordinates{0, 0.05, 0.1};
 
-    const double initialTemperature = 0.0;
-    const double initialMoistureContent = 0.0;
-    const double initialPressure = 101325;
-    constexpr auto liquidPercent = 1.0;
-
-    auto state = HygroThermFEM::State({
-        .temperature = initialTemperature,
-        .humidity = initialMoistureContent,
-        .pressure = initialPressure,
-        .liquidPercent = liquidPercent
+    const HygroThermFEM::State state({
+        .temperature = 0.0,
+        .humidity = 0.0,
+        .pressure = 101325.0,
+        .liquidPercent = 1.0
     });
     size_t nodeIndex = 0;
     for(auto val : gridXCoordinates)
