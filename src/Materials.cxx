@@ -10,39 +10,6 @@ namespace HygroThermFEM
         m_Gases.clear();
     }
 
-    const IMaterial & Materials::createSolidMaterial(
-      const std::string & Name,
-      const double ThermalConductivityDry,
-      const double Density,
-      const double Porosity,
-      const double HeatCapacity,
-      const double DiffusionResistanceFactor,
-      const std::vector<FenestrationCommon::point> & thermalConductivityMoistureDependent,
-      const double moistureDependentMeasurementTemperature,
-      const std::vector<FenestrationCommon::point> & thermalConductivityTemperatureDependent,
-      const double temperatureDependentMeasurementHumidity,
-      const std::vector<FenestrationCommon::point> & LiquidTransportCurve,
-      const std::vector<FenestrationCommon::point> & SorptionCurve,
-      const double emissivity)
-    {
-        checkIfMaterialExists(Name);
-        m_Materials.emplace(Name,
-                            std::make_unique<SolidMaterial>(Name,
-                                                            ThermalConductivityDry,
-                                                            Density,
-                                                            Porosity,
-                                                            HeatCapacity,
-                                                            DiffusionResistanceFactor,
-                                                            thermalConductivityMoistureDependent,
-                                                            moistureDependentMeasurementTemperature,
-                                                            thermalConductivityTemperatureDependent,
-                                                            temperatureDependentMeasurementHumidity,
-                                                            LiquidTransportCurve,
-                                                            SorptionCurve,
-                                                            emissivity));
-        return *m_Materials.at(Name);
-    }
-
     const IMaterial & Materials::createSolidMaterial(SolidMaterialParams params)
     {
         checkIfMaterialExists(params.name);

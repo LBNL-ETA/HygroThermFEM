@@ -29,7 +29,7 @@ namespace HygroThermFEM
         size_t node3 = 0;
         size_t node4 = 0;
         std::string material;
-    };
+};
 
     //! \brief Keeps solution from current timestep for every node in the domain.
     struct Solution
@@ -108,18 +108,6 @@ namespace HygroThermFEM
         //! \brief Creates element with material reference using C++20 designated initializers
         //! @param params Element parameters (node1, node2, node3, node4, material)
         void createElement(const ElementParams & params);
-
-        //! \brief Creates element with material reference (legacy interface)
-        //! @param index1 Node 1 index
-        //! @param index2 Node 2 index
-        //! @param index3 Node 3 index
-        //! @param index4 Node 4 index
-        //! @param materialName Material name assigned to the element
-        void createElement(size_t index1,
-                           size_t index2,
-                           size_t index3,
-                           size_t index4,
-                           const std::string & materialName);
 
         //! \brief Creates boundary condition with coefficients that are identical during the entire
         //! transient simulation or in steady-state calculations

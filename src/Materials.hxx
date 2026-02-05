@@ -9,25 +9,10 @@ namespace HygroThermFEM
     class Materials
     {
     public:
-
-        const IMaterial & createSolidMaterial(
-          const std::string & Name,
-          double ThermalConductivityDry,
-          double Density,
-          double Porosity,
-          double HeatCapacity,
-          double DiffusionResistanceFactor,
-          const std::vector<FenestrationCommon::point> & thermalConductivityMoistureDependent,
-          double moistureDependentMeasurementTemperature,
-          const std::vector<FenestrationCommon::point> & thermalConductivityTemperatureDependent,
-          double temperatureDependentMeasurementHumidity,
-          const std::vector<FenestrationCommon::point> & LiquidTransportCurve,
-          const std::vector<FenestrationCommon::point> & SorptionCurve,
-          double emissivity = 0.9);
-
         //! \brief Create SolidMaterial using params struct (C++20 designated initializers)
         const IMaterial & createSolidMaterial(SolidMaterialParams params);
 
+        //! \brief Create SolidMaterial with just a name (properties set later via setters)
         IMaterial & createSolidMaterial(std::string Name);
 
         const IGas & createGas(const std::string & name,

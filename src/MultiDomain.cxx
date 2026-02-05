@@ -199,24 +199,15 @@ namespace HygroThermFEM
 
     void MultiDomain::createElement(const ElementParams & params)
     {
-        createElement(params.node1, params.node2, params.node3, params.node4, params.material);
-    }
-
-    void MultiDomain::createElement(const size_t index1,
-                                    const size_t index2,
-                                    const size_t index3,
-                                    const size_t index4,
-                                    const std::string & materialName)
-    {
         // At least one domain must create elements for material assignment to nodes
         // (needed for water content calculations even without active simulations)
         if(m_SimulateThermal || !m_SimulateMoisture)
         {
-            m_ThermalDomain.createElement(index1, index2, index3, index4, materialName);
+            m_ThermalDomain.createElement(params.node1, params.node2, params.node3, params.node4, params.material);
         }
         if(m_SimulateMoisture)
         {
-            m_MoistureDomain.createElement(index1, index2, index3, index4, materialName);
+            m_MoistureDomain.createElement(params.node1, params.node2, params.node3, params.node4, params.material);
         }
     }
 
