@@ -86,24 +86,21 @@ Material& operator[](size_t idx);
 
 ---
 
-### 4. MaterialPool Singleton Coupling
+### 4. MaterialPool Singleton Coupling ✓ RESOLVED
 
 **Problem:** Global singleton `MaterialPool::Instance()` creates tight coupling and makes testing difficult.
 
-**Current usage:**
-```cpp
-// Scattered throughout codebase
-auto& material = MaterialPool::Instance().getMaterial(id);
-```
+**Solution implemented:**
+- Renamed `MaterialPool` → `Materials`, `NodePool` → `Nodes`
+- Refactored from singletons to dependency injection via `MultiDomain`
+- Access via `multiDomain.materials()` and `multiDomain.nodes()`
 
-**Recommendation:** Inject MaterialPool as dependency:
 ```cpp
-class Domain {
-public:
-    explicit Domain(MaterialPool& materials);
-private:
-    MaterialPool& materialPool;
-};
+// Old (singleton)
+auto& material = MaterialPool::Instance().getMaterial(id);
+
+// New (dependency injection)
+auto& material = multiDomain.materials().getMaterial(id);
 ```
 
 ---
@@ -203,6 +200,14 @@ class IterativeSolver : public ISolverStrategy { /* CG, GMRES */ };
    - Removed intermediate domain variables in tests
    - New usage pattern: `multiDomain.thermal().createBC_FixedHc(...)`
 
+6. ✓ **Modernize SolidMaterial creation with C++20 designated initializers** - Completed
+   - Added `SolidMaterialParams` struct with default values for all material properties
+   - Added `SolidMaterial(SolidMaterialParams)` constructor
+   - Added `Materials::createSolidMaterial(SolidMaterialParams)` overload
+   - Replaced raw `new` with `std::make_unique` in Materials class
+   - Updated all 48 test files to use designated initializer syntax
+   - Maintains backward compatibility (old positional API still works)
+
 **Additional completed work:**
 - Removed dead code: checkSingularity(), degrees(), State operators, TimestepData setters
 - Fixed bug: ThermalConductivityDry missing from isMissingAnyProperty()
@@ -210,15 +215,14 @@ class IterativeSolver : public ISolverStrategy { /* CG, GMRES */ };
 
 ### Medium Priority (Next)
 
-4. **Inject MaterialPool** - Remove singleton dependency
-5. **Implement BC Factory** - Centralize BC creation
-6. **Add missing unit tests** - Coverage for edge cases
+7. **Implement BC Factory** - Centralize BC creation
+8. **Add missing unit tests** - Coverage for edge cases
 
 ### Lower Priority
 
-7. **Builder pattern for domains** - Improve construction API
-8. **Solver strategy extraction** - More flexible solver selection
-9. **Documentation improvements** - Add Doxygen comments
+9. **Builder pattern for domains** - Improve construction API
+10. **Solver strategy extraction** - More flexible solver selection
+11. **Documentation improvements** - Add Doxygen comments
 
 ---
 
@@ -347,8 +351,9 @@ void createElement(size_t index1, size_t index2, size_t index3, size_t index4, c
 ThermalDomain& thermal()      // was thermalDomain()
 MoistureDomain& moisture()    // was moistureDomain()
 
-// Material pool accessor
-static MaterialPool& materialPool()
+// Accessor methods (dependency injection, not singletons)
+Materials& materials()
+Nodes& nodes()
 ```
 
 #### Boundary Condition Creation Methods
@@ -366,19 +371,59 @@ void createBC_FixedTemperature(INode2D& node1, INode2D& node2, vector<double>& t
 void createBC_FixedTemperatureAndHumidity(INode2D& node1, INode2D& node2, vector<TemperatureAndHumidity>& values)
 ```
 
-#### NodePool Singleton
+#### Nodes Class (via MultiDomain)
 ```cpp
-static NodePool& Instance()
+// Access via multiDomain.nodes()
+Nodes& nodes()
+
+// Node creation methods
 INode2D& createNode(size_t nodeID, double x, double y, State initialState)
+INode2D& createNode(double x, double y, State initialState)  // Auto-increment ID (NEW)
+INode2D& createNode(size_t nodeID, double x, double y)  // Default state
+INode2D& createNode(double x, double y)  // Auto-increment + default state (NEW)
+
 vector<double> properties(Variable var)  // Variable::temperature or Variable::humidity
 INode2D& getNode(size_t nodeID)
 ```
 
-#### MaterialPool Singleton
+#### Materials Class (via MultiDomain)
 ```cpp
-static MaterialPool& Instance()
-IMaterial& createSolidMaterial(string_view name)
+// Access via multiDomain.materials()
+Materials& materials()
+
+// Material creation methods
+IMaterial& createSolidMaterial(string_view name)  // Returns mutable ref for setter-based initialization
+const IMaterial& createSolidMaterial(SolidMaterialParams params)  // C++20 designated initializers (NEW)
 IMaterial& createGas(string_view name, CavityStandard standard, GasProperties props)
+```
+
+#### SolidMaterialParams Struct (NEW - C++20 designated initializers)
+```cpp
+struct SolidMaterialParams {
+    std::string name;
+    double thermalConductivityDry = 0.0;
+    double density = 0.0;
+    double porosity = 0.0;
+    double heatCapacity = 0.0;
+    double diffusionResistanceFactor = 0.0;
+    std::vector<FenestrationCommon::point> thermalConductivityMoistureDependent = {};
+    double moistureDependentMeasurementTemperature = 0.0;
+    std::vector<FenestrationCommon::point> thermalConductivityTemperatureDependent = {};
+    double temperatureDependentMeasurementHumidity = 0.0;
+    std::vector<FenestrationCommon::point> liquidTransportCurve = {};
+    std::vector<FenestrationCommon::point> sorptionCurve = {};
+    double emissivity = 0.9;
+};
+
+// Usage example:
+const auto& material = multiDomain.materials().createSolidMaterial({
+    .name = "Concrete",
+    .thermalConductivityDry = 1.8,
+    .density = 2050.0,
+    .porosity = 0.18,
+    .heatCapacity = 850.0,
+    .diffusionResistanceFactor = 15.0
+});
 ```
 
 #### SimulationProperties Singleton
@@ -456,3 +501,5 @@ enum class WindDirection { Windward, Leeward };
 | Domain accessors renamed | `multiDomain.thermalDomain()` | `multiDomain.thermal()` | None (not used) |
 | Domain accessors renamed | `multiDomain.moistureDomain()` | `multiDomain.moisture()` | None (not used) |
 | Element creation privatized | `domain.createElement(...)` | `multiDomain.createElement(...)` | None (already used MultiDomain) |
+| SolidMaterial designated initializers | `createSolidMaterial(name, param1, param2, ...)` | `createSolidMaterial({.name=..., .density=...})` | None (additive, uses setter API) |
+| Materials uses make_unique | `new SolidMaterial(...)` | `std::make_unique<SolidMaterial>(...)` | None (internal change) |
