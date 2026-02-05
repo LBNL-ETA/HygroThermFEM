@@ -5,6 +5,7 @@
 #include "HygroThermFEM2D.hxx"
 
 using HygroThermFEM::State;
+using HygroThermFEM::StateParams;
 
 TEST(TestModelWithFrameCavity3, TestSingleFrameCavity)
 {
@@ -20,7 +21,11 @@ TEST(TestModelWithFrameCavity3, TestSingleFrameCavity)
     const auto initialHumidity{0.0};
     const auto initialPressure{101325.0};
 
-    const State state(initialTemperature, initialHumidity, initialPressure);
+    const State state({
+        .temperature = initialTemperature,
+        .humidity = initialHumidity,
+        .pressure = initialPressure
+    });
     size_t nodeIndex = 0;
 
     // Crating grid nodes

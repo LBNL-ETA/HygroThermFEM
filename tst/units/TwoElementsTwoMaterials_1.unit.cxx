@@ -19,7 +19,12 @@ TEST(TwoElementsTwoMaterials_1, NodeInTwoMaterials)
     constexpr auto pressure = 101325.0;
     constexpr auto liquidPercent = 1.0;
 
-    const HygroThermFEM::State state(temperature, humidity, pressure, liquidPercent);
+    const HygroThermFEM::State state({
+        .temperature = temperature,
+        .humidity = humidity,
+        .pressure = pressure,
+        .liquidPercent = liquidPercent
+    });
 
     multiDomain.nodes().createNode(1, 0, 0, state);
     multiDomain.nodes().createNode(2, 0, 1, state);

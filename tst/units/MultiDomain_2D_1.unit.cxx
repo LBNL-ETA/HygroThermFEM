@@ -5,6 +5,7 @@
 
 using HygroThermFEM::Nodes;
 using HygroThermFEM::State;
+using HygroThermFEM::StateParams;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// This is simple two elements multi-domain example without boundary conditions. Initial
@@ -27,7 +28,12 @@ TEST(MultiDomain_2D_1, TestExample_1)
     const double initialPressure = 101325;
     constexpr auto liquidPercent = 1.0;
 
-    auto state = State(initialTemperature, initialMoistureContent, initialPressure, liquidPercent);
+    auto state = State({
+        .temperature = initialTemperature,
+        .humidity = initialMoistureContent,
+        .pressure = initialPressure,
+        .liquidPercent = liquidPercent
+    });
     size_t nodeIndex = 0;
     auto T = 0.0;
     auto deltaT = 10.0;
@@ -40,13 +46,23 @@ TEST(MultiDomain_2D_1, TestExample_1)
           nodeIndex,
           val,
           0.00,
-          State(initialTemperature + T, initialMoistureContent + H, initialPressure, 0));
+          State({
+              .temperature = initialTemperature + T,
+              .humidity = initialMoistureContent + H,
+              .pressure = initialPressure,
+              .liquidPercent = 0
+          }));
         ++nodeIndex;
         multiDomain.nodes().createNode(
           nodeIndex,
           val,
           0.05,
-          State(initialTemperature + T, initialMoistureContent + H, initialPressure, 0));
+          State({
+              .temperature = initialTemperature + T,
+              .humidity = initialMoistureContent + H,
+              .pressure = initialPressure,
+              .liquidPercent = 0
+          }));
         T += deltaT;
         H += deltaH;
     }
@@ -171,7 +187,12 @@ TEST(MultiDomain_2D_1, TestExample_1_Repeat)
     const double initialPressure = 101325;
     constexpr auto liquidPercent = 1.0;
 
-    auto state = State(initialTemperature, initialMoistureContent, initialPressure, liquidPercent);
+    auto state = State({
+        .temperature = initialTemperature,
+        .humidity = initialMoistureContent,
+        .pressure = initialPressure,
+        .liquidPercent = liquidPercent
+    });
     size_t nodeIndex = 0;
     auto T = 0.0;
     auto deltaT = 10.0;
@@ -184,13 +205,23 @@ TEST(MultiDomain_2D_1, TestExample_1_Repeat)
                 nodeIndex,
                 val,
                 0.00,
-                State(initialTemperature + T, initialMoistureContent + H, initialPressure, 0));
+                State({
+                    .temperature = initialTemperature + T,
+                    .humidity = initialMoistureContent + H,
+                    .pressure = initialPressure,
+                    .liquidPercent = 0
+                }));
         ++nodeIndex;
         multiDomain.nodes().createNode(
                 nodeIndex,
                 val,
                 0.05,
-                State(initialTemperature + T, initialMoistureContent + H, initialPressure, 0));
+                State({
+                    .temperature = initialTemperature + T,
+                    .humidity = initialMoistureContent + H,
+                    .pressure = initialPressure,
+                    .liquidPercent = 0
+                }));
         T += deltaT;
         H += deltaH;
     }

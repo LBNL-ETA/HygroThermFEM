@@ -4,6 +4,7 @@
 #include "HygroThermFEM2D.hxx"
 
 using HygroThermFEM::State;
+using HygroThermFEM::StateParams;
 
 TEST(MoistureBC_2D_1, TestExample_1)
 {
@@ -18,7 +19,11 @@ TEST(MoistureBC_2D_1, TestExample_1)
     constexpr auto initialHumidity = 0.65;
     constexpr auto initialPressure = 101325.0;
 
-    State state(initialTemperature, initialHumidity, initialPressure);
+    State state({
+        .temperature = initialTemperature,
+        .humidity = initialHumidity,
+        .pressure = initialPressure
+    });
     size_t nodeIndex = 0;
     for(auto val : gridXCoordinates)
     {

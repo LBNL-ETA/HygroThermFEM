@@ -26,7 +26,12 @@ TEST(Analytical_ConvectionBC_Transient, TestExample_1)
     constexpr auto initialHumidity = 0.0;
     constexpr auto initialPressure = 101325.0;
 
-    const HygroThermFEM::State state(initialTemperature, initialHumidity, initialPressure, 0);
+    const HygroThermFEM::State state({
+        .temperature = initialTemperature,
+        .humidity = initialHumidity,
+        .pressure = initialPressure,
+        .liquidPercent = 0
+    });
 
     size_t nodeIndex = 0;
     for(const auto val : gridXCoordinates)

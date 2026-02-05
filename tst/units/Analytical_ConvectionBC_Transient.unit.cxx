@@ -6,7 +6,7 @@
 /////////////////////////////////////////////////////////////////////////////////////
 /// Transient temperature boundary conditions vs Analytical solution
 ///
-/// This is test against analytical solution obtained from Carslaw-Jeager: page 97
+/// This is tested against analytical solution obtained from Carslaw-Jeager: page 97
 /////////////////////////////////////////////////////////////////////////////////////
 
 TEST(Analytical_TemperatureBC_Transient, TestExample_1)
@@ -22,7 +22,12 @@ TEST(Analytical_TemperatureBC_Transient, TestExample_1)
     constexpr auto initialHumidity = 0.0;
     constexpr auto initialPressure = 101325.0;
 
-    HygroThermFEM::State state(initialTemperature, initialHumidity, initialPressure, 0);
+    HygroThermFEM::State state({
+        .temperature = initialTemperature,
+        .humidity = initialHumidity,
+        .pressure = initialPressure,
+        .liquidPercent = 0
+    });
 
     size_t nodeIndex = 0;
     for(auto val : gridXCoordinates)

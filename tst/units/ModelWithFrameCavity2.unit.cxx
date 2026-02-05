@@ -5,6 +5,7 @@
 #include "HygroThermFEM2D.hxx"
 
 using HygroThermFEM::State;
+using HygroThermFEM::StateParams;
 using HygroThermFEM::ElementsLinear2D;
 using HygroThermFEM::ElementThermalLinear2D;
 
@@ -23,7 +24,11 @@ TEST(TestModelWithFrameCavity2, TestDoubleFrameCavity)
     constexpr auto initialHumidity = 0.0;
     constexpr auto initialPressure = 101325.0;
 
-    const State state(initialTemperature, initialHumidity, initialPressure);
+    const State state({
+        .temperature = initialTemperature,
+        .humidity = initialHumidity,
+        .pressure = initialPressure
+    });
     size_t nodeIndex = 0;
 
     // Crating grid nodes

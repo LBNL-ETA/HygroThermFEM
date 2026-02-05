@@ -4,6 +4,7 @@
 #include "HygroThermFEM2D.hxx"
 
 using HygroThermFEM::State;
+using HygroThermFEM::StateParams;
 using HygroThermFEM::ThermalDomain;
 using HygroThermFEM::MultiDomain;
 using HygroThermFEM::Variable;
@@ -13,7 +14,11 @@ namespace
 {
     void createSimpleModel(MultiDomain & multiDomain)
     {
-        const State state(20.0, 0.5, 101325.0);
+        const State state({
+            .temperature = 20.0,
+            .humidity = 0.5,
+            .pressure = 101325.0
+        });
 
         // Create 4 nodes for a single quad element
         multiDomain.nodes().createNode(1, 0.0, 0.0, state);
@@ -42,7 +47,11 @@ namespace
     // Helper to create model with frame cavity for gravity tests
     void createModelWithFrameCavity(MultiDomain & multiDomain)
     {
-        const State state(20.0, 0.0, 101325.0);
+        const State state({
+            .temperature = 20.0,
+            .humidity = 0.0,
+            .pressure = 101325.0
+        });
 
         // Create 6 nodes for 2 elements (one solid, one cavity)
         multiDomain.nodes().createNode(1, 0.0, 0.0, state);
@@ -107,7 +116,11 @@ TEST(TestDomainClearModelAndGravity, TestClearModelAllowsNewModel)
     multiDomain.thermal().clearModel();
 
     // Create a new model - should not throw
-    const State state(25.0, 0.6, 101325.0);
+    const State state({
+        .temperature = 25.0,
+        .humidity = 0.6,
+        .pressure = 101325.0
+    });
     multiDomain.nodes().createNode(1, 0.0, 0.0, state);
     multiDomain.nodes().createNode(2, 2.0, 0.0, state);
     multiDomain.nodes().createNode(3, 2.0, 2.0, state);

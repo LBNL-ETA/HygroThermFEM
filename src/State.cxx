@@ -17,6 +17,10 @@ namespace HygroThermFEM
         m_Property[BaseVariable::liquidPercent] = liquidPercent;
     }
 
+    State::State(StateParams params)
+        : State(params.temperature, params.humidity, params.pressure, params.liquidPercent)
+    {}
+
     double State::getValue(const BaseVariable t_Property) const
     {
         return m_Property.at(t_Property);

@@ -14,7 +14,12 @@ TEST(MultiMaterialNode, TestExample_1)
     constexpr auto pressure = 101325.0;
     constexpr auto liquidPercent = 1.0;
 
-    HygroThermFEM::State state(temperature, humidity, pressure, liquidPercent);
+    HygroThermFEM::State state({
+        .temperature = temperature,
+        .humidity = humidity,
+        .pressure = pressure,
+        .liquidPercent = liquidPercent
+    });
 
     MultiDomain multiDomain;
 

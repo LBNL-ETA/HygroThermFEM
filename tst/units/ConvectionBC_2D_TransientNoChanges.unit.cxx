@@ -15,7 +15,12 @@ TEST(ConvectionBC_2D_TransientNoChanges, TestExample_1)
     constexpr double initialMoistureContent = 0;
     constexpr double initialPressure = 101325;
 
-    HygroThermFEM::State state(initialTemperature, initialMoistureContent, initialPressure, 0);
+    HygroThermFEM::State state({
+        .temperature = initialTemperature,
+        .humidity = initialMoistureContent,
+        .pressure = initialPressure,
+        .liquidPercent = 0
+    });
     for(auto val : gridXCoordinates)
     {
         multiDomain.nodes().createNode(val, 0.00, state);

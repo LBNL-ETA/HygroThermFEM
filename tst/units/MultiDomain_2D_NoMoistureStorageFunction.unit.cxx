@@ -41,7 +41,11 @@ TEST_F(MultiDomain_2D_NoMoistureStorageFunction, TestExample_1)
     const auto initialMoistureContent{0.2};
     const auto initialPressure{101325};
 
-    auto state = HygroThermFEM::State(initialTemperature, initialMoistureContent, initialPressure);
+    auto state = HygroThermFEM::State({
+        .temperature = initialTemperature,
+        .humidity = initialMoistureContent,
+        .pressure = initialPressure
+    });
     size_t nodeIndex = 0;
     for(auto val : gridXCoordinates)
     {

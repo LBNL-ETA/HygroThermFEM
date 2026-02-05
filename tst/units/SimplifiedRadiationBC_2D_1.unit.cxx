@@ -10,7 +10,12 @@ TEST(SimplifiedRadiationBC_2D_1, TestExample_1)
     HygroThermFEM::MultiDomain multiDomain(true, false);
 
     // same temperature in every node (humidity and pressure irrelevant for this example)
-    const auto state = HygroThermFEM::State(0, 0, 101325, 0);
+    const auto state = HygroThermFEM::State({
+        .temperature = 0,
+        .humidity = 0,
+        .pressure = 101325,
+        .liquidPercent = 0
+    });
 
     multiDomain.nodes().createNode(1, 0.15, 0.05, state);
     multiDomain.nodes().createNode(2, 0.15, 0, state);

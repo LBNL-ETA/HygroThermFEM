@@ -20,8 +20,12 @@ TEST(MultiDomain_2D_2, TestExample_1)
     const double initialPressure = 101325;
     constexpr auto liquidPercent = 1.0;
 
-    auto state = HygroThermFEM::State(
-      initialTemperature, initialMoistureContent, initialPressure, liquidPercent);
+    auto state = HygroThermFEM::State({
+        .temperature = initialTemperature,
+        .humidity = initialMoistureContent,
+        .pressure = initialPressure,
+        .liquidPercent = liquidPercent
+    });
     size_t nodeIndex = 0;
     for(auto val : gridXCoordinates)
     {
@@ -158,8 +162,12 @@ TEST(MultiDomain_2D_2, TestExample_1_Repeat)
     const double initialPressure = 101325;
     constexpr auto liquidPercent = 1.0;
 
-    auto state = HygroThermFEM::State(
-            initialTemperature, initialMoistureContent, initialPressure, liquidPercent);
+    auto state = HygroThermFEM::State({
+        .temperature = initialTemperature,
+        .humidity = initialMoistureContent,
+        .pressure = initialPressure,
+        .liquidPercent = liquidPercent
+    });
     size_t nodeIndex = 0;
     for(auto val : gridXCoordinates)
     {

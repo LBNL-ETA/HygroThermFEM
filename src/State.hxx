@@ -4,6 +4,15 @@
 
 namespace HygroThermFEM
 {
+    //! \brief Parameters for creating a State with designated initializers (C++20)
+    struct StateParams
+    {
+        double temperature = 0.0;
+        double humidity = 0.0;
+        double pressure = 101325.0;
+        double liquidPercent = 1.0;
+    };
+
     //! \brief Enumerator that hold basic state variables defined in finite element model
     //!
     //! Problem is solved for three base state variables that are solved independently through
@@ -30,6 +39,9 @@ namespace HygroThermFEM
           double t_Pressure = 101325,   //!< Pressure.
           double liquidPercent = 1.0    //!< Percent of water content in liquid state.
         );
+
+        //! Construction of State from params struct (C++20 designated initializers)
+        explicit State(StateParams params);
 
         //! Returns state value for given BaseVariable
         double getValue(BaseVariable t_Property) const;

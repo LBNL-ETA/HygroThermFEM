@@ -16,7 +16,12 @@ TEST(MoistureBC_2D_4, TestExample_1)
     constexpr auto domainPressure = 101325.0;
     constexpr auto liquidPercent = 1.0;
 
-    HygroThermFEM::State state(domainTemperature, domainHumidity, domainPressure, liquidPercent);
+    HygroThermFEM::State state({
+        .temperature = domainTemperature,
+        .humidity = domainHumidity,
+        .pressure = domainPressure,
+        .liquidPercent = liquidPercent
+    });
     size_t nodeIndex = 0;
     for(auto val : gridXCoordinates)
     {

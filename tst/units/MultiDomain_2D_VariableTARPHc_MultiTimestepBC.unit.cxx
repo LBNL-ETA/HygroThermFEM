@@ -16,8 +16,12 @@ TEST(MultiDomain_2D_VariableTARPHc_MultiTimestepBC, TestExample_1)
     const double initialPressure = 101325;
     constexpr auto liquidPercent = 1.0;
 
-    auto state = HygroThermFEM::State(
-      initialTemperature, initialMoistureContent, initialPressure, liquidPercent);
+    auto state = HygroThermFEM::State({
+        .temperature = initialTemperature,
+        .humidity = initialMoistureContent,
+        .pressure = initialPressure,
+        .liquidPercent = liquidPercent
+    });
     size_t nodeIndex = 0;
     for(auto val : gridXCoordinates)
     {
