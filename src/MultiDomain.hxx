@@ -52,7 +52,8 @@ namespace HygroThermFEM
     class MultiDomain
     {
     public:
-        MultiDomain(bool performThermal = true, bool performMoisture = true);
+        //! Default construction of MultiDomain with default values
+        MultiDomain();
 
         //! Construction of MultiDomain from params struct (C++20 designated initializers)
         explicit MultiDomain(MultiDomainParams params);

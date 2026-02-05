@@ -32,13 +32,8 @@ namespace HygroThermFEM
     class State
     {
     public:
-        //! Construction of State.
-        explicit State(
-          double t_Temperature = 0,     //!< Temperature (in Celsius).
-          double t_Humidity = 0,        //!< Humidity (range from zero to one).
-          double t_Pressure = 101325,   //!< Pressure.
-          double liquidPercent = 1.0    //!< Percent of water content in liquid state.
-        );
+        //! Default construction of State with default values
+        State();
 
         //! Construction of State from params struct (C++20 designated initializers)
         explicit State(StateParams params);

@@ -6,20 +6,16 @@ namespace HygroThermFEM
     ///  State
     ////////////////////////////////////////////////////////////////////////////
 
-    State::State(const double t_Temperature,
-                 const double t_Humidity,
-                 const double t_Pressure,
-                 const double liquidPercent)
-    {
-        m_Property[BaseVariable::temperature] = t_Temperature;
-        m_Property[BaseVariable::humidity] = t_Humidity;
-        m_Property[BaseVariable::pressure] = t_Pressure;
-        m_Property[BaseVariable::liquidPercent] = liquidPercent;
-    }
+    State::State() : State(StateParams{})
+    {}
 
     State::State(StateParams params)
-        : State(params.temperature, params.humidity, params.pressure, params.liquidPercent)
-    {}
+    {
+        m_Property[BaseVariable::temperature] = params.temperature;
+        m_Property[BaseVariable::humidity] = params.humidity;
+        m_Property[BaseVariable::pressure] = params.pressure;
+        m_Property[BaseVariable::liquidPercent] = params.liquidPercent;
+    }
 
     double State::getValue(const BaseVariable t_Property) const
     {
