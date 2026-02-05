@@ -2,6 +2,8 @@
 
 #include "Materials.hxx"
 
+#include <ranges>
+
 namespace HygroThermFEM
 {
     void Materials::clear()
@@ -49,8 +51,8 @@ namespace HygroThermFEM
 
     std::vector<std::string> Materials::getMaterials() const
     {
-        std::vector<std::string> result{getSolidMaterials()};
-        std::vector<std::string> gases{getGases()};
+        std::vector result{getSolidMaterials()};
+        std::vector gases{getGases()};
         result.insert(result.end(), gases.begin(), gases.end());
         return result;
     }
@@ -58,9 +60,9 @@ namespace HygroThermFEM
     std::vector<std::string> Materials::getSolidMaterials() const
     {
         std::vector<std::string> result;
-        for(auto & mat : m_Materials)
+        for(const auto & val : m_Materials | std::views::values)
         {
-            result.push_back(mat.second->name());
+            result.push_back(val->name());
         }
         return result;
     }
@@ -77,11 +79,11 @@ namespace HygroThermFEM
 
     void Materials::checkIfMaterialExists(const std::string & materialName) const
     {
-        if(m_Gases.find(materialName) != m_Gases.end())
+        if(m_Gases.contains(materialName))
         {
             throw std::runtime_error("Gas with given name is already inserted in model.");
         }
-        if(m_Materials.find(materialName) != m_Materials.end())
+        if(m_Materials.contains(materialName))
         {
             throw std::runtime_error("Material with given name is already inserted in model.");
         }
