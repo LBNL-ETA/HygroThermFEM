@@ -77,8 +77,7 @@ namespace HygroThermFEM
 
             if(m_SimulateMoisture)
             {
-                m_Nodes.updateNodeValues(
-                  temperatureSolution.solution, BaseVariable::temperature, false);
+                m_Nodes.updateNodeTemperatures(temperatureSolution.solution, false);
                 humiditySolution = m_MoistureDomain.transient(humidity, dTime, timestepIndex);
                 humidityError = normError(humiditySolution.solution, currentHumidity);
                 currentHumidity = humiditySolution.solution;
@@ -86,8 +85,7 @@ namespace HygroThermFEM
 
             if(m_SimulateThermal)
             {
-                m_Nodes.updateNodeValues(
-                  humiditySolution.solution, BaseVariable::humidity, false);
+                m_Nodes.updateNodeHumidities(humiditySolution.solution, false);
                 temperatureSolution = m_ThermalDomain.transient(temperature, dTime, timestepIndex);
                 temperatureError = normError(temperatureSolution.solution, currentTemperature);
                 currentTemperature = temperatureSolution.solution;
@@ -99,13 +97,11 @@ namespace HygroThermFEM
         while((temperatureError > ConvergenceError && humidityError > ConvergenceError)
               || currentIteration > MaxIterations);
 
-        m_Nodes.updateNodeValues(
-          temperatureSolution.solution, BaseVariable::temperature, true);
-        m_Nodes.updateNodeValues(
-          humiditySolution.solution, BaseVariable::humidity, true);
+        m_Nodes.updateNodeTemperatures(temperatureSolution.solution, true);
+        m_Nodes.updateNodeHumidities(humiditySolution.solution, true);
 
-        m_Nodes.updateNodeValues(currentHumidity, BaseVariable::humidity, true);
-        m_Nodes.updateNodeValues(currentTemperature, BaseVariable::temperature, true);
+        m_Nodes.updateNodeHumidities(currentHumidity, true);
+        m_Nodes.updateNodeTemperatures(currentTemperature, true);
 
         const auto waterContent = m_Nodes.properties(Variable::water);
         const auto liquidContent = m_Nodes.properties(Variable::liquid);
@@ -146,7 +142,7 @@ namespace HygroThermFEM
                 humidity = m_MoistureDomain.steadyState();
                 humidityError = normError(humidity, previousHumidity);
                 previousHumidity = humidity;
-                m_Nodes.updateNodeValues(humidity, BaseVariable::humidity);
+                m_Nodes.updateNodeHumidities(humidity);
             }
             else
             {
@@ -157,7 +153,7 @@ namespace HygroThermFEM
                 temperature = m_ThermalDomain.steadyState();
                 temperatureError = normError(temperature, previousTemperature);
                 previousTemperature = temperature;
-                m_Nodes.updateNodeValues(temperature, BaseVariable::temperature);
+                m_Nodes.updateNodeTemperatures(temperature);
             }
             else
             {
@@ -167,8 +163,8 @@ namespace HygroThermFEM
         } while(temperatureError > ConvergenceError || humidityError > ConvergenceError
                 || currentIteration > MaxIterations);
 
-        m_Nodes.updateNodeValues(humidity, BaseVariable::humidity, true);
-        m_Nodes.updateNodeValues(temperature, BaseVariable::temperature, true);
+        m_Nodes.updateNodeHumidities(humidity, true);
+        m_Nodes.updateNodeTemperatures(temperature, true);
 
         const auto waterContent = m_Nodes.properties(Variable::water);
         const auto liquidContent = m_Nodes.properties(Variable::liquid);

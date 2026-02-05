@@ -51,15 +51,21 @@ namespace HygroThermFEM
           properties(Variable t_Property   //!< Variable for which values are obtained.
           ) const;
 
-        //! Update all node values for given state property.
+        //! Update all node temperature values.
         //!
-        //! @param t_values Vector of new values for given BaseVariable property.
-        //! @param t_property Property for which new values will be applied to
+        //! @param values Vector of new temperature values.
         //! @param updatePreviousTimestep Indicates if old value should be stored as previous
         //! timestep value.
-        void updateNodeValues(const std::vector<double> & t_values,
-                              BaseVariable t_property,
-                              bool updatePreviousTimestep = false);
+        void updateNodeTemperatures(const std::vector<double> & values,
+                                    bool updatePreviousTimestep = false);
+
+        //! Update all node humidity values.
+        //!
+        //! @param values Vector of new humidity values.
+        //! @param updatePreviousTimestep Indicates if old value should be stored as previous
+        //! timestep value.
+        void updateNodeHumidities(const std::vector<double> & values,
+                                  bool updatePreviousTimestep = false);
 
         //! Delete all nodes from NodePool.
         void clear();

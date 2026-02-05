@@ -62,9 +62,8 @@ namespace HygroThermFEM
         virtual double property(Variable property,
                                 Timestep iteration = Timestep::Current) const = 0;
 
-        virtual void setStateProperty(BaseVariable t_Property,
-                                      double t_value,
-                                      bool updatePreviousValue = true) = 0;
+        virtual void setTemperature(double value, bool updatePreviousValue = true) = 0;
+        virtual void setHumidity(double value, bool updatePreviousValue = true) = 0;
 
         friend bool operator==(const INode2D & first, const INode2D & second);
         friend bool operator!=(const INode2D & first, const INode2D & second);
@@ -132,15 +131,20 @@ namespace HygroThermFEM
             Timestep iteration = Timestep::Current //!< Timestep for which value will be returned
             ) const override;
 
-        //! Sets the value of basic state property (temperature, humidity, pressure or liquid water
-        //! percentage)
-        void setStateProperty(
-            BaseVariable t_Property,
-            //!< Base state property for which value will be set
-            double t_value,
-            //!< New value that property will be set to.
+        //! Sets temperature value
+        void setTemperature(
+            double value,
+            //!< New temperature value
             bool updatePreviousValue =
-                true //!< Indicates wheter previous timestep value should be updated or not.
+                true //!< Indicates whether previous timestep value should be updated or not.
+            ) override;
+
+        //! Sets humidity value
+        void setHumidity(
+            double value,
+            //!< New humidity value
+            bool updatePreviousValue =
+                true //!< Indicates whether previous timestep value should be updated or not.
             ) override;
 
     private:

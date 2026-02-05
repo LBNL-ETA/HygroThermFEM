@@ -185,8 +185,14 @@ namespace HygroThermFEM
     MoistureDomain::MoistureDomain(Nodes & nodePool,
                                      Materials & materialPool,
                                      const bool automaticUpdatePreviousTimestep) :
-        IDomain(nodePool, materialPool, BaseVariable::humidity, automaticUpdatePreviousTimestep)
+        IDomain(nodePool, materialPool, automaticUpdatePreviousTimestep)
     {}
+
+    void MoistureDomain::updateNodes(const std::vector<double> & solution,
+                                     bool updatePreviousTimestep)
+    {
+        m_NodePool.updateNodeHumidities(solution, updatePreviousTimestep);
+    }
 
     void MoistureDomain::postProcess(std::vector<double> & solution)
     {

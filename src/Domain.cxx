@@ -153,8 +153,7 @@ namespace HygroThermFEM
 
                 ++numOfIterations;
 
-                m_NodePool.updateNodeValues(
-                  solution, m_Property, m_AutomaticUpdatePreviousTimestep);
+                updateNodes(solution, m_AutomaticUpdatePreviousTimestep);
 
                 A = transientM_K_H_Matrix(t_DTime, timestepIndex);
                 B = transientMT_R_Vector(currentStateValues, t_DTime, timestepIndex);
@@ -166,8 +165,7 @@ namespace HygroThermFEM
             }
         }
 
-        m_NodePool.updateNodeValues(
-          solution, m_Property, m_AutomaticUpdatePreviousTimestep);
+        updateNodes(solution, m_AutomaticUpdatePreviousTimestep);
 
         return std::make_pair(solution, converged);
     }
@@ -179,11 +177,9 @@ namespace HygroThermFEM
 
     IDomain::IDomain(Nodes & nodePool,
                      Materials & materialPool,
-                     const BaseVariable property,
                      const bool automaticUpdateOfPreviousTimestep) :
         m_NodePool(nodePool),
         m_MaterialPool(materialPool),
-        m_Property(property),
         gasCavities(nullptr),
         m_AutomaticUpdatePreviousTimestep(automaticUpdateOfPreviousTimestep)
     {}

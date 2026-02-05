@@ -278,6 +278,12 @@ namespace HygroThermFEM
     ThermalDomain::ThermalDomain(Nodes & nodePool,
                                    Materials & materialPool,
                                    const bool automaticUpdatePreviousTimestep) :
-        IDomain(nodePool, materialPool, BaseVariable::temperature, automaticUpdatePreviousTimestep)
+        IDomain(nodePool, materialPool, automaticUpdatePreviousTimestep)
     {}
+
+    void ThermalDomain::updateNodes(const std::vector<double> & solution,
+                                    bool updatePreviousTimestep)
+    {
+        m_NodePool.updateNodeTemperatures(solution, updatePreviousTimestep);
+    }
 }   // namespace HygroThermFEM

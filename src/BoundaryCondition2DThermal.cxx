@@ -129,8 +129,8 @@ namespace HygroThermFEM
     {
         auto & node1 = nodePool.getNode(index1);
         auto & node2 = nodePool.getNode(index2);
-        node1.setStateProperty(BaseVariable::temperature, t_NodeTemperatures);
-        node2.setStateProperty(BaseVariable::temperature, t_NodeTemperatures);
+        node1.setTemperature(t_NodeTemperatures);
+        node2.setTemperature(t_NodeTemperatures);
     }
 
     TemperatureBC::TemperatureBC(Nodes & nodePool,
@@ -142,8 +142,8 @@ namespace HygroThermFEM
     {
         auto & node1 = nodePool.getNode(index1);
         auto & node2 = nodePool.getNode(index2);
-        node1.setStateProperty(BaseVariable::temperature, t_Temp1);
-        node2.setStateProperty(BaseVariable::temperature, t_Temp2);
+        node1.setTemperature(t_Temp1);
+        node2.setTemperature(t_Temp2);
     }
 
     ////////////////////////////////////////////////////////

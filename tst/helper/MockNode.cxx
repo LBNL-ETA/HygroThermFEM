@@ -53,7 +53,10 @@ namespace HygroThermFEM
     void MockNode2D::assignMaterial(const IMaterial &, double)
     {}
 
-    void MockNode2D::setStateProperty(BaseVariable, double, bool)
+    void MockNode2D::setTemperature(double, bool)
+    {}
+
+    void MockNode2D::setHumidity(double, bool)
     {}
 
     ////////////////////////////////////////////////////////////////////////////

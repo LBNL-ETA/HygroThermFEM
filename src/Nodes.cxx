@@ -49,23 +49,42 @@ namespace HygroThermFEM
         return aVector;
     }
 
-    void Nodes::updateNodeValues(const std::vector<double> & t_values,
-                                    const BaseVariable t_property,
-                                    bool updatePreviousTimestep)
+    void Nodes::updateNodeTemperatures(const std::vector<double> & values,
+                                        bool updatePreviousTimestep)
     {
-        assert(m_Nodes.size() == t_values.size());
+        assert(m_Nodes.size() == values.size());
 
 #ifdef STL_MULTITHREADING
         std::for_each(
           std::execution::par_unseq, std::begin(m_Nodes), std::end(m_Nodes), [&](auto && aNode) {
               const auto nodeNumber = aNode.getNodeNumber() - 1;
-              aNode.setStateProperty(t_property, t_values[nodeNumber], updatePreviousTimestep);
+              aNode.setTemperature(values[nodeNumber], updatePreviousTimestep);
           });
 #else
-        for(auto & node: m_Nodes)
+        for(auto & node : m_Nodes)
         {
             const auto nodeNumber = node.getNodeNumber() - 1;
-            node.setStateProperty(t_property, t_values[nodeNumber], updatePreviousTimestep);
+            node.setTemperature(values[nodeNumber], updatePreviousTimestep);
+        }
+#endif
+    }
+
+    void Nodes::updateNodeHumidities(const std::vector<double> & values,
+                                      bool updatePreviousTimestep)
+    {
+        assert(m_Nodes.size() == values.size());
+
+#ifdef STL_MULTITHREADING
+        std::for_each(
+          std::execution::par_unseq, std::begin(m_Nodes), std::end(m_Nodes), [&](auto && aNode) {
+              const auto nodeNumber = aNode.getNodeNumber() - 1;
+              aNode.setHumidity(values[nodeNumber], updatePreviousTimestep);
+          });
+#else
+        for(auto & node : m_Nodes)
+        {
+            const auto nodeNumber = node.getNodeNumber() - 1;
+            node.setHumidity(values[nodeNumber], updatePreviousTimestep);
         }
 #endif
     }

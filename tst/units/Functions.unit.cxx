@@ -202,7 +202,6 @@ TEST(CurveTest, TestTabularLogarithmic2)
     constexpr double x_coord{0};
     constexpr double y_coord{0};
 
-    const State interpolationPoint({.temperature = 40, .humidity = 0, .pressure = 101325, .liquidPercent = 0});
     const MockNode2D node(nodeNumber, x_coord, y_coord, {Variable::temperature, 40});
 
     const auto result = curve.value(node);
@@ -233,13 +232,11 @@ TEST(CurveTest, TestSuctionCurve)
     result = curve.value(node1);
     EXPECT_NEAR(10, result, 1e-6);
 
-    State interpolationPoint2({.temperature = 0, .humidity = 0.25, .pressure = 101325, .liquidPercent = 1.0});
     const MockNode2D node2(nodeNumber, x_coord, y_coord, {Variable::water, 0.25});
     result = curve.value(node2);
     EXPECT_NEAR(24.4948974, result, 1e-6);
 
     // Point is after table
-    State interpolationPoint3({.temperature = 0, .humidity = 0.35, .pressure = 101325, .liquidPercent = 1.0});
     const MockNode2D node3(nodeNumber, x_coord, y_coord, {Variable::water, 0.35});
     result = curve.value(node3);
     EXPECT_NEAR(30, result, 1e-6);

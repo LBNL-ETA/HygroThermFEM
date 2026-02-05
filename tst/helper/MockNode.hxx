@@ -35,7 +35,8 @@ namespace HygroThermFEM
 
         void assignMaterial(const IMaterial &, double) override;
 
-        void setStateProperty(BaseVariable, double, bool) override;
+        void setTemperature(double, bool) override;
+        void setHumidity(double, bool) override;
 
         explicit MockNode2D(size_t nodeNum, double t_x, double t_y, const StateValues & values);
 

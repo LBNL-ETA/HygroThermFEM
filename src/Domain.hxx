@@ -29,12 +29,10 @@ namespace HygroThermFEM
     {
     public:
         virtual ~IDomain() = default;
-        //! Domain construction. It is necessary to set up base variable that will be considered
-        //! unknown.
+        //! Domain construction.
         explicit IDomain(
           Nodes & nodePool,     //!< Reference to the NodePool for node lookups
           Materials & materialPool,   //!< Reference to the MaterialPool for material lookups
-          BaseVariable property,   //!< State variable which will be considered unknown.
           bool automaticUpdateOfPreviousTimestep =
             true   //!< When solver finds solution, previous timestep will be automatically updated
                    //!< by default. This should be set to false is Domain is used in outside
@@ -118,9 +116,12 @@ namespace HygroThermFEM
           double t_DTime,         //!< Timestep in transient solution
           size_t timestepIndex);
 
+        //! Updates node values with solution. Implemented by derived classes.
+        virtual void updateNodes(const std::vector<double> & solution,
+                                 bool updatePreviousTimestep) = 0;
+
         Nodes & m_NodePool;
         Materials & m_MaterialPool;
-        BaseVariable m_Property;
         ElementsLinear2D m_Elements;
         BoundaryConditions2D m_BCs;
 

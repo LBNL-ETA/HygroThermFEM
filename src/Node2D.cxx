@@ -80,18 +80,19 @@ namespace HygroThermFEM
         m_Water(calcWaterContent())
     {}
 
-    double Node2D::property(const Variable property, const Timestep iteration) const
+    double Node2D::property(const Variable var, const Timestep iteration) const
     {
-        switch(property)
+        const auto & state = m_State.at(iteration);
+        switch(var)
         {
             case Variable::temperature:
-                return m_State.at(iteration).getValue(BaseVariable::temperature);
+                return state.temperature;
             case Variable::humidity:
-                return m_State.at(iteration).getValue(BaseVariable::humidity);
+                return state.humidity;
             case Variable::pressure:
-                return m_State.at(iteration).getValue(BaseVariable::pressure);
+                return state.pressure;
             case Variable::liquidPercent:
-                return m_State.at(iteration).getValue(BaseVariable::liquidPercent);
+                return state.liquidPercent;
             case Variable::water:
                 return waterContent(WaterContent::Water);
             case Variable::liquid:
@@ -104,17 +105,23 @@ namespace HygroThermFEM
         return 0;
     }
 
-    void Node2D::setStateProperty(const BaseVariable t_Property,
-                                  double t_value,
-                                  bool updatePreviousValue)
+    void Node2D::setTemperature(double value, bool updatePreviousValue)
     {
-        // First store current to previous iteration and then store current.
         if(updatePreviousValue)
         {
-            m_State.at(Timestep::Previous)
-                   .setValue(t_Property, m_State.at(Timestep::Current).getValue(t_Property));
+            m_State.at(Timestep::Previous).temperature = m_State.at(Timestep::Current).temperature;
         }
-        m_State.at(Timestep::Current).setValue(t_Property, t_value);
+        m_State.at(Timestep::Current).temperature = value;
+        updateWaterContent();
+    }
+
+    void Node2D::setHumidity(double value, bool updatePreviousValue)
+    {
+        if(updatePreviousValue)
+        {
+            m_State.at(Timestep::Previous).humidity = m_State.at(Timestep::Current).humidity;
+        }
+        m_State.at(Timestep::Current).humidity = value;
         updateWaterContent();
     }
 

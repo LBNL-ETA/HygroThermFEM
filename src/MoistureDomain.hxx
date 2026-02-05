@@ -163,5 +163,7 @@ namespace HygroThermFEM
 
     protected:
         void postProcess(std::vector<double> & solution) override;
+        void updateNodes(const std::vector<double> & solution,
+                         bool updatePreviousTimestep) override;
     };
 }   // namespace HygroThermFEM
