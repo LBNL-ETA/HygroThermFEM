@@ -7,7 +7,7 @@ TEST(MoistureBC_2D_3, TestExample_1)
 {
     SCOPED_TRACE("Begin Test: Simple two elements example with moisture transfer.");
 
-    HygroThermFEM::MultiDomain multiDomain(false, true);
+    HygroThermFEM::MultiDomain multiDomain({.performThermal = false, .performMoisture = true});
 
     std::vector<double> gridXCoordinates{0, 0.05, 0.1, 0.15};
 

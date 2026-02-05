@@ -14,7 +14,7 @@ TEST(MultiDomainHumidityOnly_1, TestExample_1)
 {
     SCOPED_TRACE("Begin Test: Simple two elements example with moisture and heat transfer.");
 
-    HygroThermFEM::MultiDomain multiDomain(false, true);
+    HygroThermFEM::MultiDomain multiDomain({.performThermal = false, .performMoisture = true});
 
     // Enter nodes. Arguments are: node number, x-coordinate, y-coordinate
 

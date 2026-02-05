@@ -6,7 +6,7 @@ TEST(TestBoundaryConditions2D_test1, TestIntegrationPoints)
 {
     SCOPED_TRACE("Begin Test: Convection boundary condition integral test.");
 
-    HygroThermFEM::MultiDomain multiDomain(true, false);
+    HygroThermFEM::MultiDomain multiDomain({.performThermal = true, .performMoisture = false});
 
     // Enter nodes. Arguments are: node number, x-coordinate, y-coordinate
     multiDomain.nodes().createNode(1, 15, 5);

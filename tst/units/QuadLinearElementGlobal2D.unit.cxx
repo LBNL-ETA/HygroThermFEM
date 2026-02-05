@@ -9,7 +9,7 @@ TEST(TestQuadLinearElementGlobal2D, TestIntegrationPoint1)
     SCOPED_TRACE(
       "Begin Test: Quadrilateral linear element 2D in global coordinates - Gauss points.");
 
-    HygroThermFEM::MultiDomain multiDomain(true, false);
+    HygroThermFEM::MultiDomain multiDomain({.performThermal = true, .performMoisture = false});
 
     // Enter nodes. Arguments are: node number, x-coordinate, y-coordinate
 

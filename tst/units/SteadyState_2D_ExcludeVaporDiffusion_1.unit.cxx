@@ -37,7 +37,7 @@ TEST_F(SteadyState_2D_ExcludeVaporDiffusion_1, TestExample_1)
     const double initialPressure = 101325.0;
     constexpr auto liquidPercent = 1.0;
 
-    HygroThermFEM::MultiDomain multiDomain(true, true);
+    HygroThermFEM::MultiDomain multiDomain({.performThermal = true, .performMoisture = true});
 
     // Enter nodes. Arguments are: node number, x-coordinate, y-coordinate
     multiDomain.nodes().createNode(1, 1, 5, State({

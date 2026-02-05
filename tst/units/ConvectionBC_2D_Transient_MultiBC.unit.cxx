@@ -7,7 +7,7 @@ TEST(ConvectionBC_2D_Transient_MultiBC, TestExample_1)
 {
     SCOPED_TRACE("Begin Test: Three elements with simple convection BC.");
 
-    HygroThermFEM::MultiDomain multiDomain(true, false);
+    HygroThermFEM::MultiDomain multiDomain({.performThermal = true, .performMoisture = false});
 
     multiDomain.nodes().createNode(1, 0.2, 0.05);
     multiDomain.nodes().createNode(2, 0.2, 0.00);

@@ -6,7 +6,7 @@ TEST(ConvectionBC_2D_SteadyStateThermalDomain, TestExample_1)
 {
     SCOPED_TRACE("Begin Test: Two elementsCreator example with simple conduction.");
 
-    HygroThermFEM::MultiDomain multiDomain(true, false);
+    HygroThermFEM::MultiDomain multiDomain({.performThermal = true, .performMoisture = false});
 
     // Enter nodes. Arguments are: node number, x-coordinate, y-coordinate
 

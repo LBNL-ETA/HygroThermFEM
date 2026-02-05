@@ -20,7 +20,7 @@ TEST(TwoElementsTwoMaterials_2, NodeInTwoMaterials)
         .liquidPercent = 1.0
     });
 
-    MultiDomain multiDomain(false, false);
+    MultiDomain multiDomain({.performThermal = false, .performMoisture = false});
 
     multiDomain.nodes().createNode(1, 0, 1, state);
     multiDomain.nodes().createNode(2, 1, 0, state);

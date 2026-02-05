@@ -18,7 +18,7 @@ TEST(Topaz2D_ConvectionBC, TestExample_1)
 {
     SCOPED_TRACE("Begin Test: Two elementsCreator example with transient.");
 
-    HygroThermFEM::MultiDomain multiDomain(true, false);
+    HygroThermFEM::MultiDomain multiDomain({.performThermal = true, .performMoisture = false});
 
     // Enter nodes. Arguments are: node number, x-coordinate, y-coordinate, initial temperature
 

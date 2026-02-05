@@ -9,7 +9,7 @@ TEST(Moisture_2D_TwoElements_1, TestExample_1)
 {
     SCOPED_TRACE("Begin Test: Simple two elements example with moisture transfer.");
 
-    HygroThermFEM::MultiDomain multiDomain(false, true);
+    HygroThermFEM::MultiDomain multiDomain({.performThermal = false, .performMoisture = true});
 
     const State state({
         .temperature = 20.0,

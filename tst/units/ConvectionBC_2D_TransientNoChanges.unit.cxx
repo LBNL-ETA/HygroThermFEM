@@ -7,7 +7,7 @@ TEST(ConvectionBC_2D_TransientNoChanges, TestExample_1)
 {
     SCOPED_TRACE("Begin Test: Three elements with simple convection BC.");
 
-    HygroThermFEM::MultiDomain multiDomain(true, false);
+    HygroThermFEM::MultiDomain multiDomain({.performThermal = true, .performMoisture = false});
 
     std::vector<double> gridXCoordinates{0, 0.05, 0.1, 0.15};
 

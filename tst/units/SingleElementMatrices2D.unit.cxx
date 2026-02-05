@@ -9,7 +9,7 @@ TEST(TestSingleElementMatrices2D, TestConductionMatrix)
                  "RhoCp matrix.");
 
     // Create MultiDomain before nodes
-    HygroThermFEM::MultiDomain multiDomain(true, false);
+    HygroThermFEM::MultiDomain multiDomain({.performThermal = true, .performMoisture = false});
 
     // Enter nodes. Arguments are: node number, x-coordinate, y-coordinate
 

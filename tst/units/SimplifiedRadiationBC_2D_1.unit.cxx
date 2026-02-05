@@ -7,7 +7,7 @@ TEST(SimplifiedRadiationBC_2D_1, TestExample_1)
 {
     SCOPED_TRACE("Begin Test: Two elementsCreator example with transient.");
 
-    HygroThermFEM::MultiDomain multiDomain(true, false);
+    HygroThermFEM::MultiDomain multiDomain({.performThermal = true, .performMoisture = false});
 
     // same temperature in every node (humidity and pressure irrelevant for this example)
     const auto state = HygroThermFEM::State({

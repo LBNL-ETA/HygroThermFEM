@@ -12,7 +12,7 @@ TEST(TwoElementsTwoMaterials_1, NodeInTwoMaterials)
 {
     SCOPED_TRACE("Begin Test: Node as part of two elements that have different material.");
 
-    MultiDomain multiDomain(false, false);
+    MultiDomain multiDomain({.performThermal = false, .performMoisture = false});
 
     const HygroThermFEM::State state({
         .temperature = 10.0,

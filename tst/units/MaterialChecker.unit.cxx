@@ -22,9 +22,7 @@ TEST_F(TestMaterialChecker, TestExample_1)
     SCOPED_TRACE(
       "Test for material missing properties in case of thermal and moisture simulations are on.");
 
-    const bool SimulateThermal{true};
-    const bool SimulateMoisture{true};
-    HygroThermFEM::MultiDomain multiDomain{SimulateThermal, SimulateMoisture};
+    HygroThermFEM::MultiDomain multiDomain({.performThermal = true, .performMoisture = true});
 
     // Note that material is incomplete
     multiDomain.materials().createSolidMaterial("Test material");
@@ -68,9 +66,7 @@ TEST_F(TestMaterialChecker, TestExample_2)
 {
     SCOPED_TRACE("Test for material missing properties in case of only thermal simulation.");
 
-    const bool SimulateThermal{true};
-    const bool SimulateMoisture{false};
-    HygroThermFEM::MultiDomain multiDomain{SimulateThermal, SimulateMoisture};
+    HygroThermFEM::MultiDomain multiDomain({.performThermal = true, .performMoisture = false});
 
     // Note that material is incomplete
     multiDomain.materials().createSolidMaterial("Test material");
@@ -114,9 +110,7 @@ TEST_F(TestMaterialChecker, TestExample_3)
 {
     SCOPED_TRACE("Test for material missing properties in case of only moisture simulation.");
 
-    const bool SimulateThermal{false};
-    const bool SimulateMoisture{true};
-    HygroThermFEM::MultiDomain multiDomain{SimulateThermal, SimulateMoisture};
+    HygroThermFEM::MultiDomain multiDomain({.performThermal = false, .performMoisture = true});
 
     // Note that material is incomplete
     multiDomain.materials().createSolidMaterial("Test material");
@@ -161,9 +155,7 @@ TEST_F(TestMaterialChecker, TestExample_4)
     SCOPED_TRACE("Test for material missing properties with variable simulation parameters "
                  "(exclude water liquid transportation).");
 
-    const bool SimulateThermal{true};
-    const bool SimulateMoisture{true};
-    HygroThermFEM::MultiDomain multiDomain{SimulateThermal, SimulateMoisture};
+    HygroThermFEM::MultiDomain multiDomain({.performThermal = true, .performMoisture = true});
 
     // Note that material is incomplete
     multiDomain.materials().createSolidMaterial("Test material");
@@ -223,9 +215,7 @@ TEST_F(TestMaterialChecker, TestExample_5)
     SCOPED_TRACE("Test for material missing properties with variable simulation parameters "
                  "(water vapor diffusion resistance factor not needed).");
 
-    const bool SimulateThermal{true};
-    const bool SimulateMoisture{false};
-    HygroThermFEM::MultiDomain multiDomain{SimulateThermal, SimulateMoisture};
+    HygroThermFEM::MultiDomain multiDomain({.performThermal = true, .performMoisture = false});
 
     // Note that material is incomplete
     multiDomain.materials().createSolidMaterial("Test material");

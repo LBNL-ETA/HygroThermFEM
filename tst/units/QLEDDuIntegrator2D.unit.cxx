@@ -11,7 +11,7 @@ TEST(TestQLEDDuIntegrator2D, TestConductionMatrix)
     SCOPED_TRACE("Begin Test: Test for single matrix integration "
                  "of conduction matrix.");
 
-    HygroThermFEM::MultiDomain multiDomain(true, false);
+    HygroThermFEM::MultiDomain multiDomain({.performThermal = true, .performMoisture = false});
 
     // Enter nodes. Arguments are: node number, x-coordinate, y-coordinate
 

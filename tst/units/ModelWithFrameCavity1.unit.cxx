@@ -12,7 +12,7 @@ TEST(TestModelWithFrameCavity1, TestSingleFrameCavity)
     SCOPED_TRACE("Begin Test: Model with single frame cavity.");
 
     // Create MultiDomain before materials
-    HygroThermFEM::MultiDomain multiDomain(true, false);
+    HygroThermFEM::MultiDomain multiDomain({.performThermal = true, .performMoisture = false});
 
     std::vector<double> gridX{0, 0.01, 0.02, 0.03, 0.04};
     std::vector<double> gridY{0, 0.05, 0.1, 0.15, 0.2};

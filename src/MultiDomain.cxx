@@ -20,6 +20,10 @@ namespace HygroThermFEM
         m_SimulateMoisture(performMoisture)
     {}
 
+    MultiDomain::MultiDomain(MultiDomainParams params) :
+        MultiDomain(params.performThermal, params.performMoisture)
+    {}
+
     Solution MultiDomain::transient(const std::vector<double> & temperature,
                                     const std::vector<double> & humidity,
                                     const double t_DTime,

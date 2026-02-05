@@ -14,6 +14,13 @@ namespace Timesteps
 
 namespace HygroThermFEM
 {
+    //! \brief Parameters for creating a MultiDomain with designated initializers (C++20)
+    struct MultiDomainParams
+    {
+        bool performThermal = true;
+        bool performMoisture = true;
+    };
+
     //! \brief Keeps solution from current timestep for every node in the domain.
     struct Solution
     {
@@ -46,6 +53,9 @@ namespace HygroThermFEM
     {
     public:
         MultiDomain(bool performThermal = true, bool performMoisture = true);
+
+        //! Construction of MultiDomain from params struct (C++20 designated initializers)
+        explicit MultiDomain(MultiDomainParams params);
 
         //! \brief Calculates next timestep value from current values
         //! \param temperature vector of nodal temperatures from previous timestep
