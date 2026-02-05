@@ -35,26 +35,26 @@ TEST(MultiDomain_2D_1, TestExample_1)
     {
         ++nodeIndex;
         multiDomain.nodes().createNode(
-          nodeIndex,
-          val,
-          0.00,
-          State{
+          {.index = nodeIndex,
+           .x = val,
+           .y = 0.00,
+           .state = State{
               .temperature = initialTemperature + T,
               .humidity = initialMoistureContent + H,
               .pressure = initialPressure,
               .liquidPercent = 0
-          });
+          }});
         ++nodeIndex;
         multiDomain.nodes().createNode(
-          nodeIndex,
-          val,
-          0.05,
-          State{
+          {.index = nodeIndex,
+           .x = val,
+           .y = 0.05,
+           .state = State{
               .temperature = initialTemperature + T,
               .humidity = initialMoistureContent + H,
               .pressure = initialPressure,
               .liquidPercent = 0
-          });
+          }});
         T += deltaT;
         H += deltaH;
     }
@@ -187,26 +187,26 @@ TEST(MultiDomain_2D_1, TestExample_1_Repeat)
     {
         ++nodeIndex;
         multiDomain.nodes().createNode(
-                nodeIndex,
-                val,
-                0.00,
-                State{
+                {.index = nodeIndex,
+                 .x = val,
+                 .y = 0.00,
+                 .state = State{
                     .temperature = initialTemperature + T,
                     .humidity = initialMoistureContent + H,
                     .pressure = initialPressure,
                     .liquidPercent = 0
-                });
+                }});
         ++nodeIndex;
         multiDomain.nodes().createNode(
-                nodeIndex,
-                val,
-                0.05,
-                State{
+                {.index = nodeIndex,
+                 .x = val,
+                 .y = 0.05,
+                 .state = State{
                     .temperature = initialTemperature + T,
                     .humidity = initialMoistureContent + H,
                     .pressure = initialPressure,
                     .liquidPercent = 0
-                });
+                }});
         T += deltaT;
         H += deltaH;
     }

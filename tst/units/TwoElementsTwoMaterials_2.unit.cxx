@@ -22,11 +22,11 @@ TEST(TwoElementsTwoMaterials_2, NodeInTwoMaterials)
 
     MultiDomain multiDomain({.performThermal = false, .performMoisture = false});
 
-    multiDomain.nodes().createNode(1, 0, 1, state);
-    multiDomain.nodes().createNode(2, 1, 0, state);
-    multiDomain.nodes().createNode(3, 1, 1, state);
-    multiDomain.nodes().createNode(4, 2, 0, state);
-    multiDomain.nodes().createNode(5, 2, 1, state);
+    multiDomain.nodes().createNode({.index = 1, .x = 0, .y = 1, .state = state});
+    multiDomain.nodes().createNode({.index = 2, .x = 1, .y = 0, .state = state});
+    multiDomain.nodes().createNode({.index = 3, .x = 1, .y = 1, .state = state});
+    multiDomain.nodes().createNode({.index = 4, .x = 2, .y = 0, .state = state});
+    multiDomain.nodes().createNode({.index = 5, .x = 2, .y = 1, .state = state});
 
     // Material Properties (Cottaer Sandstone)
     const auto & material1 = multiDomain.materials().createSolidMaterial({

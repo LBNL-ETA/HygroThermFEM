@@ -13,10 +13,10 @@ TEST(TestSingleElementMatrices2D, TestConductionMatrix)
 
     // Enter nodes. Arguments are: node number, x-coordinate, y-coordinate
 
-    multiDomain.nodes().createNode(1, 5, 5);
-    multiDomain.nodes().createNode(2, 5, 0);
-    multiDomain.nodes().createNode(3, 15, 0);
-    multiDomain.nodes().createNode(4, 15, 5);
+    multiDomain.nodes().createNode({.index = 1, .x = 5, .y = 5});
+    multiDomain.nodes().createNode({.index = 2, .x = 5, .y = 0});
+    multiDomain.nodes().createNode({.index = 3, .x = 15, .y = 0});
+    multiDomain.nodes().createNode({.index = 4, .x = 15, .y = 5});
 
     // Material Properties (using C++20 designated initializers)
     const auto & material = multiDomain.materials().createSolidMaterial({

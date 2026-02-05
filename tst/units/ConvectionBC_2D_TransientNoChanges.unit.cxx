@@ -19,8 +19,8 @@ TEST(ConvectionBC_2D_TransientNoChanges, TestExample_1)
     });
     for(auto val : gridXCoordinates)
     {
-        multiDomain.nodes().createNode(val, 0.00, state);
-        multiDomain.nodes().createNode(val, 0.05, state);
+        multiDomain.nodes().createNode({.x = val, .y = 0.00, .state = state});
+        multiDomain.nodes().createNode({.x = val, .y = 0.05, .state = state});
     }
 
     // Material Properties (Cottaer Sandstone, using C++20 designated initializers)

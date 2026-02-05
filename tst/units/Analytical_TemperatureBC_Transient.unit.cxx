@@ -33,9 +33,9 @@ TEST(Analytical_ConvectionBC_Transient, TestExample_1)
     for(const auto val : gridXCoordinates)
     {
         ++nodeIndex;
-        multiDomain.nodes().createNode(nodeIndex, val, 0.00, state);
+        multiDomain.nodes().createNode({.index = nodeIndex, .x = val, .y = 0.00, .state = state});
         ++nodeIndex;
-        multiDomain.nodes().createNode(nodeIndex, val, 0.05, state);
+        multiDomain.nodes().createNode({.index = nodeIndex, .x = val, .y = 0.05, .state = state});
     }
 
     // Material Properties (using C++20 designated initializers)

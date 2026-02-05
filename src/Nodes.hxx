@@ -5,6 +5,15 @@
 
 namespace HygroThermFEM
 {
+    //! \brief Parameters for creating a node with C++20 designated initializers.
+    struct NodeParams
+    {
+        std::size_t index = 0;
+        double x = 0.0;
+        double y = 0.0;
+        State state = {};
+    };
+
     //! \brief Class holds pool of nodes used in one domain.
     //!
     //! Pool of all nodes will be used by different domains that present thermal, mass or pressure
@@ -15,27 +24,12 @@ namespace HygroThermFEM
         Nodes() = default;
         ~Nodes() = default;
 
-        //! \brief Creates node with node index and x, y coordinate and sets starting state
-        //! conditions
+        //! \brief Creates node using C++20 designated initializers.
         //!
-        //! \param NodeIndex Node index in finite element domain.
-        //! \param x x-coordinate.
-        //! \param y y-coordinate
-        //! \param state State of variables in the node.
+        //! Example: createNode({.index = 1, .x = 0.0, .y = 0.5, .state = {.temperature = 20}})
+        //! \param params Node parameters.
         //! \return Reference to newly created node
-        Node2D & createNode(std::size_t NodeIndex,
-                            double x,
-                            double y,
-                            const State & state = {.temperature = 0, .humidity = 0, .pressure = 0, .liquidPercent = 0});
-
-        //! \brief Creates node with auto-generated index
-        //!
-        //! Node index is automatically assigned as the next sequential value.
-        //! \param x x-coordinate.
-        //! \param y y-coordinate
-        //! \param state State of variables in the node.
-        //! \return Reference to newly created node
-        Node2D & createNode(double x, double y, const State & state = {.temperature = 0, .humidity = 0, .pressure = 0, .liquidPercent = 0});
+        Node2D & createNode(const NodeParams & params);
 
         //! \brief Returns node at given index.
         //!

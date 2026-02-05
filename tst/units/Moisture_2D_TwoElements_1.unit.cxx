@@ -18,12 +18,12 @@ TEST(Moisture_2D_TwoElements_1, TestExample_1)
         .liquidPercent = 1.0
     });
 
-    multiDomain.nodes().createNode(1, 0.15, 0.05, state);
-    multiDomain.nodes().createNode(2, 0.15, 0, state);
-    multiDomain.nodes().createNode(3, 0.05, 0.05, state);
-    multiDomain.nodes().createNode(4, 0.05, 0, state);
-    multiDomain.nodes().createNode(5, 0, 0.05, state);
-    multiDomain.nodes().createNode(6, 0, 0, state);
+    multiDomain.nodes().createNode({.index = 1, .x = 0.15, .y = 0.05, .state = state});
+    multiDomain.nodes().createNode({.index = 2, .x = 0.15, .y = 0, .state = state});
+    multiDomain.nodes().createNode({.index = 3, .x = 0.05, .y = 0.05, .state = state});
+    multiDomain.nodes().createNode({.index = 4, .x = 0.05, .y = 0, .state = state});
+    multiDomain.nodes().createNode({.index = 5, .x = 0, .y = 0.05, .state = state});
+    multiDomain.nodes().createNode({.index = 6, .x = 0, .y = 0, .state = state});
 
     // Material Properties (Cottaer Sandstone)
     const auto & material = multiDomain.materials().createSolidMaterial({

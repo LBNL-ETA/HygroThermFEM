@@ -9,19 +9,11 @@
 
 namespace HygroThermFEM
 {
-    Node2D & Nodes::createNode(const std::size_t t_NodeNumber,
-                                  const double t_x,
-                                  const double t_y,
-                                  const State & t_Prop)
+    Node2D & Nodes::createNode(const NodeParams & params)
     {
-        m_Nodes.emplace_back(t_NodeNumber, t_x, t_y, t_Prop);
+        const auto index = params.index == 0 ? m_Nodes.size() + 1 : params.index;
+        m_Nodes.emplace_back(index, params.x, params.y, params.state);
         return m_Nodes.back();
-    }
-
-    Node2D & Nodes::createNode(const double x, const double y, const State & state)
-    {
-        const auto nodeIndex = m_Nodes.size() + 1;
-        return createNode(nodeIndex, x, y, state);
     }
 
     Node2D & Nodes::getNode(const size_t Index)

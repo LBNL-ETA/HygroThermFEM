@@ -10,12 +10,12 @@ TEST(ConvectionBC_2D_SteadyStateThermalDomain, TestExample_1)
 
     // Enter nodes. Arguments are: node number, x-coordinate, y-coordinate
 
-    multiDomain.nodes().createNode(1, 15, 5);
-    multiDomain.nodes().createNode(2, 15, 0);
-    multiDomain.nodes().createNode(3, 5, 5);
-    multiDomain.nodes().createNode(4, 5, 0);
-    multiDomain.nodes().createNode(5, 0, 5);
-    multiDomain.nodes().createNode(6, 0, 0);
+    multiDomain.nodes().createNode({.index = 1, .x = 15, .y = 5});
+    multiDomain.nodes().createNode({.index = 2, .x = 15, .y = 0});
+    multiDomain.nodes().createNode({.index = 3, .x = 5, .y = 5});
+    multiDomain.nodes().createNode({.index = 4, .x = 5, .y = 0});
+    multiDomain.nodes().createNode({.index = 5, .x = 0, .y = 5});
+    multiDomain.nodes().createNode({.index = 6, .x = 0, .y = 0});
 
     // Material Properties (using C++20 designated initializers)
     const auto & material = multiDomain.materials().createSolidMaterial({

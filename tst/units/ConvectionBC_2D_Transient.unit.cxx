@@ -9,12 +9,12 @@ TEST(ConvectionBC_2D_Transient, TestExample_1)
 
     HygroThermFEM::MultiDomain multiDomain({.performThermal = true, .performMoisture = false});
 
-    multiDomain.nodes().createNode(1, 0.2, 0.05);
-    multiDomain.nodes().createNode(2, 0.2, 0.00);
-    multiDomain.nodes().createNode(3, 0.1, 0.05);
-    multiDomain.nodes().createNode(4, 0.1, 0.00);
-    multiDomain.nodes().createNode(5, 0.0, 0.05);
-    multiDomain.nodes().createNode(6, 0.0, 0.00);
+    multiDomain.nodes().createNode({.index = 1, .x = 0.2, .y = 0.05});
+    multiDomain.nodes().createNode({.index = 2, .x = 0.2, .y = 0.00});
+    multiDomain.nodes().createNode({.index = 3, .x = 0.1, .y = 0.05});
+    multiDomain.nodes().createNode({.index = 4, .x = 0.1, .y = 0.00});
+    multiDomain.nodes().createNode({.index = 5, .x = 0.0, .y = 0.05});
+    multiDomain.nodes().createNode({.index = 6, .x = 0.0, .y = 0.00});
 
     // Material Properties (using C++20 designated initializers)
     const auto & material = multiDomain.materials().createSolidMaterial({

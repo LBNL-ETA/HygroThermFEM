@@ -33,7 +33,7 @@ TEST(TestModelWithFrameCavity2, TestDoubleFrameCavity)
         for(auto xVal : gridX)
         {
             ++nodeIndex;
-            multiDomain.nodes().createNode(nodeIndex, xVal, yVal, state);
+            multiDomain.nodes().createNode({.index = nodeIndex, .x = xVal, .y = yVal, .state = state});
         }
     }
 

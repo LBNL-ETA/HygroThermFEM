@@ -18,7 +18,7 @@ TEST(MultiMaterialNode, TestExample_1)
 
     MultiDomain multiDomain;
 
-    auto node1 = multiDomain.nodes().createNode(1, 0, 0, state);
+    auto node1 = multiDomain.nodes().createNode({.index = 1, .x = 0, .y = 0, .state = state});
 
     // Material Properties (Cottaer Sandstone)
     const auto & material1 = multiDomain.materials().createSolidMaterial({

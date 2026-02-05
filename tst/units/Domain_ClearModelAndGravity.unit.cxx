@@ -20,10 +20,10 @@ namespace
         });
 
         // Create 4 nodes for a single quad element
-        multiDomain.nodes().createNode(1, 0.0, 0.0, state);
-        multiDomain.nodes().createNode(2, 1.0, 0.0, state);
-        multiDomain.nodes().createNode(3, 1.0, 1.0, state);
-        multiDomain.nodes().createNode(4, 0.0, 1.0, state);
+        multiDomain.nodes().createNode({.index = 1, .x = 0.0, .y = 0.0, .state = state});
+        multiDomain.nodes().createNode({.index = 2, .x = 1.0, .y = 0.0, .state = state});
+        multiDomain.nodes().createNode({.index = 3, .x = 1.0, .y = 1.0, .state = state});
+        multiDomain.nodes().createNode({.index = 4, .x = 0.0, .y = 1.0, .state = state});
 
         // Create material
         multiDomain.materials().createSolidMaterial(
@@ -53,12 +53,12 @@ namespace
         });
 
         // Create 6 nodes for 2 elements (one solid, one cavity)
-        multiDomain.nodes().createNode(1, 0.0, 0.0, state);
-        multiDomain.nodes().createNode(2, 0.01, 0.0, state);
-        multiDomain.nodes().createNode(3, 0.02, 0.0, state);
-        multiDomain.nodes().createNode(4, 0.0, 0.05, state);
-        multiDomain.nodes().createNode(5, 0.01, 0.05, state);
-        multiDomain.nodes().createNode(6, 0.02, 0.05, state);
+        multiDomain.nodes().createNode({.index = 1, .x = 0.0, .y = 0.0, .state = state});
+        multiDomain.nodes().createNode({.index = 2, .x = 0.01, .y = 0.0, .state = state});
+        multiDomain.nodes().createNode({.index = 3, .x = 0.02, .y = 0.0, .state = state});
+        multiDomain.nodes().createNode({.index = 4, .x = 0.0, .y = 0.05, .state = state});
+        multiDomain.nodes().createNode({.index = 5, .x = 0.01, .y = 0.05, .state = state});
+        multiDomain.nodes().createNode({.index = 6, .x = 0.02, .y = 0.05, .state = state});
 
         // Create solid material
         multiDomain.materials().createSolidMaterial(
@@ -120,10 +120,10 @@ TEST(TestDomainClearModelAndGravity, TestClearModelAllowsNewModel)
         .humidity = 0.6,
         .pressure = 101325.0
     });
-    multiDomain.nodes().createNode(1, 0.0, 0.0, state);
-    multiDomain.nodes().createNode(2, 2.0, 0.0, state);
-    multiDomain.nodes().createNode(3, 2.0, 2.0, state);
-    multiDomain.nodes().createNode(4, 0.0, 2.0, state);
+    multiDomain.nodes().createNode({.index = 1, .x = 0.0, .y = 0.0, .state = state});
+    multiDomain.nodes().createNode({.index = 2, .x = 2.0, .y = 0.0, .state = state});
+    multiDomain.nodes().createNode({.index = 3, .x = 2.0, .y = 2.0, .state = state});
+    multiDomain.nodes().createNode({.index = 4, .x = 0.0, .y = 2.0, .state = state});
 
     const auto nodeCount = multiDomain.nodes().properties(Variable::temperature).size();
     EXPECT_EQ(nodeCount, 4u);

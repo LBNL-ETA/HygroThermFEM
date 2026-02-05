@@ -22,9 +22,9 @@ TEST(MoistureBC_2D_4, TestExample_1)
     for(auto val : gridXCoordinates)
     {
         ++nodeIndex;
-        multiDomain.nodes().createNode(nodeIndex, val, 0.05, state);
+        multiDomain.nodes().createNode({.index = nodeIndex, .x = val, .y = 0.05, .state = state});
         ++nodeIndex;
-        multiDomain.nodes().createNode(nodeIndex, val, 0.00, state);
+        multiDomain.nodes().createNode({.index = nodeIndex, .x = val, .y = 0.00, .state = state});
     }
 
     // Material Properties (Cottaer Sandstone)

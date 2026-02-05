@@ -14,42 +14,42 @@ TEST(SteadyState_2D_1, TestExample_1)
     HygroThermFEM::MultiDomain multiDomain({.performThermal = true, .performMoisture = false});
 
     // Enter nodes. Arguments are: node number, x-coordinate, y-coordinate
-    multiDomain.nodes().createNode(1, 1, 5, State{
+    multiDomain.nodes().createNode({.index = 1, .x = 1, .y = 5, .state = State{
         .temperature = initialTemperature,
         .humidity = 0,
         .pressure = initialPressure,
         .liquidPercent = liquidPercent
-    });
-    multiDomain.nodes().createNode(2, 1, 0, State{
+    }});
+    multiDomain.nodes().createNode({.index = 2, .x = 1, .y = 0, .state = State{
         .temperature = initialTemperature,
         .humidity = 0,
         .pressure = initialPressure,
         .liquidPercent = liquidPercent
-    });
-    multiDomain.nodes().createNode(3, 0.5, 5, State{
+    }});
+    multiDomain.nodes().createNode({.index = 3, .x = 0.5, .y = 5, .state = State{
         .temperature = initialTemperature,
         .humidity = 0.5,
         .pressure = initialPressure,
         .liquidPercent = liquidPercent
-    });
-    multiDomain.nodes().createNode(4, 0.5, 0, State{
+    }});
+    multiDomain.nodes().createNode({.index = 4, .x = 0.5, .y = 0, .state = State{
         .temperature = initialTemperature,
         .humidity = 0.5,
         .pressure = initialPressure,
         .liquidPercent = liquidPercent
-    });
-    multiDomain.nodes().createNode(5, 0, 5, State{
+    }});
+    multiDomain.nodes().createNode({.index = 5, .x = 0, .y = 5, .state = State{
         .temperature = initialTemperature,
         .humidity = 1,
         .pressure = initialPressure,
         .liquidPercent = liquidPercent
-    });
-    multiDomain.nodes().createNode(6, 0, 0, State{
+    }});
+    multiDomain.nodes().createNode({.index = 6, .x = 0, .y = 0, .state = State{
         .temperature = initialTemperature,
         .humidity = 1,
         .pressure = initialPressure,
         .liquidPercent = liquidPercent
-    });
+    }});
 
     // Material Properties (using C++20 designated initializers)
     const auto & material = multiDomain.materials().createSolidMaterial({
