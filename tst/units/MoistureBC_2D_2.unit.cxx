@@ -11,17 +11,13 @@ TEST(MoistureBC_2D_2, TestExample_1)
 
     std::vector<double> gridXCoordinates{0.15, 0.05, 0.00};
 
-    constexpr auto domainTemperature = 20.0;
-    constexpr auto domainHumidity = 0.0;
-    constexpr auto domainPressure = 101325;
-    constexpr auto liquidPercentage = 1.0;
-
     const HygroThermFEM::State state({
-        .temperature = domainTemperature,
-        .humidity = domainHumidity,
-        .pressure = domainPressure,
-        .liquidPercent = liquidPercentage
+        .temperature = 20.0,
+        .humidity = 0.0,
+        .pressure = 101325.0,
+        .liquidPercent = 1.0
     });
+
     size_t nodeIndex = 0;
     for(auto val : gridXCoordinates)
     {

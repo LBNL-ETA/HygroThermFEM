@@ -13,16 +13,11 @@ TEST(TwoElementsTwoMaterials_2, NodeInTwoMaterials)
     SCOPED_TRACE("Begin Test: Node as part of two elements that have different material and one "
                  "element is triangular.");
 
-    constexpr auto temperature = 10.0;
-    constexpr auto humidity = 0.8;
-    constexpr auto pressure = 101325.0;
-    constexpr auto liquidPercent = 1.0;
-
-    HygroThermFEM::State state({
-        .temperature = temperature,
-        .humidity = humidity,
-        .pressure = pressure,
-        .liquidPercent = liquidPercent
+    const HygroThermFEM::State state({
+        .temperature = 10.0,
+        .humidity = 0.8,
+        .pressure = 101325.0,
+        .liquidPercent = 1.0
     });
 
     MultiDomain multiDomain(false, false);

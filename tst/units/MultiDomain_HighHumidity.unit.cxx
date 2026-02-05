@@ -35,17 +35,13 @@ TEST(MultiDomain_HighHumidity, TestExample_1)
 
     std::vector<double> gridXCoordinates{0.15, 0.05, 0.00};
 
-    constexpr auto domainTemperature = 0.0;
-    constexpr auto domainHumidity = 0.999;
-    constexpr auto domainPressure = 101325.0;
-    constexpr auto liquidPercent = 1.0;
-
-    HygroThermFEM::State state({
-        .temperature = domainTemperature,
-        .humidity = domainHumidity,
-        .pressure = domainPressure,
-        .liquidPercent = liquidPercent
+    const HygroThermFEM::State state({
+        .temperature = 0.0,
+        .humidity = 0.999,
+        .pressure = 101325.0,
+        .liquidPercent = 1.0
     });
+
     size_t nodeIndex = 0;
     for(auto val : gridXCoordinates)
     {

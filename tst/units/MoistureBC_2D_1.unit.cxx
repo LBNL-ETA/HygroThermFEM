@@ -4,7 +4,6 @@
 #include "HygroThermFEM2D.hxx"
 
 using HygroThermFEM::State;
-using HygroThermFEM::StateParams;
 
 TEST(MoistureBC_2D_1, TestExample_1)
 {
@@ -15,15 +14,12 @@ TEST(MoistureBC_2D_1, TestExample_1)
     std::vector<double> gridXCoordinates{
       0, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.10, 0.11, 0.12, 0.13, 0.15};
 
-    constexpr auto initialTemperature = 20;
-    constexpr auto initialHumidity = 0.65;
-    constexpr auto initialPressure = 101325.0;
-
-    State state({
-        .temperature = initialTemperature,
-        .humidity = initialHumidity,
-        .pressure = initialPressure
+    const State state({
+        .temperature = 20.0,
+        .humidity = 0.65,
+        .pressure = 101325.0
     });
+
     size_t nodeIndex = 0;
     for(auto val : gridXCoordinates)
     {

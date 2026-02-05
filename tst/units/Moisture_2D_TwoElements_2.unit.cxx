@@ -4,7 +4,6 @@
 #include "HygroThermFEM2D.hxx"
 
 using HygroThermFEM::State;
-using HygroThermFEM::StateParams;
 
 TEST(Moisture_2D_TwoElements_2, TestExample_1)
 {
@@ -12,16 +11,11 @@ TEST(Moisture_2D_TwoElements_2, TestExample_1)
 
     HygroThermFEM::MultiDomain multiDomain(false, true);
 
-    constexpr auto initialTemperature = 20;
-    constexpr auto initialHumidity = 0.5;
-    constexpr auto initialPressure = 101325.0;
-    constexpr auto liquidPercent = 1.0;
-
     const State state({
-        .temperature = initialTemperature,
-        .humidity = initialHumidity,
-        .pressure = initialPressure,
-        .liquidPercent = liquidPercent
+        .temperature = 20.0,
+        .humidity = 0.5,
+        .pressure = 101325.0,
+        .liquidPercent = 1.0
     });
 
     multiDomain.nodes().createNode(1, 0.15, 0.05, state);

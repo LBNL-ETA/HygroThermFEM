@@ -14,16 +14,11 @@ TEST(TwoElementsTwoMaterials_1, NodeInTwoMaterials)
 
     MultiDomain multiDomain(false, false);
 
-    constexpr auto temperature = 10.0;
-    constexpr auto humidity = 0.8;
-    constexpr auto pressure = 101325.0;
-    constexpr auto liquidPercent = 1.0;
-
     const HygroThermFEM::State state({
-        .temperature = temperature,
-        .humidity = humidity,
-        .pressure = pressure,
-        .liquidPercent = liquidPercent
+        .temperature = 10.0,
+        .humidity = 0.8,
+        .pressure = 101325.0,
+        .liquidPercent = 1.0
     });
 
     multiDomain.nodes().createNode(1, 0, 0, state);

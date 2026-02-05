@@ -18,14 +18,10 @@ TEST(Analytical_TemperatureBC_Transient, TestExample_1)
     /// Create slab that is 10 cm long and have nodes at every 1 cm
     std::vector<double> gridXCoordinates{0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0};
 
-    constexpr auto initialTemperature = 1.0;
-    constexpr auto initialHumidity = 0.0;
-    constexpr auto initialPressure = 101325.0;
-
-    HygroThermFEM::State state({
-        .temperature = initialTemperature,
-        .humidity = initialHumidity,
-        .pressure = initialPressure,
+    const HygroThermFEM::State state({
+        .temperature = 1.0,
+        .humidity = 0.0,
+        .pressure = 101325.0,
         .liquidPercent = 0
     });
 

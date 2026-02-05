@@ -22,14 +22,10 @@ TEST(Analytical_ConvectionBC_Transient, TestExample_1)
     const std::vector<double> gridXCoordinates{
       0, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1};
 
-    constexpr auto initialTemperature = 20.0;
-    constexpr auto initialHumidity = 0.0;
-    constexpr auto initialPressure = 101325.0;
-
     const HygroThermFEM::State state({
-        .temperature = initialTemperature,
-        .humidity = initialHumidity,
-        .pressure = initialPressure,
+        .temperature = 20.0,
+        .humidity = 0.0,
+        .pressure = 101325.0,
         .liquidPercent = 0
     });
 
