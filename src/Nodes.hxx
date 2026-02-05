@@ -26,7 +26,7 @@ namespace HygroThermFEM
         Node2D & createNode(std::size_t NodeIndex,
                             double x,
                             double y,
-                            const State & state = State({.temperature = 0, .humidity = 0, .pressure = 0, .liquidPercent = 0}));
+                            const State & state = {.temperature = 0, .humidity = 0, .pressure = 0, .liquidPercent = 0});
 
         //! \brief Creates node with auto-generated index
         //!
@@ -35,7 +35,7 @@ namespace HygroThermFEM
         //! \param y y-coordinate
         //! \param state State of variables in the node.
         //! \return Reference to newly created node
-        Node2D & createNode(double x, double y, const State & state = State({.temperature = 0, .humidity = 0, .pressure = 0, .liquidPercent = 0}));
+        Node2D & createNode(double x, double y, const State & state = {.temperature = 0, .humidity = 0, .pressure = 0, .liquidPercent = 0});
 
         //! \brief Returns node at given index.
         //!

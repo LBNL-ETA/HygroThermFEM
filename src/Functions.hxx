@@ -16,7 +16,7 @@ namespace HygroThermFEM
 {
     enum class Variable;
 
-    class State;
+    struct State;
 
     class INode2D;
 
@@ -26,13 +26,13 @@ namespace HygroThermFEM
     //!
     //! \param temperature Temperature in Celsius
     //! \return vapor pressure [Pa]
-    double vaporPressureAtTemperature(const double temperature);
+    double vaporPressureAtTemperature(double temperature);
 
     //! \brief Saturation function
     //!
     //! \param temperature Temperature in Celsius
     //! \return water content [kg/m^3]
-    double saturationConcentrationAtTemperature(const double temperature);
+    double saturationConcentrationAtTemperature(double temperature);
 
     //! Heat of evaporation
     //!

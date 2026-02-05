@@ -2,29 +2,39 @@
 
 namespace HygroThermFEM
 {
-    ////////////////////////////////////////////////////////////////////////////
-    ///  State
-    ////////////////////////////////////////////////////////////////////////////
-
-    State::State() : State(StateParams{})
-    {}
-
-    State::State(StateParams params)
+    double State::getValue(const BaseVariable property) const
     {
-        m_Property[BaseVariable::temperature] = params.temperature;
-        m_Property[BaseVariable::humidity] = params.humidity;
-        m_Property[BaseVariable::pressure] = params.pressure;
-        m_Property[BaseVariable::liquidPercent] = params.liquidPercent;
+        switch(property)
+        {
+            case BaseVariable::temperature:
+                return temperature;
+            case BaseVariable::humidity:
+                return humidity;
+            case BaseVariable::pressure:
+                return pressure;
+            case BaseVariable::liquidPercent:
+                return liquidPercent;
+        }
+        return 0.0;
     }
 
-    double State::getValue(const BaseVariable t_Property) const
+    void State::setValue(const BaseVariable property, const double value)
     {
-        return m_Property.at(t_Property);
-    }
-
-    void State::setValue(const BaseVariable t_Property, const double t_Value)
-    {
-        m_Property[t_Property] = t_Value;
+        switch(property)
+        {
+            case BaseVariable::temperature:
+                temperature = value;
+                break;
+            case BaseVariable::humidity:
+                humidity = value;
+                break;
+            case BaseVariable::pressure:
+                pressure = value;
+                break;
+            case BaseVariable::liquidPercent:
+                liquidPercent = value;
+                break;
+        }
     }
 
 }   // namespace HygroThermFEM

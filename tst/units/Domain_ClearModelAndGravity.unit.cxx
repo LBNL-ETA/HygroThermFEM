@@ -4,7 +4,6 @@
 #include "HygroThermFEM2D.hxx"
 
 using HygroThermFEM::State;
-using HygroThermFEM::StateParams;
 using HygroThermFEM::ThermalDomain;
 using HygroThermFEM::MultiDomain;
 using HygroThermFEM::Variable;

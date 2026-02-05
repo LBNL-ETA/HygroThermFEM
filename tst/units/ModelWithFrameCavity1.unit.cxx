@@ -5,7 +5,6 @@
 #include "HygroThermFEM2D.hxx"
 
 using HygroThermFEM::State;
-using HygroThermFEM::StateParams;
 
 TEST(TestModelWithFrameCavity1, TestSingleFrameCavity)
 {

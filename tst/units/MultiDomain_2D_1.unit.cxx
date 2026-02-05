@@ -5,7 +5,6 @@
 
 using HygroThermFEM::Nodes;
 using HygroThermFEM::State;
-using HygroThermFEM::StateParams;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// This is simple two elements multi-domain example without boundary conditions. Initial
@@ -39,23 +38,23 @@ TEST(MultiDomain_2D_1, TestExample_1)
           nodeIndex,
           val,
           0.00,
-          State({
+          State{
               .temperature = initialTemperature + T,
               .humidity = initialMoistureContent + H,
               .pressure = initialPressure,
               .liquidPercent = 0
-          }));
+          });
         ++nodeIndex;
         multiDomain.nodes().createNode(
           nodeIndex,
           val,
           0.05,
-          State({
+          State{
               .temperature = initialTemperature + T,
               .humidity = initialMoistureContent + H,
               .pressure = initialPressure,
               .liquidPercent = 0
-          }));
+          });
         T += deltaT;
         H += deltaH;
     }
@@ -191,23 +190,23 @@ TEST(MultiDomain_2D_1, TestExample_1_Repeat)
                 nodeIndex,
                 val,
                 0.00,
-                State({
+                State{
                     .temperature = initialTemperature + T,
                     .humidity = initialMoistureContent + H,
                     .pressure = initialPressure,
                     .liquidPercent = 0
-                }));
+                });
         ++nodeIndex;
         multiDomain.nodes().createNode(
                 nodeIndex,
                 val,
                 0.05,
-                State({
+                State{
                     .temperature = initialTemperature + T,
                     .humidity = initialMoistureContent + H,
                     .pressure = initialPressure,
                     .liquidPercent = 0
-                }));
+                });
         T += deltaT;
         H += deltaH;
     }
