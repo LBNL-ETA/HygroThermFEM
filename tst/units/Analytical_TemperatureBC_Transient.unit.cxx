@@ -2,6 +2,7 @@
 #include <gtest/gtest.h>
 
 #include "HygroThermFEM2D.hxx"
+#include "SlabCreator.hxx"
 
 /////////////////////////////////////////////////////////////////////////////////////
 /// Transient temperature boundary conditions vs Analytical solution
@@ -16,12 +17,6 @@ TEST(Analytical_ConvectionBC_Transient, TestExample_1)
 
     HygroThermFEM::MultiDomain multiDomain({.performThermal = true, .performMoisture = false});
 
-    // Enter nodes. Arguments are: node number, x-coordinate, y-coordinate, initial temperature
-
-    /// Create slab that is 10 cm long and have nodes at every 1 cm
-    const std::vector<double> gridXCoordinates{
-      0, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1};
-
     const HygroThermFEM::State state({
         .temperature = 20.0,
         .humidity = 0.0,
@@ -29,17 +24,9 @@ TEST(Analytical_ConvectionBC_Transient, TestExample_1)
         .liquidPercent = 0
     });
 
-    for(const auto val : gridXCoordinates)
-    {
-        multiDomain.nodes().createNode({.x = val, .y = 0.00, .state = state});
-        multiDomain.nodes().createNode({.x = val, .y = 0.05, .state = state});
-    }
-
     // Material Properties (using C++20 designated initializers)
-    const std::string materialName{"Test Material"};
-
-    multiDomain.materials().createSolidMaterial({
-        .name = materialName,
+    const auto & material = multiDomain.materials().createSolidMaterial({
+        .name = "Test Material",
         .thermalConductivityDry = 1.8,
         .density = 2050.0,
         .porosity = 0.22,
@@ -53,16 +40,15 @@ TEST(Analytical_ConvectionBC_Transient, TestExample_1)
         .sorptionCurve = {{0, 0}, {1, 180}}
     });
 
-    /// Create elements
-    for(size_t i = 1u; i <= (multiDomain.nodes().maxIndex() - 2) / 2; ++i)
-    {
-        const auto index1 = 2u * i - 1u;
-        const auto index2 = 2u * i;
-        const auto index3 = 2u * i + 2u;
-        const auto index4 = 2u * i + 1u;
-
-        multiDomain.createElement({.node1 = index1, .node2 = index2, .node3 = index3, .node4 = index4, .material = materialName});
-    }
+    /// Create slab that is 10 cm long and have nodes at every 1 cm
+    TestHelper::SlabBuilder(multiDomain)
+        .gridXCoordinates({0, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1})
+        .height(0.05)
+        .material(material.name())
+        .state(state)
+        .startCorner(TestHelper::StartCorner::BottomLeft)
+        .direction(TestHelper::Direction::Clockwise)
+        .build();
 
     // Create Boundary Conditions
     constexpr auto tSurface = 0.0;

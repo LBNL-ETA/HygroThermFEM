@@ -2,6 +2,7 @@
 #include <gtest/gtest.h>
 
 #include "HygroThermFEM2D.hxx"
+#include "SlabCreator.hxx"
 
 TEST(MoistureBC_2D_3, TestExample_1)
 {
@@ -9,19 +10,12 @@ TEST(MoistureBC_2D_3, TestExample_1)
 
     HygroThermFEM::MultiDomain multiDomain({.performThermal = false, .performMoisture = true});
 
-    std::vector<double> gridXCoordinates{0, 0.05, 0.1, 0.15};
-
     const HygroThermFEM::State state({
         .temperature = 20.0,
         .humidity = 0.0,
         .pressure = 0.0,
         .liquidPercent = 0
     });
-    for(auto val : gridXCoordinates)
-    {
-        multiDomain.nodes().createNode({.x = val, .y = 0.00, .state = state});
-        multiDomain.nodes().createNode({.x = val, .y = 0.05, .state = state});
-    }
 
     // Material Properties (Cottaer Sandstone)
     const auto & material = multiDomain.materials().createSolidMaterial({
@@ -56,15 +50,14 @@ TEST(MoistureBC_2D_3, TestExample_1)
                           {1, 180}}
     });
 
-    /// Create elements
-    for(size_t i = 1; i <= (multiDomain.nodes().maxIndex() - 2) / 2; ++i)
-    {
-        const auto node1 = 2u * i + 1u;
-        const auto node2 = 2u * i + 2u;
-        const auto node3 = 2u * i;
-        const auto node4 = 2u * i - 1u;
-        multiDomain.createElement({.node1 = node1, .node2 = node2, .node3 = node3, .node4 = node4, .material = material.name()});
-    }
+    TestHelper::SlabBuilder(multiDomain)
+        .gridXCoordinates({0, 0.05, 0.1, 0.15})
+        .height(0.05)
+        .material(material.name())
+        .state(state)
+        .startCorner(TestHelper::StartCorner::BottomRight)
+        .direction(TestHelper::Direction::CounterClockwise)
+        .build();
 
     // Create Boundary Conditions
     constexpr auto ambientTemperature = 20.0;

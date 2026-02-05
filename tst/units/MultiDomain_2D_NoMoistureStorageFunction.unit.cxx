@@ -2,6 +2,7 @@
 #include <gtest/gtest.h>
 
 #include "HygroThermFEM2D.hxx"
+#include "SlabCreator.hxx"
 
 using HygroThermFEM::Nodes;
 using HygroThermFEM::SimulationProperties;
@@ -35,19 +36,6 @@ TEST_F(MultiDomain_2D_NoMoistureStorageFunction, TestExample_1)
 
     HygroThermFEM::MultiDomain multiDomain;
 
-    std::vector<double> gridXCoordinates{0, 0.05, 0.1};
-
-    const HygroThermFEM::State state({
-        .temperature = 0.0,
-        .humidity = 0.2,
-        .pressure = 101325.0
-    });
-    for(auto val : gridXCoordinates)
-    {
-        multiDomain.nodes().createNode({.x = val, .y = 0.00, .state = state});
-        multiDomain.nodes().createNode({.x = val, .y = 0.05, .state = state});
-    }
-
     // Material Properties to represent example without moisture storage function and liquid
     // transportation
     const auto & material = multiDomain.materials().createSolidMaterial({
@@ -65,15 +53,20 @@ TEST_F(MultiDomain_2D_NoMoistureStorageFunction, TestExample_1)
         .sorptionCurve = {{0, 0}}
     });
 
-    /// Create elements
-    for(size_t i = 1; i <= (multiDomain.nodes().maxIndex() - 2) / 2; ++i)
-    {
-        const auto node1 = 2u * i + 1u;
-        const auto node2 = 2u * i + 2u;
-        const auto node3 = 2u * i;
-        const auto node4 = 2u * i - 1u;
-        multiDomain.createElement({.node1 = node1, .node2 = node2, .node3 = node3, .node4 = node4, .material = material.name()});
-    }
+    const HygroThermFEM::State state({
+        .temperature = 0.0,
+        .humidity = 0.2,
+        .pressure = 101325.0
+    });
+
+    TestHelper::SlabBuilder(multiDomain)
+        .gridXCoordinates({0, 0.05, 0.1})
+        .height(0.05)
+        .material(material.name())
+        .state(state)
+        .startCorner(TestHelper::StartCorner::BottomRight)
+        .direction(TestHelper::Direction::CounterClockwise)
+        .build();
 
     /// Create Boundary Conditions
     constexpr auto hc = 5.0;

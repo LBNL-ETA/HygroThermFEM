@@ -2,6 +2,7 @@
 #include <gtest/gtest.h>
 
 #include "HygroThermFEM2D.hxx"
+#include "SlabCreator.hxx"
 
 TEST(ConvectionBC_2D_TransientNoChanges, TestExample_1)
 {
@@ -9,19 +10,12 @@ TEST(ConvectionBC_2D_TransientNoChanges, TestExample_1)
 
     HygroThermFEM::MultiDomain multiDomain({.performThermal = true, .performMoisture = false});
 
-    std::vector<double> gridXCoordinates{0, 0.05, 0.1, 0.15};
-
     const HygroThermFEM::State state({
         .temperature = 20.0,
         .humidity = 0.0,
         .pressure = 101325.0,
         .liquidPercent = 0
     });
-    for(auto val : gridXCoordinates)
-    {
-        multiDomain.nodes().createNode({.x = val, .y = 0.00, .state = state});
-        multiDomain.nodes().createNode({.x = val, .y = 0.05, .state = state});
-    }
 
     // Material Properties (Cottaer Sandstone, using C++20 designated initializers)
     const auto & material = multiDomain.materials().createSolidMaterial({
@@ -41,15 +35,14 @@ TEST(ConvectionBC_2D_TransientNoChanges, TestExample_1)
                           {0.95, 25}, {0.99, 63}, {0.995, 83}, {0.999, 120}, {1, 180}}
     });
 
-    /// Create elements
-    for(size_t idx = 1u; idx <= (multiDomain.nodes().maxIndex() - 2) / 2; ++idx)
-    {
-        const auto index1 = 2u * idx + 1u;
-        const auto index2 = 2u * idx + 2u;
-        const auto index3 = 2u * idx;
-        const auto index4 = 2u * idx - 1u;
-        multiDomain.createElement({.node1 = index1, .node2 = index2, .node3 = index3, .node4 = index4, .material = material.name()});
-    }
+    TestHelper::SlabBuilder(multiDomain)
+        .gridXCoordinates({0, 0.05, 0.1, 0.15})
+        .height(0.05)
+        .material(material.name())
+        .state(state)
+        .startCorner(TestHelper::StartCorner::BottomRight)
+        .direction(TestHelper::Direction::CounterClockwise)
+        .build();
 
     // Create Boundary Conditions
     constexpr auto tSurface = 20.0;

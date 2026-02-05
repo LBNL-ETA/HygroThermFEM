@@ -2,6 +2,7 @@
 #include <gtest/gtest.h>
 
 #include "HygroThermFEM2D.hxx"
+#include "SlabCreator.hxx"
 
 using HygroThermFEM::Nodes;
 
@@ -15,23 +16,6 @@ TEST(MultiDomainHumidityOnly_1, TestExample_1)
     SCOPED_TRACE("Begin Test: Simple two elements example with moisture and heat transfer.");
 
     HygroThermFEM::MultiDomain multiDomain({.performThermal = false, .performMoisture = true});
-
-    // Enter nodes. Arguments are: node number, x-coordinate, y-coordinate
-
-    std::vector<double> gridXCoordinates{0, 0.05, 0.1};
-
-    const HygroThermFEM::State state({
-        .temperature = 0.0,
-        .humidity = 0.6,
-        .pressure = 101325.0,
-        .liquidPercent = 1.0
-    });
-
-    for(auto val : gridXCoordinates)
-    {
-        multiDomain.nodes().createNode({.x = val, .y = 0.00, .state = state});
-        multiDomain.nodes().createNode({.x = val, .y = 0.05, .state = state});
-    }
 
     // Material Properties (Cottaer Sandstone)
     const auto & material = multiDomain.materials().createSolidMaterial({
@@ -66,15 +50,21 @@ TEST(MultiDomainHumidityOnly_1, TestExample_1)
                           {1, 180}}
     });
 
-    /// Create elements
-    for(size_t i = 1; i <= (multiDomain.nodes().maxIndex() - 2) / 2; ++i)
-    {
-        const auto node1 = 2u * i + 1u;
-        const auto node2 = 2u * i + 2u;
-        const auto node3 = 2u * i;
-        const auto node4 = 2u * i - 1u;
-        multiDomain.createElement({.node1 = node1, .node2 = node2, .node3 = node3, .node4 = node4, .material = material.name()});
-    }
+    const HygroThermFEM::State state({
+        .temperature = 0.0,
+        .humidity = 0.6,
+        .pressure = 101325.0,
+        .liquidPercent = 1.0
+    });
+
+    TestHelper::SlabBuilder(multiDomain)
+        .gridXCoordinates({0, 0.05, 0.1})
+        .height(0.05)
+        .material(material.name())
+        .state(state)
+        .startCorner(TestHelper::StartCorner::BottomRight)
+        .direction(TestHelper::Direction::CounterClockwise)
+        .build();
 
     /// Create Boundary Conditions
     constexpr auto hc = 1.0;

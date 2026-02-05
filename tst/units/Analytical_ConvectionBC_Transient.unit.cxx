@@ -2,6 +2,7 @@
 #include <gtest/gtest.h>
 
 #include "HygroThermFEM2D.hxx"
+#include "SlabCreator.hxx"
 
 /////////////////////////////////////////////////////////////////////////////////////
 /// Transient temperature boundary conditions vs Analytical solution
@@ -15,21 +16,12 @@ TEST(Analytical_TemperatureBC_Transient, TestExample_1)
 
     HygroThermFEM::MultiDomain multiDomain({.performThermal = true, .performMoisture = false});
 
-    /// Create slab that is 10 cm long and have nodes at every 1 cm
-    std::vector<double> gridXCoordinates{0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0};
-
     const HygroThermFEM::State state({
         .temperature = 1.0,
         .humidity = 0.0,
         .pressure = 101325.0,
         .liquidPercent = 0
     });
-
-    for(auto val : gridXCoordinates)
-    {
-        multiDomain.nodes().createNode({.x = val, .y = 0.00, .state = state});
-        multiDomain.nodes().createNode({.x = val, .y = 0.05, .state = state});
-    }
 
     // Material Properties (using C++20 designated initializers)
     const auto & material = multiDomain.materials().createSolidMaterial({
@@ -47,16 +39,13 @@ TEST(Analytical_TemperatureBC_Transient, TestExample_1)
         .sorptionCurve = {{0, 0}, {1, 180}}
     });
 
-    /// Create elements
-    for(size_t idx = 1; idx <= (multiDomain.nodes().maxIndex() - 2) / 2; ++idx)
-    {
-        const auto node1 = 2u * idx - 1u;
-        const auto node2 = 2u * idx + 1u;
-        const auto node3 = 2u * idx + 2u;
-        const auto node4 = 2u * idx;
-
-        multiDomain.createElement({.node1 = node1, .node2 = node2, .node3 = node3, .node4 = node4, .material = material.name()});
-    }
+    /// Create slab that is 10 cm long and have nodes at every 1 cm
+    TestHelper::SlabBuilder(multiDomain)
+        .gridXCoordinates({0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0})
+        .height(0.05)
+        .material(material.name())
+        .state(state)
+        .build();
 
     // Create Boundary Conditions
     constexpr auto tAir = 0.0;
