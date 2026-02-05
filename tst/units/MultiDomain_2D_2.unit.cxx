@@ -21,13 +21,10 @@ TEST(MultiDomain_2D_2, TestExample_1)
         .pressure = 101325.0,
         .liquidPercent = 1.0
     });
-    size_t nodeIndex = 0;
     for(auto val : gridXCoordinates)
     {
-        ++nodeIndex;
-        multiDomain.nodes().createNode({.index = nodeIndex, .x = val, .y = 0.00, .state = state});
-        ++nodeIndex;
-        multiDomain.nodes().createNode({.index = nodeIndex, .x = val, .y = 0.05, .state = state});
+        multiDomain.nodes().createNode({.x = val, .y = 0.00, .state = state});
+        multiDomain.nodes().createNode({.x = val, .y = 0.05, .state = state});
     }
 
     // Material Properties (Cottaer Sandstone)
@@ -158,13 +155,10 @@ TEST(MultiDomain_2D_2, TestExample_1_Repeat)
         .pressure = 101325.0,
         .liquidPercent = 1.0
     });
-    size_t nodeIndex = 0;
     for(auto val : gridXCoordinates)
     {
-        ++nodeIndex;
-        multiDomain.nodes().createNode({.index = nodeIndex, .x = val, .y = 0.00, .state = state});
-        ++nodeIndex;
-        multiDomain.nodes().createNode({.index = nodeIndex, .x = val, .y = 0.05, .state = state});
+        multiDomain.nodes().createNode({.x = val, .y = 0.00, .state = state});
+        multiDomain.nodes().createNode({.x = val, .y = 0.05, .state = state});
     }
 
     // Material Properties (Cottaer Sandstone)

@@ -26,37 +26,32 @@ TEST(MultiDomain_2D_1, TestExample_1)
     const double initialMoistureContent = 0.0;
     const double initialPressure = 101325.0;
 
-    size_t nodeIndex = 0;
-    auto T = 0.0;
+    auto tVal = 0.0;
     auto deltaT = 10.0;
-    auto H = 0.0;
+    auto hVal = 0.0;
     auto deltaH = 0.1;
     for(auto val : gridXCoordinates)
     {
-        ++nodeIndex;
         multiDomain.nodes().createNode(
-          {.index = nodeIndex,
-           .x = val,
+          {.x = val,
            .y = 0.00,
            .state = State{
-              .temperature = initialTemperature + T,
-              .humidity = initialMoistureContent + H,
+              .temperature = initialTemperature + tVal,
+              .humidity = initialMoistureContent + hVal,
               .pressure = initialPressure,
               .liquidPercent = 0
           }});
-        ++nodeIndex;
         multiDomain.nodes().createNode(
-          {.index = nodeIndex,
-           .x = val,
+          {.x = val,
            .y = 0.05,
            .state = State{
-              .temperature = initialTemperature + T,
-              .humidity = initialMoistureContent + H,
+              .temperature = initialTemperature + tVal,
+              .humidity = initialMoistureContent + hVal,
               .pressure = initialPressure,
               .liquidPercent = 0
           }});
-        T += deltaT;
-        H += deltaH;
+        tVal += deltaT;
+        hVal += deltaH;
     }
 
     // Material Properties (Cottaer Sandstone)
@@ -178,37 +173,32 @@ TEST(MultiDomain_2D_1, TestExample_1_Repeat)
     const double initialMoistureContent = 0.0;
     const double initialPressure = 101325.0;
 
-    size_t nodeIndex = 0;
-    auto T = 0.0;
+    auto tVal = 0.0;
     auto deltaT = 10.0;
-    auto H = 0.0;
+    auto hVal = 0.0;
     auto deltaH = 0.1;
     for(auto val : gridXCoordinates)
     {
-        ++nodeIndex;
         multiDomain.nodes().createNode(
-                {.index = nodeIndex,
-                 .x = val,
+                {.x = val,
                  .y = 0.00,
                  .state = State{
-                    .temperature = initialTemperature + T,
-                    .humidity = initialMoistureContent + H,
+                    .temperature = initialTemperature + tVal,
+                    .humidity = initialMoistureContent + hVal,
                     .pressure = initialPressure,
                     .liquidPercent = 0
                 }});
-        ++nodeIndex;
         multiDomain.nodes().createNode(
-                {.index = nodeIndex,
-                 .x = val,
+                {.x = val,
                  .y = 0.05,
                  .state = State{
-                    .temperature = initialTemperature + T,
-                    .humidity = initialMoistureContent + H,
+                    .temperature = initialTemperature + tVal,
+                    .humidity = initialMoistureContent + hVal,
                     .pressure = initialPressure,
                     .liquidPercent = 0
                 }});
-        T += deltaT;
-        H += deltaH;
+        tVal += deltaT;
+        hVal += deltaH;
     }
 
     // Material Properties (Cottaer Sandstone)

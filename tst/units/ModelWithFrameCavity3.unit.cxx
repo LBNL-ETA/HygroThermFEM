@@ -25,15 +25,13 @@ TEST(TestModelWithFrameCavity3, TestSingleFrameCavity)
         .humidity = initialHumidity,
         .pressure = initialPressure
     });
-    size_t nodeIndex = 0;
 
     // Crating grid nodes
     for(auto yVal : gridY)
     {
         for(auto xVal : gridX)
         {
-            ++nodeIndex;
-            multiDomain.nodes().createNode({.index = nodeIndex, .x = xVal, .y = yVal, .state = state});
+            multiDomain.nodes().createNode({.x = xVal, .y = yVal, .state = state});
         }
     }
 

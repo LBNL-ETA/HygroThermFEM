@@ -17,13 +17,10 @@ TEST(MoistureBC_2D_3, TestExample_1)
         .pressure = 0.0,
         .liquidPercent = 0
     });
-    size_t nodeIndex = 0;
     for(auto val : gridXCoordinates)
     {
-        ++nodeIndex;
-        multiDomain.nodes().createNode({.index = nodeIndex, .x = val, .y = 0.00, .state = state});
-        ++nodeIndex;
-        multiDomain.nodes().createNode({.index = nodeIndex, .x = val, .y = 0.05, .state = state});
+        multiDomain.nodes().createNode({.x = val, .y = 0.00, .state = state});
+        multiDomain.nodes().createNode({.x = val, .y = 0.05, .state = state});
     }
 
     // Material Properties (Cottaer Sandstone)
