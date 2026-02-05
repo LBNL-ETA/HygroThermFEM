@@ -75,7 +75,7 @@ TEST_F(MultiDomain_2D_ExcludeLiquidTransport_1, TestExample_1)
                           {1, 180}}
     });
 
-    const HygroThermFEM::State state({
+    constexpr HygroThermFEM::State state({
         .temperature = 0.0,
         .humidity = 0.99,
         .pressure = 101325.0,

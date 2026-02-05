@@ -12,7 +12,7 @@ TEST(MultiDomain_2D_2, TestExample_1)
 
     HygroThermFEM::MultiDomain multiDomain;
 
-    const HygroThermFEM::State state({
+    constexpr HygroThermFEM::State state({
         .temperature = 0.0,
         .humidity = 0.0,
         .pressure = 101325.0,
@@ -138,7 +138,7 @@ TEST(MultiDomain_2D_2, TestExample_1_Repeat)
 
     HygroThermFEM::MultiDomain multiDomain;
 
-    const HygroThermFEM::State state({
+    constexpr HygroThermFEM::State state({
         .temperature = 0.0,
         .humidity = 0.0,
         .pressure = 101325.0,

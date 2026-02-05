@@ -40,7 +40,7 @@ TEST(MultiDomain_2D_LinearizedRadiation_MultiTimestepBC, TestExample_1)
                         {0.999, 120},
                         {1, 180}}});
 
-    const HygroThermFEM::State state({
+    constexpr HygroThermFEM::State state({
         .temperature = 0.0,
         .humidity = 0.0,
         .pressure = 101325.0,

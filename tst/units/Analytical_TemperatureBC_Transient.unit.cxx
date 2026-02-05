@@ -17,7 +17,7 @@ TEST(Analytical_ConvectionBC_Transient, TestExample_1)
 
     HygroThermFEM::MultiDomain multiDomain({.performThermal = true, .performMoisture = false});
 
-    const HygroThermFEM::State state({
+    constexpr HygroThermFEM::State state({
         .temperature = 20.0,
         .humidity = 0.0,
         .pressure = 101325.0,

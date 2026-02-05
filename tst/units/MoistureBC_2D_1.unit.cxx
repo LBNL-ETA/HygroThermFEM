@@ -12,7 +12,7 @@ TEST(MoistureBC_2D_1, TestExample_1)
 
     HygroThermFEM::MultiDomain multiDomain({.performThermal = false, .performMoisture = true});
 
-    const State state({
+    constexpr State state({
         .temperature = 20.0,
         .humidity = 0.65,
         .pressure = 101325.0

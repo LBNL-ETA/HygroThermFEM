@@ -14,7 +14,7 @@ TEST(TwoElementsTwoMaterials_1, NodeInTwoMaterials)
 
     MultiDomain multiDomain({.performThermal = false, .performMoisture = false});
 
-    const HygroThermFEM::State state({
+    constexpr HygroThermFEM::State state({
         .temperature = 10.0,
         .humidity = 0.8,
         .pressure = 101325.0,

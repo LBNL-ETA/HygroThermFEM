@@ -50,7 +50,7 @@ TEST(MultiDomainHumidityOnly_1, TestExample_1)
                           {1, 180}}
     });
 
-    const HygroThermFEM::State state({
+    constexpr HygroThermFEM::State state({
         .temperature = 0.0,
         .humidity = 0.6,
         .pressure = 101325.0,

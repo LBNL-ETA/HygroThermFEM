@@ -13,7 +13,7 @@ TEST(TwoElementsTwoMaterials_2, NodeInTwoMaterials)
     SCOPED_TRACE("Begin Test: Node as part of two elements that have different material and one "
                  "element is triangular.");
 
-    const HygroThermFEM::State state({
+    constexpr HygroThermFEM::State state({
         .temperature = 10.0,
         .humidity = 0.8,
         .pressure = 101325.0,

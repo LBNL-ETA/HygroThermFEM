@@ -9,7 +9,7 @@ TEST(MultiMaterialNode, TestExample_1)
 {
     SCOPED_TRACE("Begin Test: Node with multiple materials in it.");
 
-    const HygroThermFEM::State state({
+    constexpr HygroThermFEM::State state({
         .temperature = 10.0,
         .humidity = 0.8,
         .pressure = 101325.0,

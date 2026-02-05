@@ -53,7 +53,7 @@ TEST_F(MultiDomain_2D_NoMoistureStorageFunction, TestExample_1)
         .sorptionCurve = {{0, 0}}
     });
 
-    const HygroThermFEM::State state({
+    constexpr HygroThermFEM::State state({
         .temperature = 0.0,
         .humidity = 0.2,
         .pressure = 101325.0
