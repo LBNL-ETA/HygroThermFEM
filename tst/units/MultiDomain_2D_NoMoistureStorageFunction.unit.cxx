@@ -3,6 +3,7 @@
 
 #include "HygroThermFEM2D.hxx"
 #include "SlabCreator.hxx"
+#include "TestMaterials.hxx"
 
 using HygroThermFEM::Nodes;
 using HygroThermFEM::SimulationProperties;
@@ -38,20 +39,11 @@ TEST_F(MultiDomain_2D_NoMoistureStorageFunction, TestExample_1)
 
     // Material Properties to represent example without moisture storage function and liquid
     // transportation
-    const auto & material = multiDomain.materials().createSolidMaterial({
-        .name = "No liquid or vapor transport curves",
-        .thermalConductivityDry = 1.8,
-        .density = 2050.0,
-        .porosity = 0.22,
-        .heatCapacity = 850.0,
-        .diffusionResistanceFactor = 15.0,
-        .thermalConductivityMoistureDependent = {{0.0, 1.8}, {180, 1.8}},
-        .moistureDependentMeasurementTemperature = 0,
-        .thermalConductivityTemperatureDependent = {{0.0, 1.8}, {1, 1.8}},
-        .temperatureDependentMeasurementHumidity = 0,
-        .liquidTransportCurve = {{0, 0}},
-        .sorptionCurve = {{0, 0}}
-    });
+    auto params = TestHelper::CottaerSandstone();
+    params.name = "No liquid or vapor transport curves";
+    params.liquidTransportCurve = {{0, 0}};
+    params.sorptionCurve = {{0, 0}};
+    const auto & material = multiDomain.materials().createSolidMaterial(params);
 
     constexpr HygroThermFEM::State state({
         .temperature = 0.0,

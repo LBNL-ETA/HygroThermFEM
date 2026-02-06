@@ -3,6 +3,7 @@
 #include <set>
 
 #include "HygroThermFEM2D.hxx"
+#include "TestMaterials.hxx"
 
 using HygroThermFEM::State;
 
@@ -35,20 +36,11 @@ TEST(TestModelWithFrameCavity3, TestSingleFrameCavity)
         }
     }
 
-    const auto & solidMaterial = multiDomain.materials().createSolidMaterial({
-        .name = "Material 1",
-        .thermalConductivityDry = 1.8,
-        .density = 2050.0,
-        .porosity = 0.22,
-        .heatCapacity = 850.0,
-        .diffusionResistanceFactor = 15.0,
-        .thermalConductivityMoistureDependent = {{0.0, 1.8}, {180, 1.8}},
-        .moistureDependentMeasurementTemperature = 0,
-        .thermalConductivityTemperatureDependent = {{0.0, 1.8}, {1, 1.8}},
-        .temperatureDependentMeasurementHumidity = 0,
-        .liquidTransportCurve = {{0, 0}, {180, 2e-6}},
-        .sorptionCurve = {{0, 0}, {1, 180}}
-    });
+    auto params = TestHelper::CottaerSandstone();
+    params.name = "Material 1";
+    params.liquidTransportCurve = {{0, 0}, {180, 2e-6}};
+    params.sorptionCurve = {{0, 0}, {1, 180}};
+    const auto & solidMaterial = multiDomain.materials().createSolidMaterial(params);
 
     Gases::CGas gas;
     gas.addGasItem(0.1, Gases::GasDef::Air);

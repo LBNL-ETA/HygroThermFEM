@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "HygroThermFEM2D.hxx"
+#include "TestMaterials.hxx"
 
 using HygroThermFEM::State;
 using HygroThermFEM::SimulationProperties;
@@ -76,23 +77,10 @@ TEST_F(SteadyState_2D_ExcludeVaporDiffusion_1, TestExample_1)
         .liquidPercent = liquidPercent
     }});
 
-    // Material Properties (Cottaer Sandstone, using C++20 designated initializers)
-    const auto & material = multiDomain.materials().createSolidMaterial({
-        .name = "Test material",
-        .thermalConductivityDry = 1.0,
-        .density = 2050.0,
-        .porosity = 0.18,
-        .heatCapacity = 850.0,
-        .diffusionResistanceFactor = 15.0,
-        .thermalConductivityMoistureDependent = {{0.0, 1.0}, {180, 1.0}},
-        .moistureDependentMeasurementTemperature = 0.0,
-        .thermalConductivityTemperatureDependent = {{0.0, 1.0}, {1, 1.0}},
-        .temperatureDependentMeasurementHumidity = 0.0,
-        .liquidTransportCurve = {{0, 0}, {27, 1E-8}, {45, 1.1E-8}, {90, 2E-8}, {126, 3.5E-8},
-                                 {144, 5E-8}, {162, 1E-7}, {171, 2E-7}, {180, 7E-7}},
-        .sorptionCurve = {{0, 0}, {0.5, 5.3}, {0.65, 8.4}, {0.8, 12}, {0.93, 17},
-                          {0.95, 25}, {0.99, 63}, {0.995, 83}, {0.999, 120}, {1, 180}}
-    });
+    auto params = TestHelper::TestMaterial();
+    params.name = "Test material";
+    params.porosity = 0.18;
+    const auto & material = multiDomain.materials().createSolidMaterial(params);
 
     multiDomain.createElement({.node1 = 3, .node2 = 4, .node3 = 2, .node4 = 1, .material = material.name()});
     multiDomain.createElement({.node1 = 6, .node2 = 4, .node3 = 3, .node4 = 5, .material = material.name()});

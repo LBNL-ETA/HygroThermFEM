@@ -2,6 +2,7 @@
 #include <gtest/gtest.h>
 
 #include "HygroThermFEM2D.hxx"
+#include "TestMaterials.hxx"
 
 using HygroThermFEM::State;
 
@@ -25,38 +26,7 @@ TEST(Moisture_2D_TwoElements_3, TestExample_1)
     multiDomain.nodes().createNode({.index = 5, .x = 0, .y = 0.05, .state = state});
     multiDomain.nodes().createNode({.index = 6, .x = 0, .y = 0, .state = state});
 
-    // Material Properties (Cottaer Sandstone)
-    const auto & material = multiDomain.materials().createSolidMaterial({
-        .name = "Cottaer Sandstone",
-        .thermalConductivityDry = 1.8,
-        .density = 2050.0,
-        .porosity = 0.22,
-        .heatCapacity = 850.0,
-        .diffusionResistanceFactor = 15.0,
-        .thermalConductivityMoistureDependent = {{0.0, 1.8}, {180, 1.8}},
-        .moistureDependentMeasurementTemperature = 0,
-        .thermalConductivityTemperatureDependent = {{0.0, 1.8}, {1, 1.8}},
-        .temperatureDependentMeasurementHumidity = 0,
-        .liquidTransportCurve = {{0, 0},
-                                 {27, 1E-8},
-                                 {45, 1.1E-8},
-                                 {90, 2E-8},
-                                 {126, 3.5E-8},
-                                 {144, 5E-8},
-                                 {162, 1E-7},
-                                 {171, 2E-7},
-                                 {180, 7E-7}},
-        .sorptionCurve = {{0, 0},
-                          {0.5, 5.3},
-                          {0.65, 8.4},
-                          {0.8, 12},
-                          {0.93, 17},
-                          {0.95, 25},
-                          {0.99, 63},
-                          {0.995, 83},
-                          {0.999, 120},
-                          {1, 180}}
-    });
+    const auto & material = multiDomain.materials().createSolidMaterial(TestHelper::CottaerSandstone());
 
     /// Create elements
     multiDomain.createElement({.node1 = 3, .node2 = 4, .node3 = 2, .node4 = 1, .material = material.name()});

@@ -3,6 +3,7 @@
 
 #include "HygroThermFEM2D.hxx"
 #include "SlabCreator.hxx"
+#include "TestMaterials.hxx"
 
 /////////////////////////////////////////////////////////////////////////////////////
 /// Transient temperature boundary conditions vs Analytical solution
@@ -23,21 +24,12 @@ TEST(Analytical_TemperatureBC_Transient, TestExample_1)
         .liquidPercent = 0
     });
 
-    // Material Properties (using C++20 designated initializers)
-    const auto & material = multiDomain.materials().createSolidMaterial({
-        .name = "Test Material",
-        .thermalConductivityDry = 1.0,
-        .density = 1.0,
-        .porosity = 0.0,
-        .heatCapacity = 1.0,
-        .diffusionResistanceFactor = 15.0,
-        .thermalConductivityMoistureDependent = {{0.0, 1.0}, {180, 1.0}},
-        .moistureDependentMeasurementTemperature = 0.0,
-        .thermalConductivityTemperatureDependent = {{0.0, 1.0}, {1, 1.0}},
-        .temperatureDependentMeasurementHumidity = 0.0,
-        .liquidTransportCurve = {{0, 0}, {180, 7E-7}},
-        .sorptionCurve = {{0, 0}, {1, 180}}
-    });
+    auto params = TestHelper::TestMaterial();
+    params.density = 1.0;
+    params.heatCapacity = 1.0;
+    params.liquidTransportCurve = {{0, 0}, {180, 7E-7}};
+    params.sorptionCurve = {{0, 0}, {1, 180}};
+    const auto & material = multiDomain.materials().createSolidMaterial(params);
 
     /// Create slab that is 10 cm long and have nodes at every 1 cm
     TestHelper::SlabBuilder(multiDomain)

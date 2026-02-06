@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "HygroThermFEM2D.hxx"
+#include "TestMaterials.hxx"
 
 using HygroThermFEM::Nodes;
 using HygroThermFEM::State;
@@ -51,21 +52,11 @@ TEST(SteadyState_2D_1, TestExample_1)
         .liquidPercent = liquidPercent
     }});
 
-    // Material Properties (using C++20 designated initializers)
-    const auto & material = multiDomain.materials().createSolidMaterial({
-        .name = "Test Material",
-        .thermalConductivityDry = 1.0,
-        .density = 2050.0,
-        .porosity = 0.18,
-        .heatCapacity = 850.0,
-        .diffusionResistanceFactor = 15.0,
-        .thermalConductivityMoistureDependent = {{0.0, 1.0}, {180, 1.0}},
-        .moistureDependentMeasurementTemperature = 0.0,
-        .thermalConductivityTemperatureDependent = {{0.0, 1.0}, {1, 1.0}},
-        .temperatureDependentMeasurementHumidity = 0.0,
-        .liquidTransportCurve = {{0, 0}, {180, 7E-7}},
-        .sorptionCurve = {{0, 0}, {1, 180}}
-    });
+    auto params = TestHelper::TestMaterial();
+    params.porosity = 0.18;
+    params.liquidTransportCurve = {{0, 0}, {180, 7E-7}};
+    params.sorptionCurve = {{0, 0}, {1, 180}};
+    const auto & material = multiDomain.materials().createSolidMaterial(params);
 
     multiDomain.createElement({.node1 = 3, .node2 = 4, .node3 = 2, .node4 = 1, .material = material.name()});
     multiDomain.createElement({.node1 = 6, .node2 = 4, .node3 = 3, .node4 = 5, .material = material.name()});
