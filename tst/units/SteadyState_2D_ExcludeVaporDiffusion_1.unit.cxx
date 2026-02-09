@@ -20,11 +20,11 @@ protected:
 
 TEST_F(SteadyState_2D_ExcludeVaporDiffusion_1, TestExample_1)
 {
-    const auto excludeWaterLiquidTransportation{false};
-    const auto excludeHeatOfEvaporation{false};
-    const auto excludeCapillaryConduction{false};
-    const auto excludeVaporDiffusionConduction{true};
-    const auto thermalConductivityMoistureAndTemperatureDependent{false};
+    constexpr auto excludeWaterLiquidTransportation{false};
+    constexpr auto excludeHeatOfEvaporation{false};
+    constexpr auto excludeCapillaryConduction{false};
+    constexpr auto excludeVaporDiffusionConduction{true};
+    constexpr auto thermalConductivityMoistureAndTemperatureDependent{false};
 
     SimulationProperties::Instance().setCalculationParameters(
       excludeWaterLiquidTransportation,
@@ -33,8 +33,8 @@ TEST_F(SteadyState_2D_ExcludeVaporDiffusion_1, TestExample_1)
       excludeVaporDiffusionConduction,
       thermalConductivityMoistureAndTemperatureDependent);
 
-    const double initialTemperature = 21.0;
-    const double initialPressure = 101325.0;
+    constexpr double initialTemperature = 21.0;
+    constexpr double initialPressure = 101325.0;
     constexpr auto liquidPercent = 1.0;
 
     HygroThermFEM::MultiDomain multiDomain({.performThermal = true, .performMoisture = true});
@@ -86,12 +86,12 @@ TEST_F(SteadyState_2D_ExcludeVaporDiffusion_1, TestExample_1)
     multiDomain.createElement({.node1 = 6, .node2 = 4, .node3 = 3, .node4 = 5, .material = material.name()});
 
     // Create Boundary Conditions
-    const auto hc1 = 1e20;
+    constexpr auto hc1 = 1e20;
     constexpr auto humidity1 = 0.8;
     constexpr auto temperatureAir1 = 0.0;
     const HygroThermFEM::FixedBCHCCoefficients bcCoeff1{temperatureAir1, hc1, humidity1};
 
-    const auto hc2 = 1e20;
+    constexpr auto hc2 = 1e20;
     constexpr auto humidity2 = 0.0;
     constexpr auto temperatureAir2 = 20.0;
     const HygroThermFEM::FixedBCHCCoefficients bcCoeff2{temperatureAir2, hc2, humidity2};

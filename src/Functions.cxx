@@ -19,7 +19,7 @@ namespace HygroThermFEM
     double saturationConcentrationAtTemperature(const double t_temperature)
     {
         // RT/M for water vapor
-        const auto gasConstantForWaterVapor = 461.4;
+        constexpr auto gasConstantForWaterVapor = 461.4;
         return vaporPressureAtTemperature(t_temperature)
                / ((t_temperature + 273.15) * gasConstantForWaterVapor);
     }

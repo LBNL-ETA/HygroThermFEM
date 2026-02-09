@@ -265,9 +265,9 @@ namespace HygroThermFEM
             }
 
             // Extrapolate flux from Gauss points to nodes.
-            const auto extrapolationCoeffA = 1.866025404;
-            const auto extrapolationCoeffB = -0.5;
-            const auto extrapolationCoeffC = 0.133974596;
+            constexpr auto extrapolationCoeffA = 1.866025404;
+            constexpr auto extrapolationCoeffB = -0.5;
+            constexpr auto extrapolationCoeffC = 0.133974596;
             const std::vector<std::vector<double>> extrapolationCoefficients{
               {extrapolationCoeffA, extrapolationCoeffB, extrapolationCoeffC, extrapolationCoeffB},
               {extrapolationCoeffB, extrapolationCoeffA, extrapolationCoeffB, extrapolationCoeffC},

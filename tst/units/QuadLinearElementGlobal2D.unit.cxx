@@ -23,7 +23,7 @@ TEST(TestQuadLinearElementGlobal2D, TestIntegrationPoint1)
     /////////////////////////////////////////////////////////
     ///    Integration Point 1
     /////////////////////////////////////////////////////////
-    const size_t intPointIndex1 = 0;
+    constexpr size_t intPointIndex1 = 0;
     auto xg = aElement.xg(intPointIndex1);
     auto yg = aElement.yg(intPointIndex1);
 
@@ -53,7 +53,7 @@ TEST(TestQuadLinearElementGlobal2D, TestIntegrationPoint1)
     /////////////////////////////////////////////////////////
     ///    Integration Point 2
     /////////////////////////////////////////////////////////
-    const size_t intPointIndex2 = 1;
+    constexpr size_t intPointIndex2 = 1;
     xg = aElement.xg(intPointIndex2);
     yg = aElement.yg(intPointIndex2);
 
@@ -83,7 +83,7 @@ TEST(TestQuadLinearElementGlobal2D, TestIntegrationPoint1)
     /////////////////////////////////////////////////////////
     ///    Integration Point 3
     /////////////////////////////////////////////////////////
-    const size_t intPointIndex3 = 2;
+    constexpr size_t intPointIndex3 = 2;
     xg = aElement.xg(intPointIndex3);
     yg = aElement.yg(intPointIndex3);
 
@@ -113,7 +113,7 @@ TEST(TestQuadLinearElementGlobal2D, TestIntegrationPoint1)
     /////////////////////////////////////////////////////////
     ///    Integration Point 4
     /////////////////////////////////////////////////////////
-    const size_t intPointIndex4 = 3;
+    constexpr size_t intPointIndex4 = 3;
     xg = aElement.xg(intPointIndex4);
     yg = aElement.yg(intPointIndex4);
 

@@ -64,7 +64,7 @@ namespace HygroThermFEM
 
     std::vector<double> TARPFilmCoefficient::convectiveCoefficients() const
     {
-        const auto minimumConvectionCoefficient = 3.0;
+        constexpr auto minimumConvectionCoefficient = 3.0;
         std::vector<double> result;
         for(const auto & temperature : m_Nodes.properties(Variable::temperature))
         {

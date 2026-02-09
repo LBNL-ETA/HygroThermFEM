@@ -23,9 +23,9 @@ TEST(MultiDomain_2D_1, TestExample_1)
 
     std::vector<double> gridXCoordinates{0, 0.05, 0.1};
 
-    const double initialTemperature = 20.0;
-    const double initialMoistureContent = 0.0;
-    const double initialPressure = 101325.0;
+    constexpr double initialTemperature = 20.0;
+    constexpr double initialMoistureContent = 0.0;
+    constexpr double initialPressure = 101325.0;
 
     auto tVal = 0.0;
     auto deltaT = 10.0;
@@ -139,9 +139,9 @@ TEST(MultiDomain_2D_1, TestExample_1_Repeat)
 
     std::vector<double> gridXCoordinates{0, 0.05, 0.1};
 
-    const double initialTemperature = 20.0;
-    const double initialMoistureContent = 0.0;
-    const double initialPressure = 101325.0;
+    constexpr double initialTemperature = 20.0;
+    constexpr double initialMoistureContent = 0.0;
+    constexpr double initialPressure = 101325.0;
 
     auto tVal = 0.0;
     auto deltaT = 10.0;

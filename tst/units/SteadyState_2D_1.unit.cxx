@@ -8,8 +8,8 @@ using HygroThermFEM::State;
 
 TEST(SteadyState_2D_1, TestExample_1)
 {
-    const double initialTemperature = 21.0;
-    const double initialPressure = 101325.0;
+    constexpr double initialTemperature = 21.0;
+    constexpr double initialPressure = 101325.0;
     constexpr auto liquidPercent = 1.0;
 
     HygroThermFEM::MultiDomain multiDomain({.performThermal = true, .performMoisture = false});
@@ -63,7 +63,7 @@ TEST(SteadyState_2D_1, TestExample_1)
 
     // Create Boundary Conditions
     // constexpr auto hc1 = 20.0;
-    const auto hc1 = 1e20;
+    constexpr auto hc1 = 1e20;
     constexpr auto humidity1 = 0.0;
     // constexpr auto temperatureAir1 = -18.0;
     constexpr auto temperatureAir1 = 0.0;
@@ -71,7 +71,7 @@ TEST(SteadyState_2D_1, TestExample_1)
     const HygroThermFEM::FixedBCHCCoefficients bcCoeff1{temperatureAir1, hc1, humidity1};
 
     // constexpr auto hc2 = 2.4;
-    const auto hc2 = 1e20;
+    constexpr auto hc2 = 1e20;
     constexpr auto humidity2 = 1.0;
     constexpr auto temperatureAir2 = 20.0;
 

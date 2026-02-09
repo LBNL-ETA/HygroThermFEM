@@ -13,9 +13,9 @@ class MultiDomain_2D_ThermalConductivityDependent_1 : public testing::Test
 protected:
     void SetUp() override
     {
-        const auto relaxationParameter{0.8};
-        const auto errorTolerance{1e-5};
-        const auto numberOfIterations{20u};
+        constexpr auto relaxationParameter{0.8};
+        constexpr auto errorTolerance{1e-5};
+        constexpr auto numberOfIterations{20u};
         SimulationProperties::Instance().setIterationParameters(
           relaxationParameter, errorTolerance, numberOfIterations);
     }
@@ -28,11 +28,11 @@ protected:
 
 TEST_F(MultiDomain_2D_ThermalConductivityDependent_1, TestExample_1)
 {
-    const auto excludeWaterLiquidTransportation{false};
-    const auto excludeHeatOfEvaporation{false};
-    const auto excludeCapillaryConduction{false};
-    const auto excludeVaporDiffusionConduction{false};
-    const auto thermalConductivityMoistureAndTemperatureDependent{true};
+    constexpr auto excludeWaterLiquidTransportation{false};
+    constexpr auto excludeHeatOfEvaporation{false};
+    constexpr auto excludeCapillaryConduction{false};
+    constexpr auto excludeVaporDiffusionConduction{false};
+    constexpr auto thermalConductivityMoistureAndTemperatureDependent{true};
 
     SimulationProperties::Instance().setCalculationParameters(
       excludeWaterLiquidTransportation,
