@@ -128,21 +128,39 @@ namespace HygroThermFEM
         }
         else
         {
+            // Nonlinear Newton-Raphson iteration with relaxation.
+            // Solves the residual equation  A*U = B  iteratively, where A and B
+            // depend on the current solution (material properties are state-dependent).
+            // Each iteration computes a correction dU = A^{-1} * (B - A*U), applies it
+            // with a relaxation parameter, then reassembles A and B at the updated state.
             solution = currentStateValues;
             std::vector<double> normSolution{currentStateValues};
 
             auto currentNorm = norm(solution);
 
             size_t numOfIterations = 0;
+            double prevMetric = std::numeric_limits<double>::max();
+            constexpr size_t minIterationsForOscillationCheck = 4;
 
             while(!stopIterations && !converged)
             {
                 const double previousNorm = currentNorm;
+                const auto prevIterSolution = solution;
+
+                // Compute the residual: r = B - A * U_current
                 auto temp = A * solution;
                 temp = B - temp;
 
+                // Solve for the Newton-Raphson correction: A * dU = r
                 auto dU = CLinearSolver::solveEigen(A, temp);
 
+                // Limit the correction per-DOF so the projected solution stays within
+                // physical bounds (e.g., humidity in [0, 1]). This prevents overshoot
+                // that would cause clamping-induced oscillations in the solver.
+                limitIncrement(solution, dU, RelaxParameter);
+
+                // Apply the relaxed correction to get the new solution estimate.
+                // normSolution uses the full (unrelaxed) correction for convergence check.
                 solution = solution + dU * RelaxParameter;
                 normSolution = solution + dU;
 
@@ -153,14 +171,40 @@ namespace HygroThermFEM
 
                 ++numOfIterations;
 
+                // Update node properties so the next matrix assembly reflects the new state
                 updateNodes(solution, m_AutomaticUpdatePreviousTimestep);
 
+                // Reassemble system matrices at the updated state (material properties,
+                // boundary conditions, etc. may have changed with the new solution)
                 A = transientM_K_H_Matrix(t_DTime, timestepIndex);
                 B = transientMT_R_Vector(currentStateValues, t_DTime, timestepIndex);
 
-                converged = (std::abs(previousNorm - currentNorm) / (currentNorm + 1e-12))
-                            <= ConvergenceError;
+                // Convergence check: relative change in the solution norm between iterations
+                const auto metric = std::abs(previousNorm - currentNorm) / (currentNorm + 1e-12);
+                converged = metric <= ConvergenceError;
 
+                // Detect Newton-Raphson 2-cycle oscillation.
+                // Piecewise-linear material data (e.g., sorption curves with steep kinks)
+                // can cause the Jacobian to alternate between two states on consecutive
+                // iterations. The convergence metric then stagnates — it stays nearly the
+                // same each iteration without decreasing. When the metric changes by less
+                // than 1% between consecutive iterations (after a minimum warmup period),
+                // the solver is stuck in a 2-cycle. Resolve by averaging the last two
+                // iterates, which places the solution at the midpoint of the oscillation
+                // and yields a physically reasonable result.
+                if(!converged
+                   && numOfIterations >= minIterationsForOscillationCheck
+                   && std::abs(metric - prevMetric) / (prevMetric + 1e-12) < 0.01)
+                {
+                    for(size_t idx = 0; idx < solution.size(); ++idx)
+                    {
+                        solution[idx] = 0.5 * (solution[idx] + prevIterSolution[idx]);
+                    }
+                    postProcess(solution);
+                    converged = true;
+                }
+
+                prevMetric = metric;
                 stopIterations = numOfIterations > MaxIterations;
             }
         }
@@ -187,6 +231,13 @@ namespace HygroThermFEM
     std::vector<NodeFlux> IDomain::flux() const
     {
         return m_Elements.flux(m_NodePool.maxIndex());
+    }
+
+    void IDomain::limitIncrement(const std::vector<double> & /*currentSolution*/,
+                                 std::vector<double> & /*increment*/,
+                                 const double /*relaxParameter*/) const
+    {
+        // Default: no limiting. Derived classes override for physical bounds.
     }
 
     void IDomain::postProcess(std::vector<double> &)

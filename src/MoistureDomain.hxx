@@ -163,6 +163,9 @@ namespace HygroThermFEM
 
     protected:
         void postProcess(std::vector<double> & solution) override;
+        void limitIncrement(const std::vector<double> & currentSolution,
+                            std::vector<double> & increment,
+                            double relaxParameter) const override;
         void updateNodes(const std::vector<double> & solution,
                          bool updatePreviousTimestep) override;
     };

@@ -41,13 +41,22 @@ namespace HygroThermFEM
 
         size_t currentIteration{0};
 
-        // Note that temperature and humidity are solved separately first and then updated with new
-        // data for next iteration.
+        // Staggered coupling loop for the hygrothermal problem.
+        // The thermal and moisture domains are solved in a partitioned (staggered) scheme:
+        // each domain is solved independently, then the cross-domain data is exchanged
+        // (temperature affects moisture transport coefficients, humidity affects thermal
+        // conductivity). The outer do-while loop repeats until BOTH domains have converged,
+        // ensuring the coupled solution is self-consistent.
         do
         {
+            // Inner loop: solve each domain individually until both converge or the
+            // iteration limit is reached. Uses && (both must converge) because this
+            // inner loop only checks single-domain convergence without cross-coupling
+            // updates — once either domain stalls, further inner iterations are wasteful
+            // and the outer loop handles the coupling exchange.
             size_t localIterCounter{0};
-            while(humidityError > ConvergenceError && localIterCounter <= MaxIterations
-                  && temperatureError > ConvergenceError && localIterCounter <= MaxIterations)
+            while(humidityError > ConvergenceError && temperatureError > ConvergenceError
+                  && localIterCounter <= MaxIterations)
             {
                 if(m_SimulateMoisture)
                 {
@@ -74,7 +83,10 @@ namespace HygroThermFEM
                 }
             }
 
-
+            // Cross-coupling exchange: feed the latest temperature into the moisture
+            // domain and the latest humidity into the thermal domain, then re-solve
+            // each domain one more time. This captures the inter-domain coupling
+            // effects that the inner loop ignores.
             if(m_SimulateMoisture)
             {
                 m_Nodes.updateNodeTemperatures(temperatureSolution.solution, false);
@@ -93,9 +105,10 @@ namespace HygroThermFEM
 
             ++currentIteration;
         }
-
-        while((temperatureError > ConvergenceError && humidityError > ConvergenceError)
-              || currentIteration > MaxIterations);
+        // Outer loop continues until BOTH domains have converged (||), with an iteration
+        // guard to prevent infinite looping if the coupled system does not stabilize.
+        while((temperatureError > ConvergenceError || humidityError > ConvergenceError)
+              && currentIteration < MaxIterations);
 
         m_Nodes.updateNodeTemperatures(temperatureSolution.solution, true);
         m_Nodes.updateNodeHumidities(humiditySolution.solution, true);
@@ -135,6 +148,9 @@ namespace HygroThermFEM
         auto previousHumidity = humidity;
         auto temperature = m_Nodes.properties(Variable::temperature);
         auto previousTemperature = temperature;
+        // Steady-state coupling loop: alternately solve moisture and thermal domains,
+        // exchanging cross-domain data after each solve, until both domains converge.
+        // Uses || (either unconverged) so the loop only exits when both are satisfied.
         do
         {
             if(m_SimulateMoisture)
@@ -160,8 +176,8 @@ namespace HygroThermFEM
                 temperatureError = 0;
             }
             ++currentIteration;
-        } while(temperatureError > ConvergenceError || humidityError > ConvergenceError
-                || currentIteration > MaxIterations);
+        } while((temperatureError > ConvergenceError || humidityError > ConvergenceError)
+                && currentIteration < MaxIterations);
 
         m_Nodes.updateNodeHumidities(humidity, true);
         m_Nodes.updateNodeTemperatures(temperature, true);

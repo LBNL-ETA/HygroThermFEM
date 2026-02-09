@@ -106,6 +106,12 @@ namespace HygroThermFEM
         //! solution can achieve such state and post processing should prevent it.
         virtual void postProcess(std::vector<double> & solution);
 
+        //! Limits Newton-Raphson increment per DOF so the projected solution
+        //! stays within physical bounds. Called before applying dU.
+        virtual void limitIncrement(const std::vector<double> & currentSolution,
+                                    std::vector<double> & increment,
+                                    double relaxParameter) const;
+
         //! \brief Calling timestep calculations
         //! @param currentStateValues Current state values from previous timestep
         //! @param t_DTime Time different for between timesteps

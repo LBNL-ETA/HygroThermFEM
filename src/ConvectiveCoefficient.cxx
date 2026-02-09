@@ -19,18 +19,29 @@ namespace HygroThermFEM
 
     std::vector<double> IConvectiveCoefficient::waterVaporTransferCoefficient() const
     {
+        const double betaValue = 1.0 / (Constants::Cp_Air * Constants::Density_Air);
+
+        // Smooth transition width for tapering beta near saturation (RH = 1.0).
+        // Without smoothing, beta drops from full value to zero in a hard step at RH = 1.0,
+        // which creates a discontinuity in the Jacobian. During Newton-Raphson iteration the
+        // solution can oscillate across that discontinuity: one iterate pushes RH slightly
+        // above 1.0 (beta = 0, no vapor transfer), the next iterate pulls it back below 1.0
+        // (beta restored, vapor transfer resumes), and so on.
+        // A linear ramp over the interval [1.0, 1.0 + transitionWidth] eliminates the
+        // discontinuity and allows the solver to converge smoothly near saturation.
+        constexpr double transitionWidth = 0.01;
+
         std::vector<double> beta(m_Nodes.size(), 0);
         for(std::size_t j = 0; j < numOfBCNodes; ++j)
         {
             const double humidity = m_Nodes[j].property(Variable::humidity);
-            if(humidity <= 1)
-            {
-                beta[j] = 1 / (Constants::Cp_Air * Constants::Density_Air);
-            }
-            else
-            {
-                beta[j] = 0;
-            }
+
+            // smoothFactor = 1.0 when humidity <= 1.0 (full vapor transfer),
+            // linearly ramps to 0.0 at humidity = 1.0 + transitionWidth,
+            // and stays 0.0 beyond (supersaturation — no vapor transfer).
+            const double smoothFactor =
+                std::max(0.0, std::min(1.0, (1.0 + transitionWidth - humidity) / transitionWidth));
+            beta[j] = betaValue * smoothFactor;
         }
 
         return convectiveCoefficients() * beta;

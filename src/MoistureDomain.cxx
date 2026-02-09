@@ -194,6 +194,29 @@ namespace HygroThermFEM
         m_NodePool.updateNodeHumidities(solution, updatePreviousTimestep);
     }
 
+    void MoistureDomain::limitIncrement(const std::vector<double> & currentSolution,
+                                        std::vector<double> & increment,
+                                        const double relaxParameter) const
+    {
+        // Clamp the Newton-Raphson correction per DOF so that the projected humidity
+        // (currentSolution + increment * relaxParameter) stays within the physical
+        // range [0, 1]. This is done BEFORE applying the correction to the solution,
+        // which keeps the system matrices consistent with the constrained state and
+        // avoids the oscillation that post-process clamping would cause.
+        for(size_t idx = 0; idx < currentSolution.size(); ++idx)
+        {
+            const double projected = currentSolution[idx] + increment[idx] * relaxParameter;
+            if(projected > 1.0)
+            {
+                increment[idx] = (1.0 - currentSolution[idx]) / relaxParameter;
+            }
+            else if(projected < 0.0)
+            {
+                increment[idx] = -currentSolution[idx] / relaxParameter;
+            }
+        }
+    }
+
     void MoistureDomain::postProcess(std::vector<double> & solution)
     {
         IDomain::postProcess(solution);
