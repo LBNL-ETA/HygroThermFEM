@@ -41,17 +41,11 @@ TEST_F(MultiDomain_2D_NoMoistureStorageFunction, TestExample_1)
     // transportation
     auto params = TestHelper::CottaerSandstone();
     params.name = "No liquid or vapor transport curves";
-    // Zero out moisture storage and liquid transport. The sorption curve returns
-    // zero water content at all humidities, so max water content = 0.
-    // The material validation requires that the thermal conductivity moisture-
-    // dependent curve and liquid transport curve have their max water content
-    // (x-axis) equal to the sorption curve's max water content (y-axis).
-    // Single-point curves get auto-expanded by TabularFunction1D (adds x+1),
-    // so we use explicit two-point curves to prevent expansion and keep all
-    // max water content values consistently at zero.
+    // Sorption curve maps humidity (x) to water content (y). Zero water content
+    // at all humidities requires an x-range covering the humidity domain [0, 1].
     params.sorptionCurve = {{0, 0}, {1, 0}};
-    params.liquidTransportCurve = {{0, 0}, {0, 0}};
-    params.thermalConductivityMoistureDependent = {{0, 1.8}, {0, 1.8}};
+    params.liquidTransportCurve = {{0, 0}};
+    params.thermalConductivityMoistureDependent = {{0, 1.8}};
     const auto & material = multiDomain.materials().createSolidMaterial(params);
 
     constexpr HygroThermFEM::State state({

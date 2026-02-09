@@ -172,9 +172,7 @@ namespace HygroThermFEM
     {
         if(m_Curve.size() == 1u)
         {
-            auto point = m_Curve[0];
-            point += FenestrationCommon::point(1, 0);
-            m_Curve.emplace_back(point);
+            m_Curve.emplace_back(m_Curve[0]);
         }
     }
 
