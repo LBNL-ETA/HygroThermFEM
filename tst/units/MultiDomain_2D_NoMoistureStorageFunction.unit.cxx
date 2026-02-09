@@ -22,11 +22,11 @@ protected:
 
 TEST_F(MultiDomain_2D_NoMoistureStorageFunction, TestExample_1)
 {
-    const auto excludeWaterLiquidTransportation{false};
-    const auto excludeHeatOfEvaporation{false};
-    const auto excludeCapillaryConduction{false};
-    const auto excludeVaporDiffusionConduction{false};
-    const auto thermalConductivityMoistureAndTemperatureDependent{false};
+    constexpr auto excludeWaterLiquidTransportation{false};
+    constexpr auto excludeHeatOfEvaporation{false};
+    constexpr auto excludeCapillaryConduction{false};
+    constexpr auto excludeVaporDiffusionConduction{false};
+    constexpr auto thermalConductivityMoistureAndTemperatureDependent{false};
 
     SimulationProperties::Instance().setCalculationParameters(
       excludeWaterLiquidTransportation,
@@ -41,8 +41,17 @@ TEST_F(MultiDomain_2D_NoMoistureStorageFunction, TestExample_1)
     // transportation
     auto params = TestHelper::CottaerSandstone();
     params.name = "No liquid or vapor transport curves";
-    params.liquidTransportCurve = {{0, 0}};
-    params.sorptionCurve = {{0, 0}};
+    // Zero out moisture storage and liquid transport. The sorption curve returns
+    // zero water content at all humidities, so max water content = 0.
+    // The material validation requires that the thermal conductivity moisture-
+    // dependent curve and liquid transport curve have their max water content
+    // (x-axis) equal to the sorption curve's max water content (y-axis).
+    // Single-point curves get auto-expanded by TabularFunction1D (adds x+1),
+    // so we use explicit two-point curves to prevent expansion and keep all
+    // max water content values consistently at zero.
+    params.sorptionCurve = {{0, 0}, {1, 0}};
+    params.liquidTransportCurve = {{0, 0}, {0, 0}};
+    params.thermalConductivityMoistureDependent = {{0, 1.8}, {0, 1.8}};
     const auto & material = multiDomain.materials().createSolidMaterial(params);
 
     constexpr HygroThermFEM::State state({
