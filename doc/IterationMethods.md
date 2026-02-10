@@ -68,7 +68,7 @@ Input:  T_0 = initial temperature, H_0 = initial humidity
             - Solve moisture domain -> H_new
             - Solve thermal domain  -> T_new
             - Repeat until both domain errors < tolerance
-              OR 2-cycle stall detected (see Section 3.2)
+              OR inner iteration limit reached
 
       b.  Cross-coupling exchange:
             - Update node temperatures with T_new
@@ -83,25 +83,13 @@ Input:  T_0 = initial temperature, H_0 = initial humidity
 
 The inner loop uses `AND` for its convergence check (exits when either domain converges, since further uncoupled iteration is wasteful). The outer loop uses `OR` (continues until **both** domains have converged), ensuring the coupled solution is self-consistent.
 
-### 3.2 Inner Loop 2-Cycle Stall Detection
+### 3.2 Inner Loop Iteration Cap
 
-In strongly coupled problems near material saturation (e.g., humidity close to 1.0 at elevated temperatures), piecewise-linear material data causes the inner loop's Gauss-Seidel iteration to oscillate between two states on consecutive iterations — a "2-cycle". The coupling error alternates high/low without decreasing, so neither domain converges individually and the `AND` exit condition is never satisfied.
+The inner loop uses a separate, smaller iteration limit (`maxInnerIterations = 12`) rather than the global `MaxIterations` (50). This prevents the inner loop from running excessive Gauss-Seidel cycles when neither domain converges on its own — a situation that arises in strongly coupled problems near material saturation (e.g., humidity close to 1.0 at elevated temperatures).
 
-Rather than using a fixed iteration cap (which would starve larger models that need more inner iterations to converge), the inner loop uses **adaptive 2-cycle stall detection**. After a warmup period of 12 iterations, the solver compares the current max coupling error with the error from 2 iterations ago (the same phase of any oscillation cycle):
+In such cases the inner loop's alternating moisture-thermal solves make slow progress because the domains cannot individually converge without cross-domain data exchange. The outer loop's explicit cross-coupling exchange (step 1b) is more effective at driving coupling convergence. Capping the inner loop at 12 iterations (6 moisture + 6 thermal cycles) and relying on the outer loop for coupling convergence reduces redundant work while preserving solution accuracy.
 
-```
-maxErr = max(humidityError, temperatureError)
-
-if innerIterCount >= 12
-   AND |maxErr - maxErr_{k-2}| / maxErr_{k-2} < 0.01:
-       exit inner loop
-```
-
-When the same-phase error has changed by less than 1%, the inner loop is stuck in a 2-cycle and further iterations are wasteful. The loop exits and lets the outer loop's cross-coupling exchange (step 1b) drive convergence.
-
-This approach is adaptive:
-- **Non-stalling problems**: errors decrease iteration to iteration, so the stall condition is never triggered and the loop runs to convergence via the `AND` exit condition — identical to having no cap at all.
-- **2-cycling problems**: the stall is detected after the warmup period and the loop exits, avoiding infinite iteration while preserving enough inner iterations for the solution state to develop.
+For non-extreme conditions, one domain typically converges within a few inner iterations via the `AND` exit condition, so the cap is never reached.
 
 ### 3.3 Steady-State Coupling
 
@@ -196,8 +184,7 @@ With default settings (3 levels, 10 subdivisions per level), the solver can atte
 | Relaxation parameter | 1.0 | NR under-relaxation factor (omega) |
 | Error tolerance | 1e-5 | Convergence threshold for relative norm change |
 | Max iterations | 50 | Maximum NR iterations per timestep; also outer coupling loop limit |
-| Inner stall warmup | 12 | Minimum inner iterations before 2-cycle stall detection activates (see Section 3.2) |
-| Inner stall threshold | 0.01 | Relative same-phase error change below which inner loop 2-cycle is detected |
+| Max inner iterations | 12 | Inner coupling loop iteration cap (see Section 3.2) |
 | Max division levels | 3 | Maximum timestep subdivision depth |
 | Subdivisions per level | 10 | Number of sub-timesteps per subdivision |
 | Oscillation check threshold | 0.01 | Relative metric change below which 2-cycle is detected |

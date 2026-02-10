@@ -405,10 +405,10 @@ TEST(MultiDomain_HighHumidity, ExtremeHumidityAndTemperature)
     // Checking number of iterations within subiterations
 
     auto lvlOneMoisture = progressMoisture.getLevelOne();
-    EXPECT_EQ(lvlOneMoisture, 650u);
+    EXPECT_EQ(lvlOneMoisture, 400u);
 
     auto lvlTwoMoisture = progressMoisture.getLevelTwo();
-    EXPECT_EQ(lvlTwoMoisture, 65000u);
+    EXPECT_EQ(lvlTwoMoisture, 40000u);
 
     auto lvlThreeMoisture = progressMoisture.getLevelThree();
     EXPECT_EQ(lvlThreeMoisture, 0u);
