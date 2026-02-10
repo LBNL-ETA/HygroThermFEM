@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <cmath>
 #include <limits>
 #include <utility>
@@ -49,22 +50,31 @@ namespace HygroThermFEM
         // ensuring the coupled solution is self-consistent.
         do
         {
-            // Inner loop: solve each domain individually until both converge or the
-            // iteration limit is reached. Uses && (both must converge) because this
-            // inner loop only checks single-domain convergence without cross-coupling
-            // updates — once either domain stalls, further inner iterations are wasteful
-            // and the outer loop handles the coupling exchange.
-            size_t localIterCounter{0};
-            constexpr size_t maxInnerIterations = 12;
-            while(humidityError > ConvergenceError && temperatureError > ConvergenceError
-                  && localIterCounter <= maxInnerIterations)
+            // Inner loop: solve each domain individually until one converges.
+            // Uses && so the loop exits once either domain's error drops below
+            // tolerance — further single-domain iteration without cross-coupling
+            // data exchange is wasteful.
+            //
+            // 2-cycle stall detection: in strongly coupled problems (e.g., humidity
+            // near saturation at elevated temperature), piecewise-linear material
+            // data causes the Gauss-Seidel iteration to oscillate between two states.
+            // The error alternates high/low on consecutive iterations without decreasing.
+            // Compare with 2 iterations ago (same phase of the cycle) to detect this
+            // pattern, then exit and let the outer loop's cross-coupling exchange
+            // drive convergence.
+            size_t innerIterCount{0};
+            double prevMaxError = std::numeric_limits<double>::max();
+            double prevPrevMaxError = std::numeric_limits<double>::max();
+            constexpr size_t minInnerItersForStall = 12;
+            constexpr double innerStallThreshold = 0.01;
+
+            while(humidityError > ConvergenceError && temperatureError > ConvergenceError)
             {
                 if(m_SimulateMoisture)
                 {
                     humiditySolution = m_MoistureDomain.transient(humidity, dTime, timestepIndex);
                     humidityError = normError(humiditySolution.solution, currentHumidity);
                     currentHumidity = humiditySolution.solution;
-                    ++localIterCounter;
                 }
                 else
                 {
@@ -76,12 +86,24 @@ namespace HygroThermFEM
                       m_ThermalDomain.transient(temperature, dTime, timestepIndex);
                     temperatureError = normError(temperatureSolution.solution, currentTemperature);
                     currentTemperature = temperatureSolution.solution;
-                    ++localIterCounter;
                 }
                 else
                 {
                     temperatureError = 0;
                 }
+
+                ++innerIterCount;
+                const double maxErr = std::max(humidityError, temperatureError);
+
+                if(innerIterCount >= minInnerItersForStall
+                   && std::abs(maxErr - prevPrevMaxError)
+                        / (prevPrevMaxError + 1e-12) < innerStallThreshold)
+                {
+                    break;
+                }
+
+                prevPrevMaxError = prevMaxError;
+                prevMaxError = maxErr;
             }
 
             // Cross-coupling exchange: feed the latest temperature into the moisture
