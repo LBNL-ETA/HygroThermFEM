@@ -49,22 +49,27 @@ namespace HygroThermFEM
         // ensuring the coupled solution is self-consistent.
         do
         {
-            // Inner loop: solve each domain individually until both converge or the
-            // iteration limit is reached. Uses && (both must converge) because this
-            // inner loop only checks single-domain convergence without cross-coupling
-            // updates — once either domain stalls, further inner iterations are wasteful
-            // and the outer loop handles the coupling exchange.
-            size_t localIterCounter{0};
+            // Inner loop: solve each domain individually until one converges.
+            // Uses && so the loop exits once either domain's error drops below
+            // tolerance — further single-domain iteration without cross-coupling
+            // data exchange is wasteful.
+            //
+            // Conditional cap: when the moisture domain is pinned at physical
+            // bounds (humidity = 0 or 1 at all nodes), neither domain can converge
+            // individually and the inner loop 2-cycles forever. In this case only,
+            // cap the inner iterations so the outer loop's cross-coupling exchange
+            // can drive convergence. For normal conditions the cap is inactive and
+            // the loop runs to convergence identically to having no limit.
+            size_t innerIterCount{0};
             constexpr size_t maxInnerIterations = 12;
-            while(humidityError > ConvergenceError && temperatureError > ConvergenceError
-                  && localIterCounter <= maxInnerIterations)
+
+            while(humidityError > ConvergenceError && temperatureError > ConvergenceError)
             {
                 if(m_SimulateMoisture)
                 {
                     humiditySolution = m_MoistureDomain.transient(humidity, dTime, timestepIndex);
                     humidityError = normError(humiditySolution.solution, currentHumidity);
                     currentHumidity = humiditySolution.solution;
-                    ++localIterCounter;
                 }
                 else
                 {
@@ -76,11 +81,18 @@ namespace HygroThermFEM
                       m_ThermalDomain.transient(temperature, dTime, timestepIndex);
                     temperatureError = normError(temperatureSolution.solution, currentTemperature);
                     currentTemperature = temperatureSolution.solution;
-                    ++localIterCounter;
                 }
                 else
                 {
                     temperatureError = 0;
+                }
+
+                ++innerIterCount;
+
+                if(m_MoistureDomain.lastSolveAtPhysicalBound()
+                   && innerIterCount >= maxInnerIterations)
+                {
+                    break;
                 }
             }
 
