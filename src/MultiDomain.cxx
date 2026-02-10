@@ -55,8 +55,9 @@ namespace HygroThermFEM
             // updates — once either domain stalls, further inner iterations are wasteful
             // and the outer loop handles the coupling exchange.
             size_t localIterCounter{0};
+            constexpr size_t maxInnerIterations = 12;
             while(humidityError > ConvergenceError && temperatureError > ConvergenceError
-                  && localIterCounter <= MaxIterations)
+                  && localIterCounter <= maxInnerIterations)
             {
                 if(m_SimulateMoisture)
                 {

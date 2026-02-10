@@ -36,13 +36,14 @@ Input:  U_0 = initial guess (previous timestep solution)
 2.  For k = 0, 1, 2, ...
       a.  Compute residual:        r = B - A * U_k
       b.  Solve for correction:    A * dU = r
-      c.  Limit increment:         clamp dU per DOF (see Section 4.1)
+      c.  Limit increment:         allClamped = clamp dU per DOF (see Section 4.1)
       d.  Apply relaxed update:    U_{k+1} = U_k + omega * dU
       e.  Post-process:            enforce physical bounds on U_{k+1}
       f.  Update node properties with U_{k+1}
       g.  Reassemble:              A(U_{k+1}), B(U_{k+1})
       h.  Check convergence:       metric = |norm(U_{k+1}) - norm(U_k)| / norm(U_{k+1})
       i.  If metric <= tol: converged, exit
+      i2. If allClamped: converged at physical bounds, exit (see Section 4.1)
       j.  If oscillation detected: apply midpoint averaging (see Section 4.2), exit
       k.  If k > MaxIterations: not converged, exit
 ```
@@ -67,6 +68,7 @@ Input:  T_0 = initial temperature, H_0 = initial humidity
             - Solve moisture domain -> H_new
             - Solve thermal domain  -> T_new
             - Repeat until both domain errors < tolerance
+              OR inner iteration limit reached
 
       b.  Cross-coupling exchange:
             - Update node temperatures with T_new
@@ -81,7 +83,15 @@ Input:  T_0 = initial temperature, H_0 = initial humidity
 
 The inner loop uses `AND` for its convergence check (exits when either domain converges, since further uncoupled iteration is wasteful). The outer loop uses `OR` (continues until **both** domains have converged), ensuring the coupled solution is self-consistent.
 
-### 3.2 Steady-State Coupling
+### 3.2 Inner Loop Iteration Cap
+
+The inner loop uses a separate, smaller iteration limit (`maxInnerIterations = 12`) rather than the global `MaxIterations` (50). This prevents the inner loop from running excessive Gauss-Seidel cycles when neither domain converges on its own — a situation that arises in strongly coupled problems near material saturation (e.g., humidity close to 1.0 at elevated temperatures).
+
+In such cases the inner loop's alternating moisture-thermal solves make slow progress because the domains cannot individually converge without cross-domain data exchange. The outer loop's explicit cross-coupling exchange (step 1b) is more effective at driving coupling convergence. Capping the inner loop at 12 iterations (6 moisture + 6 thermal cycles) and relying on the outer loop for coupling convergence reduces redundant work while preserving solution accuracy.
+
+For non-extreme conditions, one domain typically converges within a few inner iterations via the `AND` exit condition, so the cap is never reached.
+
+### 3.3 Steady-State Coupling
 
 The steady-state coupling follows a simpler pattern: alternately solve each domain and exchange data, repeating until both converge.
 
@@ -103,6 +113,8 @@ For each DOF i:
 ```
 
 This keeps the solution within physical bounds at every iteration while maintaining consistency between the solution state and the assembled system matrices.
+
+**Early convergence via saturation detection**: `limitIncrement` returns a boolean flag indicating whether **all** DOF corrections were clamped to effectively zero (absolute value below `1e-12`). When `allClamped` is true, the solution is pinned at physical bounds (e.g., humidity = 0 or 1 at every node) and no correction can improve it further. The NR loop treats this as converged immediately, avoiding unnecessary iterations when the solution is physically saturated. The base class (`IDomain`) returns `false` by default, so domains without physical bounds (e.g., thermal) are unaffected.
 
 ### 4.2 Oscillation Detection and Midpoint Averaging
 
@@ -171,9 +183,11 @@ With default settings (3 levels, 10 subdivisions per level), the solver can atte
 |-----------|---------|-------------|
 | Relaxation parameter | 1.0 | NR under-relaxation factor (omega) |
 | Error tolerance | 1e-5 | Convergence threshold for relative norm change |
-| Max iterations | 50 | Maximum NR iterations per timestep |
+| Max iterations | 50 | Maximum NR iterations per timestep; also outer coupling loop limit |
+| Max inner iterations | 12 | Inner coupling loop iteration cap (see Section 3.3) |
 | Max division levels | 3 | Maximum timestep subdivision depth |
 | Subdivisions per level | 10 | Number of sub-timesteps per subdivision |
 | Oscillation check threshold | 0.01 | Relative metric change below which 2-cycle is detected |
 | Min iterations for oscillation check | 4 | Warmup before oscillation detection activates |
+| Clamp tolerance | 1e-12 | Absolute increment below which a DOF is considered clamped |
 | Vapor transfer transition width | 0.01 | RH range over which beta tapers to zero |

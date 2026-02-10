@@ -194,7 +194,7 @@ namespace HygroThermFEM
         m_NodePool.updateNodeHumidities(solution, updatePreviousTimestep);
     }
 
-    void MoistureDomain::limitIncrement(const std::vector<double> & currentSolution,
+    bool MoistureDomain::limitIncrement(const std::vector<double> & currentSolution,
                                         std::vector<double> & increment,
                                         const double relaxParameter) const
     {
@@ -203,6 +203,9 @@ namespace HygroThermFEM
         // range [0, 1]. This is done BEFORE applying the correction to the solution,
         // which keeps the system matrices consistent with the constrained state and
         // avoids the oscillation that post-process clamping would cause.
+        constexpr double clampTolerance = 1e-12;
+        bool allClamped = true;
+
         for(size_t idx = 0; idx < currentSolution.size(); ++idx)
         {
             const double projected = currentSolution[idx] + increment[idx] * relaxParameter;
@@ -214,7 +217,14 @@ namespace HygroThermFEM
             {
                 increment[idx] = -currentSolution[idx] / relaxParameter;
             }
+
+            if(std::abs(increment[idx] * relaxParameter) > clampTolerance)
+            {
+                allClamped = false;
+            }
         }
+
+        return allClamped;
     }
 
     void MoistureDomain::postProcess(std::vector<double> & solution)

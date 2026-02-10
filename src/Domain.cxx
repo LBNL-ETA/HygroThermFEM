@@ -125,6 +125,7 @@ namespace HygroThermFEM
             solution = CLinearSolver::solveEigen(A, B);
             postProcess(solution);
             converged = true;
+            m_LastSolveAtPhysicalBound = false;
         }
         else
         {
@@ -141,6 +142,7 @@ namespace HygroThermFEM
             size_t numOfIterations = 0;
             double prevMetric = std::numeric_limits<double>::max();
             constexpr size_t minIterationsForOscillationCheck = 4;
+            bool lastIterAllClamped = false;
 
             while(!stopIterations && !converged)
             {
@@ -157,7 +159,7 @@ namespace HygroThermFEM
                 // Limit the correction per-DOF so the projected solution stays within
                 // physical bounds (e.g., humidity in [0, 1]). This prevents overshoot
                 // that would cause clamping-induced oscillations in the solver.
-                limitIncrement(solution, dU, RelaxParameter);
+                const bool allClamped = limitIncrement(solution, dU, RelaxParameter);
 
                 // Apply the relaxed correction to get the new solution estimate.
                 // normSolution uses the full (unrelaxed) correction for convergence check.
@@ -183,6 +185,13 @@ namespace HygroThermFEM
                 const auto metric = std::abs(previousNorm - currentNorm) / (currentNorm + 1e-12);
                 converged = metric <= ConvergenceError;
 
+                // If limitIncrement clamped ALL corrections to (near-)zero, the
+                // solution is pinned at physical bounds and cannot improve further.
+                if(!converged && allClamped)
+                {
+                    converged = true;
+                }
+
                 // Detect Newton-Raphson 2-cycle oscillation.
                 // Piecewise-linear material data (e.g., sorption curves with steep kinks)
                 // can cause the Jacobian to alternate between two states on consecutive
@@ -204,9 +213,12 @@ namespace HygroThermFEM
                     converged = true;
                 }
 
+                lastIterAllClamped = allClamped;
                 prevMetric = metric;
                 stopIterations = numOfIterations > MaxIterations;
             }
+
+            m_LastSolveAtPhysicalBound = converged && lastIterAllClamped;
         }
 
         updateNodes(solution, m_AutomaticUpdatePreviousTimestep);
@@ -233,11 +245,17 @@ namespace HygroThermFEM
         return m_Elements.flux(m_NodePool.maxIndex());
     }
 
-    void IDomain::limitIncrement(const std::vector<double> & /*currentSolution*/,
+    bool IDomain::lastSolveAtPhysicalBound() const
+    {
+        return m_LastSolveAtPhysicalBound;
+    }
+
+    bool IDomain::limitIncrement(const std::vector<double> & /*currentSolution*/,
                                  std::vector<double> & /*increment*/,
                                  const double /*relaxParameter*/) const
     {
         // Default: no limiting. Derived classes override for physical bounds.
+        return false;
     }
 
     void IDomain::postProcess(std::vector<double> &)

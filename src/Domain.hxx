@@ -108,7 +108,7 @@ namespace HygroThermFEM
 
         //! Limits Newton-Raphson increment per DOF so the projected solution
         //! stays within physical bounds. Called before applying dU.
-        virtual void limitIncrement(const std::vector<double> & currentSolution,
+        virtual bool limitIncrement(const std::vector<double> & currentSolution,
                                     std::vector<double> & increment,
                                     double relaxParameter) const;
 
@@ -140,6 +140,15 @@ namespace HygroThermFEM
         // This should be turned off if used in multidomain because previous timestep should
         // remain constant during iterations.
         bool m_AutomaticUpdatePreviousTimestep;
+
+        //! True when the last successful NR solve had all DOF corrections
+        //! clamped at physical bounds (e.g. humidity pinned at 0 or 1).
+        //! Indicates re-solving would produce the identical result.
+        bool m_LastSolveAtPhysicalBound{false};
+
+        //! Returns whether the last transient solve ended with all DOFs
+        //! clamped at physical bounds by limitIncrement.
+        [[nodiscard]] bool lastSolveAtPhysicalBound() const;
     };    
 
 }   // namespace HygroThermFEM
