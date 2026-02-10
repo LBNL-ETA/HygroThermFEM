@@ -293,3 +293,132 @@ TEST(MultiDomain_HighHumidity, HighHumidityAndTemperature)
     auto lvlThreeThermal = progressThermal.getLevelThree();
     EXPECT_EQ(lvlThreeThermal, 0u);
 }
+
+TEST(MultiDomain_HighHumidity, ExtremeHumidityAndTemperature)
+{
+    SCOPED_TRACE("Begin Test: Simple two elements example with moisture transfer.");
+
+    HygroThermFEM::MultiDomain multiDomain;
+
+    std::vector<double> gridXCoordinates{0.15, 0.05, 0.00};
+
+    constexpr HygroThermFEM::State state({
+        .temperature = 80.0,
+        .humidity = 0.9999,
+        .pressure = 101325.0,
+        .liquidPercent = 1.0
+    });
+
+    for(auto val : gridXCoordinates)
+    {
+        multiDomain.nodes().createNode({.x = val, .y = 0.05, .state = state});
+        multiDomain.nodes().createNode({.x = val, .y = 0.00, .state = state});
+    }
+
+    const auto & material =
+      multiDomain.materials().createSolidMaterial(TestHelper::CottaerSandstone());
+
+    ObserveSimulationProgress progressThermal;
+    multiDomain.subscribeThermal(&progressThermal);
+
+    ObserveSimulationProgress progressMoisture;
+    multiDomain.subscribeMoisture(&progressMoisture);
+
+    /// Create elements
+    for(size_t i = 1; i <= (multiDomain.nodes().maxIndex() - 2) / 2; ++i)
+    {
+        const auto node1 = 2u * i + 1u;
+        const auto node2 = 2u * i + 2u;
+        const auto node3 = 2u * i;
+        const auto node4 = 2u * i - 1u;
+        multiDomain.createElement({.node1 = node2,
+                                   .node2 = node3,
+                                   .node3 = node4,
+                                   .node4 = node1,
+                                   .material = material.name()});
+    }
+
+    // Create Boundary Conditions
+    constexpr auto hc = 10.0;
+    constexpr auto airTemperature = 20.0;
+    constexpr auto airHumidity = 1.0;
+
+    const HygroThermFEM::FixedBCHCCoefficients bcCoeff{airTemperature, hc, airHumidity};
+
+    multiDomain.createBC_FixedHc(5, 6, bcCoeff);
+
+    constexpr auto dTime = 3600;
+    constexpr auto nSteps = 2;
+
+    auto temperatures = multiDomain.nodes().properties(HygroThermFEM::Variable::temperature);
+    auto humidities = multiDomain.nodes().properties(HygroThermFEM::Variable::humidity);
+    std::vector<std::vector<double>> temperatureSolution;
+    std::vector<double> temperatureError;
+    std::vector<std::vector<double>> waterContentSolution;
+    std::vector<double> humidityError;
+    size_t timestepIndex{0};
+
+    for(auto i = 0; i < nSteps; ++i)
+    {
+        auto aSolution = multiDomain.transient(temperatures, humidities, dTime, timestepIndex);
+        temperatureSolution.push_back(aSolution.temperature);
+        temperatureError.push_back(aSolution.temperatureError);
+        waterContentSolution.push_back(aSolution.waterContent);
+        humidityError.push_back(aSolution.humidityError);
+        temperatures = aSolution.temperature;
+        humidities = aSolution.humidity;
+        ++timestepIndex;
+    }
+
+    const std::vector<double> correctHumidityError{1.315269e-02, 9.742288e-03};
+    const std::vector<std::vector<double>> correctWaterContentSolution{
+      {180.0, 180.0, 180.0, 180.0, 180.0, 180.0},
+      {180.0, 180.0, 180.0, 180.0, 180.0, 180.0}};
+
+    EXPECT_EQ(waterContentSolution.size(), correctWaterContentSolution.size());
+
+    for(auto i = 0u; i < waterContentSolution.size(); ++i)
+    {
+        EXPECT_NEAR(correctHumidityError[i], humidityError[i], 1e-4);
+        for(auto j = 0u; j < waterContentSolution[i].size(); ++j)
+        {
+            EXPECT_NEAR(correctWaterContentSolution[i][j], waterContentSolution[i][j], 1e-6);
+        }
+    }
+
+    const std::vector<double> correctTemperatureError{3.802498e-01, 3.575668e-01};
+    const std::vector<std::vector<double>> correctTemperatureSolution{
+      {79.623285, 79.623285, 78.584134, 78.584134, 75.135358, 75.135358},
+      {78.875799, 78.875799, 76.813892, 76.813892, 72.120589, 72.120589}};
+
+    EXPECT_EQ(temperatureSolution.size(), correctTemperatureSolution.size());
+
+    for(auto i = 0u; i < correctTemperatureSolution.size(); ++i)
+    {
+        EXPECT_NEAR(correctTemperatureError[i], temperatureError[i], 1e-1);
+        for(auto j = 0u; j < correctTemperatureSolution[i].size(); ++j)
+        {
+            EXPECT_NEAR(correctTemperatureSolution[i][j], temperatureSolution[i][j], 1.0);
+        }
+    }
+
+    // Checking number of iterations within subiterations
+
+    auto lvlOneMoisture = progressMoisture.getLevelOne();
+    EXPECT_EQ(lvlOneMoisture, 1350u);
+
+    auto lvlTwoMoisture = progressMoisture.getLevelTwo();
+    EXPECT_EQ(lvlTwoMoisture, 135000u);
+
+    auto lvlThreeMoisture = progressMoisture.getLevelThree();
+    EXPECT_EQ(lvlThreeMoisture, 0u);
+
+    auto lvlOneThermal = progressThermal.getLevelOne();
+    EXPECT_EQ(lvlOneThermal, 0u);
+
+    auto lvlTwoThermal = progressThermal.getLevelTwo();
+    EXPECT_EQ(lvlTwoThermal, 0u);
+
+    auto lvlThreeThermal = progressThermal.getLevelThree();
+    EXPECT_EQ(lvlThreeThermal, 0u);
+}
