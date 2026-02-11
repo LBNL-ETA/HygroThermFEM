@@ -97,6 +97,15 @@ namespace HygroThermFEM
             {
                 stateVariables = solution;
                 totalTime += currentDTime;
+
+                // When all DOFs are pinned at physical bounds the NR correction is
+                // zero.  Every subsequent sub-timestep would start from the same
+                // clamped state, assemble the same system, and produce the same
+                // zero correction — so we can skip straight to the end.
+                if(m_LastSolveAtPhysicalBound)
+                {
+                    totalTime = t_DTime;
+                }
             }
         }
 
@@ -142,7 +151,7 @@ namespace HygroThermFEM
             size_t numOfIterations = 0;
             double prevMetric = std::numeric_limits<double>::max();
             constexpr size_t minIterationsForOscillationCheck = 4;
-            bool lastIterAllClamped = false;
+            bool convergedViaClamp = false;
 
             while(!stopIterations && !converged)
             {
@@ -190,6 +199,7 @@ namespace HygroThermFEM
                 if(!converged && allClamped)
                 {
                     converged = true;
+                    convergedViaClamp = true;
                 }
 
                 // Detect Newton-Raphson 2-cycle oscillation.
@@ -213,12 +223,11 @@ namespace HygroThermFEM
                     converged = true;
                 }
 
-                lastIterAllClamped = allClamped;
                 prevMetric = metric;
                 stopIterations = numOfIterations > MaxIterations;
             }
 
-            m_LastSolveAtPhysicalBound = converged && lastIterAllClamped;
+            m_LastSolveAtPhysicalBound = convergedViaClamp;
         }
 
         updateNodes(solution, m_AutomaticUpdatePreviousTimestep);
