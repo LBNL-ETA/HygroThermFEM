@@ -138,11 +138,14 @@ namespace HygroThermFEM
         }
         else
         {
-            // Nonlinear Newton-Raphson iteration with relaxation.
-            // Solves the residual equation  A*U = B  iteratively, where A and B
-            // depend on the current solution (material properties are state-dependent).
-            // Each iteration computes a correction dU = A^{-1} * (B - A*U), applies it
-            // with a relaxation parameter, then reassembles A and B at the updated state.
+            // Nonlinear Newton-Raphson iteration with relaxation and adaptive
+            // damping.  Solves the residual equation  A*U = B  iteratively, where
+            // A and B depend on the current solution (material properties are
+            // state-dependent).  Each iteration computes a correction
+            // dU = A^{-1} * (B - A*U), applies it with a relaxation parameter, then
+            // reassembles A and B at the updated state.  When the raw correction
+            // norm grows between consecutive iterations (indicating the solver is
+            // diverging), the step size is scaled down to stabilise the iteration.
             solution = currentStateValues;
             std::vector<double> normSolution{currentStateValues};
 
@@ -152,6 +155,14 @@ namespace HygroThermFEM
             double prevMetric = std::numeric_limits<double>::max();
             constexpr size_t minIterationsForOscillationCheck = 4;
             bool convergedViaClamp = false;
+
+            // Adaptive damping state: track the raw correction norm across NR
+            // iterations to detect divergence.  Damping activates only after two
+            // consecutive iterations where the correction grew by a large factor,
+            // ensuring normal NR fluctuations are not penalised.
+            double prevDuNorm = std::numeric_limits<double>::max();
+            double dampingFactor = 1.0;
+            size_t consecutiveGrowth = 0;
 
             while(!stopIterations && !converged)
             {
@@ -165,14 +176,58 @@ namespace HygroThermFEM
                 // Solve for the Newton-Raphson correction: A * dU = r
                 auto dU = CLinearSolver::solveEigen(A, temp);
 
+                // Measure the raw correction magnitude before clamping.
+                const double rawDuNorm = norm(dU);
+
                 // Limit the correction per-DOF so the projected solution stays within
                 // physical bounds (e.g., humidity in [0, 1]). This prevents overshoot
                 // that would cause clamping-induced oscillations in the solver.
                 const bool allClamped = limitIncrement(solution, dU, RelaxParameter);
 
+                // Adaptive damping: in a converging NR the correction norm shrinks
+                // every iteration.  When the raw correction grows by a large factor
+                // on two or more consecutive iterations, the solver is diverging —
+                // scale the step down to keep it stable.  A very conservative growth
+                // threshold ensures normal nonlinear fluctuations are ignored; only
+                // explosive divergence is detected.
+                constexpr double growthThreshold = 1000.0;
+                constexpr double minDamping = 1.0 / 16.0;
+                constexpr size_t requiredConsecutive = 2;
+
+                // Only consider damping after the solver has had enough iterations
+                // to converge normally.  This prevents interference with the early
+                // NR phase where corrections naturally fluctuate in strongly
+                // nonlinear regions.
+                const size_t minIterationForDamping = MaxIterations / 2;
+
+                if(numOfIterations >= minIterationForDamping
+                   && rawDuNorm > growthThreshold * prevDuNorm)
+                {
+                    ++consecutiveGrowth;
+                    if(consecutiveGrowth >= requiredConsecutive)
+                    {
+                        dampingFactor *= 0.5;
+                        if(dampingFactor < minDamping)
+                        {
+                            dampingFactor = minDamping;
+                        }
+                    }
+                }
+                else
+                {
+                    consecutiveGrowth = 0;
+                    if(dampingFactor < 1.0)
+                    {
+                        dampingFactor = std::min(dampingFactor * 2.0, 1.0);
+                    }
+                }
+                prevDuNorm = rawDuNorm;
+
+                const double effectiveRelax = RelaxParameter * dampingFactor;
+
                 // Apply the relaxed correction to get the new solution estimate.
                 // normSolution uses the full (unrelaxed) correction for convergence check.
-                solution = solution + dU * RelaxParameter;
+                solution = solution + dU * effectiveRelax;
                 normSolution = solution + dU;
 
                 postProcess(solution);
