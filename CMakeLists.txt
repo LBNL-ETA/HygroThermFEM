@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 3.14)
 
 set(target_name HygroThermFEM)
 
@@ -35,23 +35,28 @@ include(cmake/HTCompilerFlags.cmake)
 # Include KeffCavity
 # set(BUILD_KeffC_TESTING OFF CACHE BOOL "Build KeffCavity tests" FORCE)
 set(Eigen_Branch "5.0.1")
-FetchContent_Declare(
-        EigenExternal
-        GIT_REPOSITORY https://gitlab.com/libeigen/eigen.git
-        GIT_TAG ${Eigen_Branch}
-)
-FetchContent_MakeAvailable(EigenExternal)
-include_directories(${CMAKE_BINARY_DIR}/_deps/eigenexternal-src)
+if(NOT TARGET eigen)
+    FetchContent_Declare(
+            EigenExternal
+            GIT_REPOSITORY https://gitlab.com/libeigen/eigen.git
+            GIT_TAG ${Eigen_Branch}
+    )
+    FetchContent_MakeAvailable(EigenExternal)
+    include_directories(${CMAKE_BINARY_DIR}/_deps/eigenexternal-src)
+endif()
 
 # Include KeffCavity
 set(BUILD_KeffC_TESTING OFF CACHE BOOL "Build KeffCavity tests" FORCE)
-set(KeffCavity_Branch "Version_1.0.31")
-FetchContent_Declare(
-        KeffCavity
-        GIT_REPOSITORY https://github.com/LBNL-ETA/KeffCavity.git
-        GIT_TAG ${KeffCavity_Branch}
-)
-FetchContent_MakeAvailable(KeffCavity)
+set(KeffCavity_Branch "feature/disable-wide-char")
+
+if(NOT TARGET KeffCavity)
+    FetchContent_Declare(
+            KeffCavity
+            GIT_REPOSITORY https://github.com/LBNL-ETA/KeffCavity.git
+            GIT_TAG ${KeffCavity_Branch}
+    )
+    FetchContent_MakeAvailable(KeffCavity)
+endif()
 
 # google test will not be created by this project if this is not main project. Main project is expected to handle google test.
 get_directory_property(hasParent PARENT_DIRECTORY)
@@ -84,25 +89,18 @@ if (BUILD_HTFEM_TESTING)
     include_directories(include)
     include_directories(tst/helper)
     
-    #set(google_disable_pthreads ON)
-    # include(CMakeLists-GTest.txt)
-    configure_file(CMakeListsGTest.txt.in ${CMAKE_BINARY_DIR}/googletest-download/CMakeLists.txt)
-    execute_process(COMMAND ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}" .
-            WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/googletest-download)
-    execute_process(COMMAND ${CMAKE_COMMAND} --build .
-            WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/googletest-download)
-
     # Prevent GoogleTest from overriding our compiler/linker options
     # when building with Visual Studio
     set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 
-    # Add googletest directly to our build. This adds
-    # the following targets: gtest, gtest_main, gmock
-    # and gmock_main
-    add_subdirectory(${CMAKE_BINARY_DIR}/googletest-src)
-    #add_subdirectory(GTest)
-    
-    include_directories(${CMAKE_BINARY_DIR}/googletest-src/googletest ${CMAKE_BINARY_DIR}/googletest-src/googletest/include)    
+    if(NOT TARGET gtest)
+        FetchContent_Declare(
+            googletest
+            GIT_REPOSITORY https://github.com/google/googletest.git
+            GIT_TAG v1.14.0
+        )
+        FetchContent_MakeAvailable(googletest)
+    endif()    
 
     file(GLOB all_test_src RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "tst/main.cxx" "tst/units/*.cxx" "tst/helper/*.hxx" "tst/helper/*.cxx")
     LIST(APPEND test_src ${all_test_src})
