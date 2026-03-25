@@ -47,7 +47,7 @@ endif()
 
 # Include KeffCavity
 set(BUILD_KeffC_TESTING OFF CACHE BOOL "Build KeffCavity tests" FORCE)
-set(KeffCavity_Branch "Version_1.0.32")
+set(KeffCavity_Branch "2026MarchFixes")
 
 if(NOT TARGET KeffCavity)
     FetchContent_Declare(
