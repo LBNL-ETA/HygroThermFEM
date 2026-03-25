@@ -4,7 +4,7 @@ set(target_name HygroThermFEM)
 
 cmake_policy(SET CMP0048 NEW)
 
-project(${target_name} VERSION 1.0.54 LANGUAGES CXX)
+project(${target_name} VERSION 1.0.55 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 
@@ -47,7 +47,7 @@ endif()
 
 # Include KeffCavity
 set(BUILD_KeffC_TESTING OFF CACHE BOOL "Build KeffCavity tests" FORCE)
-set(KeffCavity_Branch "2026MarchFixes")
+set(KeffCavity_Branch "Version_1.0.33")
 
 if(NOT TARGET KeffCavity)
     FetchContent_Declare(
@@ -57,6 +57,8 @@ if(NOT TARGET KeffCavity)
     )
     FetchContent_MakeAvailable(KeffCavity)
 endif()
+
+configure_file(doc/HygroThermFEM.md.in ${CMAKE_CURRENT_SOURCE_DIR}/doc/HygroThermFEM.md @ONLY)
 
 # google test will not be created by this project if this is not main project. Main project is expected to handle google test.
 get_directory_property(hasParent PARENT_DIRECTORY)
