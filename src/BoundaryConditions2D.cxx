@@ -15,38 +15,18 @@ namespace HygroThermFEM
     {
         std::vector<std::vector<double>> result{maxNodeIndex,
                                                 std::vector<double>(maxNodeIndex, 0)};
-        for(const std::unique_ptr<IBCLinear2D> & aBc : m_BCs)
+        forEachActiveBC(timestepIndex, [&](const IBCLinear2D & bcItem)
         {
-            auto indexes = aBc->getNodeIndexes();
-            auto matH = aBc->H_Matrix();
-            for(size_t i = 0; i < 2; ++i)
+            const auto indexes = bcItem.getNodeIndexes();
+            const auto matH = bcItem.H_Matrix();
+            for(size_t row = 0; row < 2; ++row)
             {
-                for(size_t j = 0; j < 2; ++j)
+                for(size_t col = 0; col < 2; ++col)
                 {
-                    result[indexes[i] - 1][indexes[j] - 1] += matH(i, j);
+                    result[indexes[row] - 1][indexes[col] - 1] += matH(row, col);
                 }
             }
-        }
-
-        // for(size_t i = 0u; i < m_TransientBCs.size(); ++i)
-        for(const auto & bc : m_TransientBCs)
-        {
-            // const auto & bc = m_TransientBCs[i];
-            if(bc.size() < timestepIndex)
-            {
-                throw std::runtime_error("Number of boundary conditions provided is less then "
-                                         "number of timesteps requested.");
-            }
-            auto indexes = bc[timestepIndex]->getNodeIndexes();
-            auto matH = bc[timestepIndex]->H_Matrix();
-            for(size_t i = 0; i < 2; ++i)
-            {
-                for(size_t j = 0; j < 2; ++j)
-                {
-                    result[indexes[i] - 1][indexes[j] - 1] += matH(i, j);
-                }
-            }
-        }
+        });
         return SquareMatrix{result};
     }
 
@@ -54,31 +34,15 @@ namespace HygroThermFEM
                                                       const size_t timestepIndex) const
     {
         std::vector<double> result(maxNodeIndex, 0);
-        // Create full size matrices
-        for(const std::unique_ptr<IBCLinear2D> & aBc : m_BCs)
+        forEachActiveBC(timestepIndex, [&](const IBCLinear2D & bcItem)
         {
-            auto indexes = aBc->getNodeIndexes();
-            auto vecR = aBc->R_Vector();
-            for(size_t i = 0; i < 2; ++i)
+            const auto indexes = bcItem.getNodeIndexes();
+            const auto vecR = bcItem.R_Vector();
+            for(size_t idx = 0; idx < 2; ++idx)
             {
-                result[indexes[i] - 1] += vecR[i];
+                result[indexes[idx] - 1] += vecR[idx];
             }
-        }
-
-        for(const auto & bc : m_TransientBCs)
-        {
-            if(bc.size() < timestepIndex)
-            {
-                throw std::runtime_error("Number of boundary conditions provided is less then "
-                                         "number of timesteps requested.");
-            }
-            auto indexes = bc[timestepIndex]->getNodeIndexes();
-            auto vecR = bc[timestepIndex]->R_Vector();
-            for(size_t i = 0; i < 2; ++i)
-            {
-                result[indexes[i] - 1] += vecR[i];
-            }
-        }
+        });
         return result;
     }
 

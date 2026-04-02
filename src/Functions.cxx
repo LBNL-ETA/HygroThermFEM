@@ -7,6 +7,42 @@
 #include "Node2D.hxx"
 #include "Common.hxx"
 
+namespace
+{
+    //! Finds the two bracketing points around iterator position for interpolation.
+    //! Shared by TabularDerivativeSmooth and LiquidTransportationCurve.
+    std::pair<FenestrationCommon::point, FenestrationCommon::point>
+      bracketingPoints(std::vector<FenestrationCommon::point>::const_iterator & iter,
+                       const std::vector<FenestrationCommon::point> & table)
+    {
+        const auto pt2 = iter == table.end() ? *std::prev(table.end()) : *iter;
+        if(iter != table.begin())
+        {
+            --iter;
+        }
+        const auto pt1 = *iter;
+        return std::make_pair(pt1, pt2);
+    }
+
+    //! Computes midpoint derivative curve from a table of (x, y) points.
+    //! Used by both TabularDerivativeSmooth constructors.
+    std::vector<FenestrationCommon::point>
+      computeDerivativeCurve(const std::vector<FenestrationCommon::point> & values)
+    {
+        std::vector<FenestrationCommon::point> curve;
+        curve.reserve(values.size() - 1);
+        for(size_t idx = 1u; idx < values.size(); ++idx)
+        {
+            const auto xLo = values[idx - 1].x;
+            const auto xHi = values[idx].x;
+            const auto yLo = values[idx - 1].y;
+            const auto yHi = values[idx].y;
+            curve.emplace_back((xLo + xHi) / 2.0, (yHi - yLo) / (xHi - xLo));
+        }
+        return curve;
+    }
+}   // anonymous namespace
+
 namespace HygroThermFEM
 {
     double vaporPressureAtTemperature(const double t_temperature)
@@ -38,9 +74,9 @@ namespace HygroThermFEM
     std::vector<double> IValue::values(const INodes & nodes) const
     {
         std::vector<double> result(nodes.size(), 0);
-        for(size_t i = 0u; i < nodes.size(); ++i)
+        for(size_t idx = 0u; idx < nodes.size(); ++idx)
         {
-            result[i] = value(nodes[i]);
+            result[idx] = value(nodes[idx]);
         }
         return result;
     }
@@ -292,36 +328,15 @@ namespace HygroThermFEM
 
     TabularDerivativeSmooth::TabularDerivativeSmooth(
       const std::vector<FenestrationCommon::point> & values, Variable property) :
-        IFunction(property)
-    {
-        for(size_t i = 1u; i < values.size(); ++i)
-        {
-            const auto x1 = values[i - 1].x;
-            const auto x2 = values[i].x;
-            const auto y1 = values[i - 1].y;
-            const auto y2 = values[i].y;
-            const auto newX = (x1 + x2) / 2.0;
-            const auto newY = (y2 - y1) / (x2 - x1);
-            m_Curve.emplace_back(newX, newY);
-        }
-    }
+        IFunction(property),
+        m_Curve(computeDerivativeCurve(values))
+    {}
 
     TabularDerivativeSmooth::TabularDerivativeSmooth(
       const std::initializer_list<FenestrationCommon::point> & list, Variable property) :
-        IFunction(property)
-    {
-        std::vector<FenestrationCommon::point> helperVector{list};
-        for(size_t i = 1u; i < helperVector.size(); ++i)
-        {
-            const auto x1 = helperVector[i - 1].x;
-            const auto x2 = helperVector[i].x;
-            const auto y1 = helperVector[i - 1].y;
-            const auto y2 = helperVector[i].y;
-            const auto newX = (x1 + x2) / 2.0;
-            const auto newY = (y2 - y1) / (x2 - x1);
-            m_Curve.emplace_back(newX, newY);
-        }
-    }
+        IFunction(property),
+        m_Curve(computeDerivativeCurve(list))
+    {}
 
     double TabularDerivativeSmooth::evaluateFunction(const double t_position, const double) const
     {
@@ -344,18 +359,10 @@ namespace HygroThermFEM
 
     std::pair<FenestrationCommon::point, FenestrationCommon::point>
       TabularDerivativeSmooth::getInterpolationPoints(
-          std::vector<FenestrationCommon::point>::const_iterator & it,
+          std::vector<FenestrationCommon::point>::const_iterator & iter,
           const std::vector<FenestrationCommon::point> & table) const
     {
-        const auto pt2 = it == table.end() ? *std::prev(table.end()) : *it;
-        if(it != table.begin())
-        {
-            --it;
-        }
-
-        const auto pt1 = *it;
-
-        return std::make_pair(pt1, pt2);
+        return bracketingPoints(iter, table);
     }
 
     //////////////////////////////////////////////////////////////////
@@ -374,18 +381,10 @@ namespace HygroThermFEM
 
     std::pair<FenestrationCommon::point, FenestrationCommon::point>
       LiquidTransportationCurve::getInterpolationPoints(
-          std::vector<FenestrationCommon::point>::const_iterator & it,
+          std::vector<FenestrationCommon::point>::const_iterator & iter,
           const std::vector<FenestrationCommon::point> & table) const
     {
-        const auto pt2 = it == table.end() ? *std::prev(table.end()) : *it;
-        if(it != table.begin())
-        {
-            --it;
-        }
-
-        const auto pt1 = *it;
-
-        return std::make_pair(pt1, pt2);
+        return bracketingPoints(iter, table);
     }
 
     //////////////////////////////////////////////////////////////////

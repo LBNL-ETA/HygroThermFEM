@@ -29,11 +29,12 @@ namespace HygroThermFEM
         {
             auto & intPointMatrix = m_IntegrationMatrix[integrationPoint];
 
-            for(size_t i = 0; i < t_Values.size(); ++i)
+            for(size_t row = 0; row < t_Values.size(); ++row)
             {
-                for(size_t j = 0; j < t_Values.size(); ++j)
+                for(size_t col = 0; col < t_Values.size(); ++col)
                 {
-                    aMatrix[i][j] += intPointMatrix(i, j) * 0.5 * (t_Values[i] + t_Values[j]);
+                    aMatrix[row][col] += intPointMatrix(row, col)
+                                         * 0.5 * (t_Values[row] + t_Values[col]);
                 }
             }
         }
@@ -58,11 +59,12 @@ namespace HygroThermFEM
             const auto det = m_Global2D.det(integrationPoint);
 
             auto & DPsiDxDyMatrix = m_IntegrationMatrix[integrationPoint];
-            for(auto i = 0u; i < DPsiDxDyMatrix.size(); ++i)
+            for(auto row = 0u; row < DPsiDxDyMatrix.size(); ++row)
             {
-                for(auto j = 0u; j < DPsiDxDyMatrix.size(); ++j)
+                for(auto col = 0u; col < DPsiDxDyMatrix.size(); ++col)
                 {
-                    DPsiDxDyMatrix(i, j) = (DPsiDx[i] * DPsiDx[j] + DPsiDy[i] * DPsiDy[j]) * det;
+                    DPsiDxDyMatrix(row, col) =
+                      (DPsiDx[row] * DPsiDx[col] + DPsiDy[row] * DPsiDy[col]) * det;
                 }
             }
         }
@@ -93,21 +95,21 @@ namespace HygroThermFEM
 
             auto gammaX = 0.0;
             auto gammaY = 0.0;
-            for(auto k = 0u; k < numOfIntegrationPoints; ++k)
+            for(auto idx = 0u; idx < numOfIntegrationPoints; ++idx)
             {
-                gammaX += DPsiDx[k] * t_Values[k];
-                gammaY += DPsiDy[k] * t_Values[k];
+                gammaX += DPsiDx[idx] * t_Values[idx];
+                gammaY += DPsiDy[idx] * t_Values[idx];
             }
 
             std::vector<std::vector<double>> matrix{numOfIntegrationPoints,
                                                     std::vector<double>(numOfIntegrationPoints, 0)};
 
-            for(auto i = 0u; i < numOfIntegrationPoints; ++i)
+            for(auto row = 0u; row < numOfIntegrationPoints; ++row)
             {
-                for(auto j = 0u; j < numOfIntegrationPoints; ++j)
+                for(auto col = 0u; col < numOfIntegrationPoints; ++col)
                 {
-                    matrix[i][j] =
-                      det * (psi[i] * DPsiDx[j] * gammaX + psi[i] * DPsiDy[j] * gammaY);
+                    matrix[row][col] =
+                      det * (psi[row] * DPsiDx[col] * gammaX + psi[row] * DPsiDy[col] * gammaY);
                 }
             }
             m_IntegrationMatrix[integrationPoint] = SquareMatrix{matrix};
@@ -131,11 +133,12 @@ namespace HygroThermFEM
             const auto & psi = aElement.Psi(integrationPoint);
             const auto det = m_Global2D.det(integrationPoint);
 
-            for(auto i = 0u; i < numOfIntegrationPoints; ++i)
+            for(auto row = 0u; row < numOfIntegrationPoints; ++row)
             {
-                for(auto j = 0u; j < numOfIntegrationPoints; ++j)
+                for(auto col = 0u; col < numOfIntegrationPoints; ++col)
                 {
-                    m_IntegrationMatrix[integrationPoint](i, j) = det * psi[i] * psi[j];
+                    m_IntegrationMatrix[integrationPoint](row, col) =
+                      det * psi[row] * psi[col];
                 }
             }
         }
@@ -248,42 +251,45 @@ namespace HygroThermFEM
             // First calculate Dt/Dx and Dt/Dy in Gauss points
             std::vector<double> VDtDx(numOfIntegrationPoints, 0);
             std::vector<double> VDtDy(numOfIntegrationPoints, 0);
-            for(size_t i = 0; i < numOfIntegrationPoints; ++i)
+            for(size_t gpIdx = 0; gpIdx < numOfIntegrationPoints; ++gpIdx)
             {
-                const auto DPsiDx = m_Global2D.DPsiDx(i);
-                const auto DPsiDy = m_Global2D.DPsiDy(i);
+                const auto DPsiDx = m_Global2D.DPsiDx(gpIdx);
+                const auto DPsiDy = m_Global2D.DPsiDy(gpIdx);
                 assert(DPsiDx.size() == numOfIntegrationPoints);
                 double DtDx{0};
                 double DtDy{0};
-                for(size_t j = 0; j < values.size(); ++j)
+                for(size_t nodeIdx = 0; nodeIdx < values.size(); ++nodeIdx)
                 {
-                    DtDx += DPsiDx[j] * values[j];
-                    DtDy += DPsiDy[j] * values[j];
+                    DtDx += DPsiDx[nodeIdx] * values[nodeIdx];
+                    DtDy += DPsiDy[nodeIdx] * values[nodeIdx];
                 }
-                VDtDx[i] = DtDx;
-                VDtDy[i] = DtDy;
+                VDtDx[gpIdx] = DtDx;
+                VDtDy[gpIdx] = DtDy;
             }
 
-            // Extrapolate flux from Gauss points to nodes.
-            constexpr auto extrapolationCoeffA = 1.866025404;
-            constexpr auto extrapolationCoeffB = -0.5;
-            constexpr auto extrapolationCoeffC = 0.133974596;
+            // Extrapolate flux from 2x2 Gauss points to corner nodes using the
+            // standard bilinear extrapolation matrix.  Coefficients derive from
+            // evaluating the Gauss-point shape functions at the corner nodes:
+            //   A = 1 + sqrt(3)/2,  B = -1/2,  C = 1 - sqrt(3)/2
+            constexpr auto gaussToNodeA = 1.866025404;
+            constexpr auto gaussToNodeB = -0.5;
+            constexpr auto gaussToNodeC = 0.133974596;
             const std::vector<std::vector<double>> extrapolationCoefficients{
-              {extrapolationCoeffA, extrapolationCoeffB, extrapolationCoeffC, extrapolationCoeffB},
-              {extrapolationCoeffB, extrapolationCoeffA, extrapolationCoeffB, extrapolationCoeffC},
-              {extrapolationCoeffC, extrapolationCoeffB, extrapolationCoeffA, extrapolationCoeffB},
-              {extrapolationCoeffB, extrapolationCoeffC, extrapolationCoeffB, extrapolationCoeffA}};
+              {gaussToNodeA, gaussToNodeB, gaussToNodeC, gaussToNodeB},
+              {gaussToNodeB, gaussToNodeA, gaussToNodeB, gaussToNodeC},
+              {gaussToNodeC, gaussToNodeB, gaussToNodeA, gaussToNodeB},
+              {gaussToNodeB, gaussToNodeC, gaussToNodeB, gaussToNodeA}};
 
-            for(size_t i = 0u; i < numOfQuadrilateralNodes; ++i)
+            for(size_t nodeIdx = 0u; nodeIdx < numOfQuadrilateralNodes; ++nodeIdx)
             {
-                auto valX{0.0};
-                auto valY{0.0};
-                for(const auto val : extrapolationCoefficients[i])
+                auto fluxX{0.0};
+                auto fluxY{0.0};
+                for(const auto coeff : extrapolationCoefficients[nodeIdx])
                 {
-                    valX -= conductivityValues[i] * VDtDx[i] * val;
-                    valY -= conductivityValues[i] * VDtDy[i] * val;
+                    fluxX -= conductivityValues[nodeIdx] * VDtDx[nodeIdx] * coeff;
+                    fluxY -= conductivityValues[nodeIdx] * VDtDy[nodeIdx] * coeff;
                 }
-                results.emplace_back(valX, valY);
+                results.emplace_back(fluxX, fluxY);
             }
         }
         return results;

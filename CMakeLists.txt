@@ -4,7 +4,7 @@ set(target_name HygroThermFEM)
 
 cmake_policy(SET CMP0048 NEW)
 
-project(${target_name} VERSION 1.0.56 LANGUAGES CXX)
+project(${target_name} VERSION 1.0.57 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 

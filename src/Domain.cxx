@@ -1,4 +1,6 @@
+#include <algorithm>
 #include <cmath>
+#include <limits>
 
 #include "Domain.hxx"
 #include "FEMunique.hxx"
@@ -11,6 +13,70 @@
 #include "Nodes.hxx"
 #include "TimestepData.hxx"
 #include "Materials.hxx"
+
+namespace
+{
+    //! Tracks adaptive damping state across Newton-Raphson iterations.
+    //! When the raw correction norm grows explosively on consecutive iterations,
+    //! the damping factor is halved to stabilise the solver.
+    struct AdaptiveDamping
+    {
+        double prevDuNorm = std::numeric_limits<double>::max();
+        double factor = 1.0;
+        size_t consecutiveGrowth = 0;
+
+        void update(const double rawDuNorm, const size_t iteration, const size_t minIteration)
+        {
+            constexpr double growthThreshold = 1000.0;
+            constexpr double minDamping = 1.0 / 16.0;
+            constexpr size_t requiredConsecutive = 2;
+
+            if(iteration >= minIteration && rawDuNorm > growthThreshold * prevDuNorm)
+            {
+                ++consecutiveGrowth;
+                if(consecutiveGrowth >= requiredConsecutive)
+                {
+                    factor = std::max(factor * 0.5, minDamping);
+                }
+            }
+            else
+            {
+                consecutiveGrowth = 0;
+                if(factor < 1.0)
+                {
+                    factor = std::min(factor * 2.0, 1.0);
+                }
+            }
+            prevDuNorm = rawDuNorm;
+        }
+    };
+
+    //! Detects NR 2-cycle oscillation by checking if the convergence metric
+    //! stagnates (changes by less than 1% between consecutive iterations).
+    //! If detected, averages the last two iterates to break the cycle.
+    //! Returns true if oscillation was resolved.
+    bool resolveOscillation(std::vector<double> & solution,
+                            const std::vector<double> & prevIterSolution,
+                            const double metric,
+                            const double prevMetric,
+                            const size_t iteration,
+                            const size_t minIterations)
+    {
+        constexpr double stagnationThreshold = 0.01;
+        if(iteration < minIterations)
+        {
+            return false;
+        }
+        if(std::abs(metric - prevMetric) / (prevMetric + 1e-12) >= stagnationThreshold)
+        {
+            return false;
+        }
+
+        std::ranges::transform(solution, prevIterSolution, solution.begin(),
+            [](const double cur, const double prev) { return 0.5 * (cur + prev); });
+        return true;
+    }
+}   // anonymous namespace
 
 namespace HygroThermFEM
 {
@@ -143,137 +209,66 @@ namespace HygroThermFEM
             // A and B depend on the current solution (material properties are
             // state-dependent).  Each iteration computes a correction
             // dU = A^{-1} * (B - A*U), applies it with a relaxation parameter, then
-            // reassembles A and B at the updated state.  When the raw correction
-            // norm grows between consecutive iterations (indicating the solver is
-            // diverging), the step size is scaled down to stabilise the iteration.
+            // reassembles A and B at the updated state.
             solution = currentStateValues;
             std::vector<double> normSolution{currentStateValues};
-
             auto currentNorm = norm(solution);
 
             size_t numOfIterations = 0;
             double prevMetric = std::numeric_limits<double>::max();
             constexpr size_t minIterationsForOscillationCheck = 4;
             bool convergedViaClamp = false;
-
-            // Adaptive damping state: track the raw correction norm across NR
-            // iterations to detect divergence.  Damping activates only after two
-            // consecutive iterations where the correction grew by a large factor,
-            // ensuring normal NR fluctuations are not penalised.
-            double prevDuNorm = std::numeric_limits<double>::max();
-            double dampingFactor = 1.0;
-            size_t consecutiveGrowth = 0;
+            AdaptiveDamping damping;
 
             while(!stopIterations && !converged)
             {
                 const double previousNorm = currentNorm;
                 const auto prevIterSolution = solution;
 
-                // Compute the residual: r = B - A * U_current
-                auto temp = A * solution;
-                temp = B - temp;
+                // Solve for the Newton-Raphson correction: A * dU = B - A*U
+                auto residual = B - A * solution;
+                auto correctionDU = CLinearSolver::solveEigen(A, residual);
+                const double rawDuNorm = norm(correctionDU);
 
-                // Solve for the Newton-Raphson correction: A * dU = r
-                auto dU = CLinearSolver::solveEigen(A, temp);
+                // Limit per-DOF so the projected solution stays within physical bounds
+                const bool allClamped = limitIncrement(solution, correctionDU, RelaxParameter);
 
-                // Measure the raw correction magnitude before clamping.
-                const double rawDuNorm = norm(dU);
+                // Adaptive damping: scale down when correction norm explodes
+                damping.update(rawDuNorm, numOfIterations, MaxIterations / 2);
+                const double effectiveRelax = RelaxParameter * damping.factor;
 
-                // Limit the correction per-DOF so the projected solution stays within
-                // physical bounds (e.g., humidity in [0, 1]). This prevents overshoot
-                // that would cause clamping-induced oscillations in the solver.
-                const bool allClamped = limitIncrement(solution, dU, RelaxParameter);
-
-                // Adaptive damping: in a converging NR the correction norm shrinks
-                // every iteration.  When the raw correction grows by a large factor
-                // on two or more consecutive iterations, the solver is diverging —
-                // scale the step down to keep it stable.  A very conservative growth
-                // threshold ensures normal nonlinear fluctuations are ignored; only
-                // explosive divergence is detected.
-                constexpr double growthThreshold = 1000.0;
-                constexpr double minDamping = 1.0 / 16.0;
-                constexpr size_t requiredConsecutive = 2;
-
-                // Only consider damping after the solver has had enough iterations
-                // to converge normally.  This prevents interference with the early
-                // NR phase where corrections naturally fluctuate in strongly
-                // nonlinear regions.
-                const size_t minIterationForDamping = MaxIterations / 2;
-
-                if(numOfIterations >= minIterationForDamping
-                   && rawDuNorm > growthThreshold * prevDuNorm)
-                {
-                    ++consecutiveGrowth;
-                    if(consecutiveGrowth >= requiredConsecutive)
-                    {
-                        dampingFactor *= 0.5;
-                        if(dampingFactor < minDamping)
-                        {
-                            dampingFactor = minDamping;
-                        }
-                    }
-                }
-                else
-                {
-                    consecutiveGrowth = 0;
-                    if(dampingFactor < 1.0)
-                    {
-                        dampingFactor = std::min(dampingFactor * 2.0, 1.0);
-                    }
-                }
-                prevDuNorm = rawDuNorm;
-
-                const double effectiveRelax = RelaxParameter * dampingFactor;
-
-                // Apply the relaxed correction to get the new solution estimate.
-                // normSolution uses the full (unrelaxed) correction for convergence check.
-                solution = solution + dU * effectiveRelax;
-                normSolution = solution + dU;
+                // Apply the relaxed correction; normSolution uses full correction
+                // for the convergence check
+                solution = solution + correctionDU * effectiveRelax;
+                normSolution = solution + correctionDU;
 
                 postProcess(solution);
                 postProcess(normSolution);
-
                 currentNorm = norm(normSolution);
-
                 ++numOfIterations;
 
-                // Update node properties so the next matrix assembly reflects the new state
+                // Reassemble system at the updated state
                 updateNodes(solution, m_AutomaticUpdatePreviousTimestep);
-
-                // Reassemble system matrices at the updated state (material properties,
-                // boundary conditions, etc. may have changed with the new solution)
                 A = transientM_K_H_Matrix(t_DTime, timestepIndex);
                 B = transientMT_R_Vector(currentStateValues, t_DTime, timestepIndex);
 
-                // Convergence check: relative change in the solution norm between iterations
+                // Convergence check: relative change in solution norm
                 const auto metric = std::abs(previousNorm - currentNorm) / (currentNorm + 1e-12);
                 converged = metric <= ConvergenceError;
 
-                // If limitIncrement clamped ALL corrections to (near-)zero, the
-                // solution is pinned at physical bounds and cannot improve further.
+                // All DOFs pinned at physical bounds — cannot improve further
                 if(!converged && allClamped)
                 {
                     converged = true;
                     convergedViaClamp = true;
                 }
 
-                // Detect Newton-Raphson 2-cycle oscillation.
-                // Piecewise-linear material data (e.g., sorption curves with steep kinks)
-                // can cause the Jacobian to alternate between two states on consecutive
-                // iterations. The convergence metric then stagnates — it stays nearly the
-                // same each iteration without decreasing. When the metric changes by less
-                // than 1% between consecutive iterations (after a minimum warmup period),
-                // the solver is stuck in a 2-cycle. Resolve by averaging the last two
-                // iterates, which places the solution at the midpoint of the oscillation
-                // and yields a physically reasonable result.
+                // Detect and resolve NR 2-cycle oscillation
                 if(!converged
-                   && numOfIterations >= minIterationsForOscillationCheck
-                   && std::abs(metric - prevMetric) / (prevMetric + 1e-12) < 0.01)
+                   && resolveOscillation(solution, prevIterSolution,
+                                         metric, prevMetric,
+                                         numOfIterations, minIterationsForOscillationCheck))
                 {
-                    for(size_t idx = 0; idx < solution.size(); ++idx)
-                    {
-                        solution[idx] = 0.5 * (solution[idx] + prevIterSolution[idx]);
-                    }
                     postProcess(solution);
                     converged = true;
                 }

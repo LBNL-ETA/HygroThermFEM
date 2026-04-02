@@ -1,5 +1,7 @@
+#include <algorithm>
 #include <cmath>
 #include <limits>
+#include <ranges>
 #include <utility>
 
 #include "MultiDomain.hxx"
@@ -117,9 +119,6 @@ namespace HygroThermFEM
 
         m_Nodes.updateNodeTemperatures(temperatureSolution.solution, true);
         m_Nodes.updateNodeHumidities(humiditySolution.solution, true);
-
-        m_Nodes.updateNodeHumidities(currentHumidity, true);
-        m_Nodes.updateNodeTemperatures(currentTemperature, true);
 
         const auto waterContent = m_Nodes.properties(Variable::water);
         const auto liquidContent = m_Nodes.properties(Variable::liquid);
@@ -415,11 +414,10 @@ namespace HygroThermFEM
     void MultiDomain::createBC_FixedTemperatureAndHumidity(
       size_t index1, size_t index2, const std::vector<TemperatureAndHumidity> & values)
     {
-        std::vector<double> temperatures(values.size());
-        for(size_t i = 0u; i < values.size(); ++i)
-        {
-            temperatures[i] = values[i].Temperature;
-        }
+        std::vector<double> temperatures;
+        temperatures.reserve(values.size());
+        std::ranges::transform(values, std::back_inserter(temperatures),
+            [](const TemperatureAndHumidity & val) { return val.Temperature; });
         m_ThermalDomain.createBC_FixedTemperature(index1, index2, temperatures);
         if(m_SimulateMoisture)
         {

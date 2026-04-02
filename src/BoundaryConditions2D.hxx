@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <stdexcept>
 #include <vector>
 
 #include "SquareMatrix.hxx"
@@ -61,6 +62,28 @@ namespace HygroThermFEM
         // different boundary condition for every timestep.
         std::vector<std::vector<std::unique_ptr<IBCLinear2D>>> m_TransientBCs;
         bool m_Linear;
+
+    private:
+        //! Iterates over all active BCs (steady-state + transient at timestepIndex)
+        //! and calls func(const IBCLinear2D &) for each.
+        template<typename Func>
+        void forEachActiveBC(size_t timestepIndex, Func func) const
+        {
+            for(const auto & bcPtr : m_BCs)
+            {
+                func(*bcPtr);
+            }
+            for(const auto & bcTimesteps : m_TransientBCs)
+            {
+                if(bcTimesteps.size() < timestepIndex)
+                {
+                    throw std::runtime_error(
+                      "Number of boundary conditions provided is less then "
+                      "number of timesteps requested.");
+                }
+                func(*bcTimesteps[timestepIndex]);
+            }
+        }
     };
 
 }   // namespace HygroThermFEM
