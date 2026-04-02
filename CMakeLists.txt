@@ -105,7 +105,7 @@ if (BUILD_HTFEM_TESTING)
         FetchContent_MakeAvailable(googletest)
     endif()    
 
-    file(GLOB all_test_src RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "tst/main.cxx" "tst/units/*.cxx" "tst/helper/*.hxx" "tst/helper/*.cxx")
+    file(GLOB_RECURSE all_test_src RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "tst/main.cxx" "tst/units/*.cxx" "tst/helper/*.hxx" "tst/helper/*.cxx")
     LIST(APPEND test_src ${all_test_src})
 
     CREATE_TEST_TARGETS_HTFEM(${target_name} "${test_src}" ${target_name})
