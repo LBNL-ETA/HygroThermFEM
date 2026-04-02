@@ -2,6 +2,7 @@
 #include <gtest/gtest.h>
 
 #include "HygroThermFEM2D.hxx"
+#include "TestHelpers.hxx"
 #include "TestMaterials.hxx"
 
 /////////////////////////////////////////////////////////////////////////////////////
@@ -65,13 +66,5 @@ TEST(Topaz2D_TemperatureBC, TestExample_1)
       {51.74326318, 51.74326318, 32.29131256, 32.29131256, 12, 12},
       {40.71210006, 40.71210006, 25.88046294, 25.88046294, 12, 12}};
 
-    EXPECT_EQ(solution.size(), correctSolution.size());
-
-    for(auto i = 0u; i < correctSolution.size(); ++i)
-    {
-        for(auto j = 0u; j < correctSolution[i].size(); ++j)
-        {
-            EXPECT_NEAR(correctSolution[i][j], solution[i][j], 1e-6);
-        }
-    }
+    TestHelper::expectNear(correctSolution, solution, 1e-6);
 }

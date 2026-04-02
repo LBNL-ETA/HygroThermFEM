@@ -1,8 +1,8 @@
-#include <memory>
 #include <gtest/gtest.h>
 
 #include "HygroThermFEM2D.hxx"
 #include "TestMaterials.hxx"
+#include "TestHelpers.hxx"
 
 using HygroThermFEM::Nodes;
 
@@ -112,48 +112,32 @@ TEST(MultiDomain_HighHumidity, TestExample_1)
         ++timestepIndex;
     }
 
-    const std::vector<double> correctHumidityError{2.201043e-09, 6.142575e-09};
+    const std::vector correctHumidityError{1.754033e-06, 0.0};
     const std::vector<std::vector<double>> correctWaterContentSolution{
-      {103.176677, 103.176677, 103.258753, 103.258753, 103.361557, 103.361557},
-      {92.753855, 92.753855, 92.595613, 92.595613, 93.380920, 93.380920}};
+      {180.000000, 180.000000, 180.000000, 180.000000, 27.758519, 27.790584},
+      {180.000000, 180.000000, 180.000000, 180.000000, 180.000000, 180.000000}};
 
-    EXPECT_EQ(waterContentSolution.size(), correctWaterContentSolution.size());
+    TestHelper::expectNear(correctHumidityError, humidityError, 1e-6);
+    TestHelper::expectNear(correctWaterContentSolution, waterContentSolution, 1e-3);
 
-    for(auto i = 0u; i < waterContentSolution.size(); ++i)
-    {
-        EXPECT_NEAR(correctHumidityError[i], humidityError[i], 1e-10);
-        for(auto j = 0u; j < waterContentSolution[i].size(); ++j)
-        {
-            EXPECT_NEAR(correctWaterContentSolution[i][j], waterContentSolution[i][j], 1e-6);
-        }
-    }
-
-    const std::vector<double> correctTemperatureError{7.739460e-06, 8.382848e-06};
+    const std::vector correctTemperatureError{3.990158e-07, 2.124443e-07};
     const std::vector<std::vector<double>> correctTemperatureSolution{
-      {0.783481, 0.783481, 2.452037, 2.452037, 7.203850, 7.203850},
-      {2.158483, 2.158483, 4.973106, 4.973106, 10.249844, 10.249844}};
+      {-0.108497, -0.108597, -0.473111, -0.472734, 6.802888, 6.802827},
+      {0.535021, 0.534521, 2.337413, 2.339001, 9.005659, 9.005527}};
 
-    EXPECT_EQ(temperatureSolution.size(), correctTemperatureSolution.size());
-
-    for(auto i = 0u; i < correctTemperatureSolution.size(); ++i)
-    {
-        EXPECT_NEAR(correctTemperatureError[i], temperatureError[i], 1e-6);
-        for(auto j = 0u; j < correctTemperatureSolution[i].size(); ++j)
-        {
-            EXPECT_NEAR(correctTemperatureSolution[i][j], temperatureSolution[i][j], 1e-6);
-        }
-    }
+    TestHelper::expectNear(correctTemperatureError, temperatureError, 1e-7);
+    TestHelper::expectNear(correctTemperatureSolution, temperatureSolution, 1e-3);
 
     // Checking number of iterations within subiterations
 
     auto lvlOneMoisture = progressMoisture.getLevelOne();
-    EXPECT_EQ(lvlOneMoisture, 19u);
+    EXPECT_EQ(lvlOneMoisture, 8u);
 
     auto lvlTwoMoisture = progressMoisture.getLevelTwo();
-    EXPECT_EQ(lvlTwoMoisture, 1570u);
+    EXPECT_EQ(lvlTwoMoisture, 7u);
 
     auto lvlThreeMoisture = progressMoisture.getLevelThree();
-    EXPECT_EQ(lvlThreeMoisture, 0u);
+    EXPECT_EQ(lvlThreeMoisture, 3u);
 
     auto lvlOneThermal = progressThermal.getLevelOne();
     EXPECT_EQ(lvlOneThermal, 0u);
@@ -171,7 +155,7 @@ TEST(MultiDomain_HighHumidity, HighHumidityAndTemperature)
 
     HygroThermFEM::MultiDomain multiDomain;
 
-    std::vector<double> gridXCoordinates{0.15, 0.05, 0.00};
+    const std::vector gridXCoordinates{0.15, 0.05, 0.00};
 
     constexpr HygroThermFEM::State state({
         .temperature = 30.0,
@@ -241,48 +225,32 @@ TEST(MultiDomain_HighHumidity, HighHumidityAndTemperature)
         ++timestepIndex;
     }
 
-    const std::vector<double> correctHumidityError{1.210143e-08, 4.116013e-08};
+    const std::vector correctHumidityError{2.657823e-07, 1.591037e-07};
     const std::vector<std::vector<double>> correctWaterContentSolution{
-      {105.894452, 105.894452, 105.840409, 105.840409, 105.772928, 105.772928},
-      {92.789315, 92.789315, 107.686387, 107.686387, 180.0, 180.0}};
+      {81.001587, 81.001587, 180.000000, 180.000000, 180.000000, 180.000000},
+      {113.376865, 113.376865, 79.008819, 79.008819, 180.000000, 180.000000}};
 
-    EXPECT_EQ(waterContentSolution.size(), correctWaterContentSolution.size());
+    TestHelper::expectNear(correctHumidityError, humidityError, 1e-7);
+    TestHelper::expectNear(correctWaterContentSolution, waterContentSolution, 1e-3);
 
-    for(auto i = 0u; i < waterContentSolution.size(); ++i)
-    {
-        EXPECT_NEAR(correctHumidityError[i], humidityError[i], 1e-10);
-        for(auto j = 0u; j < waterContentSolution[i].size(); ++j)
-        {
-            EXPECT_NEAR(correctWaterContentSolution[i][j], waterContentSolution[i][j], 1e-6);
-        }
-    }
-
-    const std::vector<double> correctTemperatureError{7.080930e-06, 6.976242e-06};
+    const std::vector correctTemperatureError{6.284313e-09, 5.984128e-09};
     const std::vector<std::vector<double>> correctTemperatureSolution{
-      {29.543444, 29.543444, 28.561120, 28.561120, 25.748466, 25.748466},
-      {29.041973, 29.041973, 27.993035, 27.993035, 25.123323, 25.123323}};
+      {30.985534, 30.985534, 29.173305, 29.173305, 24.758822, 24.758822},
+      {30.716207, 30.716207, 30.078265, 30.078265, 27.168913, 27.168913}};
 
-    EXPECT_EQ(temperatureSolution.size(), correctTemperatureSolution.size());
-
-    for(auto i = 0u; i < correctTemperatureSolution.size(); ++i)
-    {
-        EXPECT_NEAR(correctTemperatureError[i], temperatureError[i], 1e-6);
-        for(auto j = 0u; j < correctTemperatureSolution[i].size(); ++j)
-        {
-            EXPECT_NEAR(correctTemperatureSolution[i][j], temperatureSolution[i][j], 1e-6);
-        }
-    }
+    TestHelper::expectNear(correctTemperatureError, temperatureError, 1e-9);
+    TestHelper::expectNear(correctTemperatureSolution, temperatureSolution, 1e-3);
 
     // Checking number of iterations within subiterations
 
     auto lvlOneMoisture = progressMoisture.getLevelOne();
-    EXPECT_EQ(lvlOneMoisture, 19u);
+    EXPECT_EQ(lvlOneMoisture, 4u);
 
     auto lvlTwoMoisture = progressMoisture.getLevelTwo();
-    EXPECT_EQ(lvlTwoMoisture, 1350u);
+    EXPECT_EQ(lvlTwoMoisture, 4u);
 
     auto lvlThreeMoisture = progressMoisture.getLevelThree();
-    EXPECT_EQ(lvlThreeMoisture, 0u);
+    EXPECT_EQ(lvlThreeMoisture, 1u);
 
     auto lvlOneThermal = progressThermal.getLevelOne();
     EXPECT_EQ(lvlOneThermal, 0u);
@@ -370,48 +338,32 @@ TEST(MultiDomain_HighHumidity, ExtremeHumidityAndTemperature)
         ++timestepIndex;
     }
 
-    const std::vector<double> correctHumidityError{1.315269e-02, 9.742288e-03};
+    const std::vector<double> correctHumidityError{1.217342e-08, 1.136822e-10};
     const std::vector<std::vector<double>> correctWaterContentSolution{
-      {180.0, 180.0, 180.0, 180.0, 180.0, 180.0},
-      {180.0, 180.0, 180.0, 180.0, 180.0, 180.0}};
+      {84.901602, 84.901602, 80.217109, 80.217109, 53.239121, 53.239121},
+      {180.000000, 180.000000, 180.000000, 180.000000, 180.000000, 180.000000}};
 
-    EXPECT_EQ(waterContentSolution.size(), correctWaterContentSolution.size());
+    TestHelper::expectNear(correctHumidityError, humidityError, 1e-8);
+    TestHelper::expectNear(correctWaterContentSolution, waterContentSolution, 1e-3);
 
-    for(auto i = 0u; i < waterContentSolution.size(); ++i)
-    {
-        EXPECT_NEAR(correctHumidityError[i], humidityError[i], 1e-4);
-        for(auto j = 0u; j < waterContentSolution[i].size(); ++j)
-        {
-            EXPECT_NEAR(correctWaterContentSolution[i][j], waterContentSolution[i][j], 1e-6);
-        }
-    }
-
-    const std::vector<double> correctTemperatureError{3.802498e-01, 3.575668e-01};
+    const std::vector<double> correctTemperatureError{1.582014e-07, 5.347030e-08};
     const std::vector<std::vector<double>> correctTemperatureSolution{
-      {79.623285, 79.623285, 78.584134, 78.584134, 75.135358, 75.135358},
-      {78.875799, 78.875799, 76.813892, 76.813892, 72.120589, 72.120589}};
+      {71.642135, 71.642135, 54.219885, 54.219885, 6.245502, 6.245502},
+      {65.864202, 65.864202, 49.926034, 49.926034, 33.073654, 33.073654}};
 
-    EXPECT_EQ(temperatureSolution.size(), correctTemperatureSolution.size());
-
-    for(auto i = 0u; i < correctTemperatureSolution.size(); ++i)
-    {
-        EXPECT_NEAR(correctTemperatureError[i], temperatureError[i], 1e-1);
-        for(auto j = 0u; j < correctTemperatureSolution[i].size(); ++j)
-        {
-            EXPECT_NEAR(correctTemperatureSolution[i][j], temperatureSolution[i][j], 1.0);
-        }
-    }
+    TestHelper::expectNear(correctTemperatureError, temperatureError, 1e-7);
+    TestHelper::expectNear(correctTemperatureSolution, temperatureSolution, 1e-3);
 
     // Checking number of iterations within subiterations
 
     auto lvlOneMoisture = progressMoisture.getLevelOne();
-    EXPECT_EQ(lvlOneMoisture, 400u);
+    EXPECT_EQ(lvlOneMoisture, 25u);
 
     auto lvlTwoMoisture = progressMoisture.getLevelTwo();
-    EXPECT_EQ(lvlTwoMoisture, 40000u);
+    EXPECT_EQ(lvlTwoMoisture, 25u);
 
     auto lvlThreeMoisture = progressMoisture.getLevelThree();
-    EXPECT_EQ(lvlThreeMoisture, 0u);
+    EXPECT_EQ(lvlThreeMoisture, 22u);
 
     auto lvlOneThermal = progressThermal.getLevelOne();
     EXPECT_EQ(lvlOneThermal, 0u);

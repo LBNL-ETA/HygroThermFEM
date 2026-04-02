@@ -1,6 +1,8 @@
 #include <algorithm>
 #include <cmath>
+#include <iomanip>
 #include <limits>
+#include <ostream>
 #include <ranges>
 #include <utility>
 
@@ -30,95 +32,143 @@ namespace HygroThermFEM
                                     const double t_DTime,
                                     const size_t timestepIndex)
     {
-        const auto ConvergenceError{SimulationProperties::Instance().errorTolerance()};
-        auto temperatureError{std::numeric_limits<double>::max()};
-        auto humidityError{std::numeric_limits<double>::max()};
         auto currentTemperature{temperature};
         auto currentHumidity{humidity};
-        const double dTime{t_DTime};
-        SingleSolution temperatureSolution{temperature, t_DTime};
-        SingleSolution humiditySolution{humidity, t_DTime};
+        double totalTime{0};
+        size_t subStep{0};
 
-        const auto MaxIterations = SimulationProperties::Instance().maxNumberOfIterations();
+        auto temperatureError{std::numeric_limits<double>::max()};
+        auto humidityError{std::numeric_limits<double>::max()};
 
-        size_t currentIteration{0};
-
-        // Staggered coupling loop for the hygrothermal problem.
-        // The thermal and moisture domains are solved in a partitioned (staggered) scheme:
-        // each domain is solved independently, then the cross-domain data is exchanged
-        // (temperature affects moisture transport coefficients, humidity affects thermal
-        // conductivity). The outer do-while loop repeats until BOTH domains have converged,
-        // ensuring the coupled solution is self-consistent.
-        do
+        // Adaptive time-stepping loop: accumulate sub-steps until the full
+        // requested dt is covered.  Each domain returns after its first
+        // successful solve (possibly at a smaller dt), and cross-coupling
+        // data is exchanged after every sub-step.  This avoids grinding
+        // thousands of internal sub-steps with frozen cross-domain fields.
+        while(totalTime < t_DTime)
         {
-            // Inner loop: solve each domain individually until one converges
-            // or the iteration cap is reached. Uses && so the loop exits once
-            // either domain's error drops below tolerance — further single-domain
-            // iteration without cross-coupling data exchange is wasteful.
-            // The cap prevents runaway iteration when neither domain can converge
-            // individually (e.g., moisture pinned at physical bounds, or strong
-            // coupling where temperature error stays large without cross-domain
-            // exchange). The outer loop's cross-coupling step handles convergence.
-            size_t innerIterCount{0};
-            constexpr size_t maxInnerIterations = 12;
+            const double remainingTime = t_DTime - totalTime;
+            double effectiveDt = remainingTime;
 
-            while(humidityError > ConvergenceError && temperatureError > ConvergenceError
-                  && innerIterCount <= maxInnerIterations)
+            if(m_DiagStream != nullptr)
             {
-                if(m_SimulateMoisture)
-                {
-                    humiditySolution = m_MoistureDomain.transient(humidity, dTime, timestepIndex);
-                    humidityError = normError(humiditySolution.solution, currentHumidity);
-                    currentHumidity = humiditySolution.solution;
-                    ++innerIterCount;
-                }
-                else
-                {
-                    humidityError = 0;
-                }
-                if(m_SimulateThermal)
-                {
-                    temperatureSolution =
-                      m_ThermalDomain.transient(temperature, dTime, timestepIndex);
-                    temperatureError = normError(temperatureSolution.solution, currentTemperature);
-                    currentTemperature = temperatureSolution.solution;
-                    ++innerIterCount;
-                }
-                else
-                {
-                    temperatureError = 0;
-                }
+                *m_DiagStream << "\n# substep=" << subStep
+                              << " totalTime=" << std::scientific << std::setprecision(6)
+                              << totalTime
+                              << " remaining=" << remainingTime << "\n";
             }
 
-            // Cross-coupling exchange: feed the latest temperature into the moisture
-            // domain and the latest humidity into the thermal domain, then re-solve
-            // each domain one more time. This captures the inter-domain coupling
-            // effects that the inner loop ignores.
+            // Solve moisture first (typically the stiff domain).
+            // It may return a smaller dt than requested.
+            SingleSolution humiditySolution{currentHumidity, effectiveDt};
             if(m_SimulateMoisture)
             {
-                m_Nodes.updateNodeTemperatures(temperatureSolution.solution, false);
-                humiditySolution = m_MoistureDomain.transient(humidity, dTime, timestepIndex);
-                humidityError = normError(humiditySolution.solution, currentHumidity);
-                currentHumidity = humiditySolution.solution;
+                if(m_DiagStream != nullptr)
+                {
+                    *m_DiagStream << "\n# MOISTURE substep=" << subStep << "\n";
+                }
+                humiditySolution =
+                  m_MoistureDomain.transient(currentHumidity, effectiveDt, timestepIndex);
+                effectiveDt = std::min(effectiveDt, humiditySolution.dTime);
             }
 
+            // Solve thermal at the (possibly reduced) dt.
+            SingleSolution temperatureSolution{currentTemperature, effectiveDt};
             if(m_SimulateThermal)
             {
-                m_Nodes.updateNodeHumidities(humiditySolution.solution, false);
-                temperatureSolution = m_ThermalDomain.transient(temperature, dTime, timestepIndex);
-                temperatureError = normError(temperatureSolution.solution, currentTemperature);
-                currentTemperature = temperatureSolution.solution;
+                if(m_DiagStream != nullptr)
+                {
+                    *m_DiagStream << "\n# THERMAL substep=" << subStep
+                                  << " dt=" << effectiveDt << "\n";
+                }
+                temperatureSolution =
+                  m_ThermalDomain.transient(currentTemperature, effectiveDt, timestepIndex);
+
+                // If thermal needed an even smaller dt, redo moisture at that dt.
+                if(temperatureSolution.dTime < effectiveDt && m_SimulateMoisture)
+                {
+                    effectiveDt = temperatureSolution.dTime;
+                    if(m_DiagStream != nullptr)
+                    {
+                        *m_DiagStream << "\n# MOISTURE redo at dt=" << effectiveDt << "\n";
+                    }
+                    humiditySolution =
+                      m_MoistureDomain.transient(currentHumidity, effectiveDt, timestepIndex);
+                }
             }
 
-            ++currentIteration;
-        }
-        // Outer loop continues until BOTH domains have converged (||), with an iteration
-        // guard to prevent infinite looping if the coupled system does not stabilize.
-        while((temperatureError > ConvergenceError || humidityError > ConvergenceError)
-              && currentIteration < MaxIterations);
+            // Compute convergence errors for reporting
+            humidityError = normError(humiditySolution.solution, currentHumidity);
+            temperatureError = normError(temperatureSolution.solution, currentTemperature);
 
-        m_Nodes.updateNodeTemperatures(temperatureSolution.solution, true);
-        m_Nodes.updateNodeHumidities(humiditySolution.solution, true);
+            // Accept solutions and exchange cross-coupling data.
+            currentHumidity = humiditySolution.solution;
+            currentTemperature = temperatureSolution.solution;
+            m_Nodes.updateNodeTemperatures(currentTemperature, false);
+            m_Nodes.updateNodeHumidities(currentHumidity, false);
+
+            totalTime += effectiveDt;
+            ++subStep;
+
+            if(m_DiagStream != nullptr)
+            {
+                *m_DiagStream << "\n# accepted dt=" << std::scientific << std::setprecision(6)
+                              << effectiveDt
+                              << " totalTime=" << totalTime
+                              << " temp_err=" << temperatureError
+                              << " hum_err=" << humidityError << "\n";
+            }
+        }
+
+        // Coupling convergence check: with the latest cross-coupling data
+        // baked into nodes, re-solve each domain for one tiny step from the
+        // current state. If the coupled solution is self-consistent, the
+        // solution should barely change. The reported error measures the
+        // coupling residual — how much the solution shifts when both domains
+        // see each other's latest fields.
+        if(m_DiagStream != nullptr)
+        {
+            *m_DiagStream << "\n# CONVERGENCE CHECK\n";
+        }
+
+        // Use a small probe dt — just enough for the NR to converge and
+        // reveal any coupling mismatch, without advancing significantly.
+        const double probeDt = t_DTime * 1e-6;
+
+        if(m_SimulateMoisture)
+        {
+            if(m_DiagStream != nullptr)
+            {
+                *m_DiagStream << "\n# MOISTURE convergence probe\n";
+            }
+            m_Nodes.updateNodeTemperatures(currentTemperature, false);
+            const auto humProbe =
+              m_MoistureDomain.transient(currentHumidity, probeDt, timestepIndex);
+            humidityError = normError(humProbe.solution, currentHumidity);
+        }
+
+        if(m_SimulateThermal)
+        {
+            if(m_DiagStream != nullptr)
+            {
+                *m_DiagStream << "\n# THERMAL convergence probe\n";
+            }
+            m_Nodes.updateNodeHumidities(currentHumidity, false);
+            const auto tempProbe =
+              m_ThermalDomain.transient(currentTemperature, probeDt, timestepIndex);
+            temperatureError = normError(tempProbe.solution, currentTemperature);
+        }
+
+        if(m_DiagStream != nullptr)
+        {
+            *m_DiagStream << "\n# FINAL temp_err=" << std::scientific << std::setprecision(6)
+                          << temperatureError
+                          << " hum_err=" << humidityError << "\n";
+        }
+
+        // Final update: advance the "previous timestep" values in nodes
+        m_Nodes.updateNodeTemperatures(currentTemperature, true);
+        m_Nodes.updateNodeHumidities(currentHumidity, true);
 
         const auto waterContent = m_Nodes.properties(Variable::water);
         const auto liquidContent = m_Nodes.properties(Variable::liquid);
@@ -128,7 +178,7 @@ namespace HygroThermFEM
         const auto heatFlux = m_ThermalDomain.flux();
         const auto waterFlux = m_MoistureDomain.flux();
 
-        return Solution{dTime,
+        return Solution{t_DTime,
                         currentTemperature,
                         currentHumidity,
                         waterContent,
@@ -205,6 +255,13 @@ namespace HygroThermFEM
                         waterFlux,
                         temperatureError,
                         humidityError};
+    }
+
+    void MultiDomain::setDiagnosticStream(std::ostream * stream)
+    {
+        m_DiagStream = stream;
+        m_ThermalDomain.setDiagnosticStream(stream);
+        m_MoistureDomain.setDiagnosticStream(stream);
     }
 
     void MultiDomain::performMoistureSimulation(const bool val)

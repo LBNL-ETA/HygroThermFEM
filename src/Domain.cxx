@@ -1,6 +1,8 @@
 #include <algorithm>
 #include <cmath>
+#include <iomanip>
 #include <limits>
+#include <ostream>
 
 #include "Domain.hxx"
 #include "FEMunique.hxx"
@@ -76,6 +78,49 @@ namespace
             [](const double cur, const double prev) { return 0.5 * (cur + prev); });
         return true;
     }
+    //! Prints CSV header for NR iteration diagnostics.
+    void printNRHeader(std::ostream & out, const size_t numDOFs)
+    {
+        out << "subtimestep_dt,nr_iter,metric,converge_tol,correction_norm,"
+               "damping_factor,all_clamped,converged,reason";
+        for(size_t dof = 0; dof < numDOFs; ++dof)
+        {
+            out << ",u" << dof;
+        }
+        out << '\n';
+    }
+
+    //! Prints one CSV row for an NR iteration.
+    void printNRRow(std::ostream & out,
+                    const double subDt,
+                    const size_t iteration,
+                    const double metric,
+                    const double convergeTol,
+                    const double correctionNorm,
+                    const double dampingFactor,
+                    const bool allClamped,
+                    const bool converged,
+                    const char * reason,
+                    const std::vector<double> & solution)
+    {
+        out << std::scientific << std::setprecision(8)
+            << subDt << ','
+            << iteration << ','
+            << metric << ','
+            << convergeTol << ','
+            << correctionNorm << ','
+            << std::fixed << std::setprecision(6)
+            << dampingFactor << ','
+            << allClamped << ','
+            << converged << ','
+            << reason;
+        out << std::scientific << std::setprecision(8);
+        for(const auto val : solution)
+        {
+            out << ',' << val;
+        }
+        out << '\n';
+    }
 }   // anonymous namespace
 
 namespace HygroThermFEM
@@ -133,49 +178,38 @@ namespace HygroThermFEM
                                       const double t_DTime,
                                       const size_t timestepIndex)
     {
-        std::vector<double> solution;
-        bool converged{false};
         auto currentDivisionLevel{0u};
-        auto maxDivisionLevel{Timesteps::Settings::Instance().getMaxDivisions()};
+        const auto maxDivisionLevel{Timesteps::Settings::Instance().getMaxDivisions()};
         double currentDTime{t_DTime};
-        double totalTime{0};
-        auto stateVariables{currentStateValues};
-        unsigned numberOfSubtimesteps{Timesteps::Settings::Instance().getNumberOfSubtimesteps()};
+        const unsigned numberOfSubtimesteps{Timesteps::Settings::Instance().getNumberOfSubtimesteps()};
 
-        // In case program failed to converge, it will cut down step to smaller one and will perform
-        // multiple consecutive simulations in order to achieve solution at requested timestep.
-        while(totalTime < t_DTime)
+        if(m_DiagStream != nullptr)
         {
-            notify(currentDivisionLevel, unsigned(totalTime / currentDTime));
-            const auto current = transientTimestep(stateVariables, currentDTime, timestepIndex);
-            solution = current.first;
-            converged = current.second;
-            if(!converged)
-            {
-                currentDTime = currentDTime / numberOfSubtimesteps;
-                ++currentDivisionLevel;
-                if(currentDivisionLevel > maxDivisionLevel)
-                {
-                    throw std::runtime_error("Solution failed to converge.");
-                }
-            }
-            else
-            {
-                stateVariables = solution;
-                totalTime += currentDTime;
-
-                // When all DOFs are pinned at physical bounds the NR correction is
-                // zero.  Every subsequent sub-timestep would start from the same
-                // clamped state, assemble the same system, and produce the same
-                // zero correction — so we can skip straight to the end.
-                if(m_LastSolveAtPhysicalBound)
-                {
-                    totalTime = t_DTime;
-                }
-            }
+            printNRHeader(*m_DiagStream, currentStateValues.size());
         }
 
-        return {solution, t_DTime};
+        // Try to solve at the requested dt. If NR fails to converge, subdivide
+        // and try again with a smaller dt. Return after the FIRST successful
+        // solve, reporting the actual dt used. The caller (MultiDomain) is
+        // responsible for accumulating time and exchanging cross-domain data.
+        while(true)
+        {
+            notify(currentDivisionLevel, 0u);
+            const auto [solution, converged] =
+              transientTimestep(currentStateValues, currentDTime, timestepIndex);
+
+            if(converged)
+            {
+                return {solution, currentDTime};
+            }
+
+            currentDTime = currentDTime / numberOfSubtimesteps;
+            ++currentDivisionLevel;
+            if(currentDivisionLevel > maxDivisionLevel)
+            {
+                throw std::runtime_error("Solution failed to converge.");
+            }
+        }
     }
 
     std::pair<std::vector<double>, bool>
@@ -256,11 +290,18 @@ namespace HygroThermFEM
                 const auto metric = std::abs(previousNorm - currentNorm) / (currentNorm + 1e-12);
                 converged = metric <= ConvergenceError;
 
+                const char * reason = "";
+                if(converged)
+                {
+                    reason = "metric";
+                }
+
                 // All DOFs pinned at physical bounds — cannot improve further
                 if(!converged && allClamped)
                 {
                     converged = true;
                     convergedViaClamp = true;
+                    reason = "clamped";
                 }
 
                 // Detect and resolve NR 2-cycle oscillation
@@ -271,6 +312,14 @@ namespace HygroThermFEM
                 {
                     postProcess(solution);
                     converged = true;
+                    reason = "oscillation";
+                }
+
+                if(m_DiagStream != nullptr)
+                {
+                    printNRRow(*m_DiagStream, t_DTime, numOfIterations, metric,
+                               ConvergenceError, rawDuNorm, damping.factor,
+                               allClamped, converged, reason, solution);
                 }
 
                 prevMetric = metric;
@@ -334,6 +383,11 @@ namespace HygroThermFEM
         {
             gasCavities->setGravityVector(gravityVector);
         }
+    }
+
+    void IDomain::setDiagnosticStream(std::ostream * stream)
+    {
+        m_DiagStream = stream;
     }
 
     void IDomain::clearModel()

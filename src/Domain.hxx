@@ -1,5 +1,6 @@
 #pragma once
 
+#include <iosfwd>
 #include <memory>
 
 #include "Elements2D.hxx"
@@ -72,6 +73,12 @@ namespace HygroThermFEM
 
         //! \brief Deletes geometry and clears up boundary conditions.
         void clearModel();
+
+        //! \brief Attach a diagnostic stream for solver iteration logging.
+        //! When non-null, the solver prints per-iteration details (NR corrections,
+        //! convergence metrics, sub-timestep divisions) to this stream.
+        //! Pass nullptr to disable. The caller owns the stream lifetime.
+        void setDiagnosticStream(std::ostream * stream);
 
     protected:
         friend class MultiDomain;
@@ -149,6 +156,9 @@ namespace HygroThermFEM
         //! Returns whether the last transient solve ended with all DOFs
         //! clamped at physical bounds by limitIncrement.
         [[nodiscard]] bool lastSolveAtPhysicalBound() const;
+
+        //! Optional diagnostic output stream (nullptr = disabled).
+        std::ostream * m_DiagStream{nullptr};
     };    
 
 }   // namespace HygroThermFEM

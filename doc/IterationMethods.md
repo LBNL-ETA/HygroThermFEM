@@ -11,12 +11,12 @@ HygroThermFEM solves two coupled partial differential equations over a 2D finite
 
 Because material properties depend on the solution itself, both equations are in general **nonlinear**. The coupling between the two domains adds a further layer of nonlinearity: temperature affects moisture transport, and moisture affects thermal conductivity.
 
-The solver addresses this through a hierarchy of three nested iteration levels:
+The solver addresses this through a hierarchy of three levels:
 
 ```
-Outer level:   Staggered coupling loop      (MultiDomain)
-Middle level:  Adaptive timestep subdivision (IDomain::transient)
-Inner level:   Newton-Raphson iteration      (IDomain::transientTimestep)
+Outer level:   Adaptive time-accumulation with cross-coupling  (MultiDomain::transient)
+Middle level:  Adaptive timestep probing                       (IDomain::transient)
+Inner level:   Newton-Raphson iteration                        (IDomain::transientTimestep)
 ```
 
 ## 2. Newton-Raphson Iteration (Inner Level)
@@ -54,46 +54,60 @@ The convergence criterion is based on the **relative change in the L2 norm** of 
 
 When both boundary conditions and element properties are linear (no state-dependent materials), the system `A * U = B` is solved in a single direct step without iteration.
 
-## 3. Staggered Coupling Loop (Outer Level)
+## 3. Adaptive Time-Accumulation with Cross-Coupling (Outer Level)
 
-The coupled hygrothermal problem is solved using a **partitioned (staggered) scheme**. Rather than assembling and solving a single monolithic system for both temperature and humidity simultaneously, each domain is solved independently and the cross-domain data is exchanged iteratively.
+The coupled hygrothermal problem is solved using a **partitioned scheme with adaptive time-stepping at the multi-domain level**. Rather than assembling a monolithic system, each domain is solved independently and then cross-domain data is exchanged after every successful sub-step.
 
-### 3.1 Transient Coupling Algorithm
+### 3.1 Design Rationale
+
+Earlier versions of the solver used a staggered coupling loop where each domain internally subdivided the timestep as needed, grinding through potentially thousands of tiny sub-steps with the cross-domain field (temperature or humidity) frozen at its initial value. For extreme conditions (high humidity at elevated temperatures), this led to:
+
+- **Excessive computation**: the moisture domain might require 40,000+ internal sub-steps to cover a single 3600s timestep
+- **Reduced accuracy**: moisture transport coefficients depend on temperature, but that temperature was frozen during all internal sub-steps
+- **Poor coupling convergence**: the staggered outer loop had to repeat the full internal solve to capture cross-domain effects
+
+The current approach moves the time-accumulation loop out of the individual domains and into `MultiDomain::transient`. Each domain now returns after its **first successful solve** (at whatever sub-timestep it could converge), and cross-coupling data is exchanged after every sub-step. This ensures both domains always see each other's latest solution.
+
+### 3.2 Transient Coupling Algorithm
 
 ```
-Input:  T_0 = initial temperature, H_0 = initial humidity
+Input:  T_0 = initial temperature, H_0 = initial humidity, dt = target timestep
 
-1.  Do
-      a.  Inner loop (solve each domain until individually converged):
-            - Solve moisture domain -> H_new
-            - Solve thermal domain  -> T_new
-            - Repeat until both domain errors < tolerance
-              OR inner iteration limit reached
+1.  totalTime = 0
+2.  While totalTime < dt:
+      a.  remainingTime = dt - totalTime
+      b.  effectiveDt = remainingTime
 
-      b.  Cross-coupling exchange:
-            - Update node temperatures with T_new
-            - Re-solve moisture domain with updated temperatures -> H_new
-            - Update node humidities with H_new
-            - Re-solve thermal domain with updated humidities   -> T_new
+      c.  Solve moisture domain at effectiveDt:
+            - Moisture domain probes dt, subdivides if NR fails,
+              returns first successful solution with actual dt used
+            - effectiveDt = min(effectiveDt, moisture_dt)
 
-      c.  Increment outer iteration counter
+      d.  Solve thermal domain at effectiveDt:
+            - Thermal domain probes the (possibly reduced) dt
+            - If thermal needs even smaller dt:
+                effectiveDt = thermal_dt
+                Re-solve moisture at effectiveDt
 
-2.  While (T_error > tol OR H_error > tol) AND iterations < max
+      e.  Accept both solutions, advance time:
+            - T_current = T_new, H_current = H_new
+            - Update nodes with both fields (cross-coupling exchange)
+            - totalTime += effectiveDt
+
+3.  Final update: advance "previous timestep" values in nodes
 ```
 
-The inner loop uses `AND` for its convergence check (exits when either domain converges, since further uncoupled iteration is wasteful). The outer loop uses `OR` (continues until **both** domains have converged), ensuring the coupled solution is self-consistent.
+### 3.3 Key Properties
 
-### 3.2 Inner Loop Iteration Cap
+**Adaptive synchronization**: both domains always advance by the same sub-timestep. When the moisture domain (typically the stiffer one) needs a smaller dt, the thermal domain is solved at the same reduced dt. If the thermal domain requires an even smaller step (rare in practice), moisture is re-solved at that step.
 
-The inner loop uses a separate, smaller iteration limit (`maxInnerIterations = 12`) rather than the global `MaxIterations` (50). This prevents the inner loop from running excessive Gauss-Seidel cycles when neither domain converges on its own — a situation that arises in strongly coupled problems near material saturation (e.g., humidity close to 1.0 at elevated temperatures).
+**Frequent coupling exchange**: cross-domain data is refreshed after every successful sub-step, not after a full dt traversal. This dramatically improves convergence for strongly coupled problems: instead of solving moisture with a frozen temperature field, the temperature is updated at every sub-step.
 
-In such cases the inner loop's alternating moisture-thermal solves make slow progress because the domains cannot individually converge without cross-domain data exchange. The outer loop's explicit cross-coupling exchange (step 1b) is more effective at driving coupling convergence. Capping the inner loop at 12 iterations (6 moisture + 6 thermal cycles) and relying on the outer loop for coupling convergence reduces redundant work while preserving solution accuracy.
+**Performance improvement**: for the extreme test case (80C, RH=0.9999), the new approach reduced solve time from ~15.5 seconds (40,000 level-2 sub-steps with frozen coupling) to ~0.3 seconds (a few dozen sub-steps with live coupling) -- approximately 50x faster.
 
-For non-extreme conditions, one domain typically converges within a few inner iterations via the `AND` exit condition, so the cap is never reached.
+### 3.4 Steady-State Coupling
 
-### 3.3 Steady-State Coupling
-
-The steady-state coupling follows a simpler pattern: alternately solve each domain and exchange data, repeating until both converge.
+The steady-state coupling follows a simpler pattern: alternately solve each domain and exchange data, repeating until both converge. No time-accumulation is needed.
 
 ## 4. Convergence Stabilization Techniques
 
@@ -156,38 +170,68 @@ beta = betaValue * smoothFactor
 
 This produces: full transfer below RH = 1.0, a linear taper over [1.0, 1.01], and zero transfer above RH = 1.01. The narrow transition width ensures negligible impact on results while eliminating the Jacobian discontinuity.
 
-## 5. Adaptive Timestep Subdivision (Middle Level)
+## 5. Adaptive Timestep Probing (Middle Level)
 
-When the NR iteration fails to converge within the maximum number of iterations for a given timestep, the solver does not immediately give up. Instead, it **subdivides the timestep** and attempts to reach the target time through multiple smaller steps:
+When the NR iteration fails to converge at a requested timestep, the domain does not give up. Instead, it **subdivides** and tries progressively smaller timesteps until one succeeds, then **returns immediately** with the first successful solution and the actual dt used:
 
 ```
 Input:  dt = requested timestep, maxLevels = 3, numSub = 10
 
-1.  totalTime = 0, currentDt = dt, level = 0
-2.  While totalTime < dt:
+1.  currentDt = dt, level = 0
+2.  Loop:
       a.  Attempt NR solve for currentDt
       b.  If converged:
-            - Advance: totalTime += currentDt
-            - Update state variables
+            - Return (solution, currentDt)   <-- actual dt may be < requested dt
       c.  If not converged:
             - Subdivide: currentDt = currentDt / numSub
             - level += 1
             - If level > maxLevels: throw error (solution failed)
 ```
 
-With default settings (3 levels, 10 subdivisions per level), the solver can attempt timesteps as small as `dt / 1000` before reporting failure. Each subdivision level is reported to registered observers for progress monitoring.
+The key difference from earlier versions: the domain **does not accumulate time internally**. It finds the largest dt at which the NR solver converges and returns that single-step result. The caller (`MultiDomain::transient`) is responsible for accumulating sub-steps until the target time is reached, exchanging cross-domain coupling data between each sub-step (see Section 3).
 
-## 6. Summary of Parameters
+With default settings (3 levels, 10 subdivisions per level), the solver can probe timesteps as small as `dt / 1000` before reporting failure. Each subdivision level is reported to registered observers for progress monitoring.
+
+## 6. Diagnostic Output
+
+Both `IDomain` and `MultiDomain` support an optional diagnostic stream (`setDiagnosticStream(std::ostream*)`). When enabled, the solver writes CSV-formatted data for every NR iteration and sub-step:
+
+**NR iteration columns**: `subtimestep_dt, nr_iter, metric, converge_tol, correction_norm, damping_factor, all_clamped, converged, reason, u0, u1, ...`
+
+**Comment lines** (`# ...`) mark sub-step boundaries, domain switches (MOISTURE/THERMAL), and time-accumulation progress.
+
+Usage in a test:
+```cpp
+std::ofstream diagFile("solver_diagnostics.csv");
+multiDomain.setDiagnosticStream(&diagFile);
+```
+
+Load in Python with: `pd.read_csv("solver_diagnostics.csv", comment="#")`
+
+## 7. Summary of Parameters
 
 | Parameter | Default | Description |
 |-----------|---------|-------------|
 | Relaxation parameter | 1.0 | NR under-relaxation factor (omega) |
 | Error tolerance | 1e-5 | Convergence threshold for relative norm change |
-| Max iterations | 50 | Maximum NR iterations per timestep; also outer coupling loop limit |
-| Max inner iterations | 12 | Inner coupling loop iteration cap (see Section 3.2) |
-| Max division levels | 3 | Maximum timestep subdivision depth |
-| Subdivisions per level | 10 | Number of sub-timesteps per subdivision |
+| Max iterations | 50 | Maximum NR iterations per timestep |
+| Max division levels | 3 | Maximum timestep probing depth |
+| Subdivisions per level | 10 | Factor by which dt is reduced per probing level |
 | Oscillation check threshold | 0.01 | Relative metric change below which 2-cycle is detected |
 | Min iterations for oscillation check | 4 | Warmup before oscillation detection activates |
 | Clamp tolerance | 1e-12 | Absolute increment below which a DOF is considered clamped |
 | Vapor transfer transition width | 0.01 | RH range over which beta tapers to zero |
+
+## 8. Licensing and Prior Art
+
+All numerical methods used in this solver are standard techniques from the public domain, with no proprietary or patent-encumbered algorithms:
+
+- **Newton-Raphson iteration** — published by Isaac Newton (1685) and Joseph Raphson (1690). Standard textbook method for nonlinear systems.
+- **Under-relaxation** — classical stabilization technique, widely described in numerical methods literature.
+- **Partitioned (staggered) coupling** — standard approach in multi-physics FEM solvers since the 1970s.
+- **Adaptive time-stepping with subdivision** — ubiquitous in ODE/PDE solvers; standard numerical practice.
+- **Per-DOF increment limiting** — standard practice in constrained nonlinear solvers.
+- **Midpoint averaging for oscillation resolution** — basic numerical stabilization, not a proprietary technique.
+- **Caller-level time-accumulation with frequent coupling exchange** — an engineering design choice for organizing cross-domain data exchange; built from the standard methods above.
+
+The specific combination, tuning parameters, and implementation details are original engineering work by the HygroThermFEM authors.

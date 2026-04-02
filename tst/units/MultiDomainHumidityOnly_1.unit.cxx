@@ -3,6 +3,7 @@
 
 #include "HygroThermFEM2D.hxx"
 #include "SlabCreator.hxx"
+#include "TestHelpers.hxx"
 #include "TestMaterials.hxx"
 
 using HygroThermFEM::Nodes;
@@ -74,15 +75,7 @@ TEST(MultiDomainHumidityOnly_1, TestExample_1)
       {4.981688, 4.981688, 7.359174, 7.359174, 7.366637, 7.366637},
       {4.836384, 4.836384, 7.357531, 7.357531, 7.366627, 7.366627}};
 
-    EXPECT_EQ(waterContentSolution.size(), correctWaterContentSolution.size());
-
-    for(auto i = 0u; i < correctWaterContentSolution.size(); ++i)
-    {
-        for(auto j = 0u; j < correctWaterContentSolution[i].size(); ++j)
-        {
-            EXPECT_NEAR(correctWaterContentSolution[i][j], waterContentSolution[i][j], 1e-6);
-        }
-    }
+    TestHelper::expectNear(correctWaterContentSolution, waterContentSolution, 1e-6);
 
     std::vector<std::vector<double>> correctTemperatureSolution{{0, 0, 0, 0, 0, 0},
                                                                 {0, 0, 0, 0, 0, 0},
@@ -95,13 +88,5 @@ TEST(MultiDomainHumidityOnly_1, TestExample_1)
                                                                 {0, 0, 0, 0, 0, 0},
                                                                 {0, 0, 0, 0, 0, 0}};
 
-    EXPECT_EQ(temperatureSolution.size(), correctTemperatureSolution.size());
-
-    for(auto i = 0u; i < correctTemperatureSolution.size(); ++i)
-    {
-        for(auto j = 0u; j < correctTemperatureSolution[i].size(); ++j)
-        {
-            EXPECT_NEAR(correctTemperatureSolution[i][j], temperatureSolution[i][j], 1e-6);
-        }
-    }
+    TestHelper::expectNear(correctTemperatureSolution, temperatureSolution, 1e-6);
 }

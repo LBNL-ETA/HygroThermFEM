@@ -1,5 +1,7 @@
 #pragma once
 
+#include <iosfwd>
+
 #include "Domain.hxx"
 #include "ThermalDomain.hxx"
 #include "MoistureDomain.hxx"
@@ -361,6 +363,10 @@ namespace HygroThermFEM
         //! @return Const reference to the MaterialPool instance
         [[nodiscard]] const Materials & materials() const;
 
+        //! \brief Attach a diagnostic stream for solver iteration logging.
+        //! Forwards to both thermal and moisture domains as well.
+        void setDiagnosticStream(std::ostream * stream);
+
         //! @brief Access to thermal domain for single-domain operations
         //! @return Reference to the ThermalDomain
         ThermalDomain & thermal();
@@ -394,6 +400,7 @@ namespace HygroThermFEM
         MoistureDomain m_MoistureDomain;
         bool m_SimulateThermal;
         bool m_SimulateMoisture;
+        std::ostream * m_DiagStream{nullptr};
     };
 
 }   // namespace HygroThermFEM

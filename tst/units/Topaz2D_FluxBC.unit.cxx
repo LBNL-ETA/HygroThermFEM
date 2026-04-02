@@ -2,6 +2,7 @@
 #include <gtest/gtest.h>
 
 #include "HygroThermFEM2D.hxx"
+#include "TestHelpers.hxx"
 #include "TestMaterials.hxx"
 
 TEST(Topaz2D_FluxBC, TestExample_1)
@@ -56,13 +57,5 @@ TEST(Topaz2D_FluxBC, TestExample_1)
       {0.324790684, 0.324790684, 0.513783385, 0.513783385, 0.784104345, 0.784104345},
       {0.478007410, 0.478007410, 0.684010609, 0.684010609, 0.958667844, 0.958667844}};
 
-    EXPECT_EQ(solution.size(), correctSolution.size());
-
-    for(auto i = 0u; i < correctSolution.size(); ++i)
-    {
-        for(auto j = 0u; j < correctSolution[i].size(); ++j)
-        {
-            EXPECT_NEAR(correctSolution[i][j], solution[i][j], 1e-6);
-        }
-    }
+    TestHelper::expectNear(correctSolution, solution, 1e-6);
 }

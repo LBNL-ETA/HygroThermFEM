@@ -3,6 +3,7 @@
 
 #include "HygroThermFEM2D.hxx"
 #include "SlabCreator.hxx"
+#include "TestHelpers.hxx"
 #include "TestMaterials.hxx"
 
 TEST(ConvectionBC_2D_TransientNoChanges, TestExample_1)
@@ -55,13 +56,5 @@ TEST(ConvectionBC_2D_TransientNoChanges, TestExample_1)
       {20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0},
       {20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0}};
 
-    EXPECT_EQ(solution.size(), correctSolution.size());
-
-    for(auto i = 0u; i < correctSolution.size(); ++i)
-    {
-        for(auto j = 0u; j < correctSolution[i].size(); ++j)
-        {
-            EXPECT_NEAR(correctSolution[i][j], solution[i][j], 1e-6);
-        }
-    }
+    TestHelper::expectNear(correctSolution, solution, 1e-6);
 }

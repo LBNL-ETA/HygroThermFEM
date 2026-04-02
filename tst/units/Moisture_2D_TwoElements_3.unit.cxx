@@ -2,6 +2,7 @@
 #include <gtest/gtest.h>
 
 #include "HygroThermFEM2D.hxx"
+#include "TestHelpers.hxx"
 #include "TestMaterials.hxx"
 
 using HygroThermFEM::State;
@@ -96,13 +97,5 @@ TEST(Moisture_2D_TwoElements_3, TestExample_1)
         EXPECT_NEAR(correctTimesteps[i], timesteps[i], 1e-6);
     }
 
-    EXPECT_EQ(correctHumiditySolution.size(), humiditySolution.size());
-
-    for(auto i = 0u; i < humiditySolution.size(); ++i)
-    {
-        for(auto j = 0u; j < humiditySolution[i].size(); ++j)
-        {
-            EXPECT_NEAR(correctHumiditySolution[i][j], humiditySolution[i][j], 1e-6);
-        }
-    }
+    TestHelper::expectNear(correctHumiditySolution, humiditySolution, 1e-6);
 }

@@ -3,6 +3,7 @@
 
 #include "HygroThermFEM2D.hxx"
 #include "SlabCreator.hxx"
+#include "TestHelpers.hxx"
 #include "TestMaterials.hxx"
 
 TEST(MoistureBC_2D_3, TestExample_1)
@@ -57,13 +58,5 @@ TEST(MoistureBC_2D_3, TestExample_1)
       {5.180798, 5.180798, 0.467846, 0.467846, 0.032132, 0.032132, 0.003749, 0.003749},
       {5.221863, 5.221863, 0.616733, 0.616733, 0.052394, 0.052394, 0.007271, 0.007271}};
 
-    EXPECT_EQ(solution.size(), correctSolution.size());
-
-    for(auto i = 0u; i < correctSolution.size(); ++i)
-    {
-        for(auto j = 0u; j < correctSolution[i].size(); ++j)
-        {
-            EXPECT_NEAR(correctSolution[i][j], solution[i][j], 1e-6);
-        }
-    }
+    TestHelper::expectNear(correctSolution, solution, 1e-6);
 }

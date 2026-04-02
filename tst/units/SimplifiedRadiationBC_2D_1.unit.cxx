@@ -2,6 +2,7 @@
 #include <gtest/gtest.h>
 
 #include "HygroThermFEM2D.hxx"
+#include "TestHelpers.hxx"
 #include "TestMaterials.hxx"
 
 TEST(SimplifiedRadiationBC_2D_1, TestExample_1)
@@ -57,13 +58,5 @@ TEST(SimplifiedRadiationBC_2D_1, TestExample_1)
       {1.833106, 1.833106, 2.864722, 2.864722, 4.302987, 4.302987},
       {2.633075, 2.633075, 3.708650, 3.708650, 5.097447, 5.097447}};
 
-    EXPECT_EQ(solution.size(), correctSolution.size());
-
-    for(auto i = 0u; i < solution.size(); ++i)
-    {
-        for(auto j = 0u; j < solution[i].size(); ++j)
-        {
-            EXPECT_NEAR(correctSolution[i][j], solution[i][j], 1e-6);
-        }
-    }
+    TestHelper::expectNear(correctSolution, solution, 1e-6);
 }

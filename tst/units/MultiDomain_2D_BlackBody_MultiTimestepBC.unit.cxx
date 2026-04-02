@@ -3,6 +3,7 @@
 
 #include "HygroThermFEM2D.hxx"
 #include "SlabCreator.hxx"
+#include "TestHelpers.hxx"
 #include "TestMaterials.hxx"
 
 TEST(MultiDomain_2D_BlackBody_MultiTimestepBC, TestExample_1)
@@ -73,15 +74,7 @@ TEST(MultiDomain_2D_BlackBody_MultiTimestepBC, TestExample_1)
                                                                  {0, 0, 0, 0, 0, 0},
                                                                  {0, 0, 0, 0, 0, 0}};
 
-    EXPECT_EQ(waterContentSolution.size(), correctWaterContentSolution.size());
-
-    for(auto i = 0u; i < correctWaterContentSolution.size(); ++i)
-    {
-        for(auto j = 0u; j < correctWaterContentSolution[i].size(); ++j)
-        {
-            EXPECT_NEAR(correctWaterContentSolution[i][j], waterContentSolution[i][j], 1e-6);
-        }
-    }
+    TestHelper::expectNear(correctWaterContentSolution, waterContentSolution, 1e-6);
 
     std::vector<std::vector<double>> correctTemperatureSolution{
       {2.489003, 2.489003, 1.293774, 1.293774, 0.968299, 0.968299},
@@ -95,13 +88,5 @@ TEST(MultiDomain_2D_BlackBody_MultiTimestepBC, TestExample_1)
       {9.285293, 9.285293, 8.611945, 8.611945, 8.388823, 8.388823},
       {10.009687, 10.009687, 9.30931, 9.30931, 9.077743, 9.077743}};
 
-    EXPECT_EQ(temperatureSolution.size(), correctTemperatureSolution.size());
-
-    for(auto i = 0u; i < correctTemperatureSolution.size(); ++i)
-    {
-        for(auto j = 0u; j < correctTemperatureSolution[i].size(); ++j)
-        {
-            EXPECT_NEAR(correctTemperatureSolution[i][j], temperatureSolution[i][j], 1e-6);
-        }
-    }
+    TestHelper::expectNear(correctTemperatureSolution, temperatureSolution, 1e-6);
 }

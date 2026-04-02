@@ -3,43 +3,41 @@
 
 #include "HygroThermFEM2D.hxx"
 #include "SlabCreator.hxx"
+#include "TestHelpers.hxx"
 #include "TestMaterials.hxx"
 
 TEST(MultiDomain_2D_VariableTARPHc_MultiTimestepBC, TestExample_1)
 {
     HygroThermFEM::MultiDomain multiDomain;
 
-    const auto & material = multiDomain.materials().createSolidMaterial(TestHelper::CottaerSandstone());
+    const auto & material =
+      multiDomain.materials().createSolidMaterial(TestHelper::CottaerSandstone());
 
-    constexpr HygroThermFEM::State state({
-        .temperature = 0.0,
-        .humidity = 0.0,
-        .pressure = 101325.0,
-        .liquidPercent = 1.0
-    });
+    constexpr HygroThermFEM::State state(
+      {.temperature = 0.0, .humidity = 0.0, .pressure = 101325.0, .liquidPercent = 1.0});
 
     TestHelper::SlabBuilder(multiDomain)
-        .gridXCoordinates({0, 0.05, 0.1})
-        .height(0.05)
-        .material(material.name())
-        .state(state)
-        .startCorner(TestHelper::StartCorner::BottomRight)
-        .direction(TestHelper::Direction::CounterClockwise)
-        .build();
+      .gridXCoordinates({0, 0.05, 0.1})
+      .height(0.05)
+      .material(material.name())
+      .state(state)
+      .startCorner(TestHelper::StartCorner::BottomRight)
+      .direction(TestHelper::Direction::CounterClockwise)
+      .build();
 
     /// Create Boundary Conditions
 
     // Variable boundary conditions (temperature and humidity) over ten timesteps.
     const std::vector<HygroThermFEM::TARPCoefficients> bcCoeff{{20.0, 0.6},
-                                                                       {20.0, 0.5},
-                                                                       {20.0, 0.4},
-                                                                       {20.0, 0.3},
-                                                                       {20.0, 0.2},
-                                                                       {18.0, 0.2},
-                                                                       {16.0, 0.2},
-                                                                       {14.0, 0.2},
-                                                                       {12.0, 0.2},
-                                                                       {10.0, 0.2}};
+                                                               {20.0, 0.5},
+                                                               {20.0, 0.4},
+                                                               {20.0, 0.3},
+                                                               {20.0, 0.2},
+                                                               {18.0, 0.2},
+                                                               {16.0, 0.2},
+                                                               {14.0, 0.2},
+                                                               {12.0, 0.2},
+                                                               {10.0, 0.2}};
 
     const auto surfaceTilt{90.0};
 
@@ -65,46 +63,30 @@ TEST(MultiDomain_2D_VariableTARPHc_MultiTimestepBC, TestExample_1)
     }
 
     std::vector<std::vector<double>> correctWaterContentSolution{
-      {2.962594, 2.962594, 0.003663, 0.003663, 8e-06, 8e-06},
-      {4.409302, 4.409302, 0.009581, 0.009581, 3.4e-05, 3.4e-05},
-      {5.131024, 5.131024, 0.016977, 0.016977, 8.4e-05, 8.4e-05},
-      {5.452168, 5.452168, 0.025201, 0.025201, 0.000164, 0.000164},
-      {5.254476, 5.254476, 0.033637, 0.033637, 0.000277, 0.000277},
-      {5.059499, 5.059499, 0.042063, 0.042063, 0.000424, 0.000424},
-      {4.811524, 4.811524, 0.050288, 0.050288, 0.000604, 0.000604},
-      {4.527268, 4.527268, 0.058161, 0.058161, 0.000817, 0.000817},
-      {4.220781, 4.220781, 0.065565, 0.065565, 0.001058, 0.001058},
-      {3.903782, 3.903782, 0.072418, 0.072418, 0.001324, 0.001324}};
+      {3.154369, 3.154369, 0.003407, 0.003407, 0.000007, 0.000007},
+      {4.625021, 4.625021, 0.008968, 0.008968, 0.000029, 0.000029},
+      {5.384263, 5.384263, 0.016086, 0.016086, 0.000073, 0.000073},
+      {5.844827, 5.844827, 0.024160, 0.024160, 0.000145, 0.000145},
+      {5.578137, 5.578137, 0.032576, 0.032576, 0.000251, 0.000251},
+      {5.231993, 5.231993, 0.041075, 0.041075, 0.000390, 0.000390},
+      {4.965266, 4.965266, 0.049438, 0.049438, 0.000565, 0.000565},
+      {4.659495, 4.659495, 0.057489, 0.057489, 0.000773, 0.000773},
+      {4.329571, 4.329571, 0.065092, 0.065092, 0.001012, 0.001012},
+      {3.988121, 3.988121, 0.072146, 0.072146, 0.001280, 0.001280}};
 
-    EXPECT_EQ(waterContentSolution.size(), correctWaterContentSolution.size());
-
-    for(auto i = 0u; i < correctWaterContentSolution.size(); ++i)
-    {
-        for(auto j = 0u; j < correctWaterContentSolution[i].size(); ++j)
-        {
-            EXPECT_NEAR(correctWaterContentSolution[i][j], waterContentSolution[i][j], 1e-6);
-        }
-    }
+    TestHelper::expectNear(correctWaterContentSolution, waterContentSolution, 1e-6);
 
     std::vector<std::vector<double>> correctTemperatureSolution{
-      {3.696622, 3.696622, 1.920131, 1.920131, 1.437081, 1.437081},
-      {5.359278, 5.359278, 3.642653, 3.642653, 3.087792, 3.087792},
-      {6.376811, 6.376811, 4.989256, 4.989256, 4.510895, 4.510895},
-      {7.075905, 7.075905, 6.009414, 6.009414, 5.632418, 5.632418},
-      {7.563313, 7.563313, 6.766149, 6.766149, 6.48092, 6.48092},
-      {7.909438, 7.909438, 7.321655, 7.321655, 7.110133, 7.110133},
-      {8.125345, 8.125345, 7.710468, 7.710468, 7.559422, 7.559422},
-      {8.218628, 8.218628, 7.953758, 7.953758, 7.854534, 7.854534},
-      {8.200381, 8.200381, 8.06805, 8.06805, 8.014314, 8.014314},
-      {8.080523, 8.080523, 8.066741, 8.066741, 8.05353, 8.05353}};
+      {3.995839, 3.995839, 2.075604, 2.075604, 1.553442, 1.553442},
+      {5.646619, 5.646619, 3.861483, 3.861483, 3.280844, 3.280844},
+      {6.634772, 6.634772, 5.224996, 5.224996, 4.735896, 4.735896},
+      {7.306077, 7.306077, 6.240790, 6.240790, 5.862192, 5.862192},
+      {7.766054, 7.766054, 6.982390, 6.982390, 6.700567, 6.700567},
+      {8.084152, 8.084152, 7.516736, 7.516736, 7.311395, 7.311395},
+      {8.276204, 8.276204, 7.883354, 7.883354, 7.739447, 7.739447},
+      {8.347525, 8.347525, 8.104696, 8.104696, 8.012790, 8.012790},
+      {8.309361, 8.309361, 8.198120, 8.198120, 8.151475, 8.151475},
+      {8.171946, 8.171946, 8.177636, 8.177636, 8.171033, 8.171033}};
 
-    EXPECT_EQ(temperatureSolution.size(), correctTemperatureSolution.size());
-
-    for(auto i = 0u; i < correctTemperatureSolution.size(); ++i)
-    {
-        for(auto j = 0u; j < correctTemperatureSolution[i].size(); ++j)
-        {
-            EXPECT_NEAR(correctTemperatureSolution[i][j], temperatureSolution[i][j], 1e-6);
-        }        
-    }
+    TestHelper::expectNear(correctTemperatureSolution, temperatureSolution, 1e-6);
 }

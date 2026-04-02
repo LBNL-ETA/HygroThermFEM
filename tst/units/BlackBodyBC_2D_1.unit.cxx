@@ -2,6 +2,7 @@
 #include <gtest/gtest.h>
 
 #include "HygroThermFEM2D.hxx"
+#include "TestHelpers.hxx"
 #include "TestMaterials.hxx"
 
 /////////////////////////////////////////////////////////////////////////////////////
@@ -65,13 +66,5 @@ TEST(BlackBodyBC_2D_1, TestExample_1)
       {1.987435, 1.987435, 3.105594, 3.105594, 4.664103, 4.664103},
       {2.853862, 2.853862, 4.018792, 4.018792, 5.522119, 5.522119}};
 
-    EXPECT_EQ(solution.size(), correctSolution.size());
-
-    for(auto i = 0u; i < solution.size(); ++i)
-    {
-        for(auto j = 0u; j < solution[i].size(); ++j)
-        {
-            EXPECT_NEAR(correctSolution[i][j], solution[i][j], 1e-6);
-        }
-    }
+    TestHelper::expectNear(correctSolution, solution, 1e-6);
 }
