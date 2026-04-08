@@ -1,42 +1,95 @@
 #pragma once
+#include <cmath>
+#include <cstddef>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
 #include <string>
+#include <type_traits>
 #include <vector>
 
 namespace TestHelper
 {
-    inline void printVector(const std::string & name,
-                            const std::vector<double> & vec,
-                            std::ostream & out = std::cerr)
+    namespace detail
     {
-        out << "    const std::vector<double> " << name << "{";
+        //! Returns the C++ type name string used when emitting a vector
+        //! literal for type T. Specialise for any new type that should be
+        //! supported by printVector / printVector2D.
+        template<typename T>
+        constexpr const char * typeName() = delete;
+
+        template<>
+        constexpr const char * typeName<double>()
+        {
+            return "double";
+        }
+        template<>
+        constexpr const char * typeName<int>()
+        {
+            return "int";
+        }
+        template<>
+        constexpr const char * typeName<unsigned>()
+        {
+            return "unsigned";
+        }
+        template<>
+        constexpr const char * typeName<std::size_t>()
+        {
+            return "size_t";
+        }
+
+        //! Writes a single scalar value to `out`, using scientific format
+        //! only for floating-point values that are very small or very large.
+        template<typename T>
+        void writeScalar(std::ostream & out, const T & value)
+        {
+            if constexpr(std::is_floating_point_v<T>)
+            {
+                if(value != T{0} && (std::abs(value) < 1e-4 || std::abs(value) >= 1e6))
+                {
+                    out << std::scientific << std::setprecision(6) << value;
+                }
+                else
+                {
+                    out << std::fixed << std::setprecision(6) << value;
+                }
+            }
+            else
+            {
+                out << value;
+            }
+        }
+    }   // namespace detail
+
+    template<typename T>
+    void printVector(const std::string & name,
+                     const std::vector<T> & vec,
+                     std::ostream & out = std::cerr)
+    {
+        out << "    const std::vector<" << detail::typeName<T>() << "> " << name << "{";
         for(size_t idx = 0; idx < vec.size(); ++idx)
         {
             if(idx > 0)
             {
                 out << ", ";
             }
-            // Use scientific for very small or very large values
-            if(vec[idx] != 0.0 && (std::abs(vec[idx]) < 1e-4 || std::abs(vec[idx]) >= 1e6))
-            {
-                out << std::scientific << std::setprecision(6) << vec[idx];
-            }
-            else
-            {
-                out << std::fixed << std::setprecision(6) << vec[idx];
-            }
+            detail::writeScalar(out, vec[idx]);
         }
         out << "};\n";
     }
 
-    inline void printVector2D(const std::string & name,
-                              const std::vector<std::vector<double>> & vec,
-                              std::ostream & out = std::cerr)
+    template<typename T>
+    void printVector2D(const std::string & name,
+                       const std::vector<std::vector<T>> & vec,
+                       std::ostream & out = std::cerr)
     {
-        out << std::fixed << std::setprecision(6);
-        out << "    const std::vector<std::vector<double>> " << name << "{\n";
+        if constexpr(std::is_floating_point_v<T>)
+        {
+            out << std::fixed << std::setprecision(6);
+        }
+        out << "    const std::vector<std::vector<" << detail::typeName<T>() << ">> " << name
+            << "{\n";
         for(size_t idx = 0; idx < vec.size(); ++idx)
         {
             out << "      {";

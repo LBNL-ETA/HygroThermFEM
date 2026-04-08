@@ -8,35 +8,33 @@ using HygroThermFEM::Nodes;
 
 namespace
 {
+    //! Counts how many times each non-zero subdivision level fires.
+    //! Index 0 corresponds to division level 1, index 1 to level 2, etc.
     class ObserveSimulationProgress : public Timesteps::TimestepObserver
     {
     public:
         void levelChanged(unsigned divisionLevel, unsigned) override
         {
-            // No need to notify simulation at level zero
-            if(divisionLevel > 0)
+            // Level zero is the initial timestep attempt and is not counted.
+            if(divisionLevel == 0)
             {
-                m_SimulationCalls.at(divisionLevel) += 1;
+                return;
             }
+            const size_t idx = divisionLevel - 1;
+            if(idx >= m_SimulationCalls.size())
+            {
+                m_SimulationCalls.resize(idx + 1, 0u);
+            }
+            ++m_SimulationCalls[idx];
         }
 
-        [[nodiscard]] unsigned getLevelOne() const
+        [[nodiscard]] const std::vector<unsigned> & calls() const
         {
-            return m_SimulationCalls.at(1);
-        }
-        [[nodiscard]] unsigned getLevelTwo() const
-        {
-            return m_SimulationCalls.at(2);
-        }
-        [[nodiscard]] unsigned getLevelThree() const
-        {
-            return m_SimulationCalls.at(3);
+            return m_SimulationCalls;
         }
 
     private:
-        // Map will simply keep track of how many times simulation was called
-        // at given division level
-        std::map<unsigned, unsigned> m_SimulationCalls{{1, 0}, {2, 0}, {3, 0}};
+        std::vector<unsigned> m_SimulationCalls{0u, 0u, 0u};
     };
 }   // namespace
 
@@ -129,24 +127,8 @@ TEST(MultiDomain_HighHumidity, TestExample_1)
     TestHelper::expectNear(correctTemperatureSolution, temperatureSolution, 1e-3);
 
     // Checking number of iterations within subiterations
-
-    auto lvlOneMoisture = progressMoisture.getLevelOne();
-    EXPECT_EQ(lvlOneMoisture, 8u);
-
-    auto lvlTwoMoisture = progressMoisture.getLevelTwo();
-    EXPECT_EQ(lvlTwoMoisture, 7u);
-
-    auto lvlThreeMoisture = progressMoisture.getLevelThree();
-    EXPECT_EQ(lvlThreeMoisture, 3u);
-
-    auto lvlOneThermal = progressThermal.getLevelOne();
-    EXPECT_EQ(lvlOneThermal, 0u);
-
-    auto lvlTwoThermal = progressThermal.getLevelTwo();
-    EXPECT_EQ(lvlTwoThermal, 0u);
-
-    auto lvlThreeThermal = progressThermal.getLevelThree();
-    EXPECT_EQ(lvlThreeThermal, 0u);
+    EXPECT_EQ(progressMoisture.calls(), (std::vector<unsigned>{8u, 7u, 3u}));
+    EXPECT_EQ(progressThermal.calls(), (std::vector<unsigned>{0u, 0u, 0u}));
 }
 
 TEST(MultiDomain_HighHumidity, HighHumidityAndTemperature)
@@ -242,24 +224,8 @@ TEST(MultiDomain_HighHumidity, HighHumidityAndTemperature)
     TestHelper::expectNear(correctTemperatureSolution, temperatureSolution, 1e-3);
 
     // Checking number of iterations within subiterations
-
-    auto lvlOneMoisture = progressMoisture.getLevelOne();
-    EXPECT_EQ(lvlOneMoisture, 4u);
-
-    auto lvlTwoMoisture = progressMoisture.getLevelTwo();
-    EXPECT_EQ(lvlTwoMoisture, 4u);
-
-    auto lvlThreeMoisture = progressMoisture.getLevelThree();
-    EXPECT_EQ(lvlThreeMoisture, 1u);
-
-    auto lvlOneThermal = progressThermal.getLevelOne();
-    EXPECT_EQ(lvlOneThermal, 0u);
-
-    auto lvlTwoThermal = progressThermal.getLevelTwo();
-    EXPECT_EQ(lvlTwoThermal, 0u);
-
-    auto lvlThreeThermal = progressThermal.getLevelThree();
-    EXPECT_EQ(lvlThreeThermal, 0u);
+    EXPECT_EQ(progressMoisture.calls(), (std::vector<unsigned>{4u, 4u, 1u}));
+    EXPECT_EQ(progressThermal.calls(), (std::vector<unsigned>{0u, 0u, 0u}));
 }
 
 TEST(MultiDomain_HighHumidity, ExtremeHumidityAndTemperature)
@@ -355,22 +321,6 @@ TEST(MultiDomain_HighHumidity, ExtremeHumidityAndTemperature)
     TestHelper::expectNear(correctTemperatureSolution, temperatureSolution, 1e-3);
 
     // Checking number of iterations within subiterations
-
-    auto lvlOneMoisture = progressMoisture.getLevelOne();
-    EXPECT_EQ(lvlOneMoisture, 25u);
-
-    auto lvlTwoMoisture = progressMoisture.getLevelTwo();
-    EXPECT_EQ(lvlTwoMoisture, 25u);
-
-    auto lvlThreeMoisture = progressMoisture.getLevelThree();
-    EXPECT_EQ(lvlThreeMoisture, 22u);
-
-    auto lvlOneThermal = progressThermal.getLevelOne();
-    EXPECT_EQ(lvlOneThermal, 0u);
-
-    auto lvlTwoThermal = progressThermal.getLevelTwo();
-    EXPECT_EQ(lvlTwoThermal, 0u);
-
-    auto lvlThreeThermal = progressThermal.getLevelThree();
-    EXPECT_EQ(lvlThreeThermal, 0u);
+    EXPECT_EQ(progressMoisture.calls(), (std::vector<unsigned>{25u, 25u, 22u}));
+    EXPECT_EQ(progressThermal.calls(), (std::vector<unsigned>{0u, 0u, 0u}));
 }
