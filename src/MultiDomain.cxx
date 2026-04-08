@@ -21,8 +21,8 @@ namespace HygroThermFEM
     // passing false to subdomains means that previous timestep values will not be automatically
     // updated. This mean that multidomain must update its values once solution converged.
     MultiDomain::MultiDomain(MultiDomainParams params) :
-        m_ThermalDomain(m_Nodes, m_Materials),
-        m_MoistureDomain(m_Nodes, m_Materials),
+        m_ThermalDomain(m_Nodes, m_Materials, /*automaticUpdatePreviousTimestep=*/false),
+        m_MoistureDomain(m_Nodes, m_Materials, /*automaticUpdatePreviousTimestep=*/false),
         m_SimulateThermal(params.performThermal),
         m_SimulateMoisture(params.performMoisture)
     {}

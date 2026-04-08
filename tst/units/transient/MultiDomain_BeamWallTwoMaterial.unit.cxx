@@ -38,13 +38,40 @@ namespace
     };
 }   // namespace
 
+class MultiDomain_BeamWall_StuccoFiberglass : public testing::Test
+{
+protected:
+    void TearDown() override
+    {
+        // Reset the SimulationProperties singleton so any flags this test
+        // toggled (e.g. excludeWaterLiquidTransportation) do not bleed into
+        // subsequent tests in the same binary.
+        HygroThermFEM::SimulationProperties::Instance().reset();
+    }
+};
+
 //! Beam-shaped wall section with two materials: an exterior stucco layer
 //! and a fiberglass-batt insulation layer. Initialised at high humidity
 //! (RH = 0.9999) and warm temperature, with a colder/drier interior
 //! boundary. Intended as a reproducer for solver divergence issues
 //! reported on multi-material beam structures at near-saturation states.
-TEST(MultiDomain_BeamWall_StuccoFiberglass, TwoMaterialHighHumidity)
+TEST_F(MultiDomain_BeamWall_StuccoFiberglass, TwoMaterialHighHumidity)
 {
+    // Disable liquid transportation in the moisture transport equation to
+    // confirm whether it is the source of the near-saturation drift seen on
+    // this reproducer.
+    constexpr auto excludeWaterLiquidTransportation{true};
+    constexpr auto excludeHeatOfEvaporation{false};
+    constexpr auto excludeCapillaryConduction{false};
+    constexpr auto excludeVaporDiffusionConduction{false};
+    constexpr auto thermalConductivityMoistureAndTemperatureDependent{false};
+    HygroThermFEM::SimulationProperties::Instance().setCalculationParameters(
+      excludeWaterLiquidTransportation,
+      excludeHeatOfEvaporation,
+      excludeCapillaryConduction,
+      excludeVaporDiffusionConduction,
+      thermalConductivityMoistureAndTemperatureDependent);
+
     HygroThermFEM::MultiDomain multiDomain;
 
     constexpr double initialTemperature = 30.0;
