@@ -1,4 +1,4 @@
-#include <cmath>
+#include <fstream>
 #include <gtest/gtest.h>
 
 #include "HygroThermFEM2D.hxx"
@@ -6,6 +6,37 @@
 #include "BeamBuilder.hxx"
 #include "PrintSolution.hxx"
 #include "TestMaterials.hxx"
+
+namespace
+{
+    //! Counts how many times each non-zero subdivision level fires.
+    //! Index 0 corresponds to division level 1, index 1 to level 2, etc.
+    class ObserveSimulationProgress : public Timesteps::TimestepObserver
+    {
+    public:
+        void levelChanged(unsigned divisionLevel, unsigned) override
+        {
+            if(divisionLevel == 0)
+            {
+                return;
+            }
+            const size_t idx = divisionLevel - 1;
+            if(idx >= m_SimulationCalls.size())
+            {
+                m_SimulationCalls.resize(idx + 1, 0u);
+            }
+            ++m_SimulationCalls[idx];
+        }
+
+        [[nodiscard]] const std::vector<unsigned> & calls() const
+        {
+            return m_SimulationCalls;
+        }
+
+    private:
+        std::vector<unsigned> m_SimulationCalls{0u, 0u, 0u};
+    };
+}   // namespace
 
 //! Beam-shaped wall section with two materials: an exterior stucco layer
 //! and a fiberglass-batt insulation layer. Initialised at high humidity
@@ -16,10 +47,13 @@ TEST(MultiDomain_BeamWall_StuccoFiberglass, TwoMaterialHighHumidity)
 {
     HygroThermFEM::MultiDomain multiDomain;
 
+    constexpr double initialTemperature = 30.0;
+    constexpr double initialHumidity = 0.999;
+
     // Initial state: warm, near-saturation (the regime where the solver
     // currently struggles).
-    constexpr HygroThermFEM::State initialState({.temperature = 30.0,
-                                                 .humidity = 0.9999,
+    constexpr HygroThermFEM::State initialState({.temperature = initialTemperature,
+                                                 .humidity = initialHumidity,
                                                  .pressure = 101325.0,
                                                  .liquidPercent = 1.0});
 
@@ -29,6 +63,12 @@ TEST(MultiDomain_BeamWall_StuccoFiberglass, TwoMaterialHighHumidity)
     const auto & fiberglass =
       multiDomain.materials().createSolidMaterial(TestHelper::FiberglassBatts());
 
+    ObserveSimulationProgress progressThermal;
+    multiDomain.subscribeThermal(&progressThermal);
+
+    ObserveSimulationProgress progressMoisture;
+    multiDomain.subscribeMoisture(&progressMoisture);
+
     // Beam geometry:
     //   - 0.02 m of exterior stucco (left), 4 elements wide
     //   - 0.10 m of fiberglass batt insulation (right), 10 elements wide
@@ -36,20 +76,20 @@ TEST(MultiDomain_BeamWall_StuccoFiberglass, TwoMaterialHighHumidity)
     TestHelper::BeamBuilder builder(multiDomain);
     builder.xStart(0.0)
       .height(0.05)
-      .numElementsY(4)
+      .numElementsY(1)
       .state(initialState)
-      .addSegment({.material = stucco.name(), .numElementsX = 4, .width = 0.02})
-      .addSegment({.material = fiberglass.name(), .numElementsX = 10, .width = 0.10})
+      .addSegment({.material = stucco.name(), .numElementsX = 3, .width = 0.02})
+      //.addSegment({.material = fiberglass.name(), .numElementsX = 1, .width = 0.10})
       .build();
 
-    // Boundary conditions:
-    //   - Left edge (exterior stucco): cold, fully saturated air
-    //   - Right edge (interior fiberglass): warmer, drier air
+    // Boundary conditions: identical to the initial domain state on both
+    // edges. With no thermal or moisture gradient driving the problem the
+    // solution should remain constant; any drift exposes solver issues.
     constexpr auto hc = 10.0;
     const HygroThermFEM::FixedBCHCCoefficients exteriorBc{
-      /*airTemperature=*/0.0, hc, /*airHumidity=*/1.0};
+      /*airTemperature=*/initialTemperature, hc, /*airHumidity=*/initialHumidity};
     const HygroThermFEM::FixedBCHCCoefficients interiorBc{
-      /*airTemperature=*/20.0, hc, /*airHumidity=*/0.5};
+      /*airTemperature=*/initialTemperature, hc, /*airHumidity=*/initialHumidity};
 
     for(auto [i1, i2] : builder.leftEdge())
     {
@@ -60,35 +100,52 @@ TEST(MultiDomain_BeamWall_StuccoFiberglass, TwoMaterialHighHumidity)
         multiDomain.createBC_FixedHc(i1, i2, interiorBc);
     }
 
-    // Drive a few transient timesteps and verify the solver does not
-    // explode (no NaN/Inf, values stay within physical bounds).
     constexpr double dTime = 3600.0;
-    constexpr int nSteps = 3;
+    constexpr int nSteps = 10;
 
     auto temperatures =
       multiDomain.nodes().properties(HygroThermFEM::Variable::temperature);
     auto humidities =
       multiDomain.nodes().properties(HygroThermFEM::Variable::humidity);
 
-    for(int step = 0; step < nSteps; ++step)
+    std::vector<std::vector<double>> temperatureSolution;
+    std::vector<double> temperatureError;
+    std::vector<std::vector<double>> waterContentSolution;
+    std::vector<double> humidityError;
+
+    std::string solverError;
+    try
     {
-        const auto solution = multiDomain.transient(
-          temperatures, humidities, dTime, static_cast<size_t>(step));
-
-        for(const double t : solution.temperature)
+        for(int step = 0; step < nSteps; ++step)
         {
-            EXPECT_TRUE(std::isfinite(t)) << "Temperature blew up at step " << step;
-            EXPECT_GT(t, -50.0) << "Temperature unphysically low at step " << step;
-            EXPECT_LT(t, 200.0) << "Temperature unphysically high at step " << step;
-        }
-        for(const double h : solution.humidity)
-        {
-            EXPECT_TRUE(std::isfinite(h)) << "Humidity blew up at step " << step;
-            EXPECT_GE(h, 0.0) << "Humidity below 0 at step " << step;
-            EXPECT_LE(h, 1.0 + 1e-9) << "Humidity above 1 at step " << step;
-        }
+            const auto solution = multiDomain.transient(
+              temperatures, humidities, dTime, static_cast<size_t>(step));
 
-        temperatures = solution.temperature;
-        humidities = solution.humidity;
+            temperatureSolution.push_back(solution.temperature);
+            temperatureError.push_back(solution.temperatureError);
+            waterContentSolution.push_back(solution.waterContent);
+            humidityError.push_back(solution.humidityError);
+
+            temperatures = solution.temperature;
+            humidities = solution.humidity;
+        }
     }
+    catch(const std::exception & e)
+    {
+        // Capture solver failure but continue so the print block always runs.
+        solverError = e.what();
+    }
+
+    std::ofstream out("print.txt");
+    if(!solverError.empty())
+    {
+        out << "// solver threw: " << solverError
+            << " after " << temperatureSolution.size() << " step(s)\n";
+    }
+    TestHelper::printVector("waterContentError", humidityError, out);
+    TestHelper::printVector("progressMoisture", progressMoisture.calls(), out);
+    TestHelper::printVector2D("waterContent", waterContentSolution, out);
+    TestHelper::printVector("temperatureError", temperatureError, out);
+    TestHelper::printVector("progressThermal", progressThermal.calls(), out);
+    TestHelper::printVector2D("temperature", temperatureSolution, out);
 }

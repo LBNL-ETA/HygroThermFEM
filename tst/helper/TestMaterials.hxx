@@ -140,8 +140,10 @@ namespace TestHelper
             .moistureDependentMeasurementTemperature = 0,
             .thermalConductivityTemperatureDependent = {{10.0, 0.043}, {80.0, 0.043}},
             .temperatureDependentMeasurementHumidity = 0,
-            // Both Suction and Redistribution curves are trivially empty in the XML
-            .liquidTransportCurve = {{0, 0}},
+            // Both Suction and Redistribution curves are trivially empty in
+            // the XML; extend to the sorption-curve max (13.4 kg/m^3) so the
+            // material data checker is satisfied. Conductivity stays zero.
+            .liquidTransportCurve = {{0, 0}, {13.4, 0}},
             .sorptionCurve = {{0,     0},
                               {0.1,   0.002},
                               {0.5,   0.014},
