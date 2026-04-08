@@ -57,10 +57,11 @@ protected:
 //! reported on multi-material beam structures at near-saturation states.
 TEST_F(MultiDomain_BeamWall_StuccoFiberglass, TwoMaterialHighHumidity)
 {
-    // Disable liquid transportation in the moisture transport equation to
-    // confirm whether it is the source of the near-saturation drift seen on
-    // this reproducer.
-    constexpr auto excludeWaterLiquidTransportation{true};
+    // Liquid transportation is the suspected trigger of the near-saturation
+    // drift, but the test also disables the thermal domain to check whether
+    // moisture alone is enough to amplify it. If moisture-only stays stable,
+    // the drift comes from the temperature/humidity feedback loop.
+    constexpr auto excludeWaterLiquidTransportation{false};
     constexpr auto excludeHeatOfEvaporation{false};
     constexpr auto excludeCapillaryConduction{false};
     constexpr auto excludeVaporDiffusionConduction{false};
@@ -72,7 +73,8 @@ TEST_F(MultiDomain_BeamWall_StuccoFiberglass, TwoMaterialHighHumidity)
       excludeVaporDiffusionConduction,
       thermalConductivityMoistureAndTemperatureDependent);
 
-    HygroThermFEM::MultiDomain multiDomain;
+    HygroThermFEM::MultiDomain multiDomain(
+      {.performThermal = false, .performMoisture = true});
 
     constexpr double initialTemperature = 30.0;
     constexpr double initialHumidity = 0.999;
