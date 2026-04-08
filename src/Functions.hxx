@@ -22,6 +22,8 @@ namespace HygroThermFEM
 
     class INodes;
 
+    class IMaterial;
+
     //! \brief Calculates vapor pressure at given temperature
     //!
     //! \param temperature Temperature in Celsius
@@ -523,28 +525,50 @@ namespace HygroThermFEM
     ///  LiquidTransportationCurve
     //////////////////////////////////////////////////////////////////
 
-    //! \brief Sorption curve is specialized type for tabular function.
+    //! \brief Liquid transport coefficient curve K_l(w).
     //!
-    //! Sorption curve is table that represents material water content as function of
-    //! relative humidity. For in between values, logarithmic interpolation is used.
+    //! Liquid transport curves are tabulated against material water content `w`.
+    //! At a material interface, a node carries an averaged water content
+    //! (computed across all materials touching that node by `Node2D::calcWaterContent`),
+    //! which does NOT correspond to any single material's `w(phi)` at the node's
+    //! humidity. Looking up `K_l` at the averaged `w` therefore yields a coefficient
+    //! that is wrong for the element doing the lookup. To prevent that, the curve
+    //! is bound to a specific material at construction time and resolves `w` for
+    //! the lookup by calling `material.waterContent(node)` — i.e., the material's
+    //! own `w(node.humidity)` — instead of going through the node's averaged
+    //! `Variable::water` property. The bound material is normally the owning
+    //! element's material.
     class LiquidTransportationCurve : public TabularFunction1D
     {
     public:
-        //! Construction of suction curve from standard vector values.
+        //! Construction from standard vector values, bound to a material.
         //!
-        //! \param vec Sorption curve values in standard vector form.
-        LiquidTransportationCurve(const std::vector<FenestrationCommon::point> & vec);
+        //! \param vec      Liquid-transport curve points (w, K_l).
+        //! \param material Material whose water content is used to resolve the
+        //!                 lookup key when this curve is evaluated at a node.
+        LiquidTransportationCurve(const std::vector<FenestrationCommon::point> & vec,
+                                  const IMaterial & material);
 
-        //! Construction of suction curve from initializer list.
+        //! Construction from initializer list, bound to a material.
         //!
-        //! \param list Soprtion curve values in initializer list form.
-        LiquidTransportationCurve(const std::initializer_list<FenestrationCommon::point> & list);
+        //! \param list     Liquid-transport curve points (w, K_l).
+        //! \param material Material whose water content is used to resolve the
+        //!                 lookup key when this curve is evaluated at a node.
+        LiquidTransportationCurve(const std::initializer_list<FenestrationCommon::point> & list,
+                                  const IMaterial & material);
+
+        //! Override that resolves `w` through the bound material instead of via
+        //! `node.property(Variable::water)`. See class comment for the reason.
+        double value(const INode2D & node) const override;
 
     protected:
         //! Helper function that returns two closest points for interpolation.
         std::pair<FenestrationCommon::point, FenestrationCommon::point> getInterpolationPoints(
             std::vector<FenestrationCommon::point>::const_iterator & it,
             const std::vector<FenestrationCommon::point> & table) const override;
+
+    private:
+        const IMaterial & m_Material;
     };
 
     //////////////////////////////////////////////////////////////////

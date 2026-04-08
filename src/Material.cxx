@@ -221,8 +221,13 @@ namespace HygroThermFEM
     void IMaterial::setLiquidTransportationCurve(
       const std::vector<FenestrationCommon::point> & liquidTransportationCurve)
     {
+        // The material-owned instance is used only as a data container — its
+        // points are read back via getCurve() and re-wrapped by element kernels
+        // that pass their own owning material to the constructor. Bind this
+        // instance to *this to satisfy the constructor signature; the bound
+        // material reference is never used through this storage path.
         m_LiquidTransportCoefficient =
-          std::make_unique<LiquidTransportationCurve>(liquidTransportationCurve);
+          std::make_unique<LiquidTransportationCurve>(liquidTransportationCurve, *this);
     }
 
     bool IMaterial::hasLiquidTransportationCurve() const

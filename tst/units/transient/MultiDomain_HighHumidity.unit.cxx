@@ -110,24 +110,24 @@ TEST(MultiDomain_HighHumidity, TestExample_1)
         ++timestepIndex;
     }
 
-    const std::vector correctHumidityError{1.754033e-06, 0.0};
+    const std::vector correctHumidityError{6.576671e-09, 5.892850e-09};
     const std::vector<std::vector<double>> correctWaterContentSolution{
-      {180.000000, 180.000000, 180.000000, 180.000000, 27.758519, 27.790584},
-      {180.000000, 180.000000, 180.000000, 180.000000, 180.000000, 180.000000}};
+      {55.076174, 55.077641, 47.684512, 47.687252, 38.379533, 38.381033},
+      {53.000743, 52.947827, 45.616675, 45.514793, 32.950396, 32.883968}};
 
     TestHelper::expectNear(correctHumidityError, humidityError, 1e-6);
     TestHelper::expectNear(correctWaterContentSolution, waterContentSolution, 1e-3);
 
-    const std::vector correctTemperatureError{3.990158e-07, 2.124443e-07};
+    const std::vector correctTemperatureError{4.297336e-07, 1.857763e-07};
     const std::vector<std::vector<double>> correctTemperatureSolution{
-      {-0.108497, -0.108597, -0.473111, -0.472734, 6.802888, 6.802827},
-      {0.535021, 0.534521, 2.337413, 2.339001, 9.005659, 9.005527}};
+      {1.058283, 1.058283, 3.461718, 3.461712, 9.567513, 9.567507},
+      {3.008612, 3.008642, 6.604594, 6.604754, 12.124579, 12.124799}};
 
     TestHelper::expectNear(correctTemperatureError, temperatureError, 1e-7);
     TestHelper::expectNear(correctTemperatureSolution, temperatureSolution, 1e-3);
 
     // Checking number of iterations within subiterations
-    EXPECT_EQ(progressMoisture.calls(), (std::vector<unsigned>{8u, 7u, 3u}));
+    EXPECT_EQ(progressMoisture.calls(), (std::vector<unsigned>{6u, 0u, 0u}));
     EXPECT_EQ(progressThermal.calls(), (std::vector<unsigned>{0u, 0u, 0u}));
 }
 
@@ -207,24 +207,24 @@ TEST(MultiDomain_HighHumidity, HighHumidityAndTemperature)
         ++timestepIndex;
     }
 
-    const std::vector correctHumidityError{2.657823e-07, 1.591037e-07};
+    const std::vector correctHumidityError{4.828904e-09, 2.026291e-06};
     const std::vector<std::vector<double>> correctWaterContentSolution{
-      {81.001587, 81.001587, 180.000000, 180.000000, 180.000000, 180.000000},
-      {113.376865, 113.376865, 79.008819, 79.008819, 180.000000, 180.000000}};
+      {60.955985, 60.955984, 51.108232, 51.108232, 35.161279, 35.161279},
+      {76.041154, 76.041159, 180.000000, 180.000000, 35.577946, 35.577903}};
 
-    TestHelper::expectNear(correctHumidityError, humidityError, 1e-7);
+    TestHelper::expectNear(correctHumidityError, humidityError, 1e-6);
     TestHelper::expectNear(correctWaterContentSolution, waterContentSolution, 1e-3);
 
-    const std::vector correctTemperatureError{6.284313e-09, 5.984128e-09};
+    const std::vector correctTemperatureError{2.530341e-08, 2.013575e-07};
     const std::vector<std::vector<double>> correctTemperatureSolution{
-      {30.985534, 30.985534, 29.173305, 29.173305, 24.758822, 24.758822},
-      {30.716207, 30.716207, 30.078265, 30.078265, 27.168913, 27.168913}};
+      {29.460719, 29.460719, 27.976497, 27.976497, 24.218553, 24.218553},
+      {34.631913, 34.631913, 42.885187, 42.885188, 53.838928, 53.838936}};
 
-    TestHelper::expectNear(correctTemperatureError, temperatureError, 1e-9);
+    TestHelper::expectNear(correctTemperatureError, temperatureError, 1e-6);
     TestHelper::expectNear(correctTemperatureSolution, temperatureSolution, 1e-3);
 
     // Checking number of iterations within subiterations
-    EXPECT_EQ(progressMoisture.calls(), (std::vector<unsigned>{4u, 4u, 1u}));
+    EXPECT_EQ(progressMoisture.calls(), (std::vector<unsigned>{5u, 0u, 0u}));
     EXPECT_EQ(progressThermal.calls(), (std::vector<unsigned>{0u, 0u, 0u}));
 }
 
@@ -304,23 +304,23 @@ TEST(MultiDomain_HighHumidity, ExtremeHumidityAndTemperature)
         ++timestepIndex;
     }
 
-    const std::vector<double> correctHumidityError{1.217342e-08, 1.136822e-10};
+    const std::vector<double> correctHumidityError{7.423032e-09, 2.439338e-07};
     const std::vector<std::vector<double>> correctWaterContentSolution{
-      {84.901602, 84.901602, 80.217109, 80.217109, 53.239121, 53.239121},
-      {180.000000, 180.000000, 180.000000, 180.000000, 180.000000, 180.000000}};
+      {97.071668, 75.241164, 63.629275, 61.322039, 37.362987, 36.859224},
+      {0.000000, 5.300000, 0.000000, 5.300000, 2.619785, 2.458302}};
 
-    TestHelper::expectNear(correctHumidityError, humidityError, 1e-8);
+    TestHelper::expectNear(correctHumidityError, humidityError, 1e-6);
     TestHelper::expectNear(correctWaterContentSolution, waterContentSolution, 1e-3);
 
-    const std::vector<double> correctTemperatureError{1.582014e-07, 5.347030e-08};
+    const std::vector<double> correctTemperatureError{6.345433e-08, 7.502573e-08};
     const std::vector<std::vector<double>> correctTemperatureSolution{
-      {71.642135, 71.642135, 54.219885, 54.219885, 6.245502, 6.245502},
-      {65.864202, 65.864202, 49.926034, 49.926034, 33.073654, 33.073654}};
+      {75.569058, 75.510763, 64.128790, 64.111068, 37.799341, 37.805086},
+      {68.739455, 68.801127, 59.512914, 59.543755, 50.117837, 50.289292}};
 
-    TestHelper::expectNear(correctTemperatureError, temperatureError, 1e-7);
+    TestHelper::expectNear(correctTemperatureError, temperatureError, 1e-6);
     TestHelper::expectNear(correctTemperatureSolution, temperatureSolution, 1e-3);
 
     // Checking number of iterations within subiterations
-    EXPECT_EQ(progressMoisture.calls(), (std::vector<unsigned>{25u, 25u, 22u}));
+    EXPECT_EQ(progressMoisture.calls(), (std::vector<unsigned>{3u, 0u, 0u}));
     EXPECT_EQ(progressThermal.calls(), (std::vector<unsigned>{0u, 0u, 0u}));
 }

@@ -90,6 +90,26 @@ namespace
         out << '\n';
     }
 
+    //! Returns the maximum absolute value in a vector. Used by the per-component
+    //! convergence check in transientTimestep, which requires the largest |dU_i|
+    //! to be small relative to the largest |U_i|. The norm-difference metric on
+    //! its own has a null space (mean-preserving perturbations leave the L2 norm
+    //! unchanged) and can falsely report convergence; this per-component check
+    //! closes that hole.
+    double maxAbs(const std::vector<double> & vec)
+    {
+        double mxv = 0.0;
+        for(const auto val : vec)
+        {
+            const double absVal = std::abs(val);
+            if(absVal > mxv)
+            {
+                mxv = absVal;
+            }
+        }
+        return mxv;
+    }
+
     //! Prints one CSV row for an NR iteration.
     void printNRRow(std::ostream & out,
                     const double subDt,
@@ -267,6 +287,27 @@ namespace HygroThermFEM
                 // Limit per-DOF so the projected solution stays within physical bounds
                 const bool allClamped = limitIncrement(solution, correctionDU, RelaxParameter);
 
+                // Fix 1: if every DOF correction is below the clamp tolerance
+                // (~1e-12), the linear solver is returning round-off noise on a
+                // near-zero residual. Exit BEFORE applying it — applying round-off
+                // noise seeds asymmetric perturbations into U that the norm-based
+                // convergence metric cannot detect, and that compound across
+                // timesteps until NR overshoots into physical bounds.
+                if(allClamped)
+                {
+                    ++numOfIterations;
+                    converged = true;
+                    convergedViaClamp = true;
+
+                    if(m_DiagStream != nullptr)
+                    {
+                        printNRRow(*m_DiagStream, t_DTime, numOfIterations,
+                                   0.0, ConvergenceError, rawDuNorm, damping.factor,
+                                   true, true, "clamped-no-apply", solution);
+                    }
+                    break;
+                }
+
                 // Adaptive damping: scale down when correction norm explodes
                 damping.update(rawDuNorm, numOfIterations, MaxIterations / 2);
                 const double effectiveRelax = RelaxParameter * damping.factor;
@@ -286,22 +327,25 @@ namespace HygroThermFEM
                 A = transientM_K_H_Matrix(t_DTime, timestepIndex);
                 B = transientMT_R_Vector(currentStateValues, t_DTime, timestepIndex);
 
-                // Convergence check: relative change in solution norm
-                const auto metric = std::abs(previousNorm - currentNorm) / (currentNorm + 1e-12);
+                // Fix 2: convergence requires BOTH norm-based stagnation AND
+                // per-component smallness. The norm metric alone has a null
+                // space — anti-symmetric perturbations leave the L2 norm
+                // unchanged, so it can falsely report convergence after a
+                // single explicit-Euler-like step that grows high-frequency
+                // noise. The per-component metric (max applied |dU| over
+                // max |U|) closes that hole. We take the max of the two,
+                // which is the strictly more conservative criterion.
+                const auto normMetric =
+                  std::abs(previousNorm - currentNorm) / (currentNorm + 1e-12);
+                const auto componentMetric = (maxAbs(correctionDU) * std::abs(effectiveRelax))
+                                             / (maxAbs(solution) + 1e-12);
+                const auto metric = std::max(normMetric, componentMetric);
                 converged = metric <= ConvergenceError;
 
                 const char * reason = "";
                 if(converged)
                 {
                     reason = "metric";
-                }
-
-                // All DOFs pinned at physical bounds — cannot improve further
-                if(!converged && allClamped)
-                {
-                    converged = true;
-                    convergedViaClamp = true;
-                    reason = "clamped";
                 }
 
                 // Detect and resolve NR 2-cycle oscillation

@@ -5,6 +5,7 @@
 
 #include "Functions.hxx"
 #include "Node2D.hxx"
+#include "Material.hxx"
 #include "Common.hxx"
 
 namespace
@@ -370,14 +371,29 @@ namespace HygroThermFEM
     //////////////////////////////////////////////////////////////////
 
     LiquidTransportationCurve::LiquidTransportationCurve(
-      const std::vector<FenestrationCommon::point> & vec) :
-        TabularFunction1D(vec, Variable::water, FenestrationCommon::Interpolation::Logarithmic)
+      const std::vector<FenestrationCommon::point> & vec, const IMaterial & material) :
+        TabularFunction1D(vec, Variable::water, FenestrationCommon::Interpolation::Logarithmic),
+        m_Material(material)
     {}
 
     LiquidTransportationCurve::LiquidTransportationCurve(
-      const std::initializer_list<FenestrationCommon::point> & list) :
-        TabularFunction1D(list, Variable::water, FenestrationCommon::Interpolation::Logarithmic)
+      const std::initializer_list<FenestrationCommon::point> & list, const IMaterial & material) :
+        TabularFunction1D(list, Variable::water, FenestrationCommon::Interpolation::Logarithmic),
+        m_Material(material)
     {}
+
+    double LiquidTransportationCurve::value(const INode2D & node) const
+    {
+        // Resolve `w` through the bound material instead of through the node's
+        // averaged `Variable::water` property. At a material interface the node's
+        // averaged water content is not consistent with this material's curve at
+        // the node's humidity, which produces a non-uniform per-element coefficient
+        // and breaks the property `K * U_uniform = 0` of the assembled stiffness.
+        // See class comment in Functions.hxx for the full reasoning.
+        const double materialWater =
+          m_Material.waterContent(node).content(WaterContent::Water);
+        return evaluateFunction(materialWater, materialWater);
+    }
 
     std::pair<FenestrationCommon::point, FenestrationCommon::point>
       LiquidTransportationCurve::getInterpolationPoints(

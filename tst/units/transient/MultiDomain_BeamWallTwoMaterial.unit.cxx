@@ -1,10 +1,9 @@
-#include <fstream>
 #include <gtest/gtest.h>
 
 #include "HygroThermFEM2D.hxx"
 
 #include "BeamBuilder.hxx"
-#include "PrintSolution.hxx"
+#include "TestHelpers.hxx"
 #include "TestMaterials.hxx"
 
 namespace
@@ -51,16 +50,17 @@ protected:
 };
 
 //! Beam-shaped wall section with two materials: an exterior stucco layer
-//! and a fiberglass-batt insulation layer. Initialised at high humidity
-//! (RH = 0.9999) and warm temperature, with a colder/drier interior
-//! boundary. Intended as a reproducer for solver divergence issues
-//! reported on multi-material beam structures at near-saturation states.
+//! and a fiberglass-batt insulation layer. Initialised at near-saturation
+//! humidity (RH = 0.9999) and warm temperature, with boundary conditions
+//! matched exactly to the initial state. With no thermal or moisture
+//! gradient driving the problem, the moisture solver must keep the
+//! solution bit-stationary; any drift from the equilibrium values exposes
+//! a solver- or assembly-side defect at the multi-material interface.
+//! This is the regression target for the round-off filter / per-component
+//! convergence metric / per-material liquid-transport coefficient fixes
+//! introduced 2026-04-08.
 TEST_F(MultiDomain_BeamWall_StuccoFiberglass, TwoMaterialHighHumidity)
 {
-    // Liquid transportation is the suspected trigger of the near-saturation
-    // drift, but the test also disables the thermal domain to check whether
-    // moisture alone is enough to amplify it. If moisture-only stays stable,
-    // the drift comes from the temperature/humidity feedback loop.
     constexpr auto excludeWaterLiquidTransportation{false};
     constexpr auto excludeHeatOfEvaporation{false};
     constexpr auto excludeCapillaryConduction{false};
@@ -73,11 +73,10 @@ TEST_F(MultiDomain_BeamWall_StuccoFiberglass, TwoMaterialHighHumidity)
       excludeVaporDiffusionConduction,
       thermalConductivityMoistureAndTemperatureDependent);
 
-    HygroThermFEM::MultiDomain multiDomain(
-      {.performThermal = false, .performMoisture = true});
+    HygroThermFEM::MultiDomain multiDomain({.performThermal = false, .performMoisture = true});
 
     constexpr double initialTemperature = 30.0;
-    constexpr double initialHumidity = 0.999;
+    constexpr double initialHumidity = 0.9999;
 
     // Initial state: warm, near-saturation (the regime where the solver
     // currently struggles).
@@ -87,8 +86,7 @@ TEST_F(MultiDomain_BeamWall_StuccoFiberglass, TwoMaterialHighHumidity)
                                                  .liquidPercent = 1.0});
 
     // Register both materials so they are available to the elements.
-    const auto & stucco =
-      multiDomain.materials().createSolidMaterial(TestHelper::Stucco());
+    const auto & stucco = multiDomain.materials().createSolidMaterial(TestHelper::Stucco());
     const auto & fiberglass =
       multiDomain.materials().createSolidMaterial(TestHelper::FiberglassBatts());
 
@@ -108,7 +106,7 @@ TEST_F(MultiDomain_BeamWall_StuccoFiberglass, TwoMaterialHighHumidity)
       .numElementsY(1)
       .state(initialState)
       .addSegment({.material = stucco.name(), .numElementsX = 3, .width = 0.02})
-      //.addSegment({.material = fiberglass.name(), .numElementsX = 1, .width = 0.10})
+      .addSegment({.material = fiberglass.name(), .numElementsX = 2, .width = 0.10})
       .build();
 
     // Boundary conditions: identical to the initial domain state on both
@@ -132,49 +130,61 @@ TEST_F(MultiDomain_BeamWall_StuccoFiberglass, TwoMaterialHighHumidity)
     constexpr double dTime = 3600.0;
     constexpr int nSteps = 10;
 
-    auto temperatures =
-      multiDomain.nodes().properties(HygroThermFEM::Variable::temperature);
-    auto humidities =
-      multiDomain.nodes().properties(HygroThermFEM::Variable::humidity);
+    auto temperatures = multiDomain.nodes().properties(HygroThermFEM::Variable::temperature);
+    auto humidities = multiDomain.nodes().properties(HygroThermFEM::Variable::humidity);
 
     std::vector<std::vector<double>> temperatureSolution;
     std::vector<double> temperatureError;
     std::vector<std::vector<double>> waterContentSolution;
     std::vector<double> humidityError;
 
-    std::string solverError;
-    try
-    {
-        for(int step = 0; step < nSteps; ++step)
-        {
-            const auto solution = multiDomain.transient(
-              temperatures, humidities, dTime, static_cast<size_t>(step));
 
-            temperatureSolution.push_back(solution.temperature);
-            temperatureError.push_back(solution.temperatureError);
-            waterContentSolution.push_back(solution.waterContent);
-            humidityError.push_back(solution.humidityError);
-
-            temperatures = solution.temperature;
-            humidities = solution.humidity;
-        }
-    }
-    catch(const std::exception & e)
+    for(int step = 0; step < nSteps; ++step)
     {
-        // Capture solver failure but continue so the print block always runs.
-        solverError = e.what();
+        const auto solution =
+          multiDomain.transient(temperatures, humidities, dTime, static_cast<size_t>(step));
+
+        temperatureSolution.push_back(solution.temperature);
+        temperatureError.push_back(solution.temperatureError);
+        waterContentSolution.push_back(solution.waterContent);
+        humidityError.push_back(solution.humidityError);
+
+        temperatures = solution.temperature;
+        humidities = solution.humidity;
     }
 
-    std::ofstream out("print.txt");
-    if(!solverError.empty())
-    {
-        out << "// solver threw: " << solverError
-            << " after " << temperatureSolution.size() << " step(s)\n";
-    }
-    TestHelper::printVector("waterContentError", humidityError, out);
-    TestHelper::printVector("progressMoisture", progressMoisture.calls(), out);
-    TestHelper::printVector2D("waterContent", waterContentSolution, out);
-    TestHelper::printVector("temperatureError", temperatureError, out);
-    TestHelper::printVector("progressThermal", progressThermal.calls(), out);
-    TestHelper::printVector2D("temperature", temperatureSolution, out);
+    const std::vector<std::vector<double>> correctWaterContentSolution{
+      {200.000000, 200.000000, 200.000000, 200.000000, 200.000000, 200.000000, 106.640000, 106.640000, 13.280000, 13.280000, 13.280000, 13.280000},
+      {200.000000, 200.000000, 200.000000, 200.000000, 200.000000, 200.000000, 106.640000, 106.640000, 13.280000, 13.280000, 13.280000, 13.280000},
+      {200.000000, 200.000000, 200.000000, 200.000000, 200.000000, 200.000000, 106.640000, 106.640000, 13.280000, 13.280000, 13.280000, 13.280000},
+      {200.000000, 200.000000, 200.000000, 200.000000, 200.000000, 200.000000, 106.640000, 106.640000, 13.280000, 13.280000, 13.280000, 13.280000},
+      {200.000000, 200.000000, 200.000000, 200.000000, 200.000000, 200.000000, 106.640000, 106.640000, 13.280000, 13.280000, 13.280000, 13.280000},
+      {200.000000, 200.000000, 200.000000, 200.000000, 200.000000, 200.000000, 106.640000, 106.640000, 13.280000, 13.280000, 13.280000, 13.280000},
+      {200.000000, 200.000000, 200.000000, 200.000000, 200.000000, 200.000000, 106.640000, 106.640000, 13.280000, 13.280000, 13.280000, 13.280000},
+      {200.000000, 200.000000, 200.000000, 200.000000, 200.000000, 200.000000, 106.640000, 106.640000, 13.280000, 13.280000, 13.280000, 13.280000},
+      {200.000000, 200.000000, 200.000000, 200.000000, 200.000000, 200.000000, 106.640000, 106.640000, 13.280000, 13.280000, 13.280000, 13.280000},
+      {200.000000, 200.000000, 200.000000, 200.000000, 200.000000, 200.000000, 106.640000, 106.640000, 13.280000, 13.280000, 13.280000, 13.280000}};
+    const std::vector correctHumidityError(10u, 0.0);
+
+    TestHelper::expectNear(correctWaterContentSolution, waterContentSolution, 1e-6);
+    TestHelper::expectNear(correctHumidityError, humidityError, 1e-6);
+
+    const std::vector<std::vector<double>> correctTemperatureSolution{
+      {30.000000, 30.000000, 30.000000, 30.000000, 30.000000, 30.000000, 30.000000, 30.000000, 30.000000, 30.000000, 30.000000, 30.000000},
+      {30.000000, 30.000000, 30.000000, 30.000000, 30.000000, 30.000000, 30.000000, 30.000000, 30.000000, 30.000000, 30.000000, 30.000000},
+      {30.000000, 30.000000, 30.000000, 30.000000, 30.000000, 30.000000, 30.000000, 30.000000, 30.000000, 30.000000, 30.000000, 30.000000},
+      {30.000000, 30.000000, 30.000000, 30.000000, 30.000000, 30.000000, 30.000000, 30.000000, 30.000000, 30.000000, 30.000000, 30.000000},
+      {30.000000, 30.000000, 30.000000, 30.000000, 30.000000, 30.000000, 30.000000, 30.000000, 30.000000, 30.000000, 30.000000, 30.000000},
+      {30.000000, 30.000000, 30.000000, 30.000000, 30.000000, 30.000000, 30.000000, 30.000000, 30.000000, 30.000000, 30.000000, 30.000000},
+      {30.000000, 30.000000, 30.000000, 30.000000, 30.000000, 30.000000, 30.000000, 30.000000, 30.000000, 30.000000, 30.000000, 30.000000},
+      {30.000000, 30.000000, 30.000000, 30.000000, 30.000000, 30.000000, 30.000000, 30.000000, 30.000000, 30.000000, 30.000000, 30.000000},
+      {30.000000, 30.000000, 30.000000, 30.000000, 30.000000, 30.000000, 30.000000, 30.000000, 30.000000, 30.000000, 30.000000, 30.000000},
+      {30.000000, 30.000000, 30.000000, 30.000000, 30.000000, 30.000000, 30.000000, 30.000000, 30.000000, 30.000000, 30.000000, 30.000000}};
+    const std::vector correctTemperatureError(10u, 0.0);
+
+    TestHelper::expectNear(correctTemperatureSolution, temperatureSolution, 1e-6);
+    TestHelper::expectNear(correctTemperatureError, temperatureError, 1e-6);
+
+    EXPECT_EQ(progressMoisture.calls(), (std::vector<unsigned>{0u, 0u, 0u}));
+    EXPECT_EQ(progressThermal.calls(), (std::vector<unsigned>{0u, 0u, 0u}));
 }

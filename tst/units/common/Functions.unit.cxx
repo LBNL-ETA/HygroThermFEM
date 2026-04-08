@@ -209,13 +209,25 @@ TEST(CurveTest, TestTabularLogarithmic2)
     EXPECT_NEAR(8.114824e-10, result, 1e-16);
 }
 
-TEST(CurveTest, TestSuctionCurve)
+// `LiquidTransportationCurve` is now bound to a material at construction
+// (it resolves the lookup `w` through `material.waterContent(node)`, not
+// through `node.property(Variable::water)`, to avoid using the cross-material
+// averaged water content at material interfaces). It can no longer be tested
+// in isolation from a material. The interpolation logic it inherits from
+// `TabularFunction1D` is exercised directly here. Note that
+// `TabularFunction1D`'s default behavior outside the table is logarithmic
+// extrapolation, not clamping — that differs from the old
+// `LiquidTransportationCurve::getInterpolationPoints` override which clamped
+// to the boundary value.
+TEST(CurveTest, TestLiquidTransportationCurveInterpolation)
 {
-    SCOPED_TRACE("Begin Test: Test liquid transportation curve.");
+    SCOPED_TRACE("Begin Test: Test liquid transportation curve interpolation.");
 
     using HygroThermFEM::MockNode2D;
 
-    LiquidTransportationCurve curve{{0.1, 10}, {0.2, 20}, {0.3, 30}};
+    const TabularFunction1D curve({{0.1, 10}, {0.2, 20}, {0.3, 30}},
+                                  Variable::water,
+                                  FenestrationCommon::Interpolation::Logarithmic);
 
     const size_t nodeNumber{0};
     constexpr double x_coord{0};
@@ -226,20 +238,20 @@ TEST(CurveTest, TestSuctionCurve)
     auto result = curve.value(node);
     EXPECT_NEAR(14.142136, result, 1e-6);
 
-    // Point is before table
+    // Point is before the table — logarithmic extrapolation, not clamping.
     const MockNode2D node1(nodeNumber, x_coord, y_coord, {Variable::water, 0.05});
 
     result = curve.value(node1);
-    EXPECT_NEAR(10, result, 1e-6);
+    EXPECT_NEAR(7.0710678118654746, result, 1e-6);
 
     const MockNode2D node2(nodeNumber, x_coord, y_coord, {Variable::water, 0.25});
     result = curve.value(node2);
     EXPECT_NEAR(24.4948974, result, 1e-6);
 
-    // Point is after table
+    // Point is after the table — logarithmic extrapolation, not clamping.
     const MockNode2D node3(nodeNumber, x_coord, y_coord, {Variable::water, 0.35});
     result = curve.value(node3);
-    EXPECT_NEAR(30, result, 1e-6);
+    EXPECT_NEAR(36.742346141747667, result, 1e-6);
 }
 
 TEST(CurveTest, TestConstantCurve)

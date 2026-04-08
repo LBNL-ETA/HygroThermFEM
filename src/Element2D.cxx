@@ -476,7 +476,7 @@ namespace HygroThermFEM
             auto humidity = StateValue(Variable::humidity);
             const TabularDerivativeSmooth sorptionDerivative(m_Material.sorptionCurve(),
                                                              Variable::humidity);
-            const LiquidTransportationCurve Dl(m_Material.liquidTransportationCurve());
+            const LiquidTransportationCurve Dl(m_Material.liquidTransportationCurve(), m_Material);
             auto cd = Constant(-1) * Dl * sorptionDerivative * Constants::Cp_Water;
             DpDu(cd, humidity);
         }
@@ -535,7 +535,7 @@ namespace HygroThermFEM
             auto sorptionDerivative1 =
               TabularDerivativeSmooth(m_Material.sorptionCurve(), Variable::humidity);
             auto WaterLiquidTransport =
-              LiquidTransportationCurve(m_Material.liquidTransportationCurve())
+              LiquidTransportationCurve(m_Material.liquidTransportationCurve(), m_Material)
               * sorptionDerivative1;
             DDu(WaterLiquidTransport);
         }
@@ -556,7 +556,7 @@ namespace HygroThermFEM
         if(!SimulationProperties::Instance().excludeWaterLiquidTransportation()
            && m_Material.hasLiquidTransportationCurve())
         {
-            CondFlux(LiquidTransportationCurve(m_Material.liquidTransportationCurve()));
+            CondFlux(LiquidTransportationCurve(m_Material.liquidTransportationCurve(), m_Material));
         }
     }
 

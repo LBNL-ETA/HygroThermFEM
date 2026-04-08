@@ -186,20 +186,23 @@ The derivative $d w slash d phi$ enters the capacitance matrix $bold(M)$. Near $
   + For $k = 0, 1, 2, dots$
     + Compute residual: $bold(r) = bold(B) - bold(A) dot bold(U)_k$
     + Solve for correction: $bold(A) dot Delta bold(U) = bold(r)$
-    + Limit increment: clamp $Delta bold(U)$ per DOF (see @sec-clamping)
+    + Limit increment per DOF, return `allClamped` flag (see @sec-clamping)
+    + *If `allClamped` is true:* exit *without* applying $Delta bold(U)$ --- the correction is below the round-off filter threshold and applying it would seed asymmetric linear-solver noise (see @sec-roundoff-filter)
     + Apply adaptive damping (see @sec-damping)
     + Apply relaxed update: $bold(U)_(k+1) = bold(U)_k + omega_"eff" dot Delta bold(U)$
     + Post-process: enforce physical bounds on $bold(U)_(k+1)$
     + Update node properties with $bold(U)_(k+1)$
     + Reassemble: $bold(A)(bold(U)_(k+1))$, $bold(B)(bold(U)_(k+1))$
-    + Check convergence: $"metric" = abs(norm(bold(U)_(k+1)) - norm(bold(U)_k)) / norm(bold(U)_(k+1))$
+    + Check convergence (augmented metric, see @sec-roundoff-filter):
+      - $"normMetric" = abs(norm(bold(U)_(k+1)) - norm(bold(U)_k)) / norm(bold(U)_(k+1))$
+      - $"componentMetric" = (max_i abs(Delta U_i dot omega_"eff")) / (max_i abs(U_(k+1,i)))$
+      - $"metric" = max("normMetric", "componentMetric")$
     + If $"metric" <= "tol"$: converged, exit
-    + If all DOFs clamped: converged at physical bounds, exit (see @sec-clamping)
     + If oscillation detected: apply midpoint averaging (see @sec-oscillation), exit
     + If $k >$ MaxIterations: not converged, exit
 ]
 
-The convergence criterion is based on the *relative change in the $L^2$ norm* of the solution between consecutive iterations. This provides a global measure of whether the solution has stabilized.
+The convergence criterion combines two checks: a *global* measure (relative change in the $L^2$ norm of the solution between consecutive iterations) and a *local* measure (the largest applied per-DOF correction relative to the largest solution component). Both must be below `tol` for convergence to be declared. The global metric alone has a null space --- mean-preserving (anti-symmetric) perturbations leave the $L^2$ norm unchanged --- so it can falsely report convergence after a single iteration that injects high-frequency noise. The per-component metric closes that hole. See @sec-roundoff-filter for the worked example that motivated the augmentation.
 
 == Linear Problems
 
@@ -434,7 +437,7 @@ $ "For each DOF" i: quad cases(
 
 This keeps the solution within physical bounds at every iteration while maintaining consistency between the solution state and the assembled system matrices.
 
-*Early convergence via saturation detection.* `limitIncrement` returns a flag indicating whether *all* DOF corrections were clamped to effectively zero ($|Delta U_i| < 10^(-12)$). When true, the solution is pinned at physical bounds (e.g., humidity = 0 or 1 at every node) and no correction can improve it further. The NR loop treats this as converged immediately, avoiding unnecessary iterations.
+*Early exit on negligible correction (round-off filter).* `limitIncrement` also returns a flag indicating whether *every* DOF correction has $|Delta U_i dot omega| < 10^(-12)$ after clamping. When true, two situations are possible: either the solution genuinely sits at a fixed point of the iteration (e.g., pinned at $phi = 0$ or $phi = 1$ at every node, or at a steady state interior to the bounds), *or* the residual $bold(r) = bold(B) - bold(A) bold(U)$ is at the floating-point noise floor and the linear solver is returning round-off as $Delta bold(U)$. Either way, applying the correction is wrong --- in the first case it changes nothing meaningful, in the second case it injects asymmetric noise that the norm-based convergence check cannot detect (see @sec-roundoff-filter). The NR loop therefore exits *without applying* $Delta bold(U)$ when this flag fires, treating the current iterate as the solution.
 
 === Example
 
@@ -492,6 +495,65 @@ $ "smoothFactor" = "clamp"((1 + w - phi) / w, space 0, space 1), quad w = 0.01 $
 $ beta = beta_"value" dot "smoothFactor" $
 
 This produces: full transfer below $phi = 1.0$, a linear taper over $[1.0, 1.01]$, and zero transfer above $phi = 1.01$. The narrow transition width ensures negligible impact on physical results while eliminating the Jacobian discontinuity.
+
+== Round-Off Filter and Augmented Convergence Metric <sec-roundoff-filter>
+
+*Problem.* Two interacting defects in the original NR loop allowed pure floating-point round-off to grow into a catastrophic numerical drift on near-uniform fields. The defects only showed up on problems where:
+
++ The sorption derivative $d w slash d phi$ is large (high humidity near $phi = 1$).
++ The mass term $bold(M)$ dominates the conductance $bold(K)$ in $bold(A) = bold(M) slash Delta t + bold(K) + bold(H)$ at the requested $Delta t$.
++ The expected solution is essentially uniform in space (matching boundary conditions, no thermal gradient), so the true residual is zero up to round-off.
+
+#block(fill: luma(235), inset: 12pt, radius: 4pt, width: 100%)[
+  *Worked example: stucco beam at $phi = 0.999$, $T = 30 °C$, matching boundary conditions on both edges, $Delta t = 3600$~s, moisture domain only.* The expected behavior is a perfectly stationary solution. The original solver instead produced a slow drift over the first six timesteps that suddenly collapsed at step 7, with the level-1 NR failing to converge and the subdivider falling back to $Delta t = 360$~s --- which converged to a solution with water content dropped from 110~kg/m³ to ~93~kg/m³ in a single sub-step (a 17% jump on a problem where the answer should never move).
+]
+
+*Defect 1 --- Round-off applied as a real correction.* At iteration 0 of timestep 0, the residual $bold(r) = bold(B) - bold(A) bold(U)_0$ was at the floating-point noise floor ($~10^(-19)$). The linear solver, given a near-zero RHS, returned $Delta bold(U) sim 10^(-16)$ --- the LU factorization's intrinsic round-off. *Crucially, the round-off was asymmetric:* the magnitudes at the eight nodes of the test mesh differed by an order of magnitude, with no left/right symmetry. The original NR loop applied this $Delta bold(U)$ unconditionally, *then* checked the `allClamped` flag (which was true, since every component was below $10^(-12)$) and exited. The result: the perfectly uniform initial state $bold(U)_0$ became a noisy state $bold(U)_1 = bold(U)_0 + Delta bold(U)_"noise"$, with the noise pattern set by the linear solver's internal LU rounding decisions, not by physics.
+
+*Defect 2 --- Norm-based convergence metric is blind to the noise.* The original convergence criterion was
+
+$ "metric" = abs(norm(bold(U)_(k+1)) - norm(bold(U)_k)) / norm(bold(U)_(k+1)) <= "tol" $
+
+This $L^2$ norm difference has a *null space*: any perturbation $delta bold(U)$ that is orthogonal to $bold(U)$ (or, more loosely, any zero-mean perturbation) leaves the norm essentially unchanged. The asymmetric noise injected by Defect 1 was exactly such a perturbation. So even after the noise had grown to $sim 10^(-7)$ over six timesteps and started producing a *real* residual ($sim 10^(-8)$), and the linear solver started returning a non-trivial $Delta bold(U) sim 10^(-5)$, NR would still exit after one iteration because the $L^2$ norm of the solution barely moved.
+
+But $Delta bold(U) sim 10^(-5)$ is no longer round-off. It is what the diagonally-dominant explicit-Euler-like step computes when $bold(M) slash Delta t$ dominates $bold(A)$:
+
+$ Delta bold(U) approx (bold(M) slash Delta t)^(-1) bold(r) approx Delta t dot bold(M)^(-1) (-bold(K) bold(U)_"noisy") $
+
+Explicit Euler on a parabolic stencil at large $Delta t$ is unstable for high-frequency modes. Each timestep injected one explicit step's worth of noise growth and called itself converged. After seven timesteps the noise was large enough that NR overshot into physical bounds, the metric finally fired "non-converged", the subdivider kicked in, and the catastrophe became visible in the water content.
+
+*Why the steep sorption curve matters.* Both defects are amplified by $d w slash d phi$ being huge near $phi = 1$:
+
++ It inflates the lumped mass $bold(M) = rho dot (d w slash d phi) dot V$, which makes $bold(M)$ dominate $bold(A)$, which turns NR's first step into the unstable explicit-Euler step described above.
++ It is also the conversion factor from $phi$-noise to water-content-noise, so a $10^(-16)$ perturbation in $phi$ becomes a visible $sim 10^(-13)$ perturbation in $w$, then grows from there.
+
+A flat sorption curve hides the bug entirely. The high-humidity regime exposes both flaws simultaneously.
+
+*Solution part 1 --- Round-off filter (Defect 1).* When `limitIncrement` reports `allClamped = true`, exit *before* applying $Delta bold(U)$. See the early-exit step in the @sec-clamping NR pseudocode. The current iterate is treated as the converged result, leaving $bold(U)$ untouched. This stops the noise from being seeded in the first place.
+
+*Solution part 2 --- Per-component convergence metric (Defect 2).* Augment the convergence check with a per-component measure that has no null space:
+
+$ "componentMetric" = (max_i abs(Delta U_i dot omega_"eff")) / (max_i abs(U_(k+1,i))) $
+$ "metric" = max("normMetric", "componentMetric") $
+
+The combined metric is the strictly more conservative of the two. Convergence requires that *both* the global norm has stagnated *and* every per-DOF move is small relative to the largest solution component. For the worked example above, the per-component metric correctly registers the $10^(-5)$ move at step 6 as non-trivial relative to $|U_i| approx 1$, forcing NR to keep iterating instead of exiting on the loose norm criterion.
+
+#figure(
+  table(
+    columns: (auto, auto, auto),
+    align: (left, center, center),
+    stroke: 0.5pt,
+    inset: 8pt,
+    [*Quantity*], [*Before fix*], [*After fix*],
+    [Water content over 10 steps], [drift then collapse to ~89 kg/m³], [exactly 110.000000 kg/m³],
+    [`waterContentError` at step 9], [$2.5 times 10^(-9)$], [$0$],
+    [`progressMoisture` (level-1, level-2, level-3)], [(17, 2, 0)], [(0, 0, 0)],
+    [Total NR calls in moisture trace], [~580 (catastrophic cascade at step 7)], [20 (one per main call + one per probe)],
+  ),
+  caption: [Effect of the round-off filter and augmented convergence metric on the stucco-beam uniform-field test.],
+)
+
+*Interaction with the existing fixes.* The round-off filter and the per-component metric do *not* override the increment-limit clamping (@sec-clamping), the adaptive damping (@sec-damping), or the oscillation midpoint (@sec-oscillation). Those mechanisms still fire in their respective regimes; the new checks add a noise-floor sanity gate at each end of the NR iteration --- "do not move if the move is round-off" before applying, and "do not declare converged if any individual component is still moving" after applying.
 
 // ═════════════════════════════════════════════════════════
 = Adaptive Timestep Probing (Middle Level)
