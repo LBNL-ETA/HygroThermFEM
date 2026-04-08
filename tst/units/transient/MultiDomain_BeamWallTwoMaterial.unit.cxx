@@ -33,7 +33,7 @@ namespace
         }
 
     private:
-        std::vector<unsigned> m_SimulationCalls{0u, 0u, 0u};
+        std::vector<unsigned> m_SimulationCalls;
     };
 }   // namespace
 
@@ -185,6 +185,6 @@ TEST_F(MultiDomain_BeamWall_StuccoFiberglass, TwoMaterialHighHumidity)
     TestHelper::expectNear(correctTemperatureSolution, temperatureSolution, 1e-6);
     TestHelper::expectNear(correctTemperatureError, temperatureError, 1e-6);
 
-    EXPECT_EQ(progressMoisture.calls(), (std::vector<unsigned>{0u, 0u, 0u}));
-    EXPECT_EQ(progressThermal.calls(), (std::vector<unsigned>{0u, 0u, 0u}));
+    EXPECT_EQ(progressMoisture.calls(), (std::vector<unsigned>{}));
+    EXPECT_EQ(progressThermal.calls(), (std::vector<unsigned>{}));
 }
