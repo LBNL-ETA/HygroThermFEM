@@ -32,7 +32,7 @@ namespace HygroThermFEM
         virtual ~IDomain() = default;
         //! Domain construction.
         explicit IDomain(
-          Nodes & nodePool,     //!< Reference to the NodePool for node lookups
+          Nodes & nodePool,           //!< Reference to the NodePool for node lookups
           Materials & materialPool,   //!< Reference to the MaterialPool for material lookups
           bool automaticUpdateOfPreviousTimestep =
             true   //!< When solver finds solution, previous timestep will be automatically updated
@@ -124,24 +124,27 @@ namespace HygroThermFEM
         //! @param t_DTime Time different for between timesteps
         //! @param timestepIndex Current timestep index used in variable boundary conditions
         std::pair<std::vector<double>, bool> transientTimestep(
-          const std::vector<double> &
-            currentStateValues,   //!< Current values of state variable or initial condition
-          double t_DTime,         //!< Timestep in transient solution
-          size_t timestepIndex);
+          const std::vector<double> & currentStateValues, double t_DTime, size_t timestepIndex);
+
+        //! Result of a backtracking line search step.
+        struct LineSearchResult
+        {
+            std::vector<double> solution;
+            SquareMatrix matA;
+            std::vector<double> vecB;
+            double effectiveRelax;
+        };
 
         //! Backtracking line search (Armijo-style). Shrinks the relaxation
         //! factor until the residual norm decreases or attempts are exhausted.
-        //! Reassembles matA/vecB at the accepted trial state.
-        //! @return The effective relaxation factor used.
-        double backtrackingLineSearch(std::vector<double> & solution,
-                                      SquareMatrix & matA,
-                                      std::vector<double> & vecB,
-                                      const std::vector<double> & correctionDU,
-                                      double initialRelax,
-                                      double currentResidualNorm,
-                                      const std::vector<double> & currentStateValues,
-                                      double dTime,
-                                      size_t timestepIndex);
+        //! Returns the accepted trial state with reassembled matA/vecB.
+        LineSearchResult backtrackingLineSearch(const std::vector<double> & currentSolution,
+                                                const std::vector<double> & correctionDU,
+                                                double initialRelax,
+                                                double currentResidualNorm,
+                                                const std::vector<double> & currentStateValues,
+                                                double dTime,
+                                                size_t timestepIndex);
 
         //! Updates node values with solution. Implemented by derived classes.
         virtual void updateNodes(const std::vector<double> & solution,
@@ -173,6 +176,6 @@ namespace HygroThermFEM
 
         //! Optional diagnostic output stream (nullptr = disabled).
         std::ostream * m_DiagStream{nullptr};
-    };    
+    };
 
 }   // namespace HygroThermFEM

@@ -301,42 +301,39 @@ namespace HygroThermFEM
         }
     }
 
-    double IDomain::backtrackingLineSearch(std::vector<double> & solution,
-                                          SquareMatrix & matA,
-                                          std::vector<double> & vecB,
-                                          const std::vector<double> & correctionDU,
-                                          const double initialRelax,
-                                          const double currentResidualNorm,
-                                          const std::vector<double> & currentStateValues,
-                                          const double dTime,
-                                          const size_t timestepIndex)
+    IDomain::LineSearchResult IDomain::backtrackingLineSearch(
+      const std::vector<double> & currentSolution,
+      const std::vector<double> & correctionDU,
+      const double initialRelax,
+      const double currentResidualNorm,
+      const std::vector<double> & currentStateValues,
+      const double dTime,
+      const size_t timestepIndex)
     {
         constexpr int maxAttempts = 8;
         constexpr double shrinkFactor = 0.5;
-
-        const auto baseSolution = solution;
         double effectiveRelax = initialRelax;
 
         for(int attempt = 0; attempt < maxAttempts; ++attempt)
         {
-            solution = baseSolution + correctionDU * effectiveRelax;
-            postProcess(solution);
+            auto trialSolution = currentSolution + correctionDU * effectiveRelax;
+            postProcess(trialSolution);
 
-            updateNodes(solution, m_AutomaticUpdatePreviousTimestep);
-            matA = transientM_K_H_Matrix(dTime, timestepIndex);
-            vecB = transientMT_R_Vector(currentStateValues, dTime, timestepIndex);
+            updateNodes(trialSolution, m_AutomaticUpdatePreviousTimestep);
+            auto matA = transientM_K_H_Matrix(dTime, timestepIndex);
+            auto vecB = transientMT_R_Vector(currentStateValues, dTime, timestepIndex);
 
-            const auto trialResidual = vecB - matA * solution;
-            const double trialResidualNorm = norm(trialResidual);
+            const double trialResidualNorm = norm(vecB - matA * trialSolution);
 
             if(trialResidualNorm < currentResidualNorm || attempt == maxAttempts - 1)
             {
-                break;
+                return {std::move(trialSolution), std::move(matA),
+                        std::move(vecB), effectiveRelax};
             }
             effectiveRelax *= shrinkFactor;
         }
 
-        return effectiveRelax;
+        __assume(false);
     }
 
     std::pair<std::vector<double>, bool>
@@ -389,10 +386,14 @@ namespace HygroThermFEM
 
             damping.update(rawDuNorm, numOfIterations, maxIterations / 2);
 
-            const double effectiveRelax = backtrackingLineSearch(
-              solution, matA, vecB, correctionDU,
+            auto lsResult = backtrackingLineSearch(
+              solution, correctionDU,
               relaxParameter * damping.factor, norm(residual),
               currentStateValues, t_DTime, timestepIndex);
+            solution = std::move(lsResult.solution);
+            matA = std::move(lsResult.matA);
+            vecB = std::move(lsResult.vecB);
+            const double effectiveRelax = lsResult.effectiveRelax;
 
             auto normSolution = solution + correctionDU;
             postProcess(normSolution);
