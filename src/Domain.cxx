@@ -16,43 +16,38 @@
 #include "TimestepData.hxx"
 #include "Materials.hxx"
 
+namespace HygroThermFEM
+{
+    void IDomain::AdaptiveDamping::update(const double rawDuNorm,
+                                          const size_t iteration,
+                                          const size_t minIteration)
+    {
+        constexpr double growthThreshold = 1000.0;
+        constexpr double minDamping = 1.0 / 16.0;
+        constexpr size_t requiredConsecutive = 2;
+
+        if(iteration >= minIteration && rawDuNorm > growthThreshold * prevDuNorm)
+        {
+            ++consecutiveGrowth;
+            if(consecutiveGrowth >= requiredConsecutive)
+            {
+                factor = std::max(factor * 0.5, minDamping);
+            }
+        }
+        else
+        {
+            consecutiveGrowth = 0;
+            if(factor < 1.0)
+            {
+                factor = std::min(factor * 2.0, 1.0);
+            }
+        }
+        prevDuNorm = rawDuNorm;
+    }
+}   // namespace HygroThermFEM
+
 namespace
 {
-    //! Tracks adaptive damping state across Newton-Raphson iterations.
-    //! When the raw correction norm grows explosively on consecutive iterations,
-    //! the damping factor is halved to stabilise the solver.
-    struct AdaptiveDamping
-    {
-        double prevDuNorm = std::numeric_limits<double>::max();
-        double factor = 1.0;
-        size_t consecutiveGrowth = 0;
-
-        void update(const double rawDuNorm, const size_t iteration, const size_t minIteration)
-        {
-            constexpr double growthThreshold = 1000.0;
-            constexpr double minDamping = 1.0 / 16.0;
-            constexpr size_t requiredConsecutive = 2;
-
-            if(iteration >= minIteration && rawDuNorm > growthThreshold * prevDuNorm)
-            {
-                ++consecutiveGrowth;
-                if(consecutiveGrowth >= requiredConsecutive)
-                {
-                    factor = std::max(factor * 0.5, minDamping);
-                }
-            }
-            else
-            {
-                consecutiveGrowth = 0;
-                if(factor < 1.0)
-                {
-                    factor = std::min(factor * 2.0, 1.0);
-                }
-            }
-            prevDuNorm = rawDuNorm;
-        }
-    };
-
     //! Detects NR 2-cycle oscillation by checking if the convergence metric
     //! stagnates (changes by less than 1% between consecutive iterations).
     //! If detected, averages the last two iterates to break the cycle.
@@ -333,7 +328,70 @@ namespace HygroThermFEM
             effectiveRelax *= shrinkFactor;
         }
 
+#if defined(_MSC_VER)
         __assume(false);
+#elif defined(__GNUC__) || defined(__clang__)
+        __builtin_unreachable();
+#endif
+    }
+
+    void IDomain::performNRIteration(NRLoopState & state,
+                                      const std::vector<double> & currentStateValues,
+                                      const double relaxParameter,
+                                      const double convergenceError,
+                                      const size_t maxIterations,
+                                      const double dTime,
+                                      const size_t timestepIndex)
+    {
+        constexpr size_t minIterationsForOscillationCheck = 4;
+        const double previousNorm = state.currentNorm;
+        const auto prevIterSolution = state.solution;
+
+        const auto residual = state.vecB - state.matA * state.solution;
+        auto correctionDU = CLinearSolver::solveEigen(state.matA, residual);
+        const double rawDuNorm = norm(correctionDU);
+
+        if(limitIncrement(state.solution, correctionDU, relaxParameter))
+        {
+            ++state.numOfIterations;
+            state.convergedViaClamp = true;
+            state.converged = true;
+            return;
+        }
+
+        state.damping.update(rawDuNorm, state.numOfIterations, maxIterations / 2);
+
+        auto lsResult = backtrackingLineSearch(
+          state.solution, correctionDU,
+          relaxParameter * state.damping.factor, norm(residual),
+          currentStateValues, dTime, timestepIndex);
+        state.solution = std::move(lsResult.solution);
+        state.matA = std::move(lsResult.matA);
+        state.vecB = std::move(lsResult.vecB);
+
+        auto normSolution = state.solution + correctionDU;
+        postProcess(normSolution);
+        state.currentNorm = norm(normSolution);
+        ++state.numOfIterations;
+
+        const auto result = evaluateConvergence(
+          state.solution, prevIterSolution, correctionDU, lsResult.effectiveRelax,
+          previousNorm, state.currentNorm, state.prevMetric, convergenceError,
+          state.numOfIterations, minIterationsForOscillationCheck);
+
+        if(result.reason == ConvergeReason::oscillation)
+        {
+            postProcess(state.solution);
+        }
+        state.converged = result.converged();
+        state.prevMetric = result.metric;
+
+        if(m_DiagStream != nullptr)
+        {
+            printNRRow(*m_DiagStream, dTime, state.numOfIterations, result.metric,
+                       convergenceError, rawDuNorm, state.damping.factor,
+                       false, state.converged, reasonLabel(result.reason), state.solution);
+        }
     }
 
     IDomain::TimestepResult
@@ -357,74 +415,23 @@ namespace HygroThermFEM
             return {solution, true};
         }
 
-        auto solution = currentStateValues;
-        auto currentNorm = norm(solution);
+        NRLoopState state{
+          .solution = currentStateValues,
+          .matA = std::move(matA),
+          .vecB = std::move(vecB),
+          .currentNorm = norm(currentStateValues),
+          .damping = {}};
 
-        size_t numOfIterations = 0;
-        double prevMetric = std::numeric_limits<double>::max();
-        constexpr size_t minIterationsForOscillationCheck = 4;
-        bool convergedViaClamp = false;
-        bool converged = false;
-        AdaptiveDamping damping;
-
-        while(numOfIterations <= maxIterations && !converged)
+        while(state.numOfIterations <= maxIterations && !state.converged)
         {
-            const double previousNorm = currentNorm;
-            const auto prevIterSolution = solution;
-
-            const auto residual = vecB - matA * solution;
-            auto correctionDU = CLinearSolver::solveEigen(matA, residual);
-            const double rawDuNorm = norm(correctionDU);
-
-            if(limitIncrement(solution, correctionDU, relaxParameter))
-            {
-                ++numOfIterations;
-                convergedViaClamp = true;
-                converged = true;
-                break;
-            }
-
-            damping.update(rawDuNorm, numOfIterations, maxIterations / 2);
-
-            auto lsResult = backtrackingLineSearch(
-              solution, correctionDU,
-              relaxParameter * damping.factor, norm(residual),
-              currentStateValues, t_DTime, timestepIndex);
-            solution = std::move(lsResult.solution);
-            matA = std::move(lsResult.matA);
-            vecB = std::move(lsResult.vecB);
-            const double effectiveRelax = lsResult.effectiveRelax;
-
-            auto normSolution = solution + correctionDU;
-            postProcess(normSolution);
-            currentNorm = norm(normSolution);
-            ++numOfIterations;
-
-            const auto result = evaluateConvergence(
-              solution, prevIterSolution, correctionDU, effectiveRelax,
-              previousNorm, currentNorm, prevMetric, convergenceError,
-              numOfIterations, minIterationsForOscillationCheck);
-
-            if(result.reason == ConvergeReason::oscillation)
-            {
-                postProcess(solution);
-            }
-            converged = result.converged();
-
-            if(m_DiagStream != nullptr)
-            {
-                printNRRow(*m_DiagStream, t_DTime, numOfIterations, result.metric,
-                           convergenceError, rawDuNorm, damping.factor,
-                           false, converged, reasonLabel(result.reason), solution);
-            }
-
-            prevMetric = result.metric;
+            performNRIteration(state, currentStateValues, relaxParameter,
+                               convergenceError, maxIterations, t_DTime, timestepIndex);
         }
 
-        m_LastSolveAtPhysicalBound = convergedViaClamp;
-        updateNodes(solution, m_AutomaticUpdatePreviousTimestep);
+        m_LastSolveAtPhysicalBound = state.convergedViaClamp;
+        updateNodes(state.solution, m_AutomaticUpdatePreviousTimestep);
 
-        return {solution, converged};
+        return {state.solution, state.converged};
     }
 
     bool IDomain::isLinear() const

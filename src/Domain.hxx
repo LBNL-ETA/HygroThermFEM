@@ -1,6 +1,7 @@
 #pragma once
 
 #include <iosfwd>
+#include <limits>
 #include <memory>
 
 #include "Elements2D.hxx"
@@ -126,12 +127,46 @@ namespace HygroThermFEM
             bool converged;
         };
 
+        //! Tracks adaptive damping across Newton-Raphson iterations.
+        struct AdaptiveDamping
+        {
+            double prevDuNorm = std::numeric_limits<double>::max();
+            double factor = 1.0;
+            size_t consecutiveGrowth = 0;
+
+            void update(double rawDuNorm, size_t iteration, size_t minIteration);
+        };
+
+        //! Mutable state carried across Newton-Raphson iterations.
+        struct NRLoopState
+        {
+            std::vector<double> solution;
+            SquareMatrix matA;
+            std::vector<double> vecB;
+            double currentNorm;
+            double prevMetric = std::numeric_limits<double>::max();
+            size_t numOfIterations = 0;
+            bool convergedViaClamp = false;
+            bool converged = false;
+            AdaptiveDamping damping;
+        };
+
         //! \brief Calling timestep calculations
         //! @param currentStateValues Current state values from previous timestep
         //! @param t_DTime Time different for between timesteps
         //! @param timestepIndex Current timestep index used in variable boundary conditions
         TimestepResult transientTimestep(
           const std::vector<double> & currentStateValues, double t_DTime, size_t timestepIndex);
+
+        //! Performs one Newton-Raphson iteration: correction, clamp check,
+        //! line search, convergence and oscillation checks.
+        void performNRIteration(NRLoopState & state,
+                                const std::vector<double> & currentStateValues,
+                                double relaxParameter,
+                                double convergenceError,
+                                size_t maxIterations,
+                                double dTime,
+                                size_t timestepIndex);
 
         //! Result of a backtracking line search step.
         struct LineSearchResult
