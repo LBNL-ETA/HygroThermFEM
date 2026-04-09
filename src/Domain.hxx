@@ -140,7 +140,7 @@ namespace HygroThermFEM
         //! Tracks adaptive damping across Newton-Raphson iterations.
         struct AdaptiveDamping
         {
-            double prevDuNorm = std::numeric_limits<double>::max();
+            double prevDuNorm = (std::numeric_limits<double>::max)();
             double factor = 1.0;
             size_t consecutiveGrowth = 0;
 
@@ -154,7 +154,7 @@ namespace HygroThermFEM
             SquareMatrix matA;
             std::vector<double> vecB;
             double currentNorm;
-            double prevMetric = std::numeric_limits<double>::max();
+            double prevMetric = (std::numeric_limits<double>::max)();
             size_t numOfIterations = 0;
             bool convergedViaClamp = false;
             bool converged = false;

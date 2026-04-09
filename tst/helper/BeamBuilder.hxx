@@ -186,17 +186,17 @@ namespace TestHelper
         }
 
         //! Edge identifiers for applying boundary conditions.
-        enum class Edge { left, right, top, bottom };
+        enum class Edge { Left, Right, Top, Bottom };
 
         //! Returns node pairs for the given edge.
         [[nodiscard]] std::vector<std::pair<std::size_t, std::size_t>> edge(const Edge edg) const
         {
             switch(edg)
             {
-                case Edge::left: return leftEdge();
-                case Edge::right: return rightEdge();
-                case Edge::top: return topEdge();
-                case Edge::bottom: return bottomEdge();
+                case Edge::Left: return leftEdge();
+                case Edge::Right: return rightEdge();
+                case Edge::Top: return topEdge();
+                case Edge::Bottom: return bottomEdge();
             }
             return {};
         }
