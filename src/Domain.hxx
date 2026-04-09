@@ -119,11 +119,18 @@ namespace HygroThermFEM
                                     std::vector<double> & increment,
                                     double relaxParameter) const;
 
+        //! Result of a single timestep solve.
+        struct TimestepResult
+        {
+            std::vector<double> solution;
+            bool converged;
+        };
+
         //! \brief Calling timestep calculations
         //! @param currentStateValues Current state values from previous timestep
         //! @param t_DTime Time different for between timesteps
         //! @param timestepIndex Current timestep index used in variable boundary conditions
-        std::pair<std::vector<double>, bool> transientTimestep(
+        TimestepResult transientTimestep(
           const std::vector<double> & currentStateValues, double t_DTime, size_t timestepIndex);
 
         //! Result of a backtracking line search step.

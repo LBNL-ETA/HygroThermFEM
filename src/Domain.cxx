@@ -336,7 +336,7 @@ namespace HygroThermFEM
         __assume(false);
     }
 
-    std::pair<std::vector<double>, bool>
+    IDomain::TimestepResult
       IDomain::transientTimestep(const std::vector<double> & currentStateValues,
                                  const double t_DTime,
                                  const size_t timestepIndex)
