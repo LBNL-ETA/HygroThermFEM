@@ -47,18 +47,8 @@ TEST(Topaz2D_TemperatureBC, TestExample_1)
 
     multiDomain.thermal().createBC_FixedTemperature(5, 6, tSurface);
 
-    constexpr auto dTime = 3600;
-    constexpr auto nSteps = 4;
-
-
-    auto temperatures = multiDomain.nodes().properties(HygroThermFEM::Variable::temperature);
-    std::vector<std::vector<double>> solution;
-
-    for(unsigned i = 0; i < nSteps; ++i)
-    {
-        temperatures = multiDomain.thermal().transient(temperatures, dTime).solution;
-        solution.push_back(temperatures);
-    }
+    const auto solution = multiDomain.thermal().transientMultiStep(
+      HygroThermFEM::Variable::temperature, 3600, 4);
 
     std::vector<std::vector<double>> correctSolution{
       {83.64609365, 83.64609365, 61.65791323, 61.65791323, 12, 12},

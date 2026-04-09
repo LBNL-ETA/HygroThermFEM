@@ -43,14 +43,8 @@ TEST(SimplifiedRadiationBC_2D_1, TestExample_1)
     constexpr auto dTime = 3600;
     constexpr auto nSteps = 4;
 
-    auto temperatures = multiDomain.nodes().properties(HygroThermFEM::Variable::temperature);
-    std::vector<std::vector<double>> solution;
-
-    for(unsigned i = 0; i < nSteps; ++i)
-    {
-        temperatures = multiDomain.thermal().transient(temperatures, dTime).solution;
-        solution.push_back(temperatures);
-    }
+    const auto solution = multiDomain.thermal().transientMultiStep(
+      HygroThermFEM::Variable::temperature, dTime, nSteps);
 
     std::vector<std::vector<double>> correctSolution = {
       {0.408268, 0.408268, 0.957192, 0.957192, 2.196879, 2.196879},

@@ -50,14 +50,8 @@ TEST(Analytical_TemperatureBC_Transient, TestExample_1)
     constexpr auto dTime = 0.001;
     constexpr auto nSteps = 1000;
 
-    auto temperatures = multiDomain.nodes().properties(HygroThermFEM::Variable::temperature);
-    std::vector<std::vector<double>> solution;
-
-    for(unsigned i = 0; i < nSteps; ++i)
-    {
-        temperatures = multiDomain.thermal().transient(temperatures, dTime).solution;
-        solution.push_back(temperatures);
-    }
+    const auto solution = multiDomain.thermal().transientMultiStep(
+      HygroThermFEM::Variable::temperature, dTime, nSteps);
 
     std::vector<std::vector<double>> analyticalSolution = {{0.99311, 0.95051, 0.72358},
                                                            {0.95064, 0.87925, 0.64339},

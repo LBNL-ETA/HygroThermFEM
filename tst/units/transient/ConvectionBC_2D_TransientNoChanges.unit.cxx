@@ -41,14 +41,8 @@ TEST(ConvectionBC_2D_TransientNoChanges, TestExample_1)
     constexpr auto dTime = 36000;
     constexpr auto nSteps = 4;
 
-    auto temperatures = multiDomain.nodes().properties(HygroThermFEM::Variable::temperature);
-    std::vector<std::vector<double>> solution;
-
-    for(unsigned i = 0; i < nSteps; ++i)
-    {
-        temperatures = multiDomain.thermal().transient(temperatures, dTime).solution;
-        solution.push_back(temperatures);
-    }
+    const auto solution = multiDomain.thermal().transientMultiStep(
+      HygroThermFEM::Variable::temperature, dTime, nSteps);
 
     std::vector<std::vector<double>> correctSolution{
       {20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0},

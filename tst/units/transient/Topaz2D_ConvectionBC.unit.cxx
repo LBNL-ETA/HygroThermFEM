@@ -56,14 +56,8 @@ TEST(Topaz2D_ConvectionBC, TestExample_1)
     constexpr auto nSteps = 4;
 
 
-    auto temperatures = multiDomain.nodes().properties(HygroThermFEM::Variable::temperature);
-    std::vector<std::vector<double>> solution;
-
-    for(unsigned i = 0; i < nSteps; ++i)
-    {
-        temperatures = multiDomain.thermal().transient(temperatures, dTime).solution;
-        solution.push_back(temperatures);
-    }
+    const auto solution = multiDomain.thermal().transientMultiStep(
+      HygroThermFEM::Variable::temperature, dTime, nSteps);
 
     std::vector<std::vector<double>> correctSolution{
       {1.4182108, 1.4182108, 3.3250259, 3.3250259, 7.6313602, 7.6313602},

@@ -250,6 +250,22 @@ namespace HygroThermFEM
         return vecB;
     }
 
+    std::vector<std::vector<double>> IDomain::transientMultiStep(const Variable variable,
+                                                                  const double dTime,
+                                                                  const size_t numSteps)
+    {
+        auto values = m_NodePool.properties(variable);
+        std::vector<std::vector<double>> results;
+
+        for(size_t step = 0; step < numSteps; ++step)
+        {
+            values = transient(values, dTime).solution;
+            results.push_back(values);
+        }
+
+        return results;
+    }
+
     std::vector<double> IDomain::steadyState()
     {
         const auto B = steadyStateRightHandSide();

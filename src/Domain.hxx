@@ -55,6 +55,15 @@ namespace HygroThermFEM
                                  double t_DTime,
                                  size_t timestepIndex = 0);
 
+        //! Runs a multi-step transient simulation on a single domain,
+        //! collecting the solution vector at each timestep.
+        //! @param variable Which node property to use as initial condition
+        //! @param dTime Timestep duration
+        //! @param numSteps Number of timesteps to run
+        std::vector<std::vector<double>> transientMultiStep(Variable variable,
+                                                            double dTime,
+                                                            size_t numSteps);
+
         //! Returns flux in x and y direction
         [[nodiscard]] std::vector<NodeFlux> flux() const;
 
