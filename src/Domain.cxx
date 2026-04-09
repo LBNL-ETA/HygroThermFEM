@@ -78,6 +78,7 @@ namespace
             [](const double cur, const double prev) { return 0.5 * (cur + prev); });
         return true;
     }
+
     //! Prints CSV header for NR iteration diagnostics.
     void printNRHeader(std::ostream & out, const size_t numDOFs)
     {
@@ -108,6 +109,74 @@ namespace
             }
         }
         return mxv;
+    }
+
+    //! Computes the combined convergence metric: the stricter of the
+    //! norm-based stagnation metric and the per-component metric.
+    double convergenceMetric(const double previousNorm,
+                             const double currentNorm,
+                             const std::vector<double> & correctionDU,
+                             const double effectiveRelax,
+                             const std::vector<double> & solution)
+    {
+        const auto normMetric =
+          std::abs(previousNorm - currentNorm) / (currentNorm + 1e-12);
+        const auto componentMetric =
+          (maxAbs(correctionDU) * std::abs(effectiveRelax)) / (maxAbs(solution) + 1e-12);
+        return std::max(normMetric, componentMetric);
+    }
+
+    enum class ConvergeReason { none, metric, oscillation };
+
+    const char * reasonLabel(const ConvergeReason reason)
+    {
+        switch(reason)
+        {
+            case ConvergeReason::metric: return "metric";
+            case ConvergeReason::oscillation: return "oscillation";
+            default: return "";
+        }
+    }
+
+    struct ConvergenceResult
+    {
+        double metric;
+        ConvergeReason reason = ConvergeReason::none;
+
+        [[nodiscard]] bool converged() const
+        {
+            return reason != ConvergeReason::none;
+        }
+    };
+
+    ConvergenceResult evaluateConvergence(
+      std::vector<double> & solution,
+      const std::vector<double> & prevIterSolution,
+      const std::vector<double> & correctionDU,
+      const double effectiveRelax,
+      const double previousNorm,
+      const double currentNorm,
+      const double prevMetric,
+      const double convergenceError,
+      const size_t numOfIterations,
+      const size_t minIterationsForOscillationCheck)
+    {
+        const auto metric = convergenceMetric(
+          previousNorm, currentNorm, correctionDU, effectiveRelax, solution);
+
+        if(metric <= convergenceError)
+        {
+            return {metric, ConvergeReason::metric};
+        }
+
+        if(resolveOscillation(solution, prevIterSolution,
+                              metric, prevMetric,
+                              numOfIterations, minIterationsForOscillationCheck))
+        {
+            return {metric, ConvergeReason::oscillation};
+        }
+
+        return {metric};
     }
 
     //! Prints one CSV row for an NR iteration.
@@ -232,185 +301,129 @@ namespace HygroThermFEM
         }
     }
 
+    double IDomain::backtrackingLineSearch(std::vector<double> & solution,
+                                          SquareMatrix & matA,
+                                          std::vector<double> & vecB,
+                                          const std::vector<double> & correctionDU,
+                                          const double initialRelax,
+                                          const double currentResidualNorm,
+                                          const std::vector<double> & currentStateValues,
+                                          const double dTime,
+                                          const size_t timestepIndex)
+    {
+        constexpr int maxAttempts = 8;
+        constexpr double shrinkFactor = 0.5;
+
+        const auto baseSolution = solution;
+        double effectiveRelax = initialRelax;
+
+        for(int attempt = 0; attempt < maxAttempts; ++attempt)
+        {
+            solution = baseSolution + correctionDU * effectiveRelax;
+            postProcess(solution);
+
+            updateNodes(solution, m_AutomaticUpdatePreviousTimestep);
+            matA = transientM_K_H_Matrix(dTime, timestepIndex);
+            vecB = transientMT_R_Vector(currentStateValues, dTime, timestepIndex);
+
+            const auto trialResidual = vecB - matA * solution;
+            const double trialResidualNorm = norm(trialResidual);
+
+            if(trialResidualNorm < currentResidualNorm || attempt == maxAttempts - 1)
+            {
+                break;
+            }
+            effectiveRelax *= shrinkFactor;
+        }
+
+        return effectiveRelax;
+    }
+
     std::pair<std::vector<double>, bool>
       IDomain::transientTimestep(const std::vector<double> & currentStateValues,
                                  const double t_DTime,
                                  const size_t timestepIndex)
     {
-        const auto RelaxParameter = SimulationProperties::Instance().relaxationParamter();
-        const auto ConvergenceError = SimulationProperties::Instance().errorTolerance();
-        const auto MaxIterations = SimulationProperties::Instance().maxNumberOfIterations();
+        const auto relaxParameter = SimulationProperties::Instance().relaxationParamter();
+        const auto convergenceError = SimulationProperties::Instance().errorTolerance();
+        const auto maxIterations = SimulationProperties::Instance().maxNumberOfIterations();
 
-        auto A = transientM_K_H_Matrix(t_DTime, timestepIndex);
-
-        auto B = transientMT_R_Vector(currentStateValues, t_DTime, timestepIndex);
-
-        std::vector<double> solution;
-        bool converged{false};
-        bool stopIterations{false};
+        auto matA = transientM_K_H_Matrix(t_DTime, timestepIndex);
+        auto vecB = transientMT_R_Vector(currentStateValues, t_DTime, timestepIndex);
 
         if(isLinear())
         {
-            solution = CLinearSolver::solveEigen(A, B);
+            auto solution = CLinearSolver::solveEigen(matA, vecB);
             postProcess(solution);
-            converged = true;
             m_LastSolveAtPhysicalBound = false;
+            updateNodes(solution, m_AutomaticUpdatePreviousTimestep);
+            return {solution, true};
         }
-        else
+
+        auto solution = currentStateValues;
+        auto currentNorm = norm(solution);
+
+        size_t numOfIterations = 0;
+        double prevMetric = std::numeric_limits<double>::max();
+        constexpr size_t minIterationsForOscillationCheck = 4;
+        bool convergedViaClamp = false;
+        bool converged = false;
+        AdaptiveDamping damping;
+
+        while(numOfIterations <= maxIterations && !converged)
         {
-            // Nonlinear Newton-Raphson iteration with relaxation and adaptive
-            // damping.  Solves the residual equation  A*U = B  iteratively, where
-            // A and B depend on the current solution (material properties are
-            // state-dependent).  Each iteration computes a correction
-            // dU = A^{-1} * (B - A*U), applies it with a relaxation parameter, then
-            // reassembles A and B at the updated state.
-            solution = currentStateValues;
-            std::vector<double> normSolution{currentStateValues};
-            auto currentNorm = norm(solution);
+            const double previousNorm = currentNorm;
+            const auto prevIterSolution = solution;
 
-            size_t numOfIterations = 0;
-            double prevMetric = std::numeric_limits<double>::max();
-            constexpr size_t minIterationsForOscillationCheck = 4;
-            bool convergedViaClamp = false;
-            AdaptiveDamping damping;
+            const auto residual = vecB - matA * solution;
+            auto correctionDU = CLinearSolver::solveEigen(matA, residual);
+            const double rawDuNorm = norm(correctionDU);
 
-            while(!stopIterations && !converged)
+            if(limitIncrement(solution, correctionDU, relaxParameter))
             {
-                const double previousNorm = currentNorm;
-                const auto prevIterSolution = solution;
-
-                // Solve for the Newton-Raphson correction: A * dU = B - A*U
-                auto residual = B - A * solution;
-                auto correctionDU = CLinearSolver::solveEigen(A, residual);
-                const double rawDuNorm = norm(correctionDU);
-
-                // Limit per-DOF so the projected solution stays within physical bounds
-                const bool allClamped = limitIncrement(solution, correctionDU, RelaxParameter);
-
-                // Fix 1: if every DOF correction is below the clamp tolerance
-                // (~1e-12), the linear solver is returning round-off noise on a
-                // near-zero residual. Exit BEFORE applying it — applying round-off
-                // noise seeds asymmetric perturbations into U that the norm-based
-                // convergence metric cannot detect, and that compound across
-                // timesteps until NR overshoots into physical bounds.
-                if(allClamped)
-                {
-                    ++numOfIterations;
-                    converged = true;
-                    convergedViaClamp = true;
-
-                    if(m_DiagStream != nullptr)
-                    {
-                        printNRRow(*m_DiagStream, t_DTime, numOfIterations,
-                                   0.0, ConvergenceError, rawDuNorm, damping.factor,
-                                   true, true, "clamped-no-apply", solution);
-                    }
-                    break;
-                }
-
-                // Adaptive damping: scale down when correction norm explodes
-                damping.update(rawDuNorm, numOfIterations, MaxIterations / 2);
-                const double dampedRelax = RelaxParameter * damping.factor;
-
-                // Backtracking line search (Armijo-style monotonic decrease).
-                // Newton-Raphson can overshoot wildly in stiff regions where
-                // the linearization badly misrepresents the true nonlinear
-                // behavior — most pronounced for the moisture equation near
-                // sorption-curve saturation, where dw/dphi can change by
-                // orders of magnitude across a small phi window. Without
-                // line search the iteration can enter a deterministic
-                // multi-cycle that bounces between a near-uniform state and
-                // a saturated state, accept a non-physical midpoint via the
-                // oscillation handler, and commit a mass-non-conserving
-                // result. With line search we instead require that each
-                // accepted step strictly reduces the residual norm: if the
-                // full damped step makes the residual grow, we halve the
-                // step length and reassemble at the smaller trial state,
-                // repeating until either the residual decreases or we've
-                // exhausted a small number of attempts.
-                const double currentResidualNorm = norm(residual);
-                const auto savedSolution = solution;
-                double effectiveRelax = dampedRelax;
-                constexpr int maxLineSearchAttempts = 8;
-                constexpr double lineSearchShrink = 0.5;
-                for(int lsAttempt = 0; lsAttempt < maxLineSearchAttempts; ++lsAttempt)
-                {
-                    solution = savedSolution + correctionDU * effectiveRelax;
-                    postProcess(solution);
-
-                    updateNodes(solution, m_AutomaticUpdatePreviousTimestep);
-                    A = transientM_K_H_Matrix(t_DTime, timestepIndex);
-                    B = transientMT_R_Vector(currentStateValues, t_DTime, timestepIndex);
-
-                    const auto trialResidual = B - A * solution;
-                    const double trialResidualNorm = norm(trialResidual);
-
-                    if(trialResidualNorm < currentResidualNorm
-                       || lsAttempt == maxLineSearchAttempts - 1)
-                    {
-                        break;
-                    }
-                    effectiveRelax *= lineSearchShrink;
-                }
-
-                // normSolution uses the full (unrelaxed) correction for the
-                // convergence check, computed the same way as before line
-                // search was added (kept bit-compatible with the original
-                // expression so existing tests don't shift by 1e-6).
-                normSolution = solution + correctionDU;
-                postProcess(normSolution);
-                currentNorm = norm(normSolution);
                 ++numOfIterations;
-
-                // Fix 2: convergence requires BOTH norm-based stagnation AND
-                // per-component smallness. The norm metric alone has a null
-                // space — anti-symmetric perturbations leave the L2 norm
-                // unchanged, so it can falsely report convergence after a
-                // single explicit-Euler-like step that grows high-frequency
-                // noise. The per-component metric (max applied |dU| over
-                // max |U|) closes that hole. We take the max of the two,
-                // which is the strictly more conservative criterion.
-                const auto normMetric =
-                  std::abs(previousNorm - currentNorm) / (currentNorm + 1e-12);
-                const auto componentMetric = (maxAbs(correctionDU) * std::abs(effectiveRelax))
-                                             / (maxAbs(solution) + 1e-12);
-                const auto metric = std::max(normMetric, componentMetric);
-                converged = metric <= ConvergenceError;
-
-                const char * reason = "";
-                if(converged)
-                {
-                    reason = "metric";
-                }
-
-                // Detect and resolve NR 2-cycle oscillation
-                if(!converged
-                   && resolveOscillation(solution, prevIterSolution,
-                                         metric, prevMetric,
-                                         numOfIterations, minIterationsForOscillationCheck))
-                {
-                    postProcess(solution);
-                    converged = true;
-                    reason = "oscillation";
-                }
-
-                if(m_DiagStream != nullptr)
-                {
-                    printNRRow(*m_DiagStream, t_DTime, numOfIterations, metric,
-                               ConvergenceError, rawDuNorm, damping.factor,
-                               allClamped, converged, reason, solution);
-                }
-
-                prevMetric = metric;
-                stopIterations = numOfIterations > MaxIterations;
+                convergedViaClamp = true;
+                converged = true;
+                break;
             }
 
-            m_LastSolveAtPhysicalBound = convergedViaClamp;
+            damping.update(rawDuNorm, numOfIterations, maxIterations / 2);
+
+            const double effectiveRelax = backtrackingLineSearch(
+              solution, matA, vecB, correctionDU,
+              relaxParameter * damping.factor, norm(residual),
+              currentStateValues, t_DTime, timestepIndex);
+
+            auto normSolution = solution + correctionDU;
+            postProcess(normSolution);
+            currentNorm = norm(normSolution);
+            ++numOfIterations;
+
+            const auto result = evaluateConvergence(
+              solution, prevIterSolution, correctionDU, effectiveRelax,
+              previousNorm, currentNorm, prevMetric, convergenceError,
+              numOfIterations, minIterationsForOscillationCheck);
+
+            if(result.reason == ConvergeReason::oscillation)
+            {
+                postProcess(solution);
+            }
+            converged = result.converged();
+
+            if(m_DiagStream != nullptr)
+            {
+                printNRRow(*m_DiagStream, t_DTime, numOfIterations, result.metric,
+                           convergenceError, rawDuNorm, damping.factor,
+                           false, converged, reasonLabel(result.reason), solution);
+            }
+
+            prevMetric = result.metric;
         }
 
+        m_LastSolveAtPhysicalBound = convergedViaClamp;
         updateNodes(solution, m_AutomaticUpdatePreviousTimestep);
 
-        return std::make_pair(solution, converged);
+        return {solution, converged};
     }
 
     bool IDomain::isLinear() const

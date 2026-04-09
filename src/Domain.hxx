@@ -129,6 +129,20 @@ namespace HygroThermFEM
           double t_DTime,         //!< Timestep in transient solution
           size_t timestepIndex);
 
+        //! Backtracking line search (Armijo-style). Shrinks the relaxation
+        //! factor until the residual norm decreases or attempts are exhausted.
+        //! Reassembles matA/vecB at the accepted trial state.
+        //! @return The effective relaxation factor used.
+        double backtrackingLineSearch(std::vector<double> & solution,
+                                      SquareMatrix & matA,
+                                      std::vector<double> & vecB,
+                                      const std::vector<double> & correctionDU,
+                                      double initialRelax,
+                                      double currentResidualNorm,
+                                      const std::vector<double> & currentStateValues,
+                                      double dTime,
+                                      size_t timestepIndex);
+
         //! Updates node values with solution. Implemented by derived classes.
         virtual void updateNodes(const std::vector<double> & solution,
                                  bool updatePreviousTimestep) = 0;
