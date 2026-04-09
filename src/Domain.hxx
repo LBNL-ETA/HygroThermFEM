@@ -82,32 +82,6 @@ namespace HygroThermFEM
         void setDiagnosticStream(std::ostream * stream);
 
     protected:
-        friend class MultiDomain;
-
-        //! Forms left hand side matrix in steady state solution.
-        SquareMatrix steadyStateLeftHandSide();
-
-        //! Form right hand side vector in stead state solution.
-        [[nodiscard]] std::vector<double> steadyStateRightHandSide() const;
-
-        //! \brief Forms mass, conductance and H (from boundary condition) matrices.
-        //! @param t_DTime Time between two timestep for which calculates are being performed
-        //! @param timestepIndex Timestep index used in case of variable timestep input boundary
-        //! conditions.
-        SquareMatrix transientM_K_H_Matrix(double t_DTime, size_t timestepIndex);
-
-        //! \brief This function retrieves M*U+R vector (where U is state variable)
-        //! @param t_PreviousSolution Solution from previous timestep
-        //! @param t_DTime Time between two timestep for which calculates are being performed
-        //! @param timestepIndex Timestep index used in case of variable timestep input boundary
-        //! conditions.
-        std::vector<double> transientMT_R_Vector(const std::vector<double> & t_PreviousSolution,
-                                                 double t_DTime,
-                                                 size_t timestepIndex);
-
-        //! Returns if domain problem is linear.
-        [[nodiscard]] bool isLinear() const;
-
         //! Some domains require post-processing of results. Good example is
         //! moisture domain where humidity cannot go over 1.0 or lower than one.
         //! With certain set of boundary conditions and long enough time-step,
@@ -119,6 +93,33 @@ namespace HygroThermFEM
         virtual bool limitIncrement(const std::vector<double> & currentSolution,
                                     std::vector<double> & increment,
                                     double relaxParameter) const;
+
+        //! Updates node values with solution. Implemented by derived classes.
+        virtual void updateNodes(const std::vector<double> & solution,
+                                 bool updatePreviousTimestep) = 0;
+
+        Nodes & m_NodePool;
+        Materials & m_MaterialPool;
+        ElementsLinear2D m_Elements;
+        BoundaryConditions2D m_BCs;
+
+    private:
+        //! Forms left hand side matrix in steady state solution.
+        SquareMatrix steadyStateLeftHandSide();
+
+        //! Form right hand side vector in stead state solution.
+        [[nodiscard]] std::vector<double> steadyStateRightHandSide() const;
+
+        //! \brief Forms mass, conductance and H (from boundary condition) matrices.
+        SquareMatrix transientM_K_H_Matrix(double t_DTime, size_t timestepIndex);
+
+        //! \brief This function retrieves M*U+R vector (where U is state variable)
+        std::vector<double> transientMT_R_Vector(const std::vector<double> & t_PreviousSolution,
+                                                 double t_DTime,
+                                                 size_t timestepIndex);
+
+        //! Returns if domain problem is linear.
+        [[nodiscard]] bool isLinear() const;
 
         //! Result of a single timestep solve.
         struct TimestepResult
@@ -152,9 +153,6 @@ namespace HygroThermFEM
         };
 
         //! \brief Calling timestep calculations
-        //! @param currentStateValues Current state values from previous timestep
-        //! @param t_DTime Time different for between timesteps
-        //! @param timestepIndex Current timestep index used in variable boundary conditions
         TimestepResult transientTimestep(
           const std::vector<double> & currentStateValues, double t_DTime, size_t timestepIndex);
 
@@ -179,7 +177,6 @@ namespace HygroThermFEM
 
         //! Backtracking line search (Armijo-style). Shrinks the relaxation
         //! factor until the residual norm decreases or attempts are exhausted.
-        //! Returns the accepted trial state with reassembled matA/vecB.
         LineSearchResult backtrackingLineSearch(const std::vector<double> & currentSolution,
                                                 const std::vector<double> & correctionDU,
                                                 double initialRelax,
@@ -188,35 +185,16 @@ namespace HygroThermFEM
                                                 double dTime,
                                                 size_t timestepIndex);
 
-        //! Updates node values with solution. Implemented by derived classes.
-        virtual void updateNodes(const std::vector<double> & solution,
-                                 bool updatePreviousTimestep) = 0;
-
-        Nodes & m_NodePool;
-        Materials & m_MaterialPool;
-        ElementsLinear2D m_Elements;
-        BoundaryConditions2D m_BCs;
-
         FenestrationCommon::GravityVector m_GravityVector{0, -1, 0};
 
         //! Storage for gas cavities recalculation
         std::unique_ptr<EquivalentGasCavities> gasCavities;
 
-        // Indicates if transient timestep will automatically update previous timestep solution.
-        // This should be turned off if used in multidomain because previous timestep should
-        // remain constant during iterations.
         bool m_AutomaticUpdatePreviousTimestep;
-
-        //! True when the last successful NR solve had all DOF corrections
-        //! clamped at physical bounds (e.g. humidity pinned at 0 or 1).
-        //! Indicates re-solving would produce the identical result.
         bool m_LastSolveAtPhysicalBound{false};
 
-        //! Returns whether the last transient solve ended with all DOFs
-        //! clamped at physical bounds by limitIncrement.
         [[nodiscard]] bool lastSolveAtPhysicalBound() const;
 
-        //! Optional diagnostic output stream (nullptr = disabled).
         std::ostream * m_DiagStream{nullptr};
     };
 
