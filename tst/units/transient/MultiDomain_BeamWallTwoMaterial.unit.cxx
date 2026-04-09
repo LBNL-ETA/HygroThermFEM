@@ -130,28 +130,7 @@ TEST_F(MultiDomain_BeamWall_StuccoFiberglass, TwoMaterialHighHumidity)
     constexpr double dTime = 3600.0;
     constexpr int nSteps = 10;
 
-    auto temperatures = multiDomain.nodes().properties(HygroThermFEM::Variable::temperature);
-    auto humidities = multiDomain.nodes().properties(HygroThermFEM::Variable::humidity);
-
-    std::vector<std::vector<double>> temperatureSolution;
-    std::vector<double> temperatureError;
-    std::vector<std::vector<double>> waterContentSolution;
-    std::vector<double> humidityError;
-
-
-    for(int step = 0; step < nSteps; ++step)
-    {
-        const auto solution =
-          multiDomain.transient(temperatures, humidities, dTime, static_cast<size_t>(step));
-
-        temperatureSolution.push_back(solution.temperature);
-        temperatureError.push_back(solution.temperatureError);
-        waterContentSolution.push_back(solution.waterContent);
-        humidityError.push_back(solution.humidityError);
-
-        temperatures = solution.temperature;
-        humidities = solution.humidity;
-    }
+    const auto results = multiDomain.transientMultiStep(dTime, nSteps);
 
     const std::vector<std::vector<double>> correctWaterContentSolution{
       {200.000000, 200.000000, 200.000000, 200.000000, 200.000000, 200.000000, 106.640000, 106.640000, 13.280000, 13.280000, 13.280000, 13.280000},
@@ -166,8 +145,8 @@ TEST_F(MultiDomain_BeamWall_StuccoFiberglass, TwoMaterialHighHumidity)
       {200.000000, 200.000000, 200.000000, 200.000000, 200.000000, 200.000000, 106.640000, 106.640000, 13.280000, 13.280000, 13.280000, 13.280000}};
     const std::vector correctHumidityError(10u, 0.0);
 
-    TestHelper::expectNear(correctWaterContentSolution, waterContentSolution, 1e-6);
-    TestHelper::expectNear(correctHumidityError, humidityError, 1e-6);
+    TestHelper::expectNear(correctWaterContentSolution, results.moisture.values, 1e-6);
+    TestHelper::expectNear(correctHumidityError, results.moisture.errors, 1e-6);
 
     const std::vector<std::vector<double>> correctTemperatureSolution{
       {30.000000, 30.000000, 30.000000, 30.000000, 30.000000, 30.000000, 30.000000, 30.000000, 30.000000, 30.000000, 30.000000, 30.000000},
@@ -182,8 +161,8 @@ TEST_F(MultiDomain_BeamWall_StuccoFiberglass, TwoMaterialHighHumidity)
       {30.000000, 30.000000, 30.000000, 30.000000, 30.000000, 30.000000, 30.000000, 30.000000, 30.000000, 30.000000, 30.000000, 30.000000}};
     const std::vector correctTemperatureError(10u, 0.0);
 
-    TestHelper::expectNear(correctTemperatureSolution, temperatureSolution, 1e-6);
-    TestHelper::expectNear(correctTemperatureError, temperatureError, 1e-6);
+    TestHelper::expectNear(correctTemperatureSolution, results.temperature.values, 1e-6);
+    TestHelper::expectNear(correctTemperatureError, results.temperature.errors, 1e-6);
 
     EXPECT_EQ(progressMoisture.calls(), (std::vector<unsigned>{}));
     EXPECT_EQ(progressThermal.calls(), (std::vector<unsigned>{}));

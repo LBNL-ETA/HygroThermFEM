@@ -78,23 +78,7 @@ TEST_F(MultiDomain_2D_ThermalConductivityDependent_1, TestExample_1)
     constexpr auto dTime = 3600;
     constexpr auto nSteps = 24;
 
-    auto temperatures = multiDomain.nodes().properties(HygroThermFEM::Variable::temperature);
-    auto humidities = multiDomain.nodes().properties(HygroThermFEM::Variable::humidity);
-    std::vector<std::vector<double>> temperatureSolution;
-    std::vector<double> temperatureError;
-    std::vector<std::vector<double>> waterContentSolution;
-    std::vector<double> humidityError;
-
-    for(auto i = 0; i < nSteps; ++i)
-    {
-        auto aSolution = multiDomain.transient(temperatures, humidities, dTime);
-        temperatureSolution.push_back(aSolution.temperature);
-        temperatureError.push_back(aSolution.temperatureError);
-        waterContentSolution.push_back(aSolution.waterContent);
-        humidityError.push_back(aSolution.humidityError);
-        temperatures = aSolution.temperature;
-        humidities = aSolution.humidity;
-    }
+    const auto results = multiDomain.transientMultiStep(dTime, nSteps);
 
     const std::vector<std::vector<double>> correctWaterContentSolution{
       {62.535544, 62.535544, 62.763797, 62.763797, 62.535544, 62.535544},
@@ -122,7 +106,7 @@ TEST_F(MultiDomain_2D_ThermalConductivityDependent_1, TestExample_1)
       {52.515204, 52.515204, 52.966922, 52.966922, 52.515204, 52.515204},
       {51.899108, 51.899108, 52.356291, 52.356291, 51.899108, 51.899108}};
 
-    TestHelper::expectNear(correctWaterContentSolution, waterContentSolution, 1e-6);
+    TestHelper::expectNear(correctWaterContentSolution, results.moisture.values, 1e-6);
 
     const std::vector<std::vector<double>> correctTemperatureSolution{
       {0.113693, 0.113693, 0.078277, 0.078277, 0.113693, 0.113693},
@@ -150,5 +134,5 @@ TEST_F(MultiDomain_2D_ThermalConductivityDependent_1, TestExample_1)
       {0.500570, 0.500570, 0.499485, 0.499485, 0.500570, 0.500570},
       {0.504407, 0.504407, 0.503326, 0.503326, 0.504407, 0.504407}};
 
-    TestHelper::expectNear(correctTemperatureSolution, temperatureSolution, 1e-6);
+    TestHelper::expectNear(correctTemperatureSolution, results.temperature.values, 1e-6);
 }

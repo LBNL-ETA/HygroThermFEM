@@ -47,26 +47,7 @@ TEST(MultiDomain_2D_ASHRAEOutsideHc_MultiTimestepBC, TestExample_1)
     constexpr auto dTime = 3600;
     constexpr auto nSteps = 10;
 
-    auto temperatures = multiDomain.nodes().properties(HygroThermFEM::Variable::temperature);
-    auto humidities = multiDomain.nodes().properties(HygroThermFEM::Variable::humidity);
-    std::vector<std::vector<double>> temperatureSolution;
-    std::vector<double> temperatureError;
-    std::vector<std::vector<double>> waterContentSolution;
-    std::vector<double> humidityError;
-
-    size_t timestepIndex{0u};
-
-    for(auto i = 0; i < nSteps; ++i)
-    {
-        auto aSolution = multiDomain.transient(temperatures, humidities, dTime, timestepIndex);
-        temperatureSolution.push_back(aSolution.temperature);
-        temperatureError.push_back(aSolution.temperatureError);
-        waterContentSolution.push_back(aSolution.waterContent);
-        humidityError.push_back(aSolution.humidityError);
-        temperatures = aSolution.temperature;
-        humidities = aSolution.humidity;
-        ++timestepIndex;
-    }
+    const auto results = multiDomain.transientMultiStep(dTime, nSteps);
 
     std::vector<std::vector<double>> correctWaterContentSolution{
       {8.184325, 8.184325, 0.006793, 0.006793, 0.000015, 0.000015},
@@ -80,10 +61,10 @@ TEST(MultiDomain_2D_ASHRAEOutsideHc_MultiTimestepBC, TestExample_1)
       {1.853538, 1.853538, 0.076541, 0.076541, 0.002151, 0.002151},
       {1.743266, 1.743266, 0.080878, 0.080878, 0.002585, 0.002585}};
 
-    TestHelper::expectNear(correctWaterContentSolution, waterContentSolution, 1e-6);
+    TestHelper::expectNear(correctWaterContentSolution, results.moisture.values, 1e-6);
 
     const std::vector<double> correctHumidityError{4.940245e-07, 4.597750e-08, 1.193402e-07, 3.399188e-07, 6.045441e-07, 4.100176e-07, 1.502028e-07, 3.533361e-08, 1.475798e-07, 2.267924e-07};
-    TestHelper::expectNear(correctHumidityError, humidityError, 1e-6);
+    TestHelper::expectNear(correctHumidityError, results.moisture.errors, 1e-6);
 
     std::vector<std::vector<double>> correctTemperatureSolution{
       {11.872402, 11.872402, 6.162407, 6.162407, 4.612121, 4.612121},
@@ -97,8 +78,8 @@ TEST(MultiDomain_2D_ASHRAEOutsideHc_MultiTimestepBC, TestExample_1)
       {13.406563, 13.406563, 14.097522, 14.097522, 14.293973, 14.293973},
       {11.954915, 11.954915, 13.009476, 13.009476, 13.332604, 13.332604}};
 
-    TestHelper::expectNear(correctTemperatureSolution, temperatureSolution, 1e-6);
+    TestHelper::expectNear(correctTemperatureSolution, results.temperature.values, 1e-6);
 
     const std::vector<double> correctTemperatureError{4.605507e-07, 1.811901e-07, 1.083029e-07, 7.053318e-08, 5.837855e-08, 3.781820e-08, 1.038893e-08, 1.770228e-08, 4.496964e-08, 7.310389e-08};
-    TestHelper::expectNear(correctTemperatureError, temperatureError, 1e-6);
+    TestHelper::expectNear(correctTemperatureError, results.temperature.errors, 1e-6);
 }
