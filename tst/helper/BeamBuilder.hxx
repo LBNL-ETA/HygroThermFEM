@@ -185,6 +185,138 @@ namespace TestHelper
             return result;
         }
 
+        //! Edge identifiers for applying boundary conditions.
+        enum class Edge { left, right, top, bottom };
+
+        //! Returns node pairs for the given edge.
+        [[nodiscard]] std::vector<std::pair<std::size_t, std::size_t>> edge(const Edge edg) const
+        {
+            switch(edg)
+            {
+                case Edge::left: return leftEdge();
+                case Edge::right: return rightEdge();
+                case Edge::top: return topEdge();
+                case Edge::bottom: return bottomEdge();
+            }
+            return {};
+        }
+
+        // --- Boundary condition helpers ---
+        // Each method loops over node pairs on the given edge and forwards
+        // to the corresponding MultiDomain::createBC_* overload.
+
+        template<typename Coeff>
+        void applyBC_FixedHc(const Edge edg, const Coeff & coeff)
+        {
+            for(const auto [idx1, idx2] : edge(edg))
+            {
+                m_Domain.createBC_FixedHc(idx1, idx2, coeff);
+            }
+        }
+
+        template<typename Coeff>
+        void applyBC_TARPHc(const Edge edg, const Coeff & coeff, const double surfaceTilt = 90)
+        {
+            for(const auto [idx1, idx2] : edge(edg))
+            {
+                m_Domain.createBC_TARPHc(idx1, idx2, coeff, surfaceTilt);
+            }
+        }
+
+        template<typename Coeff>
+        void applyBC_ASHRAEInsideHc(const Edge edg,
+                                     const Coeff & coeff,
+                                     const double surfaceHeight,
+                                     const double surfaceTilt = 90)
+        {
+            for(const auto [idx1, idx2] : edge(edg))
+            {
+                m_Domain.createBC_ASHRAEInsideHc(idx1, idx2, coeff, surfaceHeight, surfaceTilt);
+            }
+        }
+
+        template<typename Coeff>
+        void applyBC_ASHRAEOutsideHc(const Edge edg, const Coeff & coeff)
+        {
+            for(const auto [idx1, idx2] : edge(edg))
+            {
+                m_Domain.createBC_ASHRAEOutsideHc(idx1, idx2, coeff);
+            }
+        }
+
+        template<typename Coeff>
+        void applyBC_YazdanianKlemsHc(const Edge edg, const Coeff & coeff)
+        {
+            for(const auto [idx1, idx2] : edge(edg))
+            {
+                m_Domain.createBC_YazdanianKlemsHc(idx1, idx2, coeff);
+            }
+        }
+
+        template<typename Coeff>
+        void applyBC_KimuraHc(const Edge edg, const Coeff & coeff)
+        {
+            for(const auto [idx1, idx2] : edge(edg))
+            {
+                m_Domain.createBC_KimuraHc(idx1, idx2, coeff);
+            }
+        }
+
+        template<typename... Args>
+        void applyBC_FixedTemperature(const Edge edg, Args &&... args)
+        {
+            for(const auto [idx1, idx2] : edge(edg))
+            {
+                m_Domain.createBC_FixedTemperature(idx1, idx2, std::forward<Args>(args)...);
+            }
+        }
+
+        template<typename Coeff>
+        void applyBC_FixedTemperatureAndHumidity(const Edge edg, const Coeff & coeff)
+        {
+            for(const auto [idx1, idx2] : edge(edg))
+            {
+                m_Domain.createBC_FixedTemperatureAndHumidity(idx1, idx2, coeff);
+            }
+        }
+
+        template<typename Flux>
+        void applyBC_FixedHeatFlux(const Edge edg, Flux && flux)
+        {
+            for(const auto [idx1, idx2] : edge(edg))
+            {
+                m_Domain.createBC_FixedHeatFlux(idx1, idx2, std::forward<Flux>(flux));
+            }
+        }
+
+        void applyBC_BlackBodyRadiation(const Edge edg,
+                                         const double emissivity,
+                                         const double radiationTemperature)
+        {
+            for(const auto [idx1, idx2] : edge(edg))
+            {
+                m_Domain.createBC_BlackBodyRadiation(idx1, idx2, emissivity, radiationTemperature);
+            }
+        }
+
+        template<typename Coeff>
+        void applyBC_BlackBodyRadiation(const Edge edg, const Coeff & coeff)
+        {
+            for(const auto [idx1, idx2] : edge(edg))
+            {
+                m_Domain.createBC_BlackBodyRadiation(idx1, idx2, coeff);
+            }
+        }
+
+        template<typename Coeff>
+        void applyBC_LinearizedRadiation(const Edge edg, const Coeff & coeff)
+        {
+            for(const auto [idx1, idx2] : edge(edg))
+            {
+                m_Domain.createBC_LinearizedRadiation(idx1, idx2, coeff);
+            }
+        }
+
     private:
         //! Builds the x-coordinate of every node column by walking segments.
         [[nodiscard]] std::vector<double> buildXCoordinates() const

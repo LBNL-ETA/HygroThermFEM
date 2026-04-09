@@ -75,19 +75,10 @@ TEST_F(MultiDomain_BeamWall_SingleMaterial, Stucco_99dot9_Percent)
     const HygroThermFEM::FixedBCHCCoefficients interiorBc{
       /*airTemperature=*/initialTemperature, hc, /*airHumidity=*/bcHumidity};
 
-    for(auto [i1, i2] : builder.leftEdge())
-    {
-        multiDomain.createBC_FixedHc(i1, i2, exteriorBc);
-    }
-    for(auto [i1, i2] : builder.rightEdge())
-    {
-        multiDomain.createBC_FixedHc(i1, i2, interiorBc);
-    }
+    builder.applyBC_FixedHc(TestHelper::BeamBuilder::Edge::left, exteriorBc);
+    builder.applyBC_FixedHc(TestHelper::BeamBuilder::Edge::right, interiorBc);
 
-    constexpr double dTime = 3600.0;
-    constexpr int nSteps = 10;
-
-    const auto results = multiDomain.transientMultiStep(dTime, nSteps);
+    const auto results = multiDomain.transientMultiStep(3600.0, 10);
 
     const std::vector<std::vector<double>> correctWaterContentSolution{
       {110.001861, 110.001861, 110.000106, 110.000106, 110.000106, 110.000106, 110.001861, 110.001861},
