@@ -3,39 +3,9 @@
 #include "HygroThermFEM2D.hxx"
 
 #include "BeamBuilder.hxx"
+#include "ObserveSimulationProgress.hxx"
 #include "TestHelpers.hxx"
 #include "TestMaterials.hxx"
-
-namespace
-{
-    //! Counts how many times each non-zero subdivision level fires.
-    //! Index 0 corresponds to division level 1, index 1 to level 2, etc.
-    class ObserveSimulationProgress : public Timesteps::TimestepObserver
-    {
-    public:
-        void levelChanged(unsigned divisionLevel, unsigned) override
-        {
-            if(divisionLevel == 0)
-            {
-                return;
-            }
-            const size_t idx = divisionLevel - 1;
-            if(idx >= m_SimulationCalls.size())
-            {
-                m_SimulationCalls.resize(idx + 1, 0u);
-            }
-            ++m_SimulationCalls[idx];
-        }
-
-        [[nodiscard]] const std::vector<unsigned> & calls() const
-        {
-            return m_SimulationCalls;
-        }
-
-    private:
-        std::vector<unsigned> m_SimulationCalls;
-    };
-}   // namespace
 
 class MultiDomain_BeamWall_SingleMaterial : public testing::Test
 {
@@ -79,10 +49,10 @@ TEST_F(MultiDomain_BeamWall_SingleMaterial, Stucco_99dot9_Percent)
     // Register the stucco material so it is available to the elements.
     const auto & stucco = multiDomain.materials().createSolidMaterial(TestHelper::Stucco());
 
-    ObserveSimulationProgress progressThermal;
+    TestHelper::ObserveSimulationProgress progressThermal;
     multiDomain.subscribeThermal(&progressThermal);
 
-    ObserveSimulationProgress progressMoisture;
+    TestHelper::ObserveSimulationProgress progressMoisture;
     multiDomain.subscribeMoisture(&progressMoisture);
 
     // Beam geometry:
@@ -176,10 +146,10 @@ TEST_F(MultiDomain_BeamWall_SingleMaterial, Stucco_90_Percent)
     // Register the stucco material so it is available to the elements.
     const auto & stucco = multiDomain.materials().createSolidMaterial(TestHelper::Stucco());
 
-    ObserveSimulationProgress progressThermal;
+    TestHelper::ObserveSimulationProgress progressThermal;
     multiDomain.subscribeThermal(&progressThermal);
 
-    ObserveSimulationProgress progressMoisture;
+    TestHelper::ObserveSimulationProgress progressMoisture;
     multiDomain.subscribeMoisture(&progressMoisture);
 
     // Beam geometry:
@@ -273,10 +243,10 @@ TEST_F(MultiDomain_BeamWall_SingleMaterial, Stucco_50_Percent)
     // Register the stucco material so it is available to the elements.
     const auto & stucco = multiDomain.materials().createSolidMaterial(TestHelper::Stucco());
 
-    ObserveSimulationProgress progressThermal;
+    TestHelper::ObserveSimulationProgress progressThermal;
     multiDomain.subscribeThermal(&progressThermal);
 
-    ObserveSimulationProgress progressMoisture;
+    TestHelper::ObserveSimulationProgress progressMoisture;
     multiDomain.subscribeMoisture(&progressMoisture);
 
     // Beam geometry:
@@ -371,10 +341,10 @@ TEST_F(MultiDomain_BeamWall_SingleMaterial, Fiberglass_99dot99999_Percent)
     const auto & fiberglass =
       multiDomain.materials().createSolidMaterial(TestHelper::FiberglassBatts());
 
-    ObserveSimulationProgress progressThermal;
+    TestHelper::ObserveSimulationProgress progressThermal;
     multiDomain.subscribeThermal(&progressThermal);
 
-    ObserveSimulationProgress progressMoisture;
+    TestHelper::ObserveSimulationProgress progressMoisture;
     multiDomain.subscribeMoisture(&progressMoisture);
 
     // Beam geometry:
@@ -460,9 +430,9 @@ TEST_F(MultiDomain_BeamWall_SingleMaterial, GypsumBoardHumidityGradient)
 
     const auto & material = multiDomain.materials().createSolidMaterial(TestHelper::GypsumBoardInterior());
 
-    ObserveSimulationProgress progressMoisture;
+    TestHelper::ObserveSimulationProgress progressMoisture;
     multiDomain.subscribeMoisture(&progressMoisture);
-    ObserveSimulationProgress progressThermal;
+    TestHelper::ObserveSimulationProgress progressThermal;
     multiDomain.subscribeThermal(&progressThermal);
 
     TestHelper::BeamBuilder builder(multiDomain);

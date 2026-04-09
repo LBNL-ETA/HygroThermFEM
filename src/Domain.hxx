@@ -107,7 +107,7 @@ namespace HygroThermFEM
         //! Forms left hand side matrix in steady state solution.
         SquareMatrix steadyStateLeftHandSide();
 
-        //! Form right hand side vector in stead state solution.
+        //! Form right hand side vector in steady state solution.
         [[nodiscard]] std::vector<double> steadyStateRightHandSide() const;
 
         //! \brief Forms mass, conductance and H (from boundary condition) matrices.

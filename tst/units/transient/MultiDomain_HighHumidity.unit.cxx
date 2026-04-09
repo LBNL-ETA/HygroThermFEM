@@ -3,40 +3,9 @@
 #include "HygroThermFEM2D.hxx"
 #include "TestMaterials.hxx"
 #include "TestHelpers.hxx"
+#include "ObserveSimulationProgress.hxx"
 
 using HygroThermFEM::Nodes;
-
-namespace
-{
-    //! Counts how many times each non-zero subdivision level fires.
-    //! Index 0 corresponds to division level 1, index 1 to level 2, etc.
-    class ObserveSimulationProgress : public Timesteps::TimestepObserver
-    {
-    public:
-        void levelChanged(unsigned divisionLevel, unsigned) override
-        {
-            // Level zero is the initial timestep attempt and is not counted.
-            if(divisionLevel == 0)
-            {
-                return;
-            }
-            const size_t idx = divisionLevel - 1;
-            if(idx >= m_SimulationCalls.size())
-            {
-                m_SimulationCalls.resize(idx + 1, 0u);
-            }
-            ++m_SimulationCalls[idx];
-        }
-
-        [[nodiscard]] const std::vector<unsigned> & calls() const
-        {
-            return m_SimulationCalls;
-        }
-
-    private:
-        std::vector<unsigned> m_SimulationCalls;
-    };
-}   // namespace
 
 TEST(MultiDomain_HighHumidity, TestExample_1)
 {
@@ -58,10 +27,10 @@ TEST(MultiDomain_HighHumidity, TestExample_1)
     const auto & material =
       multiDomain.materials().createSolidMaterial(TestHelper::CottaerSandstone());
 
-    ObserveSimulationProgress progressThermal;
+    TestHelper::ObserveSimulationProgress progressThermal;
     multiDomain.subscribeThermal(&progressThermal);
 
-    ObserveSimulationProgress progressMoisture;
+    TestHelper::ObserveSimulationProgress progressMoisture;
     multiDomain.subscribeMoisture(&progressMoisture);
 
     /// Create elements
@@ -150,10 +119,10 @@ TEST(MultiDomain_HighHumidity, HighHumidityAndTemperature)
     const auto & material =
       multiDomain.materials().createSolidMaterial(TestHelper::CottaerSandstone());
 
-    ObserveSimulationProgress progressThermal;
+    TestHelper::ObserveSimulationProgress progressThermal;
     multiDomain.subscribeThermal(&progressThermal);
 
-    ObserveSimulationProgress progressMoisture;
+    TestHelper::ObserveSimulationProgress progressMoisture;
     multiDomain.subscribeMoisture(&progressMoisture);
 
     /// Create elements
@@ -242,10 +211,10 @@ TEST(MultiDomain_HighHumidity, ExtremeHumidityAndTemperature)
     const auto & material =
       multiDomain.materials().createSolidMaterial(TestHelper::CottaerSandstone());
 
-    ObserveSimulationProgress progressThermal;
+    TestHelper::ObserveSimulationProgress progressThermal;
     multiDomain.subscribeThermal(&progressThermal);
 
-    ObserveSimulationProgress progressMoisture;
+    TestHelper::ObserveSimulationProgress progressMoisture;
     multiDomain.subscribeMoisture(&progressMoisture);
 
     /// Create elements
