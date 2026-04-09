@@ -109,10 +109,16 @@ if (BUILD_HTFEM_TESTING)
     LIST(APPEND test_src ${all_test_src})
 
     CREATE_TEST_TARGETS_HTFEM(${target_name} "${test_src}" ${target_name})
-    
+
     #add_executable(${target_name}_test ${test_src})
-    
+
     #target_link_libraries(${target_name}_test gtest ${target_name})
+
+    # Solver parameter sweep — separate executable, not part of normal test suite
+    file(GLOB_RECURSE sweep_src RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "tst/sweep/*.cxx" "tst/helper/*.hxx" "tst/helper/*.cxx")
+    add_executable(${target_name}_sweep ${sweep_src})
+    target_include_directories(${target_name}_sweep PRIVATE tst/helper)
+    target_link_libraries(${target_name}_sweep ${target_name} gtest)
 endif ()
 
 config_compiler_and_linker_HTFEM()
