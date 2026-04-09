@@ -1,6 +1,6 @@
 #import "@preview/cetz:0.3.4"
 
-#set document(title: "Iteration Methods in HygroThermFEM", author: "LBNL / ORNL")
+#set document(title: "Iteration Methods in HygroThermFEM", author: "Simon Vidanovic")
 #set page(margin: 2.5cm, numbering: "1")
 #set text(font: "New Computer Modern", size: 11pt)
 #set heading(numbering: "1.1")
@@ -36,7 +36,7 @@
 #align(center)[
   #text(size: 20pt, weight: "bold")[Iteration Methods in HygroThermFEM]
   #v(0.5em)
-  #text(size: 12pt, fill: luma(100))[Lawrence Berkeley National Laboratory / Oak Ridge National Laboratory]
+  #text(size: 12pt, fill: luma(100))[Lawrence Berkeley National Laboratory]
   #v(2em)
 ]
 
@@ -74,12 +74,13 @@ The solver addresses the coupled nonlinear problem through a hierarchy of three 
     [*Level*], [*Class*], [*Responsibility*],
     [Outer], [`MultiDomain::transient`], [Adaptive time-accumulation with cross-coupling],
     [Middle], [`IDomain::transient`], [Adaptive timestep probing],
-    [Inner], [`IDomain::transientTimestep`], [Newton--Raphson iteration],
+    [Inner], [`IDomain::transientTimestep`], [NR loop orchestration],
+    [Iteration], [`IDomain::performNRIteration`], [Single NR step: correction, line search, convergence],
   ),
   caption: [Solver hierarchy. Each level handles a different aspect of the nonlinear coupled problem.],
 )
 
-The inner level handles material nonlinearity (properties that depend on the current solution). The middle level handles convergence failure by trying smaller timesteps. The outer level handles the coupling between temperature and moisture.
+The iteration level performs a single NR step: computing the correction, running the backtracking line search, and checking convergence. The inner level orchestrates the NR loop, bundling state into an `NRLoopState` struct. The middle level handles convergence failure by trying smaller timesteps. The outer level handles the coupling between temperature and moisture.
 
 #figure(
   cetz.canvas(length: 1cm, {
@@ -189,10 +190,7 @@ The derivative $d w slash d phi$ enters the capacitance matrix $bold(M)$. Near $
     + Limit increment per DOF, return `allClamped` flag (see @sec-clamping)
     + *If `allClamped` is true:* exit *without* applying $Delta bold(U)$ --- the correction is below the round-off filter threshold and applying it would seed asymmetric linear-solver noise (see @sec-roundoff-filter)
     + Apply adaptive damping (see @sec-damping)
-    + Apply relaxed update: $bold(U)_(k+1) = bold(U)_k + omega_"eff" dot Delta bold(U)$
-    + Post-process: enforce physical bounds on $bold(U)_(k+1)$
-    + Update node properties with $bold(U)_(k+1)$
-    + Reassemble: $bold(A)(bold(U)_(k+1))$, $bold(B)(bold(U)_(k+1))$
+    + Backtracking line search (see @sec-linesearch): starting from $omega_"eff"$, find the largest step that reduces the residual norm. Returns the accepted trial state $bold(U)_(k+1)$ and the reassembled $bold(A)$, $bold(B)$.
     + Check convergence (augmented metric, see @sec-roundoff-filter):
       - $"normMetric" = abs(norm(bold(U)_(k+1)) - norm(bold(U)_k)) / norm(bold(U)_(k+1))$
       - $"componentMetric" = (max_i abs(Delta U_i dot omega_"eff")) / (max_i abs(U_(k+1,i)))$
@@ -481,6 +479,23 @@ Consider a node where $phi$ oscillates between 0.989 and 0.991 across iterations
 
 The midpoint $phi = 0.990$ places the solution right at the kink, which is consistent with both the low and high material data.
 
+== Backtracking Line Search <sec-linesearch>
+
+*Problem.* Newton--Raphson can overshoot wildly in stiff regions where the linearization badly misrepresents the true nonlinear behavior. This is most pronounced for the moisture equation near sorption-curve saturation, where $d w slash d phi$ can change by orders of magnitude across a small $phi$ window. Without line search, the iteration can enter a deterministic multi-cycle that bounces between a near-uniform state and a saturated state, accept a non-physical midpoint via the oscillation handler, and commit a mass-non-conserving result.
+
+*Solution.* After computing the damped correction $omega_"eff" dot Delta bold(U)$, the solver performs an Armijo-style backtracking line search. The full damped step is tried first; if it makes the residual grow, the step length is halved and the system is reassembled at the smaller trial state. This repeats for up to 8 attempts:
+
+$ "For" ell = 0, 1, dots, 7: $
+$ quad bold(U)_"trial" = bold(U)_k + omega_"eff" dot 2^(-ell) dot Delta bold(U) $
+$ quad "Reassemble" bold(A)(bold(U)_"trial")", " bold(B)(bold(U)_"trial")) $
+$ quad "If" norm(bold(B) - bold(A) bold(U)_"trial") < norm(bold(r)_k): "accept" bold(U)_"trial"", exit" $
+
+If no attempt reduces the residual, the last attempt ($ell = 7$, step reduced by $1 slash 128$) is accepted regardless. This ensures the iteration always makes progress, even if the full step is severely overshooting.
+
+The line search adds cost (each backtrack requires a reassembly), but it only fires when the residual would otherwise grow. In well-behaved regions, the full step is accepted on the first attempt with zero overhead beyond one residual norm evaluation.
+
+*Implementation note.* The line search is encapsulated in `IDomain::backtrackingLineSearch`, which returns a `LineSearchResult` struct containing the accepted trial solution, the reassembled system matrices, and the effective relaxation factor used. This keeps the NR loop body (`performNRIteration`) focused on orchestration.
+
 == Smooth Vapor Transfer Coefficient
 
 *Problem.* The water vapor transfer coefficient $beta$ originally had a hard step discontinuity at $phi = 1.0$:
@@ -508,15 +523,15 @@ This produces: full transfer below $phi = 1.0$, a linear taper over $[1.0, 1.01]
   *Worked example: stucco beam at $phi = 0.999$, $T = 30 °C$, matching boundary conditions on both edges, $Delta t = 3600$~s, moisture domain only.* The expected behavior is a perfectly stationary solution. The original solver instead produced a slow drift over the first six timesteps that suddenly collapsed at step 7, with the level-1 NR failing to converge and the subdivider falling back to $Delta t = 360$~s --- which converged to a solution with water content dropped from 110~kg/m³ to ~93~kg/m³ in a single sub-step (a 17% jump on a problem where the answer should never move).
 ]
 
-*Defect 1 --- Round-off applied as a real correction.* At iteration 0 of timestep 0, the residual $bold(r) = bold(B) - bold(A) bold(U)_0$ was at the floating-point noise floor ($~10^(-19)$). The linear solver, given a near-zero RHS, returned $Delta bold(U) sim 10^(-16)$ --- the LU factorization's intrinsic round-off. *Crucially, the round-off was asymmetric:* the magnitudes at the eight nodes of the test mesh differed by an order of magnitude, with no left/right symmetry. The original NR loop applied this $Delta bold(U)$ unconditionally, *then* checked the `allClamped` flag (which was true, since every component was below $10^(-12)$) and exited. The result: the perfectly uniform initial state $bold(U)_0$ became a noisy state $bold(U)_1 = bold(U)_0 + Delta bold(U)_"noise"$, with the noise pattern set by the linear solver's internal LU rounding decisions, not by physics.
+*Defect 1 --- Round-off applied as a real correction.* At iteration 0 of timestep 0, the residual $bold(r) = bold(B) - bold(A) bold(U)_0$ was at the floating-point noise floor ($~10^(-19)$). The linear solver, given a near-zero RHS, returned $Delta bold(U) tilde.op 10^(-16)$ --- the LU factorization's intrinsic round-off. *Crucially, the round-off was asymmetric:* the magnitudes at the eight nodes of the test mesh differed by an order of magnitude, with no left/right symmetry. The original NR loop applied this $Delta bold(U)$ unconditionally, *then* checked the `allClamped` flag (which was true, since every component was below $10^(-12)$) and exited. The result: the perfectly uniform initial state $bold(U)_0$ became a noisy state $bold(U)_1 = bold(U)_0 + Delta bold(U)_"noise"$, with the noise pattern set by the linear solver's internal LU rounding decisions, not by physics.
 
 *Defect 2 --- Norm-based convergence metric is blind to the noise.* The original convergence criterion was
 
 $ "metric" = abs(norm(bold(U)_(k+1)) - norm(bold(U)_k)) / norm(bold(U)_(k+1)) <= "tol" $
 
-This $L^2$ norm difference has a *null space*: any perturbation $delta bold(U)$ that is orthogonal to $bold(U)$ (or, more loosely, any zero-mean perturbation) leaves the norm essentially unchanged. The asymmetric noise injected by Defect 1 was exactly such a perturbation. So even after the noise had grown to $sim 10^(-7)$ over six timesteps and started producing a *real* residual ($sim 10^(-8)$), and the linear solver started returning a non-trivial $Delta bold(U) sim 10^(-5)$, NR would still exit after one iteration because the $L^2$ norm of the solution barely moved.
+This $L^2$ norm difference has a *null space*: any perturbation $delta bold(U)$ that is orthogonal to $bold(U)$ (or, more loosely, any zero-mean perturbation) leaves the norm essentially unchanged. The asymmetric noise injected by Defect 1 was exactly such a perturbation. So even after the noise had grown to $tilde.op 10^(-7)$ over six timesteps and started producing a *real* residual ($tilde.op 10^(-8)$), and the linear solver started returning a non-trivial $Delta bold(U) tilde.op 10^(-5)$, NR would still exit after one iteration because the $L^2$ norm of the solution barely moved.
 
-But $Delta bold(U) sim 10^(-5)$ is no longer round-off. It is what the diagonally-dominant explicit-Euler-like step computes when $bold(M) slash Delta t$ dominates $bold(A)$:
+But $Delta bold(U) tilde.op 10^(-5)$ is no longer round-off. It is what the diagonally-dominant explicit-Euler-like step computes when $bold(M) slash Delta t$ dominates $bold(A)$:
 
 $ Delta bold(U) approx (bold(M) slash Delta t)^(-1) bold(r) approx Delta t dot bold(M)^(-1) (-bold(K) bold(U)_"noisy") $
 
@@ -525,7 +540,7 @@ Explicit Euler on a parabolic stencil at large $Delta t$ is unstable for high-fr
 *Why the steep sorption curve matters.* Both defects are amplified by $d w slash d phi$ being huge near $phi = 1$:
 
 + It inflates the lumped mass $bold(M) = rho dot (d w slash d phi) dot V$, which makes $bold(M)$ dominate $bold(A)$, which turns NR's first step into the unstable explicit-Euler step described above.
-+ It is also the conversion factor from $phi$-noise to water-content-noise, so a $10^(-16)$ perturbation in $phi$ becomes a visible $sim 10^(-13)$ perturbation in $w$, then grows from there.
++ It is also the conversion factor from $phi$-noise to water-content-noise, so a $10^(-16)$ perturbation in $phi$ becomes a visible $tilde.op 10^(-13)$ perturbation in $w$, then grows from there.
 
 A flat sorption curve hides the bug entirely. The high-humidity regime exposes both flaws simultaneously.
 
@@ -602,12 +617,11 @@ The number of sub-steps needed to cover the target $Delta t$ depends on which le
 Each probing level is reported to registered `TimestepObserver` instances. Tests use this to verify the expected probing depth:
 
 ```cpp
-ObserveSimulationProgress progressMoisture;
+TestHelper::ObserveSimulationProgress progressMoisture;
 multiDomain.subscribeMoisture(&progressMoisture);
 // ... run simulation ...
-EXPECT_EQ(progressMoisture.getLevelOne(), 25u);   // 25 level-1 probes
-EXPECT_EQ(progressMoisture.getLevelTwo(), 25u);   // 25 level-2 probes
-EXPECT_EQ(progressMoisture.getLevelThree(), 22u); // 22 level-3 probes
+// calls() returns a vector where index 0 = level-1 count, etc.
+EXPECT_EQ(progressMoisture.calls(), (std::vector<unsigned>{}));  // no subdivisions needed
 ```
 
 // ═════════════════════════════════════════════════════════
@@ -805,6 +819,8 @@ df.plot(x="nr_iter", y="metric", logy=True)
     [Oscillation check threshold], [$0.01$], [Relative metric change below which 2-cycle is detected],
     [Min iterations for oscillation check], [$4$], [Warmup before oscillation detection activates],
     [Clamp tolerance], [$10^(-12)$], [Absolute increment below which a DOF is considered clamped],
+    [Line search max attempts], [$8$], [Maximum backtracking halvings before accepting the step],
+    [Line search shrink factor], [$0.5$], [Step length reduction per backtracking attempt],
     [Vapor transfer transition width], [$0.01$], [RH range over which $beta$ tapers to zero],
     [Convergence probe $Delta t$ factor], [$10^(-6)$], [Fraction of target $Delta t$ used for coupling probe],
   ),
@@ -832,6 +848,7 @@ Individual stabilization techniques are equally standard:
 - *Per-DOF increment limiting* --- standard in constrained nonlinear solvers.
 - *Midpoint averaging for oscillation resolution* --- basic numerical stabilization.
 - *Adaptive damping* --- standard divergence control in NR solvers.
+- *Backtracking line search (Armijo condition)* --- Armijo (1966), described in every numerical optimization textbook.
 - *Smooth transition functions* --- standard regularization technique to avoid Jacobian discontinuities.
 
 The specific combination, tuning parameters, and implementation details are original engineering work by the HygroThermFEM authors.
