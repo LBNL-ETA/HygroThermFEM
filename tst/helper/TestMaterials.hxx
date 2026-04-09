@@ -170,14 +170,22 @@ namespace TestHelper
             .thermalConductivityTemperatureDependent = {{10.0, 0.2}, {80.0, 0.2}},
             .temperatureDependentMeasurementHumidity = 0,
             // Suction curve from XML (Redistribution is identical)
-            .liquidTransportCurve = {{0,   1.85e-10},
+            // Note: D_l(0) set to 0 to avoid non-physical liquid transport at w=0
+            //       Intermediate sorption points added to smooth abrupt jump from 18 to 370
+            .liquidTransportCurve = {{0,   0},
                                      {9.5, 1.85e-10},
                                      {370, 1.59e-07}},
-            .sorptionCurve = {{0,    0},
-                              {0.33, 5},
-                              {0.75, 7},
-                              {0.97, 18},
-                              {1,    370}}
+            .sorptionCurve = {{0,      0},
+                              {0.33,   5},
+                              {0.75,   7},
+                              {0.97,   18},
+                              {0.99,   50},
+                              {0.995,  100},
+                              {0.999,  200},
+                              {0.9995, 300},
+                              {0.9999, 340},
+                              {0.99999, 355},
+                              {1,      370}}
         };
     }
 
@@ -233,6 +241,8 @@ namespace TestHelper
             .liquidTransportCurve = {{0,   0},
                                      {20,  1e-10},
                                      {210, 7e-09}},
+            // Original data: {{0, 0}, {0.5, 30}, {0.8, 45}, {0.9, 65}, {0.99, 95},
+            //                 {0.999, 110}, {0.9995, 140}, {0.9999, 200}, {1, 210}}
             .sorptionCurve = {{0,      0},
                               {0.5,    30},
                               {0.8,    45},

@@ -532,11 +532,11 @@ namespace HygroThermFEM
         if(!SimulationProperties::Instance().excludeWaterLiquidTransportation()
            && m_Material.hasSorptionCurve() && m_Material.hasLiquidTransportationCurve())
         {
-            auto sorptionDerivative1 =
+            auto sorptionDerivative =
               TabularDerivativeSmooth(m_Material.sorptionCurve(), Variable::humidity);
             auto WaterLiquidTransport =
               LiquidTransportationCurve(m_Material.liquidTransportationCurve(), m_Material)
-              * sorptionDerivative1;
+              * sorptionDerivative;
             DDu(WaterLiquidTransport);
         }
 
