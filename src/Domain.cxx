@@ -310,22 +310,57 @@ namespace HygroThermFEM
 
                 // Adaptive damping: scale down when correction norm explodes
                 damping.update(rawDuNorm, numOfIterations, MaxIterations / 2);
-                const double effectiveRelax = RelaxParameter * damping.factor;
+                const double dampedRelax = RelaxParameter * damping.factor;
 
-                // Apply the relaxed correction; normSolution uses full correction
-                // for the convergence check
-                solution = solution + correctionDU * effectiveRelax;
+                // Backtracking line search (Armijo-style monotonic decrease).
+                // Newton-Raphson can overshoot wildly in stiff regions where
+                // the linearization badly misrepresents the true nonlinear
+                // behavior — most pronounced for the moisture equation near
+                // sorption-curve saturation, where dw/dphi can change by
+                // orders of magnitude across a small phi window. Without
+                // line search the iteration can enter a deterministic
+                // multi-cycle that bounces between a near-uniform state and
+                // a saturated state, accept a non-physical midpoint via the
+                // oscillation handler, and commit a mass-non-conserving
+                // result. With line search we instead require that each
+                // accepted step strictly reduces the residual norm: if the
+                // full damped step makes the residual grow, we halve the
+                // step length and reassemble at the smaller trial state,
+                // repeating until either the residual decreases or we've
+                // exhausted a small number of attempts.
+                const double currentResidualNorm = norm(residual);
+                const auto savedSolution = solution;
+                double effectiveRelax = dampedRelax;
+                constexpr int maxLineSearchAttempts = 8;
+                constexpr double lineSearchShrink = 0.5;
+                for(int lsAttempt = 0; lsAttempt < maxLineSearchAttempts; ++lsAttempt)
+                {
+                    solution = savedSolution + correctionDU * effectiveRelax;
+                    postProcess(solution);
+
+                    updateNodes(solution, m_AutomaticUpdatePreviousTimestep);
+                    A = transientM_K_H_Matrix(t_DTime, timestepIndex);
+                    B = transientMT_R_Vector(currentStateValues, t_DTime, timestepIndex);
+
+                    const auto trialResidual = B - A * solution;
+                    const double trialResidualNorm = norm(trialResidual);
+
+                    if(trialResidualNorm < currentResidualNorm
+                       || lsAttempt == maxLineSearchAttempts - 1)
+                    {
+                        break;
+                    }
+                    effectiveRelax *= lineSearchShrink;
+                }
+
+                // normSolution uses the full (unrelaxed) correction for the
+                // convergence check, computed the same way as before line
+                // search was added (kept bit-compatible with the original
+                // expression so existing tests don't shift by 1e-6).
                 normSolution = solution + correctionDU;
-
-                postProcess(solution);
                 postProcess(normSolution);
                 currentNorm = norm(normSolution);
                 ++numOfIterations;
-
-                // Reassemble system at the updated state
-                updateNodes(solution, m_AutomaticUpdatePreviousTimestep);
-                A = transientM_K_H_Matrix(t_DTime, timestepIndex);
-                B = transientMT_R_Vector(currentStateValues, t_DTime, timestepIndex);
 
                 // Fix 2: convergence requires BOTH norm-based stagnation AND
                 // per-component smallness. The norm metric alone has a null
