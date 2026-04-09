@@ -61,6 +61,20 @@ namespace HygroThermFEM
         double humidityError;
     };
 
+    //! Per-field results (values + errors) accumulated over multiple timesteps.
+    struct FieldResults
+    {
+        std::vector<std::vector<double>> values;
+        std::vector<double> errors;
+    };
+
+    //! Accumulated results from a multi-step transient simulation.
+    struct TransientResults
+    {
+        FieldResults temperature;
+        FieldResults moisture;
+    };
+
     class MultiDomain
     {
     public:
@@ -82,6 +96,13 @@ namespace HygroThermFEM
 
         //! Calculates steady state solution for multiple domains.
         Solution steadyState();
+
+        //! Runs a multi-step transient simulation, collecting per-step
+        //! temperature and moisture results. Initial conditions are read
+        //! from the current node state.
+        //! @param dTime Timestep duration
+        //! @param numSteps Number of timesteps to run
+        TransientResults transientMultiStep(double dTime, size_t numSteps);
 
         //! \brief Checks validity of materials for any simulation
         //!

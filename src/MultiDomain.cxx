@@ -191,6 +191,29 @@ namespace HygroThermFEM
                         humidityError};
     }
 
+    TransientResults MultiDomain::transientMultiStep(const double dTime, const size_t numSteps)
+    {
+        auto temperatures = m_Nodes.properties(Variable::temperature);
+        auto humidities = m_Nodes.properties(Variable::humidity);
+
+        TransientResults results;
+
+        for(size_t step = 0; step < numSteps; ++step)
+        {
+            const auto solution = transient(temperatures, humidities, dTime, step);
+
+            results.temperature.values.push_back(solution.temperature);
+            results.temperature.errors.push_back(solution.temperatureError);
+            results.moisture.values.push_back(solution.waterContent);
+            results.moisture.errors.push_back(solution.humidityError);
+
+            temperatures = solution.temperature;
+            humidities = solution.humidity;
+        }
+
+        return results;
+    }
+
     Solution MultiDomain::steadyState()
     {
         const auto ConvergenceError = SimulationProperties::Instance().errorTolerance();

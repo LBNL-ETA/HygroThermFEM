@@ -87,28 +87,7 @@ TEST(MultiDomain_HighHumidity, TestExample_1)
 
     multiDomain.createBC_FixedHc(5, 6, bcCoeff);
 
-    constexpr auto dTime = 3600;
-    constexpr auto nSteps = 10;
-
-    auto temperatures = multiDomain.nodes().properties(HygroThermFEM::Variable::temperature);
-    auto humidities = multiDomain.nodes().properties(HygroThermFEM::Variable::humidity);
-    std::vector<std::vector<double>> temperatureSolution;
-    std::vector<double> temperatureError;
-    std::vector<std::vector<double>> waterContentSolution;
-    std::vector<double> humidityError;
-    size_t timestepIndex{0};
-
-    for(auto i = 0; i < nSteps; ++i)
-    {
-        auto aSolution = multiDomain.transient(temperatures, humidities, dTime, timestepIndex);
-        temperatureSolution.push_back(aSolution.temperature);
-        temperatureError.push_back(aSolution.temperatureError);
-        waterContentSolution.push_back(aSolution.waterContent);
-        humidityError.push_back(aSolution.humidityError);
-        temperatures = aSolution.temperature;
-        humidities = aSolution.humidity;
-        ++timestepIndex;
-    }
+    const auto results = multiDomain.transientMultiStep(3600, 10);
 
     const std::vector<double> correctHumidityError{2.258469e-11, 2.322582e-11, 2.231239e-11, 2.262864e-11, 1.645984e-11, 1.733963e-11, 1.295150e-11, 1.378937e-11, 1.025800e-11, 1.088118e-11};
     const std::vector<std::vector<double>> correctWaterContentSolution{
@@ -123,8 +102,8 @@ TEST(MultiDomain_HighHumidity, TestExample_1)
       {120.916487, 120.916487, 120.969821, 120.969821, 121.032337, 121.032337},
       {120.973684, 120.973684, 121.017799, 121.017799, 121.065295, 121.065295}};
 
-    TestHelper::expectNear(correctHumidityError, humidityError, 1e-6);
-    TestHelper::expectNear(correctWaterContentSolution, waterContentSolution, 1e-6);
+    TestHelper::expectNear(correctHumidityError, results.moisture.errors, 1e-6);
+    TestHelper::expectNear(correctWaterContentSolution, results.moisture.values, 1e-6);
 
     const std::vector<double> correctTemperatureError{6.314878e-07, 1.970516e-07, 1.253964e-07, 9.751431e-08, 7.984890e-08, 6.668574e-08, 5.631733e-08, 4.789961e-08, 4.096431e-08, 3.517708e-08};
     const std::vector<std::vector<double>> correctTemperatureSolution{
@@ -139,8 +118,8 @@ TEST(MultiDomain_HighHumidity, TestExample_1)
       {11.702779, 11.702779, 14.099249, 14.099249, 16.636355, 16.636355},
       {12.646561, 12.646561, 14.790907, 14.790907, 17.041890, 17.041890}};
 
-    TestHelper::expectNear(correctTemperatureError, temperatureError, 1e-6);
-    TestHelper::expectNear(correctTemperatureSolution, temperatureSolution, 1e-6);
+    TestHelper::expectNear(correctTemperatureError, results.temperature.errors, 1e-6);
+    TestHelper::expectNear(correctTemperatureSolution, results.temperature.values, 1e-6);
 
     // Checking number of iterations within subiterations
     EXPECT_EQ(progressMoisture.calls(), (std::vector<unsigned>{}));
