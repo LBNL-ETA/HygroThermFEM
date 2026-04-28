@@ -105,8 +105,12 @@ if (BUILD_HTFEM_TESTING)
         FetchContent_MakeAvailable(googletest)
     endif()    
 
-    file(GLOB_RECURSE all_test_src RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "tst/main.cxx" "tst/units/*.cxx" "tst/helper/*.hxx" "tst/helper/*.cxx")
-    LIST(APPEND test_src ${all_test_src})
+    # Note: tst/main.cxx is listed literally rather than via GLOB_RECURSE because
+    # GLOB_RECURSE interprets "tst/main.cxx" as a path-suffix match and also
+    # matches tst/sweep/main.cxx, pulling the sweep entry point into the unit
+    # test target and causing LNK2005 (main already defined).
+    file(GLOB_RECURSE all_test_src RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "tst/units/*.cxx" "tst/helper/*.hxx" "tst/helper/*.cxx")
+    LIST(APPEND test_src "tst/main.cxx" ${all_test_src})
 
     CREATE_TEST_TARGETS_HTFEM(${target_name} "${test_src}" ${target_name})
 
