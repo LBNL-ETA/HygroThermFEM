@@ -36,7 +36,7 @@ namespace HygroThermFEM
         const auto side1 = getSide1(hfDirection);
         const auto side2 = getSide2(hfDirection);
         const auto standard = m_Gas.standard();
-        const auto radCalc{KeffCavity::RadiationCalculation::Yes};
+        const auto radCalc{KeffCavity::RadiationCalculation::Simplified};
         auto thermalConductivity{0.0};
         auto diffusionResistanceFactor{0.0};
         switch(standard)

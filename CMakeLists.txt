@@ -47,7 +47,7 @@ endif()
 
 # Include KeffCavity
 set(BUILD_KeffC_TESTING OFF CACHE BOOL "Build KeffCavity tests" FORCE)
-set(KeffCavity_Branch "Version_1.0.34")
+set(KeffCavity_Branch "feature/expose-nusselt")
 
 if(NOT TARGET KeffCavity)
     FetchContent_Declare(
