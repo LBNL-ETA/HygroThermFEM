@@ -4,7 +4,7 @@ set(target_name HygroThermFEM)
 
 cmake_policy(SET CMP0048 NEW)
 
-project(${target_name} VERSION 1.0.57 LANGUAGES CXX)
+project(${target_name} VERSION 1.0.58 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 
@@ -47,7 +47,7 @@ endif()
 
 # Include KeffCavity
 set(BUILD_KeffC_TESTING OFF CACHE BOOL "Build KeffCavity tests" FORCE)
-set(KeffCavity_Branch "feature/expose-nusselt")
+set(KeffCavity_Branch "Version_1.1.0")
 
 if(NOT TARGET KeffCavity)
     FetchContent_Declare(
