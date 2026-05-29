@@ -4,9 +4,24 @@ set(target_name HygroThermFEM)
 
 cmake_policy(SET CMP0048 NEW)
 
-project(${target_name} VERSION 1.0.58 LANGUAGES CXX)
+project(${target_name} VERSION 1.0.59 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
+
+# Graceful local-sibling fallback: the `local` CMake preset sets
+# FETCHCONTENT_SOURCE_DIR_<NAME> to ${sourceDir}/../<DepName> for each declared
+# dependency. If a sibling working copy is missing, unset that variable here so
+# FetchContent falls back to the declared remote instead of erroring out.
+foreach(_dep KEFFCAVITY GOOGLETEST)
+    if(DEFINED FETCHCONTENT_SOURCE_DIR_${_dep})
+        if(NOT EXISTS "${FETCHCONTENT_SOURCE_DIR_${_dep}}/CMakeLists.txt")
+            message(STATUS
+                "Local sibling for ${_dep} not found at "
+                "${FETCHCONTENT_SOURCE_DIR_${_dep}}; falling back to remote.")
+            unset(FETCHCONTENT_SOURCE_DIR_${_dep} CACHE)
+        endif()
+    endif()
+endforeach()
 
 option(BUILD_FOR_CODE_COVERAGE OFF)
 
@@ -47,7 +62,7 @@ endif()
 
 # Include KeffCavity
 set(BUILD_KeffC_TESTING OFF CACHE BOOL "Build KeffCavity tests" FORCE)
-set(KeffCavity_Branch "Version_1.1.0")
+set(KeffCavity_Branch "Version_1.1.1")
 
 if(NOT TARGET KeffCavity)
     FetchContent_Declare(
@@ -100,7 +115,7 @@ if (BUILD_HTFEM_TESTING)
         FetchContent_Declare(
             googletest
             GIT_REPOSITORY https://github.com/google/googletest.git
-            GIT_TAG v1.14.0
+            GIT_TAG v1.16.0
         )
         FetchContent_MakeAvailable(googletest)
     endif()    
