@@ -12,7 +12,7 @@ set(CMAKE_CXX_STANDARD 20)
 # FETCHCONTENT_SOURCE_DIR_<NAME> to ${sourceDir}/../<DepName> for each declared
 # dependency. If a sibling working copy is missing, unset that variable here so
 # FetchContent falls back to the declared remote instead of erroring out.
-foreach(_dep EIGENEXTERNAL KEFFCAVITY GOOGLETEST)
+foreach(_dep KEFFCAVITY GOOGLETEST)
     if(FETCHCONTENT_SOURCE_DIR_${_dep})
         if(NOT EXISTS "${FETCHCONTENT_SOURCE_DIR_${_dep}}/CMakeLists.txt")
             message(STATUS
@@ -46,18 +46,27 @@ include(cmake/HTProjectMacros.cmake)
 include(cmake/HTinternal_utils.cmake)
 include(cmake/HTCompilerFlags.cmake)
 
-# Include Eigen
-# Include KeffCavity
-# set(BUILD_KeffC_TESTING OFF CACHE BOOL "Build KeffCavity tests" FORCE)
+# Include Eigen. Always populated into _deps/eigenexternal-src so consumers can
+# rely on that path regardless of where the source came from. Override Eigen_Repo
+# with a local clone path to build without hitting the network; FetchContent still
+# clones it into _deps, so no consumer paths change.
 set(Eigen_Branch "5.0.1")
+set(Eigen_Repo "https://gitlab.com/libeigen/eigen.git"
+    CACHE STRING "Eigen git repository; set to a local clone path to build offline")
+if(Eigen_Repo MATCHES "^[A-Za-z]:" OR Eigen_Repo MATCHES "^/")
+    if(NOT EXISTS "${Eigen_Repo}/.git")
+        message(STATUS "Eigen_Repo local path '${Eigen_Repo}' not found; falling back to remote.")
+        set(Eigen_Repo "https://gitlab.com/libeigen/eigen.git" CACHE STRING "" FORCE)
+    endif()
+endif()
 if(NOT TARGET eigen)
     FetchContent_Declare(
             EigenExternal
-            GIT_REPOSITORY https://gitlab.com/libeigen/eigen.git
+            GIT_REPOSITORY ${Eigen_Repo}
             GIT_TAG ${Eigen_Branch}
     )
     FetchContent_MakeAvailable(EigenExternal)
-    include_directories(${eigenexternal_SOURCE_DIR})
+    include_directories(${CMAKE_BINARY_DIR}/_deps/eigenexternal-src)
 endif()
 
 # Include KeffCavity

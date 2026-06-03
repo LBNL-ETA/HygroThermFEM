@@ -28,10 +28,10 @@
         {
             "name": "local",
             "hidden": true,
-            "description": "Base: prefers sibling working copies of Eigen, KeffCavity and googletest (../eigen, ../KeffCavity, ../googletest); falls back to remote per-dep when missing. Inherited by local-debug, local-release, and personal compiler presets.",
+            "description": "Base: prefers sibling working copies of KeffCavity and googletest (../KeffCavity, ../googletest); falls back to remote per-dep when missing. Eigen is cloned from the ../eigen sibling (via Eigen_Repo) into _deps so consumer paths are unchanged. Inherited by local-debug, local-release, and personal compiler presets.",
             "inherits": "default",
             "cacheVariables": {
-                "FETCHCONTENT_SOURCE_DIR_EIGENEXTERNAL": "${sourceDir}/../eigen",
+                "Eigen_Repo": "${sourceDir}/../eigen",
                 "FETCHCONTENT_SOURCE_DIR_KEFFCAVITY": "${sourceDir}/../KeffCavity",
                 "FETCHCONTENT_SOURCE_DIR_GOOGLETEST": "${sourceDir}/../googletest"
             }
