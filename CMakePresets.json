@@ -4,7 +4,7 @@
         {
             "name": "default",
             "hidden": true,
-            "description": "Base: fetches all dependencies (Eigen, KeffCavity, googletest) from their declared remotes via FetchContent. Inherited by default-debug and default-release.",
+            "description": "Base: fetches all dependencies (Eigen, KeffCavity, googletest) from their declared remotes via FetchContent. Inherited by default-debug and default-release. Use a local-* preset to consume sibling working copies instead.",
             "binaryDir": "${sourceDir}/build/default"
         },
         {
@@ -28,9 +28,10 @@
         {
             "name": "local",
             "hidden": true,
-            "description": "Base: prefers sibling working copies of KeffCavity and googletest (../KeffCavity, ../googletest); falls back to remote per-dep when missing. Eigen is always fetched from upstream. Inherited by local-debug, local-release, and personal compiler presets.",
+            "description": "Base: prefers sibling working copies of Eigen, KeffCavity and googletest (../eigen, ../KeffCavity, ../googletest); falls back to remote per-dep when missing. Inherited by local-debug, local-release, and personal compiler presets.",
             "inherits": "default",
             "cacheVariables": {
+                "FETCHCONTENT_SOURCE_DIR_EIGENEXTERNAL": "${sourceDir}/../eigen",
                 "FETCHCONTENT_SOURCE_DIR_KEFFCAVITY": "${sourceDir}/../KeffCavity",
                 "FETCHCONTENT_SOURCE_DIR_GOOGLETEST": "${sourceDir}/../googletest"
             }

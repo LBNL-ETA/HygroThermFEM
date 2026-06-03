@@ -12,7 +12,7 @@ set(CMAKE_CXX_STANDARD 20)
 # FETCHCONTENT_SOURCE_DIR_<NAME> to ${sourceDir}/../<DepName> for each declared
 # dependency. If a sibling working copy is missing, unset that variable here so
 # FetchContent falls back to the declared remote instead of erroring out.
-foreach(_dep KEFFCAVITY GOOGLETEST)
+foreach(_dep EIGENEXTERNAL KEFFCAVITY GOOGLETEST)
     if(FETCHCONTENT_SOURCE_DIR_${_dep})
         if(NOT EXISTS "${FETCHCONTENT_SOURCE_DIR_${_dep}}/CMakeLists.txt")
             message(STATUS
@@ -57,7 +57,7 @@ if(NOT TARGET eigen)
             GIT_TAG ${Eigen_Branch}
     )
     FetchContent_MakeAvailable(EigenExternal)
-    include_directories(${CMAKE_BINARY_DIR}/_deps/eigenexternal-src)
+    include_directories(${eigenexternal_SOURCE_DIR})
 endif()
 
 # Include KeffCavity
