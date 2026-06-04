@@ -8,20 +8,29 @@ project(${target_name} VERSION 1.0.61 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 
-# Graceful local-sibling fallback: the `local` CMake preset sets
-# FETCHCONTENT_SOURCE_DIR_<NAME> to ${sourceDir}/../<DepName> for each declared
-# dependency. If a sibling working copy is missing, unset that variable here so
-# FetchContent falls back to the declared remote instead of erroring out.
-foreach(_dep KEFFCAVITY GOOGLETEST)
-    if(FETCHCONTENT_SOURCE_DIR_${_dep})
-        if(NOT EXISTS "${FETCHCONTENT_SOURCE_DIR_${_dep}}/CMakeLists.txt")
-            message(STATUS
-                "Local sibling for ${_dep} not found at "
-                "${FETCHCONTENT_SOURCE_DIR_${_dep}}; falling back to remote.")
-            unset(FETCHCONTENT_SOURCE_DIR_${_dep} CACHE)
+# Local development mode. The `local` preset sets LBNL_LOCAL_SIBLINGS=ON (a cache
+# variable, so it cascades into FetchContent sub-builds). When it is on, prefer a
+# sibling working copy (../<Name>) of each of THIS project's direct dependencies,
+# so the whole dependency graph can be built from local disk during development.
+# A dependency whose sibling is not checked out falls back to its declared remote,
+# independently. Propagation: a sibling dependency that also honors this flag wires
+# up its own siblings in turn. When the flag is off (e.g. the `default` preset),
+# nothing here runs and every dependency comes from its remote.
+# Note: each pair is "<folder>=<FETCHCONTENT var suffix>"; they differ for eigen
+# (folder) vs EIGENEXTERNAL (its FetchContent_Declare name, uppercased).
+if(LBNL_LOCAL_SIBLINGS)
+    foreach(_sibling "KeffCavity=KEFFCAVITY" "googletest=GOOGLETEST" "eigen=EIGENEXTERNAL")
+        string(REPLACE "=" ";" _sibling "${_sibling}")
+        list(GET _sibling 0 _sibling_dir)
+        list(GET _sibling 1 _sibling_var)
+        if(NOT FETCHCONTENT_SOURCE_DIR_${_sibling_var}
+           AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../${_sibling_dir}/CMakeLists.txt")
+            set(FETCHCONTENT_SOURCE_DIR_${_sibling_var}
+                "${CMAKE_CURRENT_SOURCE_DIR}/../${_sibling_dir}")
+            message(STATUS "[local] ${_sibling_dir} -> ${FETCHCONTENT_SOURCE_DIR_${_sibling_var}}")
         endif()
-    endif()
-endforeach()
+    endforeach()
+endif()
 
 option(BUILD_FOR_CODE_COVERAGE OFF)
 
@@ -46,27 +55,19 @@ include(cmake/HTProjectMacros.cmake)
 include(cmake/HTinternal_utils.cmake)
 include(cmake/HTCompilerFlags.cmake)
 
-# Include Eigen. Always populated into _deps/eigenexternal-src so consumers can
-# rely on that path regardless of where the source came from. Override Eigen_Repo
-# with a local clone path to build without hitting the network; FetchContent still
-# clones it into _deps, so no consumer paths change.
+# Include Eigen. Declared from its remote; in `local` mode the foreach above sets
+# FETCHCONTENT_SOURCE_DIR_EIGENEXTERNAL to the ../eigen sibling, so it is sourced
+# from local disk instead. Use ${eigenexternal_SOURCE_DIR} for the include path so
+# it resolves wherever the source came from (remote _deps clone or local sibling).
 set(Eigen_Branch "5.0.1")
-set(Eigen_Repo "https://gitlab.com/libeigen/eigen.git"
-    CACHE STRING "Eigen git repository; set to a local clone path to build offline")
-if(Eigen_Repo MATCHES "^[A-Za-z]:" OR Eigen_Repo MATCHES "^/")
-    if(NOT EXISTS "${Eigen_Repo}/.git")
-        message(STATUS "Eigen_Repo local path '${Eigen_Repo}' not found; falling back to remote.")
-        set(Eigen_Repo "https://gitlab.com/libeigen/eigen.git" CACHE STRING "" FORCE)
-    endif()
-endif()
 if(NOT TARGET eigen)
     FetchContent_Declare(
             EigenExternal
-            GIT_REPOSITORY ${Eigen_Repo}
+            GIT_REPOSITORY https://gitlab.com/libeigen/eigen.git
             GIT_TAG ${Eigen_Branch}
     )
     FetchContent_MakeAvailable(EigenExternal)
-    include_directories(${CMAKE_BINARY_DIR}/_deps/eigenexternal-src)
+    include_directories(${eigenexternal_SOURCE_DIR})
 endif()
 
 # Include KeffCavity
