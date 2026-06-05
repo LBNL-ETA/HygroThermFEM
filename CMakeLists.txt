@@ -4,7 +4,7 @@ set(target_name HygroThermFEM)
 
 cmake_policy(SET CMP0048 NEW)
 
-project(${target_name} VERSION 1.0.61 LANGUAGES CXX)
+project(${target_name} VERSION 1.0.62 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 
@@ -72,7 +72,7 @@ endif()
 
 # Include KeffCavity
 set(BUILD_KeffC_TESTING OFF CACHE BOOL "Build KeffCavity tests" FORCE)
-set(KeffCavity_Branch "Version_1.1.3")
+set(KeffCavity_Branch "Version_1.1.4")
 
 if(NOT TARGET KeffCavity)
     FetchContent_Declare(
@@ -125,7 +125,7 @@ if (BUILD_HTFEM_TESTING)
         FetchContent_Declare(
             googletest
             GIT_REPOSITORY https://github.com/google/googletest.git
-            GIT_TAG v1.16.0
+            GIT_TAG v1.17.0
         )
         FetchContent_MakeAvailable(googletest)
     endif()    
