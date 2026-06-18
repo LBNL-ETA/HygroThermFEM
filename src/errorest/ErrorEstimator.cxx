@@ -31,10 +31,11 @@ namespace lbnl::errorest
         //! Number of monomials in the bilinear recovery basis [1, x, y, x*y].
         constexpr std::size_t kOrder = 4;
 
-        //! A recovery patch keyed by (node, material): the SPR normal equations for one
-        //! material's contribution at one node. Keying by material keeps patches from
-        //! smoothing flux across a material interface (k jump), mirroring the legacy
-        //! esterror, which recovers per vertex-use (calcSmoothed.c: VU_faces).
+        //! A recovery patch keyed by (node, recovery group): the SPR normal equations for
+        //! one group's contribution at one node. The group is the mesh region (or material,
+        //! as a fallback). Keying this way keeps patches from smoothing flux across a region
+        //! or material interface, mirroring the legacy esterror, which recovers per
+        //! vertex-use (calcSmoothed.c: VU_faces).
         using PatchKey = std::pair<std::size_t, int>;
 
         struct Patch
@@ -84,6 +85,25 @@ namespace lbnl::errorest
                   ids.try_emplace(inp.elements[idx].inverseConstitutive, static_cast<int>(ids.size()));
                 out[idx] = pos->second;
             }
+            return out;
+        }
+
+        //! The recovery group per element: the mesh region (subdomain) when the caller
+        //! supplies it, else a material-derived id. Grouping by region is what legacy
+        //! esterror does (it recovers per vertex-use); material grouping is the fallback
+        //! when no region topology is available and coincides with regions unless adjacent
+        //! regions share a material.
+        std::vector<int> recoveryGroups(const Input & inp)
+        {
+            const bool hasRegions = std::ranges::any_of(
+              inp.elements, [](const Element & ele) { return ele.subdomain >= 0; });
+            if (!hasRegions)
+            {
+                return materialIds(inp);
+            }
+            std::vector<int> out(inp.elements.size());
+            std::ranges::transform(inp.elements, out.begin(),
+                                   [](const Element & ele) { return ele.subdomain; });
             return out;
         }
 
@@ -194,8 +214,8 @@ namespace lbnl::errorest
             return lbnl::Unexpected(Error::EmptyMesh);
         }
 
-        const auto elemMat = materialIds(inp);
-        const auto recovered = recoverNodalFlux(inp, elemMat);
+        const auto elemGroup = recoveryGroups(inp);
+        const auto recovered = recoverNodalFlux(inp, elemGroup);
         if (!recovered.has_value())
         {
             return lbnl::Unexpected(recovered.error());
@@ -207,7 +227,7 @@ namespace lbnl::errorest
         double totalError = 0.0;
         for (std::size_t ele = 0; ele < inp.elements.size(); ++ele)
         {
-            const auto eer = elementError(inp.elements[ele], elemMat[ele], inp, recovered.value());
+            const auto eer = elementError(inp.elements[ele], elemGroup[ele], inp, recovered.value());
             totalEnergy += eer.energy;
             totalError += eer.error;
             res.elementRelativeError.push_back(eer.relative);

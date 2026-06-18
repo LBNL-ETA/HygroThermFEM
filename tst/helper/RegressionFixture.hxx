@@ -24,6 +24,7 @@ namespace lbnl::errorest::test
     struct FixtureElement
     {
         double conductivity{0.0};
+        int region{-1};                     //!< Mesh region id; -1 if the fixture omits it.
         std::vector<double> vertices{};     //!< x0,y0,x1,y1,...
         std::vector<double> gaussPoints{};  //!< x0,y0,...,x3,y3
         std::vector<double> flux{};         //!< fx0,fy0,...,fx3,fy3
@@ -46,6 +47,7 @@ namespace lbnl::errorest::test
         using FileParse::operator>>;
 
         node >> Child{"Conductivity", ele.conductivity};
+        node >> Child{"Region", ele.region};
         node >> Child{{"Vertices", "Coord"}, ele.vertices};
         node >> Child{{"GaussPoints", "Coord"}, ele.gaussPoints};
         node >> Child{{"Flux", "Comp"}, ele.flux};
@@ -114,6 +116,7 @@ namespace lbnl::errorest::test
             Element elem{};
             const double inv = 1.0 / ele.conductivity;
             elem.inverseConstitutive = {inv, 0.0, 0.0, inv};
+            elem.subdomain = ele.region;
 
             elem.vertexCount = static_cast<int>(ele.vertices.size() / 2);
             std::array<int, 4> ids = {0, 0, 0, 0};

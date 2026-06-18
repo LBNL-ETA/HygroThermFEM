@@ -25,6 +25,8 @@ namespace lbnl::errorest
         Tensor inverseConstitutive{};       //!< D^-1 used to weight the energy norm.
         std::array<int, 4> vertexIds{};     //!< Node indices; a triangle duplicates the last.
         int vertexCount{4};                 //!< 3 (triangle) or 4 (quad).
+        int subdomain{-1};                  //!< Recovery group (mesh region). -1 = unspecified;
+                                            //!< the estimator then groups patches by material.
     };
 
     //! Complete, file-free input to the estimator.
