@@ -19,7 +19,7 @@ set(CMAKE_CXX_STANDARD 20)
 # Note: each pair is "<folder>=<FETCHCONTENT var suffix>"; they differ for eigen
 # (folder) vs EIGENEXTERNAL (its FetchContent_Declare name, uppercased).
 if(LBNL_LOCAL_SIBLINGS)
-    foreach(_sibling "KeffCavity=KEFFCAVITY" "LBNLCPPCommon=LBNLCPPCOMMON" "googletest=GOOGLETEST" "eigen=EIGENEXTERNAL")
+    foreach(_sibling "KeffCavity=KEFFCAVITY" "LBNLCPPCommon=LBNLCPPCOMMON" "googletest=GOOGLETEST" "eigen=EIGENEXTERNAL" "FileParse=FILEPARSE" "xmlParser=XMLPARSER" "json=NLOHMANN_JSON")
         string(REPLACE "=" ";" _sibling "${_sibling}")
         list(GET _sibling 0 _sibling_dir)
         list(GET _sibling 1 _sibling_var)
@@ -155,7 +155,24 @@ if (BUILD_HTFEM_TESTING)
             GIT_TAG v1.17.0
         )
         FetchContent_MakeAvailable(googletest)
-    endif()    
+    endif()
+
+    # FileParse: the house serialization library (JSON/XML behind one declarative interface).
+    # Test-only dependency, used solely to load the error-estimator regression fixtures
+    # (tst/units/errorest/fixtures/*.json) via Common::loadFromFile. It never reaches the
+    # HygroThermFEM library, so consumers (BUILD_HTFEM_TESTING off) never pull it.
+    # FileParse PUBLIC-links xmlParser + nlohmann_json; in local mode the foreach above
+    # points all three at their ../ siblings.
+    set(FileParse_Branch "Version_1.1.5")
+    set(BUILD_FileParse_tests OFF CACHE BOOL "Build FileParse tests" FORCE)
+    if(NOT TARGET FileParse)
+        FetchContent_Declare(
+            FileParse
+            GIT_REPOSITORY https://github.com/LBNL-ETA/FileParse.git
+            GIT_TAG ${FileParse_Branch}
+        )
+        FetchContent_MakeAvailable(FileParse)
+    endif()
 
     # Note: tst/main.cxx is listed literally rather than via GLOB_RECURSE because
     # GLOB_RECURSE interprets "tst/main.cxx" as a path-suffix match and also
@@ -165,6 +182,11 @@ if (BUILD_HTFEM_TESTING)
     LIST(APPEND test_src "tst/main.cxx" ${all_test_src})
 
     CREATE_TEST_TARGETS_HTFEM(${target_name} "${test_src}" ${target_name})
+
+    # errorest regression fixtures are loaded at runtime via FileParse (test-only).
+    target_link_libraries(${target_name}_tests FileParse)
+    target_compile_definitions(${target_name}_tests PRIVATE
+        ERROREST_FIXTURE_DIR="${CMAKE_CURRENT_SOURCE_DIR}/tst/units/errorest/fixtures")
 
     #add_executable(${target_name}_test ${test_src})
 
