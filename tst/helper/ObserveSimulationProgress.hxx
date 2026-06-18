@@ -2,7 +2,7 @@
 
 #include <vector>
 
-#include "../../src/TimestepObserver.hxx"
+#include "../../src/simulation/TimestepObserver.hxx"
 
 namespace TestHelper
 {

@@ -1,6 +1,9 @@
 #pragma once
 
 #include <algorithm>
+#include <functional>
+#include <stdexcept>
+#include <vector>
 
 namespace HygroThermFEM
 {

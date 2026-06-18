@@ -19,7 +19,7 @@ set(CMAKE_CXX_STANDARD 20)
 # Note: each pair is "<folder>=<FETCHCONTENT var suffix>"; they differ for eigen
 # (folder) vs EIGENEXTERNAL (its FetchContent_Declare name, uppercased).
 if(LBNL_LOCAL_SIBLINGS)
-    foreach(_sibling "KeffCavity=KEFFCAVITY" "googletest=GOOGLETEST" "eigen=EIGENEXTERNAL")
+    foreach(_sibling "KeffCavity=KEFFCAVITY" "LBNLCPPCommon=LBNLCPPCOMMON" "googletest=GOOGLETEST" "eigen=EIGENEXTERNAL")
         string(REPLACE "=" ";" _sibling "${_sibling}")
         list(GET _sibling 0 _sibling_dir)
         list(GET _sibling 1 _sibling_var)
@@ -83,6 +83,18 @@ if(NOT TARGET KeffCavity)
     FetchContent_MakeAvailable(KeffCavity)
 endif()
 
+# LBNLCPPCommon: ExpectedExt/OptionalExt etc. (the C++20 stand-ins for std::expected/
+# std::optional) used by the errorest component. Header-only; no C++ standard bump.
+set(LBNLCPPCommon_Branch "v0.18")
+if(NOT TARGET LBNLCPPCommon)
+    FetchContent_Declare(
+            LBNLCPPCommon
+            GIT_REPOSITORY https://github.com/LBNL-ETA/LBNLCPPCommon.git
+            GIT_TAG ${LBNLCPPCommon_Branch}
+    )
+    FetchContent_MakeAvailable(LBNLCPPCommon)
+endif()
+
 get_property(WindowsCalcEngine_Branch TARGET KeffCavity PROPERTY WindowsCalcEngine_Branch)
 configure_file(doc/HygroThermFEM.md.in ${CMAKE_CURRENT_SOURCE_DIR}/doc/HygroThermFEM.md @ONLY)
 
@@ -97,8 +109,8 @@ endif ()
 
 # add_subdirectory( src )
 
-file(GLOB SOURCES_CXX "src/*.cxx")
-file(GLOB SOURCES_HXX "src/*.hxx")
+file(GLOB_RECURSE SOURCES_CXX "src/*.cxx")
+file(GLOB_RECURSE SOURCES_HXX "src/*.hxx")
 file(GLOB INCLUDE_HXX "include/*.hxx")
 list(APPEND SOURCES ${SOURCES_HXX} ${INCLUDE_HXX} ${SOURCES_CXX})
 
@@ -111,7 +123,22 @@ add_library(${target_name} STATIC ${SOURCES})
 
 set_target_properties(${target_name} PROPERTIES LINKER_LANGUAGE CXX)
 
-target_link_libraries( ${target_name} PUBLIC KeffCavity)
+target_link_libraries( ${target_name} PUBLIC KeffCavity LBNLCPPCommon)
+
+# src/ is grouped into component subfolders; put each on the include path so the
+# existing flat #includes ("Foo.hxx") keep resolving across components. (Step 2 of
+# the structure refactor; the curated public facades come in Step 3.)
+set(HTFEM_COMPONENT_DIRS
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/boundary
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/common
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/domain
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/elements
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/materials
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/math
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/mesh
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/simulation
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/errorest)
+target_include_directories(${target_name} PUBLIC ${HTFEM_COMPONENT_DIRS})
 
 if (BUILD_HTFEM_TESTING)
     include_directories(include)
@@ -148,6 +175,33 @@ if (BUILD_HTFEM_TESTING)
     add_executable(${target_name}_sweep ${sweep_src})
     target_include_directories(${target_name}_sweep PRIVATE tst/helper)
     target_link_libraries(${target_name}_sweep ${target_name} gtest)
+
+    # --- Header self-containment check -----------------------------------
+    # Every src/ header must compile on its own (i.e. include everything it
+    # uses). One generated TU per header just #includes it; building this
+    # object library fails if any header is missing an include. It links the
+    # library only to inherit its include directories (Eigen, KeffCavity, ...).
+    set(_sc_dir ${CMAKE_BINARY_DIR}/selfcontained)
+    file(MAKE_DIRECTORY ${_sc_dir})
+    file(GLOB_RECURSE PUBLIC_HXX "include/*.hxx")
+    set(_sc_tus "")
+    foreach(_hdr ${SOURCES_HXX} ${PUBLIC_HXX})
+        get_filename_component(_hname ${_hdr} NAME_WE)
+        set(_tu ${_sc_dir}/sc_${_hname}.cxx)
+        file(WRITE ${_tu} "#include \"${_hdr}\"\n")
+        list(APPEND _sc_tus ${_tu})
+    endforeach()
+    add_library(${target_name}-selfcontained OBJECT ${_sc_tus})
+    target_compile_features(${target_name}-selfcontained PRIVATE cxx_std_20)
+    # Include dirs only (no link) so this compiles headers without building any lib.
+    target_include_directories(${target_name}-selfcontained PRIVATE
+        ${HTFEM_COMPONENT_DIRS}
+        ${CMAKE_CURRENT_SOURCE_DIR}/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/HygroThermFEM
+        ${eigenexternal_SOURCE_DIR}
+        $<TARGET_PROPERTY:KeffCavity,INTERFACE_INCLUDE_DIRECTORIES>
+        $<TARGET_PROPERTY:LBNLCPPCommon,INTERFACE_INCLUDE_DIRECTORIES>
+        $<TARGET_PROPERTY:Windows-CalcEngine,INTERFACE_INCLUDE_DIRECTORIES>)
 endif ()
 
 config_compiler_and_linker_HTFEM()
