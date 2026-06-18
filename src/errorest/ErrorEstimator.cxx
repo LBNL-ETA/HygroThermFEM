@@ -1,7 +1,9 @@
 #include <algorithm>
 #include <cmath>
 #include <cstddef>
+#include <map>
 #include <ranges>
+#include <utility>
 #include <vector>
 
 #include <SquareMatrix.hpp>
@@ -29,15 +31,28 @@ namespace lbnl::errorest
         //! Number of monomials in the bilinear recovery basis [1, x, y, x*y].
         constexpr std::size_t kOrder = 4;
 
+        //! A recovery patch keyed by (node, material): the SPR normal equations for one
+        //! material's contribution at one node. Keying by material keeps patches from
+        //! smoothing flux across a material interface (k jump), mirroring the legacy
+        //! esterror, which recovers per vertex-use (calcSmoothed.c: VU_faces).
+        using PatchKey = std::pair<std::size_t, int>;
+
+        struct Patch
+        {
+            SquareMatrix matA;
+            SquareMatrix rhsB;
+
+            Patch() : matA(kOrder), rhsB(kOrder) {}
+        };
+
         bool allFinite(const std::array<double, 4> & vec)
         {
             return std::ranges::all_of(vec, [](const double val) { return std::isfinite(val); });
         }
 
-        //! Add one Gauss point's contribution to a vertex patch's SPR normal equations.
+        //! Add one Gauss point's contribution to a patch's SPR normal equations.
         //! Right-hand-side columns 0 and 1 carry the two flux components.
-        void accumulatePatch(SquareMatrix & matA,
-                             SquareMatrix & rhsB,
+        void accumulatePatch(Patch & patch,
                              const std::array<double, 4> & bas,
                              const Flux & sig)
         {
@@ -45,10 +60,10 @@ namespace lbnl::errorest
             {
                 for (std::size_t col = 0; col < kOrder; ++col)
                 {
-                    matA(row, col) += bas[row] * bas[col];
+                    patch.matA(row, col) += bas[row] * bas[col];
                 }
-                rhsB(row, 0) += bas[row] * sig[0];
-                rhsB(row, 1) += bas[row] * sig[1];
+                patch.rhsB(row, 0) += bas[row] * sig[0];
+                patch.rhsB(row, 1) += bas[row] * sig[1];
             }
         }
 
@@ -57,46 +72,55 @@ namespace lbnl::errorest
             return {mat(0, col), mat(1, col), mat(2, col), mat(3, col)};
         }
 
-        //! Superconvergent patch recovery: a smoothed nodal flux at every touched node.
-        lbnl::ExpectedExt<std::vector<Flux>, Error> recoverNodalFlux(const Input & inp)
+        //! Assign each element a small material id, one per distinct inverseConstitutive
+        //! tensor, so the recovery can segregate patches by material.
+        std::vector<int> materialIds(const Input & inp)
         {
-            const std::size_t nodeCount = inp.nodes.size();
-            std::vector<SquareMatrix> matA(nodeCount, SquareMatrix(kOrder));
-            std::vector<SquareMatrix> rhsB(nodeCount, SquareMatrix(kOrder));
-            std::vector<char> touched(nodeCount, 0);
-
-            for (const auto & ele : inp.elements)
+            std::map<std::array<double, 4>, int> ids;
+            std::vector<int> out(inp.elements.size());
+            for (std::size_t idx = 0; idx < inp.elements.size(); ++idx)
             {
+                const auto [pos, inserted] =
+                  ids.try_emplace(inp.elements[idx].inverseConstitutive, static_cast<int>(ids.size()));
+                out[idx] = pos->second;
+            }
+            return out;
+        }
+
+        //! Superconvergent patch recovery: a smoothed nodal flux per (node, material).
+        lbnl::ExpectedExt<std::map<PatchKey, Flux>, Error> recoverNodalFlux(
+          const Input & inp, const std::vector<int> & elemMat)
+        {
+            std::map<PatchKey, Patch> patches;
+            for (std::size_t ele = 0; ele < inp.elements.size(); ++ele)
+            {
+                const auto & elem = inp.elements[ele];
+                const int mat = elemMat[ele];
                 for (std::size_t pnt = 0; pnt < kOrder; ++pnt)
                 {
-                    const auto bas = recoveryBasis(ele.gaussPoints[pnt]);
-                    const auto & sig = ele.flux[pnt];
-                    for (int vtx = 0; vtx < ele.vertexCount; ++vtx)
+                    const auto bas = recoveryBasis(elem.gaussPoints[pnt]);
+                    const auto & sig = elem.flux[pnt];
+                    for (int vtx = 0; vtx < elem.vertexCount; ++vtx)
                     {
-                        const auto nid = static_cast<std::size_t>(ele.vertexIds[vtx]);
-                        touched[nid] = 1;
-                        accumulatePatch(matA[nid], rhsB[nid], bas, sig);
+                        const auto nid = static_cast<std::size_t>(elem.vertexIds[vtx]);
+                        accumulatePatch(patches[{nid, mat}], bas, sig);
                     }
                 }
             }
 
-            std::vector<Flux> nodal(nodeCount, Flux{0.0, 0.0});
-            for (std::size_t nid = 0; nid < nodeCount; ++nid)
+            std::map<PatchKey, Flux> nodal;
+            for (auto & [key, patch] : patches)
             {
-                if (touched[nid] == 0)
-                {
-                    continue;
-                }
-                const LUFactor factor(matA[nid]);
-                const SquareMatrix sol = factor.solveRight(rhsB[nid]);
+                const LUFactor factor(patch.matA);
+                const SquareMatrix sol = factor.solveRight(patch.rhsB);
                 const auto coefX = column(sol, 0);
                 const auto coefY = column(sol, 1);
                 if (!allFinite(coefX) || !allFinite(coefY))
                 {
                     return lbnl::Unexpected(Error::SingularPatch);
                 }
-                const auto bas = recoveryBasis(inp.nodes[nid]);
-                nodal[nid] = {dot4(bas, coefX), dot4(bas, coefY)};
+                const auto bas = recoveryBasis(inp.nodes[key.first]);
+                nodal[key] = {dot4(bas, coefX), dot4(bas, coefY)};
             }
             return nodal;
         }
@@ -109,10 +133,12 @@ namespace lbnl::errorest
             double relative{0.0};   //!< Relative error (fraction) for this element.
         };
 
-        //! Gather the four corner coordinates and recovered nodal flux for an element.
+        //! Gather the four corner coordinates and recovered nodal flux for an element,
+        //! taking the recovered flux from this element's own material patch.
         void gatherCorners(const Element & ele,
+                           const int mat,
                            const Input & inp,
-                           const std::vector<Flux> & nodalFlux,
+                           const std::map<PatchKey, Flux> & nodalFlux,
                            std::array<double, 4> & xxx,
                            std::array<double, 4> & yyy,
                            std::array<Flux, 4> & star)
@@ -123,18 +149,19 @@ namespace lbnl::errorest
                 const auto nid = static_cast<std::size_t>(ele.vertexIds[src]);
                 xxx[vtx] = inp.nodes[nid][0];
                 yyy[vtx] = inp.nodes[nid][1];
-                star[vtx] = nodalFlux[nid];
+                star[vtx] = nodalFlux.at({nid, mat});
             }
         }
 
         ElementError elementError(const Element & ele,
+                                 const int mat,
                                  const Input & inp,
-                                 const std::vector<Flux> & nodalFlux)
+                                 const std::map<PatchKey, Flux> & nodalFlux)
         {
             std::array<double, 4> xxx = {0.0, 0.0, 0.0, 0.0};
             std::array<double, 4> yyy = {0.0, 0.0, 0.0, 0.0};
             std::array<Flux, 4> star{};
-            gatherCorners(ele, inp, nodalFlux, xxx, yyy, star);
+            gatherCorners(ele, mat, inp, nodalFlux, xxx, yyy, star);
 
             const auto rule = gaussRule();
             double energy = 0.0;
@@ -167,7 +194,8 @@ namespace lbnl::errorest
             return lbnl::Unexpected(Error::EmptyMesh);
         }
 
-        const auto recovered = recoverNodalFlux(inp);
+        const auto elemMat = materialIds(inp);
+        const auto recovered = recoverNodalFlux(inp, elemMat);
         if (!recovered.has_value())
         {
             return lbnl::Unexpected(recovered.error());
@@ -177,9 +205,9 @@ namespace lbnl::errorest
         res.elementRelativeError.reserve(inp.elements.size());
         double totalEnergy = 0.0;
         double totalError = 0.0;
-        for (const auto & ele : inp.elements)
+        for (std::size_t ele = 0; ele < inp.elements.size(); ++ele)
         {
-            const auto eer = elementError(ele, inp, recovered.value());
+            const auto eer = elementError(inp.elements[ele], elemMat[ele], inp, recovered.value());
             totalEnergy += eer.energy;
             totalError += eer.error;
             res.elementRelativeError.push_back(eer.relative);
