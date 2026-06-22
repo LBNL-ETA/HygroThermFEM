@@ -9,7 +9,7 @@ namespace HygroThermFEM
         class Iterator
         {
         public:
-            explicit Iterator(int value) : m_value(value)
+            explicit Iterator(const int value) : m_value(value)
             {}
 
             T operator*()const
