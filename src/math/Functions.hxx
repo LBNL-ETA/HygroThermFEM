@@ -1,5 +1,6 @@
 #pragma once
 
+#include <concepts>
 #include <functional>
 #include <map>
 #include <memory>
@@ -68,6 +69,17 @@ namespace HygroThermFEM
     };
 
     using iValue = std::unique_ptr<IValue>;
+
+    //! \brief A type that can produce a scalar value for a node.
+    //!
+    //! Captures the contract the function-composition layer relies on (every IValue-derived
+    //! function as well as IOperation itself satisfies it). Used to constrain the static
+    //! composition templates so misuse produces a readable diagnostic instead of a wall of
+    //! template errors; it does not change the runtime polymorphism of IValue.
+    template<class T>
+    concept Evaluable = requires(const T obj, const INode2D & node) {
+        { obj.value(node) } -> std::convertible_to<double>;
+    };
 
     //////////////////////////////////////////////////////////////////
     ///  IFunction
@@ -141,7 +153,7 @@ namespace HygroThermFEM
     //! Functions that are child of IValue are used directly in differential equations.
     //! Those functions can be stacked with ordinary operations. This class is used to support
     //! those operations.
-    template<class T, class U>
+    template<Evaluable T, Evaluable U>
     class IOperation : public IValue
     {
     public:
