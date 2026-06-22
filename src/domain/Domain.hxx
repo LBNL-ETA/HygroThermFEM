@@ -15,6 +15,7 @@
 #include "TimestepObserver.hxx"
 #include "Materials.hxx"
 #include "Nodes.hxx"
+#include "SolverSettings.hxx"
 
 namespace HygroThermFEM
 {
@@ -105,6 +106,12 @@ namespace HygroThermFEM
         //! Pass nullptr to disable. The caller owns the stream lifetime.
         void setDiagnosticStream(std::ostream * stream);
 
+        //! \brief Inject solver configuration for this domain.
+        //!
+        //! When not set, the domain reads the process-global SimulationProperties / Timesteps
+        //! singletons at solve time, preserving the historical behaviour.
+        void setSolverSettings(const SolverSettings & settings);
+
     protected:
         //! Some domains require post-processing of results. Good example is
         //! moisture domain where humidity cannot go over 1.0 or lower than one.
@@ -144,6 +151,10 @@ namespace HygroThermFEM
 
         //! Returns if domain problem is linear.
         [[nodiscard]] bool isLinear() const;
+
+        //! Returns the injected solver settings, or a snapshot of the global singletons when none
+        //! has been injected (preserving the historical live-read behaviour).
+        [[nodiscard]] SolverSettings solverSettings() const;
 
         //! Result of a single timestep solve.
         struct TimestepResult
@@ -216,6 +227,9 @@ namespace HygroThermFEM
         //! lazily; std::optional makes the "already created?" check and ownership explicit without
         //! a heap allocation.
         std::optional<EquivalentGasCavities> gasCavities;
+
+        //! Optional injected solver configuration. Empty means "read the global singletons live".
+        std::optional<SolverSettings> m_SolverSettings;
 
         bool m_AutomaticUpdatePreviousTimestep;
         bool m_LastSolveAtPhysicalBound{false};

@@ -11,9 +11,7 @@
 #include "FEMMath.hxx"
 #include "BoundaryCondition2D.hxx"
 #include "VectorOperators.hxx"
-#include "SimulationProperties.hxx"
 #include "Nodes.hxx"
-#include "TimestepData.hxx"
 #include "Materials.hxx"
 
 namespace HygroThermFEM
@@ -283,10 +281,11 @@ namespace HygroThermFEM
       const double t_DTime,
       const size_t timestepIndex)
     {
+        const auto settings = solverSettings();
         auto currentDivisionLevel{0u};
-        const auto maxDivisionLevel{Timesteps::Settings::Instance().getMaxDivisions()};
+        const auto maxDivisionLevel{settings.maxDivisions};
         double currentDTime{t_DTime};
-        const unsigned numberOfSubtimesteps{Timesteps::Settings::Instance().getNumberOfSubtimesteps()};
+        const unsigned numberOfSubtimesteps{settings.numberOfSubtimesteps};
 
         if(m_DiagStream != nullptr)
         {
@@ -420,9 +419,10 @@ namespace HygroThermFEM
                                  const double t_DTime,
                                  const size_t timestepIndex)
     {
-        const auto relaxParameter = SimulationProperties::Instance().relaxationParamter();
-        const auto convergenceError = SimulationProperties::Instance().errorTolerance();
-        const auto maxIterations = SimulationProperties::Instance().maxNumberOfIterations();
+        const auto settings = solverSettings();
+        const auto relaxParameter = settings.relaxationParameter;
+        const auto convergenceError = settings.errorTolerance;
+        const auto maxIterations = settings.maxNumberOfIterations;
 
         auto matA = transientM_K_H_Matrix(t_DTime, timestepIndex);
         auto vecB = transientMT_R_Vector(currentStateValues, t_DTime, timestepIndex);
@@ -459,6 +459,16 @@ namespace HygroThermFEM
     bool IDomain::isLinear() const
     {
         return m_BCs.isLinear() && m_Elements.isLinear();
+    }
+
+    void IDomain::setSolverSettings(const SolverSettings & settings)
+    {
+        m_SolverSettings = settings;
+    }
+
+    SolverSettings IDomain::solverSettings() const
+    {
+        return m_SolverSettings ? *m_SolverSettings : SolverSettings::fromGlobals();
     }
 
     IDomain::IDomain(Nodes & nodePool,

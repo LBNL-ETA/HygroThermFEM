@@ -11,7 +11,6 @@
 #include "Common.hxx"
 #include "FEMMath.hxx"
 #include "Nodes.hxx"
-#include "SimulationProperties.hxx"
 #include "MaterialDataChecker.hxx"
 
 namespace HygroThermFEM
@@ -230,12 +229,25 @@ namespace HygroThermFEM
         return results;
     }
 
+    void MultiDomain::setSolverSettings(const SolverSettings & settings)
+    {
+        m_SolverSettings = settings;
+        m_ThermalDomain.setSolverSettings(settings);
+        m_MoistureDomain.setSolverSettings(settings);
+    }
+
+    SolverSettings MultiDomain::solverSettings() const
+    {
+        return m_SolverSettings ? *m_SolverSettings : SolverSettings::fromGlobals();
+    }
+
     Solution MultiDomain::steadyState()
     {
-        const auto ConvergenceError = SimulationProperties::Instance().errorTolerance();
+        const auto settings = solverSettings();
+        const auto ConvergenceError = settings.errorTolerance;
         auto temperatureError{std::numeric_limits<double>::max()};
         auto humidityError{std::numeric_limits<double>::max()};
-        const auto MaxIterations = SimulationProperties::Instance().maxNumberOfIterations();
+        const auto MaxIterations = settings.maxNumberOfIterations;
         size_t currentIteration{0};
         auto humidity = m_Nodes.properties(Variable::humidity);
         auto previousHumidity = humidity;

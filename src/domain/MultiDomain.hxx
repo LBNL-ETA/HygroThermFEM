@@ -1,6 +1,7 @@
 #pragma once
 
 #include <iosfwd>
+#include <optional>
 
 #include "Domain.hxx"
 #include "ThermalDomain.hxx"
@@ -388,6 +389,12 @@ namespace HygroThermFEM
         //! Forwards to both thermal and moisture domains as well.
         void setDiagnosticStream(std::ostream * stream);
 
+        //! \brief Inject solver configuration for the coupling loop and both sub-domains.
+        //!
+        //! When not set, the global SimulationProperties / Timesteps singletons are read at solve
+        //! time, preserving the historical behaviour.
+        void setSolverSettings(const SolverSettings & settings);
+
         //! @brief Access to thermal domain for single-domain operations
         //! @return Reference to the ThermalDomain
         ThermalDomain & thermal();
@@ -413,6 +420,10 @@ namespace HygroThermFEM
 
         static double normError(const std::vector<double> & vec1, const std::vector<double> & vec2);
 
+        //! Returns the injected solver settings, or a snapshot of the global singletons when none
+        //! has been injected (preserving the historical live-read behaviour).
+        [[nodiscard]] SolverSettings solverSettings() const;
+
         // NodePool owned by MultiDomain - each MultiDomain has its own node pool
         Nodes m_Nodes;
         // MaterialPool owned by MultiDomain - must be declared before domains (initialization order)
@@ -422,6 +433,9 @@ namespace HygroThermFEM
         bool m_SimulateThermal;
         bool m_SimulateMoisture;
         std::ostream * m_DiagStream{nullptr};
+
+        //! Optional injected solver configuration. Empty means "read the global singletons live".
+        std::optional<SolverSettings> m_SolverSettings;
     };
 
 }   // namespace HygroThermFEM
