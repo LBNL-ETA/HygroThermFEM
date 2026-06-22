@@ -1,6 +1,7 @@
 #pragma once
 
 #include <map>
+#include <variant>
 
 #include "Material.hxx"
 
@@ -48,8 +49,13 @@ namespace HygroThermFEM
         //! incorrect results would be calculated by the program.
         void checkIfMaterialExists(const std::string & materialName) const;
 
-        std::map<std::string, std::unique_ptr<IMaterial>> m_Materials;
-        std::map<std::string, std::unique_ptr<IGas>> m_Gases;
+        //! A single pool holds both solid materials and gases by value, keyed by name. This
+        //! replaces the historical parallel m_Materials / m_Gases maps; gas-only lookups use
+        //! std::get<Gas> / std::holds_alternative instead of a separate container. It is mutable
+        //! because materials are updated in place during the solve (e.g. a gas's thermal
+        //! conductivity), which the engine does even through a const Materials reference.
+        using MaterialEntry = std::variant<SolidMaterial, Gas>;
+        mutable std::map<std::string, MaterialEntry> m_Pool;
     };
 
 }   // namespace HygroThermFEM
