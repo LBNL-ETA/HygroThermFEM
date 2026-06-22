@@ -205,6 +205,11 @@ namespace HygroThermFEM
         return m_Curve;
     }
 
+    const std::vector<FenestrationCommon::point> & TabularFunction1D::getCurve() const
+    {
+        return m_Curve;
+    }
+
     void TabularFunction1D::checkIfCurveIsSinglePoint()
     {
         if(m_Curve.size() == 1u)

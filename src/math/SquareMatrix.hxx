@@ -33,9 +33,6 @@ namespace HygroThermFEM
         //! Creating matrix from standard vector of vectors.
         explicit SquareMatrix(const std::vector<std::vector<double>> & tInput);
 
-		//! Creating matrix from standard vector of vectors.
-        explicit SquareMatrix(const std::vector<std::vector<double>> && tInput);
-
         //! Returns matrix size
         std::size_t size() const;
 
@@ -68,7 +65,7 @@ namespace HygroThermFEM
         SquareMatrix mmultRows(const std::vector<double> & tInput) const;
 
         //! Returns eigen sparse matrix
-        Eigen::SparseMatrix<double> getSparseMatrix() const;
+        const Eigen::SparseMatrix<double> & getSparseMatrix() const;
 
         //! Operator to multiply every element of matrix with single double value.
         SquareMatrix operator*(double value) const;
@@ -83,13 +80,13 @@ namespace HygroThermFEM
         SquareMatrix & operator*=(const SquareMatrix & other);
 
         //! Addition of two matrices
-        SquareMatrix & operator+(const SquareMatrix & other);
+        SquareMatrix operator+(const SquareMatrix & other) const;
 
-        //! *= operator overload
+        //! += operator overload
         SquareMatrix & operator+=(const SquareMatrix & other);
 
         //! Two matrices subtraction
-        SquareMatrix & operator-(const SquareMatrix & other);
+        SquareMatrix operator-(const SquareMatrix & other) const;
 
         //! -= operator overload
         SquareMatrix & operator-=(const SquareMatrix & other);

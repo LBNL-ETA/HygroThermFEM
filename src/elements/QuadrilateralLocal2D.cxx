@@ -1,9 +1,9 @@
+#include <memory>
 #include <stdexcept>
 
 #include "QuadrilateralLocal2D.hxx"
 #include "Node2D.hxx"
 #include "IntegrationPoints.hxx"
-#include "FEMunique.hxx"
 
 namespace HygroThermFEM
 {
@@ -50,7 +50,7 @@ namespace HygroThermFEM
         auto aPoints = IntegrationPoints2D::Instance().getPoints2D();
         for(const auto & point : aPoints)
         {
-            m_Ksi.push_back(fem::make_unique<QuadLinearLocalShapeFunctions2D>(point));
+            m_Ksi.push_back(std::make_unique<QuadLinearLocalShapeFunctions2D>(point));
         }
     }
 

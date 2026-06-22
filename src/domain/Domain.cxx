@@ -2,10 +2,10 @@
 #include <cmath>
 #include <iomanip>
 #include <limits>
+#include <memory>
 #include <ostream>
 
 #include "Domain.hxx"
-#include "FEMunique.hxx"
 #include "LinearSolver.hxx"
 #include "Common.hxx"
 #include "FEMMath.hxx"
@@ -259,7 +259,12 @@ namespace HygroThermFEM
 
         for(size_t step = 0; step < numSteps; ++step)
         {
-            values = transient(values, dTime).solution;
+            const auto stepResult = transient(values, dTime);
+            if(!stepResult.has_value())
+            {
+                throw std::runtime_error("Solution failed to converge.");
+            }
+            values = stepResult.value().solution;
             results.push_back(values);
         }
 
@@ -270,13 +275,13 @@ namespace HygroThermFEM
     {
         const auto B = steadyStateRightHandSide();
         const auto A = steadyStateLeftHandSide();
-        // const auto test = A.toVector();
         return CLinearSolver::solveEigen(A, B);
     }
 
-    SingleSolution IDomain::transient(const std::vector<double> & currentStateValues,
-                                      const double t_DTime,
-                                      const size_t timestepIndex)
+    lbnl::ExpectedExt<SingleSolution, SolverError> IDomain::transient(
+      const std::vector<double> & currentStateValues,
+      const double t_DTime,
+      const size_t timestepIndex)
     {
         auto currentDivisionLevel{0u};
         const auto maxDivisionLevel{Timesteps::Settings::Instance().getMaxDivisions()};
@@ -295,19 +300,19 @@ namespace HygroThermFEM
         while(true)
         {
             notify(currentDivisionLevel, 0u);
-            const auto [solution, converged] =
-              transientTimestep(currentStateValues, currentDTime, timestepIndex);
+            const auto result = transientTimestep(currentStateValues, currentDTime, timestepIndex);
 
-            if(converged)
+            if(result.converged)
             {
-                return {solution, currentDTime};
+                return SingleSolution{result.solution, currentDTime};
             }
 
             currentDTime = currentDTime / numberOfSubtimesteps;
             ++currentDivisionLevel;
             if(currentDivisionLevel > maxDivisionLevel)
             {
-                throw std::runtime_error("Solution failed to converge.");
+                return lbnl::Unexpected(
+                  SolverError{currentDTime, currentDivisionLevel, result.residualNorm});
             }
         }
     }
@@ -428,7 +433,7 @@ namespace HygroThermFEM
             postProcess(solution);
             m_LastSolveAtPhysicalBound = false;
             updateNodes(solution, m_AutomaticUpdatePreviousTimestep);
-            return {solution, true};
+            return {solution, true, 0.0};
         }
 
         NRLoopState state{
@@ -447,7 +452,8 @@ namespace HygroThermFEM
         m_LastSolveAtPhysicalBound = state.convergedViaClamp;
         updateNodes(state.solution, m_AutomaticUpdatePreviousTimestep);
 
-        return {state.solution, state.converged};
+        const auto residualNorm = norm(state.vecB - state.matA * state.solution);
+        return {state.solution, state.converged, residualNorm};
     }
 
     bool IDomain::isLinear() const
@@ -460,7 +466,6 @@ namespace HygroThermFEM
                      const bool automaticUpdateOfPreviousTimestep) :
         m_NodePool(nodePool),
         m_MaterialPool(materialPool),
-        gasCavities(nullptr),
         m_AutomaticUpdatePreviousTimestep(automaticUpdateOfPreviousTimestep)
     {}
 
@@ -484,9 +489,9 @@ namespace HygroThermFEM
 
     void IDomain::postProcess(std::vector<double> &)
     {
-        if(gasCavities == nullptr)
+        if(!gasCavities)
         {
-            gasCavities = std::make_unique<EquivalentGasCavities>(m_NodePool, m_MaterialPool, m_Elements);
+            gasCavities.emplace(m_NodePool, m_MaterialPool, m_Elements);
             gasCavities->setGravityVector(m_GravityVector);
         }
         gasCavities->update();
@@ -495,7 +500,7 @@ namespace HygroThermFEM
     void IDomain::setGravityVector(const FenestrationCommon::GravityVector & gravityVector)
     {
         m_GravityVector = gravityVector;
-        if(gasCavities != nullptr)
+        if(gasCavities)
         {
             gasCavities->setGravityVector(gravityVector);
         }

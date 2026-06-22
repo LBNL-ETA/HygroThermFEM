@@ -1,6 +1,8 @@
 #include <cassert>
 #include <algorithm>
 
+#include "lbnl/algorithm.hxx"
+
 #include "Nodes.hxx"
 
 #ifdef STL_MULTITHREADING
@@ -33,12 +35,8 @@ namespace HygroThermFEM
 
     std::vector<double> Nodes::properties(const Variable t_Property) const
     {
-        std::vector<double> aVector;
-        for(const Node2D & aNode : m_Nodes)
-        {
-            aVector.push_back(aNode.property(t_Property));
-        }
-        return aVector;
+        return lbnl::transform_to_vector(
+          m_Nodes, [&](const Node2D & aNode) { return aNode.property(t_Property); });
     }
 
     void Nodes::updateNodeTemperatures(const std::vector<double> & values,

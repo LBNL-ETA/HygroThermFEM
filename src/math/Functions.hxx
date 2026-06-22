@@ -373,6 +373,9 @@ namespace HygroThermFEM
         //! \brief Returns tabular values as standard vector of pairs.
         std::vector<FenestrationCommon::point> & getCurve();
 
+        //! \brief Returns tabular values as standard vector of pairs (read-only).
+        const std::vector<FenestrationCommon::point> & getCurve() const;
+
     protected:
         std::vector<FenestrationCommon::point> m_Curve;
         FenestrationCommon::Interpolator m_Interpolator;

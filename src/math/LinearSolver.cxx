@@ -3,6 +3,8 @@
 #include <Eigen/Cholesky>
 #pragma warning(pop)
 
+#include <stdexcept>
+
 #include "LinearSolver.hxx"
 
 namespace HygroThermFEM
@@ -13,27 +15,28 @@ namespace HygroThermFEM
         using Matrix = Eigen::SparseMatrix<double>;
         using Vector = Eigen::VectorXd;
 
-        const auto size = t_MatrixA.size();
+        const Vector B = Vector::Map(t_VectorB.data(), t_VectorB.size());
 
-        Vector B(size);
-
-        for(auto j = 0u; j < t_VectorB.size(); ++j)
-        {
-            B[j] = t_VectorB[j];
-        }
-
+        // Factorize once: getSparseMatrix() now returns a const reference, so the sparse
+        // matrix is no longer copied per analyzePattern/factorize call.
+        const Matrix & matrix = t_MatrixA.getSparseMatrix();
         Eigen::SparseLU<Matrix> solver;
-        solver.analyzePattern(t_MatrixA.getSparseMatrix());
-        solver.factorize(t_MatrixA.getSparseMatrix());
-        Vector y = solver.solve(B);
+        solver.analyzePattern(matrix);
+        solver.factorize(matrix);
 
-        std::vector<double> solution(y.size());
-        for(auto i = 0u; i < size; ++i)
+        if(solver.info() != Eigen::Success)
         {
-            solution[i] = y[i];
+            throw std::runtime_error("Linear solver failed to factorize the system matrix.");
         }
 
-        return solution;
+        const Vector y = solver.solve(B);
+
+        if(solver.info() != Eigen::Success)
+        {
+            throw std::runtime_error("Linear solver failed to solve the system.");
+        }
+
+        return std::vector<double>(y.data(), y.data() + y.size());
     }
 
 }   // namespace HygroThermFEM

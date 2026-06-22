@@ -8,6 +8,22 @@
 
 namespace HygroThermFEM
 {
+    namespace
+    {
+        //! Returns the optional's value or throws a uniform "missing property" error.
+        double valueOrThrow(const std::optional<double> & value,
+                            const std::string & materialName,
+                            const std::string & propertyDescription)
+        {
+            if(!value.has_value())
+            {
+                throw std::runtime_error("Material " + materialName + " do not have "
+                                         + propertyDescription + ".");
+            }
+            return value.value();
+        }
+    }   // namespace
+
     ///////////////////////////////////////////////////////////////////////////////////////////////
     // IMaterial
     ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -32,9 +48,7 @@ namespace HygroThermFEM
         m_Porosity(porosity),
         m_SpecificHeatCapacity(heatCapacity),
         m_DiffusionResistanceFactor(diffusionResistanceFactor),
-        m_ThermalConductivity2DTable(nullptr),
         m_LiquidTransportCoefficient(nullptr),
-        m_SorptionCurve(nullptr),
         m_Emissivity(emissivity),
         m_Linear(isLinear)
     {
@@ -59,11 +73,7 @@ namespace HygroThermFEM
 
     double IMaterial::thermalConductivityDry() const
     {
-        if(!m_ThermalConductivityDry.has_value())
-        {
-            throw std::runtime_error("Material " + m_Name + " do not have thermal conductivity.");
-        }
-        return m_ThermalConductivityDry.value();
+        return valueOrThrow(m_ThermalConductivityDry, m_Name, "thermal conductivity");
     }
 
     void IMaterial::setThermalConductivity(const double thermalConductivity)
@@ -78,11 +88,7 @@ namespace HygroThermFEM
 
     double IMaterial::density() const
     {
-        if(!m_Density.has_value())
-        {
-            throw std::runtime_error("Material " + m_Name + " do not have density.");
-        }
-        return m_Density.value();
+        return valueOrThrow(m_Density, m_Name, "density");
     }
 
     void IMaterial::setDensity(const double density)
@@ -97,11 +103,7 @@ namespace HygroThermFEM
 
     double IMaterial::heatCapacity() const
     {
-        if(!m_SpecificHeatCapacity.has_value())
-        {
-            throw std::runtime_error("Material " + m_Name + " do not have specific heat capacity.");
-        }
-        return m_SpecificHeatCapacity.value();
+        return valueOrThrow(m_SpecificHeatCapacity, m_Name, "specific heat capacity");
     }
 
     void IMaterial::setHeatCapacity(const double heatCapacity)
@@ -116,11 +118,7 @@ namespace HygroThermFEM
 
     double IMaterial::porosity() const
     {
-        if(!m_Porosity.has_value())
-        {
-            throw std::runtime_error("Material " + m_Name + " do not have porosity.");
-        }
-        return m_Porosity.value();
+        return valueOrThrow(m_Porosity, m_Name, "porosity");
     }
 
     void IMaterial::setPorosity(const double porosity)
@@ -135,11 +133,7 @@ namespace HygroThermFEM
 
     double IMaterial::emissivity() const
     {
-        if(!m_Emissivity.has_value())
-        {
-            throw std::runtime_error("Material " + m_Name + " do not have emissivity.");
-        }
-        return m_Emissivity.value();
+        return valueOrThrow(m_Emissivity, m_Name, "emissivity");
     }
 
     void IMaterial::setEmissivity(const double emissivity)
@@ -154,12 +148,7 @@ namespace HygroThermFEM
 
     double IMaterial::diffusionResistanceFactor() const
     {
-        if(!m_DiffusionResistanceFactor.has_value())
-        {
-            throw std::runtime_error("Material " + m_Name
-                                     + " do not have diffusion resistance factor.");
-        }
-        return m_DiffusionResistanceFactor.value();
+        return valueOrThrow(m_DiffusionResistanceFactor, m_Name, "diffusion resistance factor");
     }
 
     void IMaterial::setDiffusionResistanceFactor(const double diffusionResistanceFactor)
@@ -179,7 +168,7 @@ namespace HygroThermFEM
 
     TabularFunction2D IMaterial::thermalConductivityMoistureAndTemperatureDependent() const
     {
-        if(m_ThermalConductivity2DTable == nullptr)
+        if(!m_ThermalConductivity2DTable)
         {
             throw std::runtime_error("Material " + m_Name
                                      + " do not have assigned table for moisture and temperature "
@@ -194,18 +183,17 @@ namespace HygroThermFEM
       const std::vector<FenestrationCommon::point> & thermalConductivityTemperatureDependent,
       double temperatureDependentMeasurementHumidity)
     {
-        m_ThermalConductivity2DTable =
-          std::make_unique<TabularFunction2D>(thermalConductivityMoistureDependent,
-                                              moistureDependentMeasuredTemperature,
-                                              Variable::humidity,
-                                              thermalConductivityTemperatureDependent,
-                                              temperatureDependentMeasurementHumidity,
-                                              Variable::temperature);
+        m_ThermalConductivity2DTable.emplace(thermalConductivityMoistureDependent,
+                                             moistureDependentMeasuredTemperature,
+                                             Variable::humidity,
+                                             thermalConductivityTemperatureDependent,
+                                             temperatureDependentMeasurementHumidity,
+                                             Variable::temperature);
     }
 
     bool IMaterial::hasThermalConductivityMoistureAndTemperatureDependent() const
     {
-        return (m_ThermalConductivity2DTable != nullptr);
+        return m_ThermalConductivity2DTable.has_value();
     }
 
     const std::vector<FenestrationCommon::point> & IMaterial::liquidTransportationCurve() const
@@ -237,7 +225,7 @@ namespace HygroThermFEM
 
     const std::vector<FenestrationCommon::point> & IMaterial::sorptionCurve() const
     {
-        if(m_SorptionCurve == nullptr)
+        if(!m_SorptionCurve)
         {
             throw std::runtime_error("Material " + m_Name + " do not have sorption curve.");
         }
@@ -246,12 +234,12 @@ namespace HygroThermFEM
 
     void IMaterial::setSorptionCurve(const std::vector<FenestrationCommon::point> & sorptionCurve)
     {
-        m_SorptionCurve = std::make_unique<TabularFunction1D>(sorptionCurve, Variable::humidity);
+        m_SorptionCurve.emplace(sorptionCurve, Variable::humidity);
     }
 
     bool IMaterial::hasSorptionCurve() const
     {
-        return (m_SorptionCurve != nullptr);
+        return m_SorptionCurve.has_value();
     }
 
     double IMaterial::saturationConcentration(const INode2D & node)
@@ -500,13 +488,12 @@ namespace HygroThermFEM
         return m_Content.at(content);
     }
 
-    Water & Water::operator*(const double & other)
+    Water Water::operator*(const double factor) const
     {
-        m_Content[WaterContent::Water] *= other;
-        m_Content[WaterContent::Liquid] *= other;
-        m_Content[WaterContent::Vapor] *= other;
-        m_Content[WaterContent::Ice] *= other;
-        return *this;
+        return Water{content(WaterContent::Water) * factor,
+                     content(WaterContent::Liquid) * factor,
+                     content(WaterContent::Vapor) * factor,
+                     content(WaterContent::Ice) * factor};
     }
 
     Water & Water::operator+=(const Water & other)
@@ -518,12 +505,11 @@ namespace HygroThermFEM
         return *this;
     }
 
-    Water & Water::operator/(const double & other)
+    Water Water::operator/(const double divisor) const
     {
-        m_Content[WaterContent::Water] /= other;
-        m_Content[WaterContent::Liquid] /= other;
-        m_Content[WaterContent::Vapor] /= other;
-        m_Content[WaterContent::Ice] /= other;
-        return *this;
+        return Water{content(WaterContent::Water) / divisor,
+                     content(WaterContent::Liquid) / divisor,
+                     content(WaterContent::Vapor) / divisor,
+                     content(WaterContent::Ice) / divisor};
     }
 }   // namespace HygroThermFEM

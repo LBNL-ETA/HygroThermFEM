@@ -54,7 +54,7 @@ TEST(MoistureBC_2D_4, TestExample_1)
 
     for(size_t i = 0u; i < nSteps; ++i)
     {
-        humidities = multiDomain.moisture().transient(humidities, dTime).solution;
+        humidities = multiDomain.moisture().transient(humidities, dTime).value().solution;
         auto waterContent = multiDomain.nodes().properties(HygroThermFEM::Variable::water);
         solution.push_back(waterContent);
     }

@@ -1,7 +1,6 @@
 #include <cmath>
 #include <memory>
 
-#include "FEMunique.hxx"
 #include "IntegrationPoints.hxx"
 #include "Node2D.hxx"
 
@@ -203,16 +202,16 @@ namespace HygroThermFEM
         switch(t_Formula)
         {
             case IntegrationPointsFormula::OnePoint:
-                m_IntPoints2D = fem::make_unique<SingleIntegrationPoint2D>();
-                m_IntPoints1D = fem::make_unique<SingleIntegrationPoint1D>();
+                m_IntPoints2D = std::make_unique<SingleIntegrationPoint2D>();
+                m_IntPoints1D = std::make_unique<SingleIntegrationPoint1D>();
                 break;
             case IntegrationPointsFormula::TwoPoints:
-                m_IntPoints2D = fem::make_unique<TwoIntegrationPoint2D>();
-                m_IntPoints1D = fem::make_unique<TwoIntegrationPoint1D>();
+                m_IntPoints2D = std::make_unique<TwoIntegrationPoint2D>();
+                m_IntPoints1D = std::make_unique<TwoIntegrationPoint1D>();
                 break;
             case IntegrationPointsFormula::ThreePoints:
-                m_IntPoints2D = fem::make_unique<ThreeIntegrationPoint2D>();
-                m_IntPoints1D = fem::make_unique<ThreeIntegrationPoint1D>();
+                m_IntPoints2D = std::make_unique<ThreeIntegrationPoint2D>();
+                m_IntPoints1D = std::make_unique<ThreeIntegrationPoint1D>();
                 break;
         }
     }
@@ -238,8 +237,8 @@ namespace HygroThermFEM
     }
 
     IntegrationPoints2D::IntegrationPoints2D() :
-        m_IntPoints2D{fem::make_unique<TwoIntegrationPoint2D>()},
-        m_IntPoints1D{fem::make_unique<TwoIntegrationPoint1D>()}
+        m_IntPoints2D{std::make_unique<TwoIntegrationPoint2D>()},
+        m_IntPoints1D{std::make_unique<TwoIntegrationPoint1D>()}
     {
         // Two-point formula is default one
     }

@@ -1,8 +1,9 @@
+#include <memory>
+
 #include "ThermalDomain.hxx"
 
 #include "BoundaryCondition2D.hxx"
 #include "BoundaryCondition2DThermal.hxx"
-#include "FEMunique.hxx"
 
 namespace HygroThermFEM
 {
@@ -11,7 +12,7 @@ namespace HygroThermFEM
                                          const FixedBCHCCoefficients & fixedBCHCCoefficients,
                                          const bool t_CalculateMoisture)
     {
-        m_BCs.assignBC(fem::make_unique<ConstantConvectionBC>(
+        m_BCs.assignBC(std::make_unique<ConstantConvectionBC>(
           m_NodePool, index1, index2, fixedBCHCCoefficients, t_CalculateMoisture));
     }
 
@@ -177,7 +178,7 @@ namespace HygroThermFEM
                                                   const size_t index2,
                                                   const double t_Temp)
     {
-        m_BCs.assignBC(fem::make_unique<TemperatureBC>(m_NodePool, index1, index2, t_Temp));
+        m_BCs.assignBC(std::make_unique<TemperatureBC>(m_NodePool, index1, index2, t_Temp));
     }
 
     void ThermalDomain::createBC_FixedTemperature(size_t index1,
@@ -196,7 +197,7 @@ namespace HygroThermFEM
                                            const size_t index2,
                                            const double t_Flux)
     {
-        m_BCs.assignBC(fem::make_unique<FluxBC>(m_NodePool, index1, index2, t_Flux));
+        m_BCs.assignBC(std::make_unique<FluxBC>(m_NodePool, index1, index2, t_Flux));
     }
 
     void ThermalDomain::createBC_FixedFlux(size_t index1, size_t index2, std::vector<double> t_Flux)
@@ -214,7 +215,7 @@ namespace HygroThermFEM
                                                     const double t_Emissivity,
                                                     const double t_RadiationTemperature)
     {
-        m_BCs.assignBC(fem::make_unique<BlackBodyRadiationBC>(
+        m_BCs.assignBC(std::make_unique<BlackBodyRadiationBC>(
           m_NodePool, index1, index2, t_Emissivity, t_RadiationTemperature));
     }
 
@@ -234,7 +235,7 @@ namespace HygroThermFEM
       const size_t index2,
       const LinearizedRadiationBCCoefficients & linearRadBC)
     {
-        m_BCs.assignBC(fem::make_unique<LinearizedRadiationBC>(m_NodePool, index1, index2, linearRadBC));
+        m_BCs.assignBC(std::make_unique<LinearizedRadiationBC>(m_NodePool, index1, index2, linearRadBC));
     }
 
     void ThermalDomain::createBC_LinearizedRadiation(

@@ -57,25 +57,6 @@ namespace HygroThermFEM
         // m_Matrix.setFromTriplets(tripletList.begin(), tripletList.end());
     }
 
-    SquareMatrix::SquareMatrix(const std::vector<std::vector<double>> && tInput) :
-        m_size(tInput.size()),
-        m_Matrix(m_size, m_size)
-    {
-        // std::vector<Eigen::Triplet<double>> tripletList;
-        for(auto i = 0u; i < tInput.size(); ++i)
-        {
-            for(auto j = 0u; j < tInput.size(); ++j)
-            {
-                if(tInput[i][j] != 0)
-                {
-                    // tripletList.emplace_back(i, j, tInput[i][j]);
-                    m_Matrix.coeffRef(i, j) = tInput[i][j];
-                }
-            }
-        }
-        // m_Matrix.setFromTriplets(tripletList.begin(), tripletList.end());
-    }
-
     std::size_t SquareMatrix::size() const
     {
         return m_size;
@@ -147,26 +128,30 @@ namespace HygroThermFEM
         return *this;
     }
 
-    SquareMatrix & SquareMatrix::operator+(const SquareMatrix & other)
+    SquareMatrix & SquareMatrix::operator+=(const SquareMatrix & other)
     {
         m_Matrix = m_Matrix + other.m_Matrix;
         return *this;
     }
 
-    SquareMatrix & SquareMatrix::operator+=(const SquareMatrix & other)
+    SquareMatrix SquareMatrix::operator+(const SquareMatrix & other) const
     {
-        return operator+(other);
+        SquareMatrix result{*this};
+        result += other;
+        return result;
     }
 
-    SquareMatrix & SquareMatrix::operator-(const SquareMatrix & other)
+    SquareMatrix & SquareMatrix::operator-=(const SquareMatrix & other)
     {
         m_Matrix = m_Matrix - other.m_Matrix;
         return *this;
     }
 
-    SquareMatrix & SquareMatrix::operator-=(const SquareMatrix & other)
+    SquareMatrix SquareMatrix::operator-(const SquareMatrix & other) const
     {
-        return operator-(other);
+        SquareMatrix result{*this};
+        result -= other;
+        return result;
     }
 
     SquareMatrix SquareMatrix::mmultRows(const std::vector<double> & tInput) const
@@ -207,7 +192,7 @@ namespace HygroThermFEM
         return std::vector<double>(res.data(), res.data() + res.rows() * res.cols());
     }
 
-    Eigen::SparseMatrix<double> SquareMatrix::getSparseMatrix() const
+    const Eigen::SparseMatrix<double> & SquareMatrix::getSparseMatrix() const
     {
         return m_Matrix;
     }

@@ -47,7 +47,7 @@ TEST(ConvectionBC_2D_Transient_MultiBC, TestExample_1)
 
     for(unsigned i = 0; i < nSteps; ++i)
     {
-        temperatures = multiDomain.thermal().transient(temperatures, dTime, timestepIndex).solution;
+        temperatures = multiDomain.thermal().transient(temperatures, dTime, timestepIndex).value().solution;
         temperaturesSolution.push_back(temperatures);
         fluxSolution.push_back(multiDomain.thermal().flux());
         ++timestepIndex;

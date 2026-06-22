@@ -5,7 +5,6 @@
 
 #include "IntegrationPoints.hxx"
 #include "Node2D.hxx"
-#include "FEMunique.hxx"
 
 namespace HygroThermFEM {
 
@@ -32,7 +31,7 @@ namespace HygroThermFEM {
 		std::vector< LocalPoint1D > aPoints = IntegrationPoints2D::Instance().getPoints1D();
 		for ( const auto & point : aPoints ) {
 			m_Ksi.push_back( std::unique_ptr< LineLinearLocalShapeFunctions1D >(
-					fem::make_unique< LineLinearLocalShapeFunctions1D >( LineLinearLocalShapeFunctions1D( point ) ) ) );
+					std::make_unique< LineLinearLocalShapeFunctions1D >( LineLinearLocalShapeFunctions1D( point ) ) ) );
 		}
 	}
 

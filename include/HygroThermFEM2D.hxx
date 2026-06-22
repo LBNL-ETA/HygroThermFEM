@@ -23,7 +23,6 @@
 #include "../src/math/SquareMatrix.hxx"
 #include "../src/math/VectorOperators.hxx"
 #include "../src/math/LinearSolver.hxx"
-#include "../src/math/FEMunique.hxx"
 #include "../src/domain/Domain.hxx"
 #include "../src/math/Functions.hxx"
 #include "../src/mesh/Interpolator.hxx"

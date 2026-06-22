@@ -25,6 +25,48 @@ TEST(SquareMatrixTest, TestAddition) {
   }
 }
 
+TEST(SquareMatrixTest, TestAdditionDoesNotMutateOperands) {
+  SCOPED_TRACE("Begin Test: Matrix addition leaves operands unchanged.");
+  SquareMatrix a{{1, 2}, {3, 4}};
+  SquareMatrix b{{2, 8}, {3, 5}};
+
+  const auto result = a + b;
+  (void)result;
+
+  SquareMatrix unchanged{{1, 2}, {3, 4}};
+  for (auto i = 0u; i < unchanged.size(); ++i) {
+    for (auto j = 0u; j < unchanged.size(); ++j) {
+      EXPECT_NEAR(unchanged(i, j), a(i, j), 1e-6);
+    }
+  }
+}
+
+TEST(SquareMatrixTest, TestSubtraction) {
+  SCOPED_TRACE("Begin Test: Matrix subtraction.");
+  SquareMatrix a{{1, 2}, {3, 4}};
+  SquareMatrix b{{2, 8}, {3, 5}};
+
+  const auto result = a - b;
+
+  SquareMatrix correctResult{{-1, -6}, {0, -1}};
+
+  EXPECT_EQ(correctResult.size(), result.size());
+
+  for (auto i = 0u; i < correctResult.size(); ++i) {
+    for (auto j = 0u; j < correctResult.size(); ++j) {
+      EXPECT_NEAR(correctResult(i, j), result(i, j), 1e-6);
+    }
+  }
+
+  // Subtraction must not mutate the left operand either.
+  SquareMatrix unchanged{{1, 2}, {3, 4}};
+  for (auto i = 0u; i < unchanged.size(); ++i) {
+    for (auto j = 0u; j < unchanged.size(); ++j) {
+      EXPECT_NEAR(unchanged(i, j), a(i, j), 1e-6);
+    }
+  }
+}
+
 TEST(SquareMatrixTest, TestMultiplication) {
   SCOPED_TRACE("Begin Test: Matrix multiplication.");
   SquareMatrix a{{1, 2}, {3, 4}};

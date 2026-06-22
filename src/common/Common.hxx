@@ -18,7 +18,6 @@ namespace HygroThermFEM
 
 namespace Constants
 {
-    static const double PI_HTF = atan(1) * 4;
     static constexpr double STEFANBOLTZMANN = 5.6697E-8;
     static constexpr double ABSOLUTEZERO = -273.15;
     static constexpr double GravityConstant = 9.807;

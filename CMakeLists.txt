@@ -32,7 +32,7 @@ if(LBNL_LOCAL_SIBLINGS)
     endforeach()
 endif()
 
-option(BUILD_FOR_CODE_COVERAGE OFF)
+option(BUILD_FOR_CODE_COVERAGE "Build with code-coverage instrumentation" OFF)
 
 if (BUILD_FOR_CODE_COVERAGE)
     if (CMAKE_COMPILER_IS_GNUCXX)
@@ -43,11 +43,11 @@ if (BUILD_FOR_CODE_COVERAGE)
     endif()
 endif()
 
-option(BUILD_FOR_PROFILING OFF)
+option(BUILD_FOR_PROFILING "Build with profiling-friendly optimization settings" OFF)
 
 if(BUILD_FOR_PROFILING)
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O0")
-  set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -O0")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0")
 endif()
 
 include(FetchContent)
@@ -109,9 +109,9 @@ endif ()
 
 # add_subdirectory( src )
 
-file(GLOB_RECURSE SOURCES_CXX "src/*.cxx")
-file(GLOB_RECURSE SOURCES_HXX "src/*.hxx")
-file(GLOB INCLUDE_HXX "include/*.hxx")
+file(GLOB_RECURSE SOURCES_CXX CONFIGURE_DEPENDS "src/*.cxx")
+file(GLOB_RECURSE SOURCES_HXX CONFIGURE_DEPENDS "src/*.hxx")
+file(GLOB INCLUDE_HXX CONFIGURE_DEPENDS "include/*.hxx")
 list(APPEND SOURCES ${SOURCES_HXX} ${INCLUDE_HXX} ${SOURCES_CXX})
 
 if (MSVC)

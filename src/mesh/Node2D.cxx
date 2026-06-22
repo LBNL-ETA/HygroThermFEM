@@ -1,4 +1,7 @@
+#include <ranges>
 #include <stdexcept>
+
+#include "lbnl/algorithm.hxx"
 
 #include "Node2D.hxx"
 
@@ -144,29 +147,24 @@ namespace HygroThermFEM
 
     Water Node2D::calcWaterContent()
     {
+        // Node can end up in several different elements and elements can have different materials.
+        // Only materials with both a sorption curve and porosity contribute water content; the
+        // others are skipped because their optional properties are missing.
+        const auto contributing =
+          lbnl::filter(m_Materials | std::views::values, [](const MaterialContainer & container) {
+              return container.material.hasSorptionCurve() && container.material.hasPorosity();
+          });
+
+        // Weighted average of each contributing material's water content.
         Water sum;
         double weighting = 0;
-        Water result;
-        // Node can end up in several different elements and elements can have different materials.
-        // This part of code will check influence (weighting) of different materials on current
-        // node. In this way, program will estimate water content of node containing different
-        // materials
-        for(auto & val : m_Materials)
+        for(const auto & container : contributing)
         {
-            auto & material{val.second.material};
-            // Since material properties are optional, engine will not be able to update water
-            // content in case some properties are missing.
-            if(material.hasSorptionCurve() && material.hasPorosity())
-            {
-                sum += val.second.material.waterContent(*this) * val.second.weightingFactor;
-                weighting += val.second.weightingFactor;
-            }
+            sum += container.material.waterContent(*this) * container.weightingFactor;
+            weighting += container.weightingFactor;
         }
-        if(weighting != 0)
-        {
-            result = sum / weighting;
-        }
-        return result;
+
+        return weighting != 0 ? sum / weighting : Water{};
     }
 
     void Node2D::updateWaterContent()
@@ -191,7 +189,7 @@ namespace HygroThermFEM
         // Iterate through all materials to find the LAST common one (matching original behavior)
         for(const auto & [name, container] : m_Materials)
         {
-            if(other.m_Materials.find(name) != other.m_Materials.end())
+            if(other.m_Materials.contains(name))
             {
                 result = std::cref(container.material);
             }

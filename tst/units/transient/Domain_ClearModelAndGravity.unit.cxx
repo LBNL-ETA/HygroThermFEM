@@ -146,7 +146,7 @@ TEST(TestDomainClearModelAndGravity, TestSetGravityVectorDefault)
 
     // Run transient to initialize gas cavities
     auto temperatures = multiDomain.nodes().properties(Variable::temperature);
-    const auto result = multiDomain.thermal().transient(temperatures, 360.0);
+    const auto result = multiDomain.thermal().transient(temperatures, 360.0).value();
 
     // Should complete without error with default gravity
     EXPECT_FALSE(result.solution.empty());
@@ -163,9 +163,9 @@ TEST(TestDomainClearModelAndGravity, TestSetGravityVectorCustom)
     const HygroThermFEM::FixedBCHCCoefficients bcCoeff{0.0, 30.0};
     multiDomain.thermal().createBC_FixedHc(1, 4, bcCoeff);
 
-    // Run first transient step with default gravity to initialize cavities
+    // Run first transient step with default gravity to initialize cavities.
     auto temperatures = multiDomain.nodes().properties(Variable::temperature);
-    multiDomain.thermal().transient(temperatures, 360.0);
+    ASSERT_TRUE(multiDomain.thermal().transient(temperatures, 360.0).has_value());
 
     // Set horizontal gravity (tilted system)
     const FenestrationCommon::GravityVector horizontalGravity{1.0, 0.0, 0.0};
@@ -173,7 +173,7 @@ TEST(TestDomainClearModelAndGravity, TestSetGravityVectorCustom)
 
     // Run another transient step - should use new gravity
     temperatures = multiDomain.nodes().properties(Variable::temperature);
-    const auto result = multiDomain.thermal().transient(temperatures, 360.0);
+    const auto result = multiDomain.thermal().transient(temperatures, 360.0).value();
 
     // Should complete without error
     EXPECT_FALSE(result.solution.empty());
@@ -196,7 +196,7 @@ TEST(TestDomainClearModelAndGravity, TestSetGravityVectorBeforeCavityInit)
 
     // Run transient - should initialize cavities with custom gravity
     auto temperatures = multiDomain.nodes().properties(Variable::temperature);
-    const auto result = multiDomain.thermal().transient(temperatures, 360.0);
+    const auto result = multiDomain.thermal().transient(temperatures, 360.0).value();
 
     EXPECT_FALSE(result.solution.empty());
 }

@@ -1,8 +1,8 @@
 #include <stdexcept>
 
-#include "Materials.hxx"
+#include "lbnl/map_utils.hxx"
 
-#include <ranges>
+#include "Materials.hxx"
 
 namespace HygroThermFEM
 {
@@ -59,22 +59,14 @@ namespace HygroThermFEM
 
     std::vector<std::string> Materials::getSolidMaterials() const
     {
-        std::vector<std::string> result;
-        for(const auto & val : m_Materials | std::views::values)
-        {
-            result.push_back(val->name());
-        }
-        return result;
+        // The map is keyed by material name (see createSolidMaterial), so keys == names.
+        return lbnl::map_keys(m_Materials);
     }
 
     std::vector<std::string> Materials::getGases() const
     {
-        std::vector<std::string> result;
-        for(auto & gas : m_Gases)
-        {
-            result.push_back(gas.second->name());
-        }
-        return result;
+        // The map is keyed by gas name (see createGas), so keys == names.
+        return lbnl::map_keys(m_Gases);
     }
 
     void Materials::checkIfMaterialExists(const std::string & materialName) const

@@ -1,4 +1,5 @@
 #include <cassert>
+#include <numbers>
 
 #include "Common.hxx"
 #include "Element2D.hxx"
@@ -185,7 +186,7 @@ namespace HygroThermFEM
             /// Weighting coefficient depends on angle that is form by nodes next to node1.
             /// That coefficient is fraction of full circle.
             const auto weightingCoefficient =
-              angleBetweenNodes(node1, node2, node3) / (2 * Constants::PI_HTF);
+              angleBetweenNodes(node1, node2, node3) / (2 * std::numbers::pi);
             /// Node will have possibility to calculate certain properties that will be
             /// material dependent. Pass the already-resolved material reference directly.
             node1.assignMaterial(m_Material, weightingCoefficient);
@@ -329,9 +330,9 @@ namespace HygroThermFEM
     {
         auto angle = std::abs(std::atan2(node3.Y() - node1.Y(), node3.X() - node1.X())
                               - std::atan2(node2.Y() - node1.Y(), node2.X() - node1.X()));
-        if(angle > Constants::PI_HTF)
+        if(angle > std::numbers::pi)
         {
-            angle -= Constants::PI_HTF;
+            angle -= std::numbers::pi;
         }
         return angle;
     }

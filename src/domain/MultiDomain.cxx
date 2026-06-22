@@ -4,6 +4,7 @@
 #include <limits>
 #include <ostream>
 #include <ranges>
+#include <stdexcept>
 #include <utility>
 
 #include "MultiDomain.hxx"
@@ -15,6 +16,21 @@
 
 namespace HygroThermFEM
 {
+    namespace
+    {
+        //! MultiDomain is the exception boundary for the solver: a single domain reports
+        //! non-convergence via ExpectedExt, and here it is turned back into the runtime_error the
+        //! application layer already expects and reports to the user.
+        SingleSolution solveOrThrow(const lbnl::ExpectedExt<SingleSolution, SolverError> & result)
+        {
+            if(!result.has_value())
+            {
+                throw std::runtime_error("Solution failed to converge.");
+            }
+            return result.value();
+        }
+    }   // namespace
+
     MultiDomain::MultiDomain() : MultiDomain(MultiDomainParams{})
     {}
 
@@ -68,7 +84,7 @@ namespace HygroThermFEM
                     *m_DiagStream << "\n# MOISTURE substep=" << subStep << "\n";
                 }
                 humiditySolution =
-                  m_MoistureDomain.transient(currentHumidity, effectiveDt, timestepIndex);
+                  solveOrThrow(m_MoistureDomain.transient(currentHumidity, effectiveDt, timestepIndex));
                 effectiveDt = std::min(effectiveDt, humiditySolution.dTime);
             }
 
@@ -82,7 +98,7 @@ namespace HygroThermFEM
                                   << " dt=" << effectiveDt << "\n";
                 }
                 temperatureSolution =
-                  m_ThermalDomain.transient(currentTemperature, effectiveDt, timestepIndex);
+                  solveOrThrow(m_ThermalDomain.transient(currentTemperature, effectiveDt, timestepIndex));
 
                 // If thermal needed an even smaller dt, redo moisture at that dt.
                 if(temperatureSolution.dTime < effectiveDt && m_SimulateMoisture)
@@ -93,7 +109,7 @@ namespace HygroThermFEM
                         *m_DiagStream << "\n# MOISTURE redo at dt=" << effectiveDt << "\n";
                     }
                     humiditySolution =
-                      m_MoistureDomain.transient(currentHumidity, effectiveDt, timestepIndex);
+                      solveOrThrow(m_MoistureDomain.transient(currentHumidity, effectiveDt, timestepIndex));
                 }
             }
 
@@ -143,7 +159,7 @@ namespace HygroThermFEM
             }
             m_Nodes.updateNodeTemperatures(currentTemperature, false);
             const auto humProbe =
-              m_MoistureDomain.transient(currentHumidity, probeDt, timestepIndex);
+              solveOrThrow(m_MoistureDomain.transient(currentHumidity, probeDt, timestepIndex));
             humidityError = normError(humProbe.solution, currentHumidity);
         }
 
@@ -155,7 +171,7 @@ namespace HygroThermFEM
             }
             m_Nodes.updateNodeHumidities(currentHumidity, false);
             const auto tempProbe =
-              m_ThermalDomain.transient(currentTemperature, probeDt, timestepIndex);
+              solveOrThrow(m_ThermalDomain.transient(currentTemperature, probeDt, timestepIndex));
             temperatureError = normError(tempProbe.solution, currentTemperature);
         }
 

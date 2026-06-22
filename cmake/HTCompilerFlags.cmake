@@ -10,11 +10,9 @@ IF ( CMAKE_COMPILER_IS_GNUCXX OR "x${CMAKE_CXX_COMPILER_ID}" STREQUAL "xClang" )
 
     # COMPILER FLAGS
     ADD_CXX_DEFINITIONS("-pipe") # Faster compiler processing
-    # set (CMAKE_CXX_FLAGS "-std=c++11 -stdlib=libc++")
-    if( MINGW )
-      ADD_CXX_DEFINITIONS("-std=gnu++17") # Enable C++11 features in MINGW
-    else()
-      ADD_CXX_DEFINITIONS("-std=c++17") # Enable C++11 features in g++
+    # The C++ standard is driven by CMAKE_CXX_STANDARD (set to 20 in CMakeLists.txt) /
+    # target_compile_features; do not hard-code -std here or it fights the requested standard.
+    if( NOT MINGW )
       ADD_CXX_DEFINITIONS("-fPIC")
     endif()
     ADD_CXX_DEFINITIONS("-pedantic") # Turn on warnings about constructs/situations that may be non-portable or outside of the standard

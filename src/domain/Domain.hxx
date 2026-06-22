@@ -3,6 +3,9 @@
 #include <iosfwd>
 #include <limits>
 #include <memory>
+#include <optional>
+
+#include "lbnl/expected.hxx"
 
 #include "Elements2D.hxx"
 #include "BoundaryConditions2D.hxx"
@@ -21,6 +24,17 @@ namespace HygroThermFEM
         std::vector<double> solution;   //!< Solution from single transient step
         double dTime;   //!< Timestep for which solution has been performed. Engine can adopt new
                         //!< timestep for which solution will converge.
+    };
+
+    //! \brief Reason a transient solve failed to converge.
+    //!
+    //! Non-convergence is an expected outcome (not a programmer error), so it is reported as the
+    //! error arm of an ExpectedExt rather than thrown from the hot path.
+    struct SolverError
+    {
+        double dtTried;        //!< Timestep at which the final (failed) attempt was made
+        size_t divisions;      //!< Number of subdivision levels exhausted before giving up
+        double lastResidual;   //!< Residual norm of the last (failed) attempt
     };
 
     //! \brief Interface that will keep all elements and boundary conditions together.
@@ -51,9 +65,10 @@ namespace HygroThermFEM
         //! @param timestepIndex Index for current timestep. Used in variable boundary conditions
         //! case. It is defaulted to zero in case of non-variable boundary condition calculations
         //! are requested.
-        SingleSolution transient(const std::vector<double> & currentStateValues,
-                                 double t_DTime,
-                                 size_t timestepIndex = 0);
+        //! Returns the solved timestep, or a SolverError if convergence could not be reached even
+        //! after exhausting sub-timestep subdivision. Non-convergence is reported, never thrown.
+        lbnl::ExpectedExt<SingleSolution, SolverError> transient(
+          const std::vector<double> & currentStateValues, double t_DTime, size_t timestepIndex = 0);
 
         //! Runs a multi-step transient simulation on a single domain,
         //! collecting the solution vector at each timestep.
@@ -135,6 +150,7 @@ namespace HygroThermFEM
         {
             std::vector<double> solution;
             bool converged;
+            double residualNorm = 0.0;   //!< Residual norm of this attempt (used to report failure)
         };
 
         //! Tracks adaptive damping across Newton-Raphson iterations.
@@ -196,8 +212,10 @@ namespace HygroThermFEM
 
         FenestrationCommon::GravityVector m_GravityVector{0, -1, 0};
 
-        //! Storage for gas cavities recalculation
-        std::unique_ptr<EquivalentGasCavities> gasCavities;
+        //! Storage for gas cavities recalculation. Empty until the first post-process builds it
+        //! lazily; std::optional makes the "already created?" check and ownership explicit without
+        //! a heap allocation.
+        std::optional<EquivalentGasCavities> gasCavities;
 
         bool m_AutomaticUpdatePreviousTimestep;
         bool m_LastSolveAtPhysicalBound{false};

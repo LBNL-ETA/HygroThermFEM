@@ -1,5 +1,7 @@
 #include <KeffCavity.hxx>
 
+#include "lbnl/optional.hxx"
+
 #include "GasCavities.hxx"
 #include "Materials.hxx"
 #include "Nodes.hxx"
@@ -83,18 +85,17 @@ namespace HygroThermFEM
             const auto firstIndex = i == 0 ? nodes.size() - 1 : i - 1;
             const auto & node1 = nodePool.getNode(nodes[firstIndex]);
             const auto & node2 = nodePool.getNode(nodes[i]);
-            auto emissivity{0.0};
-            const auto commonMaterial = findCommonMaterial(node1, node2);
-            if(commonMaterial.has_value())
-            {
-                const auto & material = commonMaterial.value().get();
 
-                // This is possible if two frame cavities are next to each other
-                if(material.hasEmissivity())
-                {
-                    emissivity = material.emissivity();
-                }
-            }
+            // A common material may be absent (two frame cavities next to each other) or present
+            // without an emissivity; both cases fall back to 0.0.
+            const auto emissivity =
+              lbnl::extend(findCommonMaterial(node1, node2))
+                .map([](const std::reference_wrapper<const IMaterial> & common) {
+                    const auto & material = common.get();
+                    return material.hasEmissivity() ? material.emissivity() : 0.0;
+                })
+                .value_or(0.0);
+
             segments.emplace_back(node1, node2, emissivity);
         }
         return segments;

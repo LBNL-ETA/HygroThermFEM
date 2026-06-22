@@ -2,6 +2,7 @@
 
 #include <cmath>
 #include <algorithm>
+#include <numbers>
 
 namespace HygroThermFEM
 {
@@ -15,6 +16,6 @@ namespace HygroThermFEM
 
     double radians(const double d)
     {
-        return d * HTFEM_PI / 180;
+        return d * std::numbers::pi / 180;
     }
 }   // namespace HygroThermFEM

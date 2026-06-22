@@ -17,7 +17,7 @@ namespace HygroThermFEM
             throw std::runtime_error("Vectors must be identical in size.");
         }
 
-        std::vector<T> result(first.size(), 0);
+        std::vector<T> result(first.size());
         std::transform(first.begin(), first.end(), second.begin(), result.begin(), std::plus<T>());
 
         return result;
@@ -26,9 +26,9 @@ namespace HygroThermFEM
     template<class T>
     std::vector<T> operator+(const std::vector<T> & first, const T second)
     {
-        std::vector<T> result(first.size(), 0);
+        std::vector<T> result(first.size());
         std::transform(
-          first.begin(), first.end(), result.begin(), std::bind(std::plus<T>(), second));
+          first.begin(), first.end(), result.begin(), [&](const T & data) { return data + second; });
 
         return result;
     }
@@ -48,7 +48,7 @@ namespace HygroThermFEM
             throw std::runtime_error("Vectors must be identical in size.");
         }
 
-        std::vector<T> result(first.size(), 0);
+        std::vector<T> result(first.size());
         std::transform(first.begin(), first.end(), second.begin(), result.begin(), std::minus<T>());
 
         return result;
@@ -57,9 +57,9 @@ namespace HygroThermFEM
     template<class T>
     std::vector<T> operator-(const std::vector<T> & first, const T second)
     {
-        std::vector<T> result(first.size(), 0);
+        std::vector<T> result(first.size());
         std::transform(
-          first.begin(), first.end(), result.begin(), std::bind(std::minus<T>(), second));
+          first.begin(), first.end(), result.begin(), [&](const T & data) { return data - second; });
 
         return result;
     }
@@ -67,7 +67,11 @@ namespace HygroThermFEM
     template<class T>
     std::vector<T> operator-(const T first, const std::vector<T> & second)
     {
-        return operator-(second, first);
+        std::vector<T> result(second.size());
+        std::transform(
+          second.begin(), second.end(), result.begin(), [&](const T & data) { return first - data; });
+
+        return result;
     }
 
     /// Operator *
@@ -80,7 +84,7 @@ namespace HygroThermFEM
             throw std::runtime_error("Vectors must be identical in size.");
         }
 
-        std::vector<T> result(first.size(), 0);
+        std::vector<T> result(first.size());
         std::transform(
           first.begin(), first.end(), second.begin(), result.begin(), std::multiplies<T>());
 
@@ -90,7 +94,7 @@ namespace HygroThermFEM
     template<class T>
     std::vector<T> operator*(const std::vector<T> & first, const T second)
     {
-        std::vector<T> result(first.size(), 0);
+        std::vector<T> result(first.size());
         std::transform(
           first.begin(), first.end(), result.begin(), [&](auto && data) { return data * second; });
 
@@ -113,7 +117,7 @@ namespace HygroThermFEM
             throw std::runtime_error("Vectors must be identical in size.");
         }
 
-        std::vector<T> result(first.size(), 0);
+        std::vector<T> result(first.size());
         std::transform(
           first.begin(), first.end(), second.begin(), result.begin(), std::divides<T>());
 
@@ -129,7 +133,7 @@ namespace HygroThermFEM
     template<class T>
     std::vector<T> operator/(const T value, const std::vector<T> & lhs)
     {
-        std::vector<T> result(lhs.size(), 0);
+        std::vector<T> result(lhs.size());
         std::transform(lhs.begin(), lhs.end(), result.begin(), [&](T t) { return value / t; });
 
         return result;

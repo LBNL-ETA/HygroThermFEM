@@ -1,3 +1,5 @@
+#include <memory>
+
 #include <gtest/gtest.h>
 
 #include "HygroThermFEM2D.hxx"
@@ -27,8 +29,8 @@ TEST(TestBoundaryConditions2D_test1, TestIntegrationPoints)
     const HygroThermFEM::FixedBCHCCoefficients bcCoeff2{Tair2, hc2};
 
     HygroThermFEM::BoundaryConditions2D BCs;
-    BCs.assignBC(fem::make_unique<HygroThermFEM::ConstantConvectionBC>(multiDomain.nodes(), 1, 2, bcCoeff1));
-    BCs.assignBC(fem::make_unique<HygroThermFEM::ConstantConvectionBC>(multiDomain.nodes(), 6, 5, bcCoeff2));
+    BCs.assignBC(std::make_unique<HygroThermFEM::ConstantConvectionBC>(multiDomain.nodes(), 1, 2, bcCoeff1));
+    BCs.assignBC(std::make_unique<HygroThermFEM::ConstantConvectionBC>(multiDomain.nodes(), 6, 5, bcCoeff2));
 
     auto maxNodeIndex = multiDomain.nodes().maxIndex();
     auto HMat = BCs.HMatrix(maxNodeIndex);
