@@ -2,6 +2,7 @@
 #include <cmath>
 #include <cstddef>
 #include <map>
+#include <optional>
 #include <ranges>
 #include <utility>
 #include <vector>
@@ -89,11 +90,11 @@ namespace lbnl::errorest
         }
 
         //! The recovery group per element: the mesh region (subdomain) when the caller
-        //! supplies it, else a material-derived id. Grouping by region is what legacy
-        //! esterror does (it recovers per vertex-use); material grouping is the fallback
-        //! when no region topology is available and coincides with regions unless adjacent
-        //! regions share a material.
-        std::vector<int> recoveryGroups(const Input & inp)
+        //! supplies it, else a material-derived id. Region topology is all-or-nothing -- if
+        //! any element carries a subdomain, every element must, otherwise the input is
+        //! malformed and an unassigned element is reported as Error::UnassignedSubdomain.
+        //! Material grouping is the fallback when no region topology is supplied.
+        lbnl::ExpectedExt<std::vector<int>, Error> recoveryGroups(const Input & inp)
         {
             const bool hasRegions = std::ranges::any_of(
               inp.elements, [](const Element & ele) { return ele.subdomain.has_value(); });
@@ -102,8 +103,15 @@ namespace lbnl::errorest
                 return materialIds(inp);
             }
             std::vector<int> out(inp.elements.size());
-            std::ranges::transform(inp.elements, out.begin(),
-                                   [](const Element & ele) { return ele.subdomain.value_or(-1); });
+            for (std::size_t idx = 0; idx < inp.elements.size(); ++idx)
+            {
+                const auto & sub = inp.elements[idx].subdomain;
+                if (!sub.has_value())
+                {
+                    return lbnl::Unexpected(Error::UnassignedSubdomain);
+                }
+                out[idx] = *sub;
+            }
             return out;
         }
 
@@ -216,7 +224,13 @@ namespace lbnl::errorest
             return lbnl::Unexpected(Error::EmptyMesh);
         }
 
-        const auto elemGroup = recoveryGroups(inp);
+        const auto elemGroups = recoveryGroups(inp);
+        if (!elemGroups.has_value())
+        {
+            return lbnl::Unexpected(elemGroups.error());
+        }
+        const auto & elemGroup = elemGroups.value();
+
         const auto recovered = recoverNodalFlux(inp, elemGroup);
         if (!recovered.has_value())
         {

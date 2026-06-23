@@ -60,8 +60,9 @@ namespace lbnl::errorest
 
     enum class Error
     {
-        EmptyMesh,      //!< No nodes or no elements supplied.
-        SingularPatch,  //!< Degenerate geometry; an SPR patch was rank deficient.
+        EmptyMesh,            //!< No nodes or no elements supplied.
+        SingularPatch,        //!< Degenerate geometry; an SPR patch was rank deficient.
+        UnassignedSubdomain,  //!< Some elements carry a subdomain but this one does not.
     };
 
     //! Estimate the discretization error of an FE solution.

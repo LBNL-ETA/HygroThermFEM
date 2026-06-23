@@ -41,6 +41,20 @@ TEST(Estimator, EmptyMeshIsError)
     EXPECT_EQ(res.error(), Error::EmptyMesh);
 }
 
+TEST(Estimator, MixedSubdomainsIsError)
+{
+    // Region topology is all-or-nothing: one element carrying a subdomain while
+    // another does not is malformed input and must be reported, not papered over.
+    auto inp = singleSquare([](const Point &) { return Flux{1.0, 0.0}; });
+    inp.elements[0].subdomain = 0;          // assigned
+    Element unassigned = inp.elements[0];
+    unassigned.subdomain.reset();           // the malformed case
+    inp.elements.push_back(unassigned);
+    const auto res = estimate(inp);
+    ASSERT_FALSE(res.has_value());
+    EXPECT_EQ(res.error(), Error::UnassignedSubdomain);
+}
+
 TEST(Estimator, ConstantFluxHasZeroError)
 {
     // A constant flux is recovered exactly, so the estimated error must vanish.
