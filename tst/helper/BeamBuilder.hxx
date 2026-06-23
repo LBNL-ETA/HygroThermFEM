@@ -208,7 +208,7 @@ namespace TestHelper
         template<typename Coeff>
         void applyBC_FixedHc(const Edge edg, const Coeff & coeff)
         {
-            for(const auto [idx1, idx2] : edge(edg))
+            for(const auto & [idx1, idx2] : edge(edg))
             {
                 m_Domain.createBC_FixedHc(idx1, idx2, coeff);
             }
@@ -217,7 +217,7 @@ namespace TestHelper
         template<typename Coeff>
         void applyBC_TARPHc(const Edge edg, const Coeff & coeff, const double surfaceTilt = 90)
         {
-            for(const auto [idx1, idx2] : edge(edg))
+            for(const auto & [idx1, idx2] : edge(edg))
             {
                 m_Domain.createBC_TARPHc(idx1, idx2, coeff, surfaceTilt);
             }
@@ -229,7 +229,7 @@ namespace TestHelper
                                      const double surfaceHeight,
                                      const double surfaceTilt = 90)
         {
-            for(const auto [idx1, idx2] : edge(edg))
+            for(const auto & [idx1, idx2] : edge(edg))
             {
                 m_Domain.createBC_ASHRAEInsideHc(idx1, idx2, coeff, surfaceHeight, surfaceTilt);
             }
@@ -238,7 +238,7 @@ namespace TestHelper
         template<typename Coeff>
         void applyBC_ASHRAEOutsideHc(const Edge edg, const Coeff & coeff)
         {
-            for(const auto [idx1, idx2] : edge(edg))
+            for(const auto & [idx1, idx2] : edge(edg))
             {
                 m_Domain.createBC_ASHRAEOutsideHc(idx1, idx2, coeff);
             }
@@ -247,7 +247,7 @@ namespace TestHelper
         template<typename Coeff>
         void applyBC_YazdanianKlemsHc(const Edge edg, const Coeff & coeff)
         {
-            for(const auto [idx1, idx2] : edge(edg))
+            for(const auto & [idx1, idx2] : edge(edg))
             {
                 m_Domain.createBC_YazdanianKlemsHc(idx1, idx2, coeff);
             }
@@ -256,7 +256,7 @@ namespace TestHelper
         template<typename Coeff>
         void applyBC_KimuraHc(const Edge edg, const Coeff & coeff)
         {
-            for(const auto [idx1, idx2] : edge(edg))
+            for(const auto & [idx1, idx2] : edge(edg))
             {
                 m_Domain.createBC_KimuraHc(idx1, idx2, coeff);
             }
@@ -265,7 +265,7 @@ namespace TestHelper
         template<typename... Args>
         void applyBC_FixedTemperature(const Edge edg, Args &&... args)
         {
-            for(const auto [idx1, idx2] : edge(edg))
+            for(const auto & [idx1, idx2] : edge(edg))
             {
                 m_Domain.createBC_FixedTemperature(idx1, idx2, std::forward<Args>(args)...);
             }
@@ -274,7 +274,7 @@ namespace TestHelper
         template<typename Coeff>
         void applyBC_FixedTemperatureAndHumidity(const Edge edg, const Coeff & coeff)
         {
-            for(const auto [idx1, idx2] : edge(edg))
+            for(const auto & [idx1, idx2] : edge(edg))
             {
                 m_Domain.createBC_FixedTemperatureAndHumidity(idx1, idx2, coeff);
             }
@@ -283,7 +283,7 @@ namespace TestHelper
         template<typename Flux>
         void applyBC_FixedHeatFlux(const Edge edg, Flux && flux)
         {
-            for(const auto [idx1, idx2] : edge(edg))
+            for(const auto & [idx1, idx2] : edge(edg))
             {
                 m_Domain.createBC_FixedHeatFlux(idx1, idx2, std::forward<Flux>(flux));
             }
@@ -293,7 +293,7 @@ namespace TestHelper
                                          const double emissivity,
                                          const double radiationTemperature)
         {
-            for(const auto [idx1, idx2] : edge(edg))
+            for(const auto & [idx1, idx2] : edge(edg))
             {
                 m_Domain.createBC_BlackBodyRadiation(idx1, idx2, emissivity, radiationTemperature);
             }
@@ -302,7 +302,7 @@ namespace TestHelper
         template<typename Coeff>
         void applyBC_BlackBodyRadiation(const Edge edg, const Coeff & coeff)
         {
-            for(const auto [idx1, idx2] : edge(edg))
+            for(const auto & [idx1, idx2] : edge(edg))
             {
                 m_Domain.createBC_BlackBodyRadiation(idx1, idx2, coeff);
             }
@@ -311,7 +311,7 @@ namespace TestHelper
         template<typename Coeff>
         void applyBC_LinearizedRadiation(const Edge edg, const Coeff & coeff)
         {
-            for(const auto [idx1, idx2] : edge(edg))
+            for(const auto & [idx1, idx2] : edge(edg))
             {
                 m_Domain.createBC_LinearizedRadiation(idx1, idx2, coeff);
             }
