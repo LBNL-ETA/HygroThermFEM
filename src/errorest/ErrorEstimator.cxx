@@ -116,11 +116,12 @@ namespace lbnl::errorest
             {
                 const auto & elem = inp.elements[ele];
                 const int mat = elemMat[ele];
+                const int vtxCount = vertexCount(elem);
                 for (std::size_t pnt = 0; pnt < kOrder; ++pnt)
                 {
                     const auto bas = recoveryBasis(elem.gaussPoints[pnt]);
                     const auto & sig = elem.flux[pnt];
-                    for (int vtx = 0; vtx < elem.vertexCount; ++vtx)
+                    for (int vtx = 0; vtx < vtxCount; ++vtx)
                     {
                         const auto nid = static_cast<std::size_t>(elem.vertexIds[vtx]);
                         accumulatePatch(patches[{nid, mat}], bas, sig);
@@ -163,9 +164,10 @@ namespace lbnl::errorest
                            std::array<double, 4> & yyy,
                            std::array<Flux, 4> & star)
         {
+            const int vtxCount = vertexCount(ele);
             for (int vtx = 0; vtx < 4; ++vtx)
             {
-                const int src = vtx < ele.vertexCount ? vtx : ele.vertexCount - 1;
+                const int src = vtx < vtxCount ? vtx : vtxCount - 1;
                 const auto nid = static_cast<std::size_t>(ele.vertexIds[src]);
                 xxx[vtx] = inp.nodes[nid][0];
                 yyy[vtx] = inp.nodes[nid][1];

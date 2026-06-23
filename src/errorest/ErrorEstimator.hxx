@@ -23,11 +23,23 @@ namespace lbnl::errorest
         std::array<Point, 4> gaussPoints{}; //!< Global coords of the 2x2 Gauss points.
         std::array<Flux, 4> flux{};         //!< FE flux sigma_h at each Gauss point.
         Tensor inverseConstitutive{};       //!< D^-1 used to weight the energy norm.
-        std::array<int, 4> vertexIds{};     //!< Node indices; a triangle duplicates the last.
-        int vertexCount{4};                 //!< 3 (triangle) or 4 (quad).
+        std::array<int, 4> vertexIds{};     //!< Node indices. A triangle repeats its last node
+                                            //!< (vertexIds[3] == vertexIds[2]); see isTriangle.
         int subdomain{-1};                  //!< Recovery group (mesh region). -1 = unspecified;
                                             //!< the estimator then groups patches by material.
     };
+
+    //! A triangle is encoded as a degenerate quad whose 4th node repeats the 3rd.
+    [[nodiscard]] inline bool isTriangle(const Element & ele)
+    {
+        return ele.vertexIds[3] == ele.vertexIds[2];
+    }
+
+    //! Number of real vertices: 3 (triangle) or 4 (quad).
+    [[nodiscard]] inline int vertexCount(const Element & ele)
+    {
+        return isTriangle(ele) ? 3 : 4;
+    }
 
     //! Complete, file-free input to the estimator.
     struct Input

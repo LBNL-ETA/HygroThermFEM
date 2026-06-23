@@ -24,8 +24,7 @@ namespace
             ele.flux[pnt] = sampler(pos);
         }
         ele.inverseConstitutive = {1.0, 0.0, 0.0, 1.0};
-        ele.vertexIds = {0, 1, 2, 3};
-        ele.vertexCount = 4;
+        ele.vertexIds = {0, 1, 2, 3};   // distinct 4th node => quad (isTriangle == false)
 
         Input inp{};
         inp.nodes = {{0.0, 0.0}, {1.0, 0.0}, {1.0, 1.0}, {0.0, 1.0}};

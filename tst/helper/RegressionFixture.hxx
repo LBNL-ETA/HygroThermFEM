@@ -118,13 +118,15 @@ namespace lbnl::errorest::test
             elem.inverseConstitutive = {inv, 0.0, 0.0, inv};
             elem.subdomain = ele.region;
 
-            elem.vertexCount = static_cast<int>(ele.vertices.size() / 2);
+            const int vtxCount = static_cast<int>(ele.vertices.size() / 2);
             std::array<int, 4> ids = {0, 0, 0, 0};
-            for (int vtx = 0; vtx < elem.vertexCount; ++vtx)
+            for (int vtx = 0; vtx < vtxCount; ++vtx)
             {
                 ids[vtx] = nodeOf(ele.vertices[2 * vtx], ele.vertices[2 * vtx + 1]);
             }
-            if (elem.vertexCount == 3)
+            // A triangle repeats its last node so vertexIds[3] == vertexIds[2]
+            // (the encoding the estimator's isTriangle relies on).
+            if (vtxCount == 3)
             {
                 ids[3] = ids[2];
             }
