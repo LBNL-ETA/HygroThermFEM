@@ -55,6 +55,26 @@ TEST(Estimator, MixedSubdomainsIsError)
     EXPECT_EQ(res.error(), Error::UnassignedSubdomain);
 }
 
+TEST(Estimator, SingularPatchIsError)
+{
+    // A degenerate element whose Gauss points all coincide makes the SPR moment
+    // matrix rank-deficient, so the patch solve yields non-finite coefficients --
+    // reported through the allFinite guard as SingularPatch.
+    Input inp{};
+    inp.nodes = {{0.0, 0.0}, {1.0, 0.0}, {1.0, 1.0}, {0.0, 1.0}};
+    Element ele{};
+    ele.gaussPoints.fill(Point{0.5, 0.5});
+    ele.flux.fill(Flux{1.0, 0.0});
+    ele.inverseConstitutive = {1.0, 0.0, 0.0, 1.0};
+    ele.vertexIds = {0, 1, 2, 3};
+    inp.elements = {ele};
+    inp.targetPercent = 2.0;
+
+    const auto res = estimate(inp);
+    ASSERT_FALSE(res.has_value());
+    EXPECT_EQ(res.error(), Error::SingularPatch);
+}
+
 TEST(Estimator, ConstantFluxHasZeroError)
 {
     // A constant flux is recovered exactly, so the estimated error must vanish.
