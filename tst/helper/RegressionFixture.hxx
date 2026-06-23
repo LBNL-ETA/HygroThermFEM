@@ -116,7 +116,11 @@ namespace lbnl::errorest::test
             Element elem{};
             const double inv = 1.0 / ele.conductivity;
             elem.inverseConstitutive = {inv, 0.0, 0.0, inv};
-            elem.subdomain = ele.region;
+            // The fixture stores -1 for "no region"; map that to an unset subdomain.
+            if (ele.region >= 0)
+            {
+                elem.subdomain = ele.region;
+            }
 
             const int vtxCount = static_cast<int>(ele.vertices.size() / 2);
             std::array<int, 4> ids = {0, 0, 0, 0};

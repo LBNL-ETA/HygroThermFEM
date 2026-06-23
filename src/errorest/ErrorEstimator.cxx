@@ -96,14 +96,14 @@ namespace lbnl::errorest
         std::vector<int> recoveryGroups(const Input & inp)
         {
             const bool hasRegions = std::ranges::any_of(
-              inp.elements, [](const Element & ele) { return ele.subdomain >= 0; });
+              inp.elements, [](const Element & ele) { return ele.subdomain.has_value(); });
             if (!hasRegions)
             {
                 return materialIds(inp);
             }
             std::vector<int> out(inp.elements.size());
             std::ranges::transform(inp.elements, out.begin(),
-                                   [](const Element & ele) { return ele.subdomain; });
+                                   [](const Element & ele) { return ele.subdomain.value_or(-1); });
             return out;
         }
 

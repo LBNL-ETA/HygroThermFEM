@@ -1,6 +1,7 @@
 #pragma once
 
 #include <array>
+#include <optional>
 #include <vector>
 
 #include "lbnl/expected.hxx"
@@ -25,8 +26,8 @@ namespace lbnl::errorest
         Tensor inverseConstitutive{};       //!< D^-1 used to weight the energy norm.
         std::array<int, 4> vertexIds{};     //!< Node indices. A triangle repeats its last node
                                             //!< (vertexIds[3] == vertexIds[2]); see isTriangle.
-        int subdomain{-1};                  //!< Recovery group (mesh region). -1 = unspecified;
-                                            //!< the estimator then groups patches by material.
+        std::optional<int> subdomain{};     //!< Recovery group (mesh region). Unset =>
+                                            //!< the estimator groups patches by material.
     };
 
     //! A triangle is encoded as a degenerate quad whose 4th node repeats the 3rd.
