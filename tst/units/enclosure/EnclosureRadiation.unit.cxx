@@ -2,6 +2,7 @@
 #include <vector>
 #include <gtest/gtest.h>
 
+#include "BoundaryCondition2DThermal.hxx"
 #include "EnclosureRadiation.hxx"
 #include "Nodes.hxx"
 
@@ -90,5 +91,32 @@ TEST(EnclosureRadiation, IsothermalOpenEnclosureSeesEnvironmentTemperature)
     for(std::size_t idx = 0; idx < enclosure.numberOfSegments(); ++idx)
     {
         EXPECT_NEAR(temperature, enclosure.effectiveRadiantTemperature(idx), 1e-6);
+    }
+}
+
+// EnclosureRadiationBC: at an isothermal enclosure each segment's radiant temperature equals its
+// surface temperature, so the linearized contribution q = h (T_rad - T_s) is zero. In assembly
+// terms the right-hand side equals the H-matrix times the surface temperatures.
+TEST(EnclosureRadiationBC, IsothermalEnclosureGivesZeroNetFlux)
+{
+    constexpr double temperature = 30.0;
+    constexpr double emissivity = 0.9;
+    auto nodes = unitSquareNodes(temperature, temperature, temperature, temperature);
+
+    EnclosureRadiation coordinator(nodes, closedSquareSegments(emissivity), {});
+    EnclosureRadiationBC boundary(nodes, 1, 2, emissivity, coordinator, 0);
+
+    const auto rightHandSide = boundary.R_Vector();
+    const auto hMatrix = boundary.H_Matrix();
+
+    const std::vector<double> surfaceTemperatures{temperature, temperature};
+    for(std::size_t row = 0; row < 2; ++row)
+    {
+        double hTimesTemperature = 0.0;
+        for(std::size_t col = 0; col < 2; ++col)
+        {
+            hTimesTemperature += hMatrix(row, col) * surfaceTemperatures[col];
+        }
+        EXPECT_NEAR(rightHandSide[row], hTimesTemperature, 1e-3);
     }
 }

@@ -1,6 +1,7 @@
 #include "BoundaryCondition2DThermal.hxx"
 
 #include "Common.hxx"
+#include "EnclosureRadiation.hxx"
 #include "Nodes.hxx"
 #include "VectorOperators.hxx"
 
@@ -238,5 +239,48 @@ namespace HygroThermFEM
     std::vector<double> LinearizedRadiationBC::radiationCoefficients() const
     {
         return std::vector<double>(numOfBCNodes, m_RadiationCoefficient);
+    }
+
+    ////////////////////////////////////////////////////////
+    /// EnclosureRadiationBC
+    ////////////////////////////////////////////////////////
+
+    EnclosureRadiationBC::EnclosureRadiationBC(Nodes & nodePool,
+                                               const size_t index1,
+                                               const size_t index2,
+                                               const double emissivity,
+                                               EnclosureRadiation & coordinator,
+                                               const size_t segmentIndex) :
+        IBCLinear2D(nodePool, index1, index2, false),   // nonlinear: depends on temperatures
+        m_Emissivity{emissivity},
+        m_Coordinator{coordinator},
+        m_SegmentIndex{segmentIndex}
+    {}
+
+    std::vector<double>
+      EnclosureRadiationBC::radiationCoefficients(const double radiantTemperature) const
+    {
+        std::vector<double> result(numOfBCNodes, 0);
+        const double radiationTemp = celsiusToKelvin(radiantTemperature);
+        for(std::size_t idx = 0; idx < numOfBCNodes; ++idx)
+        {
+            const double surfaceTemp = celsiusToKelvin(m_Nodes[idx].property(Variable::temperature));
+            result[idx] = (surfaceTemp + radiationTemp)
+                          * (radiationTemp * radiationTemp + surfaceTemp * surfaceTemp)
+                          * Constants::STEFANBOLTZMANN * m_Emissivity;
+        }
+        return result;
+    }
+
+    std::vector<double> EnclosureRadiationBC::R_Vector() const
+    {
+        const double radiantTemperature = m_Coordinator.effectiveRadiantTemperature(m_SegmentIndex);
+        return m_PsiVector * radiationCoefficients(radiantTemperature) * radiantTemperature;
+    }
+
+    SquareMatrix EnclosureRadiationBC::H_Matrix() const
+    {
+        const double radiantTemperature = m_Coordinator.effectiveRadiantTemperature(m_SegmentIndex);
+        return m_PsiPsiMatrix.mmultRows(radiationCoefficients(radiantTemperature));
     }
 }   // namespace HygroThermFEM

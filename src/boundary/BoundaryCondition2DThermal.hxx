@@ -4,6 +4,8 @@
 
 namespace HygroThermFEM
 {
+    class EnclosureRadiation;
+
     ////////////////////////////////////////////////////////
     /// ConstantConvectionBC
     ////////////////////////////////////////////////////////
@@ -293,5 +295,38 @@ namespace HygroThermFEM
 
     private:
         double m_RadiationCoefficient;
+    };
+
+    ///////////////////////////////////////////////////////
+    /// EnclosureRadiationBC
+    ///////////////////////////////////////////////////////
+
+    //! \brief Enclosure radiation boundary condition for one segment.
+    //!
+    //! Nonlinear thermal BC. It uses the same Stefan-Boltzmann linearization as
+    //! BlackBodyRadiationBC, but the radiation temperature is the effective radiant temperature of
+    //! the surroundings, supplied each assembly by an EnclosureRadiation coordinator that solves
+    //! the grey-enclosure radiosity from the WCE view factors. Many segments share one coordinator.
+    class EnclosureRadiationBC : public IBCLinear2D
+    {
+    public:
+        EnclosureRadiationBC(Nodes & nodePool,            //!< Reference to NodePool for node lookup
+                             size_t index1,                  //!< Node 1 index
+                             size_t index2,                  //!< Node 2 index
+                             double emissivity,              //!< Surface emissivity at both nodes
+                             EnclosureRadiation & coordinator,  //!< Shared enclosure radiosity solver
+                             size_t segmentIndex             //!< This segment's index in the coordinator
+        );
+
+        [[nodiscard]] std::vector<double> R_Vector() const override;
+        [[nodiscard]] SquareMatrix H_Matrix() const override;
+
+    private:
+        //! Stefan-Boltzmann radiative coefficients per node, using the coordinator's radiant temp.
+        [[nodiscard]] std::vector<double> radiationCoefficients(double radiantTemperature) const;
+
+        double m_Emissivity;
+        EnclosureRadiation & m_Coordinator;
+        size_t m_SegmentIndex;
     };
 }   // namespace HygroThermFEM
