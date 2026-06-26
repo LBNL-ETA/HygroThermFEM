@@ -72,7 +72,10 @@ endif()
 
 # Include KeffCavity
 set(BUILD_KeffC_TESTING OFF CACHE BOOL "Build KeffCavity tests" FORCE)
-set(KeffCavity_Branch "Version_1.1.4")
+# TEMPORARY (co-development): this KeffCavity branch pins Windows-CalcEngine to its enclosure
+# view-factor feature branch, which provides Viewer::computeEnclosureViewFactors. Revert to a
+# released KeffCavity tag once the WCE engine lands.
+set(KeffCavity_Branch "feature/enclosure-view-factors")
 
 if(NOT TARGET KeffCavity)
     FetchContent_Declare(
