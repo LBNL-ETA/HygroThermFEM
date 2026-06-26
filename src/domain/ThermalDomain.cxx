@@ -4,6 +4,7 @@
 
 #include "BoundaryCondition2D.hxx"
 #include "BoundaryCondition2DThermal.hxx"
+#include "EnclosureRadiation.hxx"
 
 namespace HygroThermFEM
 {
@@ -248,6 +249,27 @@ namespace HygroThermFEM
             timestepBCs.push_back(std::make_unique<LinearizedRadiationBC>(m_NodePool, index1, index2, bc));
         });
         m_BCs.assignTimestepBCs(std::move(timestepBCs));
+    }
+
+    void ThermalDomain::createEnclosureRadiation(
+      const std::vector<EnclosureRadiationSegment> & segments,
+      const std::map<std::size_t, double> & openEnclosureTemperatures,
+      const bool smoothViewFactors)
+    {
+        auto coordinator = std::make_unique<EnclosureRadiation>(
+          m_NodePool, segments, openEnclosureTemperatures, smoothViewFactors);
+        auto & coordinatorRef = *coordinator;
+        m_EnclosureRadiations.push_back(std::move(coordinator));
+
+        for(std::size_t idx = 0; idx < segments.size(); ++idx)
+        {
+            m_BCs.assignBC(std::make_unique<EnclosureRadiationBC>(m_NodePool,
+                                                                 segments[idx].node1,
+                                                                 segments[idx].node2,
+                                                                 segments[idx].emissivity,
+                                                                 coordinatorRef,
+                                                                 idx));
+        }
     }
 
     void ThermalDomain::createElement(const size_t index1,

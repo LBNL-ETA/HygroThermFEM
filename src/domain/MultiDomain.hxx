@@ -349,6 +349,15 @@ namespace HygroThermFEM
           size_t index2,
           const std::vector<LinearizedRadiationBCCoefficients> & linearRadBC);
 
+        //! \brief Creates enclosure radiation boundary conditions (thermal).
+        //! @param segments Enclosure radiation segments (node indices, emissivity, enclosure id).
+        //! @param openEnclosureTemperatures Environment temperature [C] for each open enclosure id.
+        //! @param smoothViewFactors Apply least-squares smoothing to closed enclosures.
+        void createEnclosureRadiation(
+          const std::vector<EnclosureRadiationSegment> & segments,
+          const std::map<std::size_t, double> & openEnclosureTemperatures = {},
+          bool smoothViewFactors = true);
+
         //! \brief Sets new gravity vector and performs new calculations
         //!
         //! @param gravityVector Direction of gravity

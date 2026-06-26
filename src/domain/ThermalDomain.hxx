@@ -1,6 +1,11 @@
 #pragma once
 
+#include <map>
+#include <memory>
+#include <vector>
+
 #include "Domain.hxx"
+#include "EnclosureRadiation.hxx"
 
 namespace HygroThermFEM
 {
@@ -262,9 +267,25 @@ namespace HygroThermFEM
           size_t index2,
           const std::vector<LinearizedRadiationBCCoefficients> & linearRadBC);
 
+        //! \brief Creation of enclosure radiation boundary conditions.
+        //!
+        //! Builds one shared radiosity coordinator from the segments (view factors come from the
+        //! WCE engine) and one nonlinear EnclosureRadiationBC per segment.
+        //! @param segments Enclosure radiation segments (node indices, emissivity, enclosure id).
+        //! @param openEnclosureTemperatures Environment temperature [C] for each open enclosure id.
+        //! @param smoothViewFactors Apply least-squares smoothing to closed enclosures.
+        void createEnclosureRadiation(
+          const std::vector<EnclosureRadiationSegment> & segments,
+          const std::map<std::size_t, double> & openEnclosureTemperatures = {},
+          bool smoothViewFactors = true);
+
     protected:
         void postProcess(std::vector<double> & solution) override;
         void updateNodes(const std::vector<double> & solution,
                          bool updatePreviousTimestep) override;
+
+    private:
+        //! Radiosity coordinators owned by the domain; the per-segment BCs reference them.
+        std::vector<std::unique_ptr<EnclosureRadiation>> m_EnclosureRadiations;
     };
 }   // namespace HygroThermFEM
