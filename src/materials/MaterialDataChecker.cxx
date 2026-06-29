@@ -32,6 +32,26 @@ namespace HygroThermFEM
         return missingProperties;
     }
 
+    MaterialsErrorCheckVector MaterialDataChecker::checkSteadyStateThermalProperties()
+    {
+        MaterialsErrorCheckVector missingProperties;
+        const auto & materialPool = multiDomain.materials();
+        for(const auto & materialName : materialPool.getSolidMaterials())
+        {
+            const auto & material{materialPool.material(materialName)};
+            MaterialMissingProperties missing;
+            missing.materialName = material.name();
+            missing.ThermalConductivityDry = !material.hasThermalConductivityDry();
+            missing.Emissivity = !material.hasEmissivity();
+            if(missing.isMissingAnyProperty())
+            {
+                missingProperties.push_back(missing);
+            }
+        }
+
+        return missingProperties;
+    }
+
     MaterialMissingProperties MaterialDataChecker::checkMaterial(const IMaterial & material,
                                                                  const bool isTransientSimulation) const
     {

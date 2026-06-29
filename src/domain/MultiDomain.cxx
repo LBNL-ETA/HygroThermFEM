@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <cmath>
+#include <fstream>
 #include <iomanip>
 #include <limits>
 #include <ostream>
@@ -249,6 +250,11 @@ namespace HygroThermFEM
         auto humidityError{std::numeric_limits<double>::max()};
         const auto MaxIterations = settings.maxNumberOfIterations;
         size_t currentIteration{0};
+        auto htfLog = [](const std::string & msg) {
+            std::ofstream log("D:\\tmp\\htf_steady.log", std::ios::app);
+            log << "  [ss] " << msg << "\n";
+        };
+        htfLog("enter steadyState");
         auto humidity = m_Nodes.properties(Variable::humidity);
         auto previousHumidity = humidity;
         auto temperature = m_Nodes.properties(Variable::temperature);
@@ -271,7 +277,9 @@ namespace HygroThermFEM
             }
             if(m_SimulateThermal)
             {
+                htfLog("before thermal solve iter " + std::to_string(currentIteration));
                 temperature = m_ThermalDomain.steadyState();
+                htfLog("after thermal solve iter " + std::to_string(currentIteration));
                 temperatureError = normError(temperature, previousTemperature);
                 previousTemperature = temperature;
                 m_Nodes.updateNodeTemperatures(temperature);
@@ -292,8 +300,14 @@ namespace HygroThermFEM
         const auto vaporContent = m_Nodes.properties(Variable::vapor);
         const auto iceContent = m_Nodes.properties(Variable::ice);
 
-        const auto heatFlux = m_ThermalDomain.flux();
-        const auto waterFlux = m_MoistureDomain.flux();
+        htfLog("loop done; computing heat flux");
+        // Only compute a domain's flux when that domain is actually simulated. A thermal-only
+        // steady run has no moisture material properties, so computing the moisture flux would
+        // dereference missing data.
+        const auto heatFlux = m_SimulateThermal ? m_ThermalDomain.flux() : std::vector<NodeFlux>{};
+        htfLog("heat flux done; computing water flux");
+        const auto waterFlux = m_SimulateMoisture ? m_MoistureDomain.flux() : std::vector<NodeFlux>{};
+        htfLog("water flux done; returning solution");
 
         return Solution{0,
                         temperature,
@@ -650,7 +664,7 @@ namespace HygroThermFEM
     MaterialsErrorCheckVector MultiDomain::checkMaterialsForSteadyStateSimulation() const
     {
         MaterialDataChecker dataChecker{*this};
-        return dataChecker.checkMaterialProperties(false);
+        return dataChecker.checkSteadyStateThermalProperties();
     }
 
     MaterialsErrorCheckVector

@@ -266,6 +266,13 @@ namespace HygroThermFEM
         // Now need to average them
         for(size_t j = 0; j < fluxes.size(); ++j)
         {
+            // A node that belongs to no element (e.g. an auto-enclosure environment node) has no
+            // contributing element flux; leave it at zero instead of dividing by zero.
+            if(fluxes[j].empty())
+            {
+                result[j] = {0.0, 0.0};
+                continue;
+            }
             const double x = std::accumulate(fluxes[j].begin(),
                                              fluxes[j].end(),
                                              0.0,

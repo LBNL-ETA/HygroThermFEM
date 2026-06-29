@@ -24,6 +24,13 @@ namespace HygroThermFEM
         //! \return All missing properties for every material.
         MaterialsErrorCheckVector checkMaterialProperties(bool isTransientSimulation);
 
+        //! \brief Minimal steady-state thermal check.
+        //!
+        //! A steady-state thermal run needs only dry thermal conductivity (to conduct) and front
+        //! emissivity (for surface radiation). A complete steady-state property check is a follow-up.
+        //! \return Materials missing dry thermal conductivity or emissivity.
+        MaterialsErrorCheckVector checkSteadyStateThermalProperties();
+
     private:
         //! \brief Check single material properties against current engine settings
         //!
