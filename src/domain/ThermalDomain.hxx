@@ -36,6 +36,11 @@ namespace HygroThermFEM
 
     public:
 
+        //! \brief Deletes geometry/BCs (base) and also clears the enclosure-radiation coordinators,
+        //! so a second run on the same domain (e.g. the CI pass after the U-factor pass) does not
+        //! retain stale coordinators that reference the previous run's nodes.
+        void clearModel() override;
+
         //! \brief Creation of convection boundary condition
         //! @param index1 Node 1 index
         //! @param index2 Node 2 index

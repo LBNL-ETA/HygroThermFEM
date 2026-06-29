@@ -8,16 +8,38 @@ namespace HygroThermFEM
 {
     class Nodes;
 
+    //! \brief What kind of surface an enclosure segment is.
+    enum class EnclosureSurfaceKind
+    {
+        //! On the FEM mesh: coordinates and temperature come from node1/node2 in the node pool, and
+        //! the segment gets a finite-element boundary condition.
+        Meshed,
+        //! Not on the FEM mesh: an emitter at a known temperature with explicit coordinates - e.g.
+        //! the IGU gap end-faces in Condensation Index mode, which close the gap cavity at the
+        //! computed hole (cavity) temperature. It participates in the radiosity but has no FEM BC.
+        FixedTemperature
+    };
+
     //! \brief One radiation surface segment of an enclosure.
     //!
     //! A segment is a two-node boundary line with a surface emissivity, belonging to an enclosure
-    //! identified by enclosureId. Segments with the same enclosureId exchange radiation.
+    //! identified by enclosureId. Segments with the same enclosureId exchange radiation. The kind
+    //! selects which fields are used: Meshed uses node1/node2 (node pool); FixedTemperature uses
+    //! fixedTemperature and the start/end coordinates.
     struct EnclosureRadiationSegment
     {
+        EnclosureSurfaceKind kind{EnclosureSurfaceKind::Meshed};
+
         std::size_t node1{0};
         std::size_t node2{0};
         double emissivity{0.9};
         std::size_t enclosureId{0};
+
+        double fixedTemperature{0.0};
+        double startX{0.0};
+        double startY{0.0};
+        double endX{0.0};
+        double endY{0.0};
     };
 
     //! \brief Grey-enclosure radiosity solver.

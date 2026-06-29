@@ -251,6 +251,14 @@ namespace HygroThermFEM
         m_BCs.assignTimestepBCs(std::move(timestepBCs));
     }
 
+    void ThermalDomain::clearModel()
+    {
+        IDomain::clearModel();
+        // Enclosure-radiation coordinators reference this run's nodes; drop them so a subsequent
+        // run on the same domain (e.g. the CI pass) starts clean instead of leaking stale state.
+        m_EnclosureRadiations.clear();
+    }
+
     void ThermalDomain::createEnclosureRadiation(
       const std::vector<EnclosureRadiationSegment> & segments,
       const std::map<std::size_t, double> & openEnclosureTemperatures,
@@ -263,6 +271,14 @@ namespace HygroThermFEM
 
         for(std::size_t idx = 0; idx < segments.size(); ++idx)
         {
+            // Fixed-temperature surfaces (e.g. IGU gap end-faces) are not on the FEM mesh: they
+            // participate in the radiosity as emitters (raising/lowering the radiant temperature the
+            // real surfaces see), but there is no mesh edge to apply a boundary condition to, so no
+            // FEM BC is created for them.
+            if(segments[idx].kind == EnclosureSurfaceKind::FixedTemperature)
+            {
+                continue;
+            }
             m_BCs.assignBC(std::make_unique<EnclosureRadiationBC>(m_NodePool,
                                                                  segments[idx].node1,
                                                                  segments[idx].node2,

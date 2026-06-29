@@ -98,7 +98,9 @@ namespace HygroThermFEM
         void setGravityVector(const FenestrationCommon::GravityVector & gravityVector);
 
         //! \brief Deletes geometry and clears up boundary conditions.
-        void clearModel();
+        //! Virtual so derived domains can also clear domain-specific state (e.g. ThermalDomain's
+        //! enclosure-radiation coordinators) between consecutive runs on the same domain.
+        virtual void clearModel();
 
         //! \brief Attach a diagnostic stream for solver iteration logging.
         //! When non-null, the solver prints per-iteration details (NR corrections,

@@ -301,6 +301,26 @@ namespace HygroThermFEM
         const auto iceContent = m_Nodes.properties(Variable::ice);
 
         htfLog("loop done; computing heat flux");
+        // TEMP: report the converged (or not) temperature range so we can tell whether the heat-flux
+        // crash is fed by sane temps (-> degenerate element) or wild/non-finite temps (-> the solve
+        // did not converge in the iteration count).
+        {
+            double tMin = 1e30;
+            double tMax = -1e30;
+            int nonFinite = 0;
+            for(const double value : temperature)
+            {
+                if(value != value || value > 1e300 || value < -1e300)
+                {
+                    ++nonFinite;
+                    continue;
+                }
+                tMin = (std::min)(tMin, value);
+                tMax = (std::max)(tMax, value);
+            }
+            htfLog("temps after loop: min=" + std::to_string(tMin) + " max=" + std::to_string(tMax)
+                   + " nonFinite=" + std::to_string(nonFinite) + " count=" + std::to_string(temperature.size()));
+        }
         // Only compute a domain's flux when that domain is actually simulated. A thermal-only
         // steady run has no moisture material properties, so computing the moisture flux would
         // dereference missing data.

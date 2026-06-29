@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <cmath>
+#include <fstream>
 #include <iomanip>
 #include <limits>
 #include <memory>
@@ -271,9 +272,20 @@ namespace HygroThermFEM
 
     std::vector<double> IDomain::steadyState()
     {
+        // TEMP crash-localization trace for IGU/HygroThermFEM steady runs (remove with other debug).
+        auto domTrace = [](const char * msg) {
+            std::ofstream log("D:\\tmp\\htf_steady.log", std::ios::app);
+            log << msg << "\n";
+            log.flush();
+        };
+        domTrace("    [dom] assembling RHS (BC contributions incl. enclosure radiation)");
         const auto B = steadyStateRightHandSide();
+        domTrace("    [dom] RHS done; assembling LHS");
         const auto A = steadyStateLeftHandSide();
-        return CLinearSolver::solveEigen(A, B);
+        domTrace("    [dom] LHS done; solving linear system");
+        auto result = CLinearSolver::solveEigen(A, B);
+        domTrace("    [dom] linear solve done");
+        return result;
     }
 
     lbnl::ExpectedExt<SingleSolution, SolverError> IDomain::transient(
