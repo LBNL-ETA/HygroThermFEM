@@ -1,5 +1,6 @@
 #pragma once
 
+#include <array>
 #include <memory>
 
 #include "Functions.hxx"
@@ -159,6 +160,21 @@ namespace HygroThermFEM
         std::vector<double> rightSideVector() const;
 
         std::vector<NodeFlux> flux() const;
+
+        //! Heat flux (sigma = -k * grad(state)) evaluated at each 2x2 Gauss point, in the
+        //! integration-point order. Unlike flux(), the values are not extrapolated to the corner
+        //! nodes; the recovery-based error estimator consumes the raw Gauss-point flux.
+        [[nodiscard]] std::vector<NodeFlux> fluxAtGaussPoints() const;
+
+        //! Global (x, y) coordinates of the element's 2x2 Gauss points, in the same order as
+        //! fluxAtGaussPoints().
+        [[nodiscard]] std::vector<std::array<double, 2>> gaussPointGlobalCoordinates() const;
+
+        //! Representative scalar conductivity of the element: the mean of the nodal conductivity
+        //! values used in the flux calculation. For the constant-conductivity solid materials that
+        //! dominate steady-state thermal models this equals the material's dry conductivity. Its
+        //! reciprocal is the inverse constitutive scalar that defines the estimator's energy norm.
+        [[nodiscard]] double meanConductivity() const;
 
         INode2D & getNode(std::size_t index) const;
 
@@ -337,6 +353,10 @@ namespace HygroThermFEM
 
         //! Calculates angle between two vectors made of (node1-node2) and (node1-node3)
         double angleBetweenNodes(const Node2D & node1, const Node2D & node2, const Node2D & node3) const;
+
+        //! State-variable gradients (d/dx, d/dy) at each Gauss point. Shared building block of
+        //! flux() and fluxAtGaussPoints().
+        std::vector<std::array<double, 2>> stateGradientsAtGaussPoints() const;
 
 
         //! Circular vector connects first and last node so that program can easily iterate

@@ -484,6 +484,11 @@ namespace HygroThermFEM
         return m_Elements.flux(m_NodePool.maxIndex());
     }
 
+    const ElementsLinear2D & IDomain::elements() const
+    {
+        return m_Elements;
+    }
+
     bool IDomain::lastSolveAtPhysicalBound() const
     {
         return m_LastSolveAtPhysicalBound;

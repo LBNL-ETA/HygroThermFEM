@@ -83,6 +83,11 @@ namespace HygroThermFEM
         //! Returns flux in x and y direction
         [[nodiscard]] std::vector<NodeFlux> flux() const;
 
+        //! \brief Read-only access to the domain's elements.
+        //! Used by the error-estimator adapter to assemble per-element Gauss-point data from a
+        //! solved domain.
+        [[nodiscard]] const ElementsLinear2D & elements() const;
+
         //! Adds element into domain
         virtual void createElement(
           size_t index1,                     //!< Node 1 index

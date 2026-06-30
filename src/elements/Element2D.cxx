@@ -238,35 +238,38 @@ namespace HygroThermFEM
         return result;
     }
 
-    std::vector<NodeFlux> IElementLinear2D::flux() const
+    std::vector<std::array<double, 2>> IElementLinear2D::stateGradientsAtGaussPoints() const
     {
         const auto numOfIntegrationPoints = IntegrationPoints2D::Instance().count2D();
+        const auto values = m_Nodes.properties(m_FluxVariable);
+        assert(values.size() == numOfQuadrilateralNodes);
+
+        std::vector<std::array<double, 2>> gradients(numOfIntegrationPoints, {0.0, 0.0});
+        for(size_t gpIdx = 0; gpIdx < numOfIntegrationPoints; ++gpIdx)
+        {
+            const auto DPsiDx = m_Global2D.DPsiDx(gpIdx);
+            const auto DPsiDy = m_Global2D.DPsiDy(gpIdx);
+            assert(DPsiDx.size() == numOfIntegrationPoints);
+            double DtDx{0};
+            double DtDy{0};
+            for(size_t nodeIdx = 0; nodeIdx < values.size(); ++nodeIdx)
+            {
+                DtDx += DPsiDx[nodeIdx] * values[nodeIdx];
+                DtDy += DPsiDy[nodeIdx] * values[nodeIdx];
+            }
+            gradients[gpIdx] = {DtDx, DtDy};
+        }
+        return gradients;
+    }
+
+    std::vector<NodeFlux> IElementLinear2D::flux() const
+    {
+        const auto gradients = stateGradientsAtGaussPoints();
         std::vector<NodeFlux> results;
         for(const auto & cond : m_ConductanceFunctions)
         {
-            const auto values = m_Nodes.properties(m_FluxVariable);
             const auto conductivityValues = cond->values(m_Nodes);
             assert(conductivityValues.size() == numOfQuadrilateralNodes);
-            assert(values.size() == numOfQuadrilateralNodes);
-
-            // First calculate Dt/Dx and Dt/Dy in Gauss points
-            std::vector<double> VDtDx(numOfIntegrationPoints, 0);
-            std::vector<double> VDtDy(numOfIntegrationPoints, 0);
-            for(size_t gpIdx = 0; gpIdx < numOfIntegrationPoints; ++gpIdx)
-            {
-                const auto DPsiDx = m_Global2D.DPsiDx(gpIdx);
-                const auto DPsiDy = m_Global2D.DPsiDy(gpIdx);
-                assert(DPsiDx.size() == numOfIntegrationPoints);
-                double DtDx{0};
-                double DtDy{0};
-                for(size_t nodeIdx = 0; nodeIdx < values.size(); ++nodeIdx)
-                {
-                    DtDx += DPsiDx[nodeIdx] * values[nodeIdx];
-                    DtDy += DPsiDy[nodeIdx] * values[nodeIdx];
-                }
-                VDtDx[gpIdx] = DtDx;
-                VDtDy[gpIdx] = DtDy;
-            }
 
             // Extrapolate flux from 2x2 Gauss points to corner nodes using the
             // standard bilinear extrapolation matrix.  Coefficients derive from
@@ -287,13 +290,53 @@ namespace HygroThermFEM
                 auto fluxY{0.0};
                 for(const auto coeff : extrapolationCoefficients[nodeIdx])
                 {
-                    fluxX -= conductivityValues[nodeIdx] * VDtDx[nodeIdx] * coeff;
-                    fluxY -= conductivityValues[nodeIdx] * VDtDy[nodeIdx] * coeff;
+                    fluxX -= conductivityValues[nodeIdx] * gradients[nodeIdx][0] * coeff;
+                    fluxY -= conductivityValues[nodeIdx] * gradients[nodeIdx][1] * coeff;
                 }
                 results.emplace_back(fluxX, fluxY);
             }
         }
         return results;
+    }
+
+    std::vector<NodeFlux> IElementLinear2D::fluxAtGaussPoints() const
+    {
+        const auto gradients = stateGradientsAtGaussPoints();
+        const auto cond = meanConductivity();
+        std::vector<NodeFlux> result;
+        result.reserve(gradients.size());
+        for(const auto & grad : gradients)
+        {
+            result.emplace_back(-cond * grad[0], -cond * grad[1]);
+        }
+        return result;
+    }
+
+    std::vector<std::array<double, 2>> IElementLinear2D::gaussPointGlobalCoordinates() const
+    {
+        const auto numOfIntegrationPoints = IntegrationPoints2D::Instance().count2D();
+        std::vector<std::array<double, 2>> coords;
+        coords.reserve(numOfIntegrationPoints);
+        for(size_t gpIdx = 0; gpIdx < numOfIntegrationPoints; ++gpIdx)
+        {
+            coords.push_back({m_Global2D.xg(gpIdx), m_Global2D.yg(gpIdx)});
+        }
+        return coords;
+    }
+
+    double IElementLinear2D::meanConductivity() const
+    {
+        double total{0.0};
+        std::size_t count{0};
+        for(const auto & cond : m_ConductanceFunctions)
+        {
+            for(const auto value : cond->values(m_Nodes))
+            {
+                total += value;
+                ++count;
+            }
+        }
+        return count == 0 ? 0.0 : total / static_cast<double>(count);
     }
 
     INode2D & IElementLinear2D::getNode(const std::size_t index) const
