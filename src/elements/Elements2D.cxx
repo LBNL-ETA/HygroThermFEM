@@ -1,5 +1,4 @@
 #include <numeric>
-#include <fstream>
 
 #ifdef STL_MULTITHREADING
 #    include <execution>
@@ -234,24 +233,6 @@ namespace HygroThermFEM
         std::vector<NodeFlux> result(maxNodeIndex, {0, 0});
 
         std::vector<std::vector<NodeFlux>> fluxes(maxNodeIndex, std::vector<NodeFlux>());
-
-        // TEMP diagnostic for the CI/IGU heat-flux crash: report sizes and any element node index
-        // that exceeds maxNodeIndex (which would be an out-of-bounds into fluxes/result).
-        {
-            std::size_t maxElementNode = 0;
-            for(const auto & element : m_Elements)
-            {
-                const auto indexes = element->nodeIndexes();
-                for(size_t i = 0; i < numOfQuadrilateralNodes; ++i)
-                {
-                    maxElementNode = std::max<std::size_t>(maxElementNode, indexes[i]);
-                }
-            }
-            std::ofstream log("D:\\tmp\\htf_steady.log", std::ios::app);
-            log << "    [flux] maxNodeIndex=" << maxNodeIndex << " maxElementNodeIndex=" << maxElementNode
-                << " elements=" << m_Elements.size() << "\n";
-            log.flush();
-        }
 
 #ifdef STL_MULTITHREADING
         std::mutex mtx;

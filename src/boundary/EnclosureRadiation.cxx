@@ -1,7 +1,6 @@
 #include "EnclosureRadiation.hxx"
 
 #include <cmath>
-#include <fstream>
 #include <set>
 
 #include <WCEViewer.hpp>
@@ -109,37 +108,7 @@ namespace HygroThermFEM
 
     void EnclosureRadiation::solveIfNeeded()
     {
-        {
-            std::ofstream log("D:\\tmp\\htf_steady.log", std::ios::app);
-            log << "    [encl] solveIfNeeded ENTER segments=" << m_Segments.size()
-                << " emis=" << m_Emissivity.size() << " envVF=" << m_EnvironmentViewFactor.size()
-                << " vfRows=" << m_ViewFactors.size()
-                << " vfRow0Cols=" << (m_ViewFactors.empty() ? 0u : m_ViewFactors[0].size())
-                << " isOpen=" << m_IsOpen.size() << " envTk=" << m_EnvironmentTempKelvin.size() << "\n";
-            log.flush();
-        }
-        {
-            std::size_t maxSegNode = 0;
-            for(const auto & seg : m_Segments)
-            {
-                maxSegNode = std::max(maxSegNode, std::max(seg.node1, seg.node2));
-            }
-            std::ofstream log("D:\\tmp\\htf_steady.log", std::ios::app);
-            log << "    [encl] nodePoolMaxIndex=" << m_Nodes.maxIndex() << " maxSegmentNodeId=" << maxSegNode
-                << "\n";
-            for(std::size_t s = 0; s < m_Segments.size(); ++s)
-            {
-                log << "      seg" << s << " n1=" << m_Segments[s].node1 << " n2=" << m_Segments[s].node2
-                    << " enc=" << m_Segments[s].enclosureId << "\n";
-            }
-            log.flush();
-        }
         const auto temperatures = currentSegmentTemperatures();
-        {
-            std::ofstream log("D:\\tmp\\htf_steady.log", std::ios::app);
-            log << "    [encl] temps ok (" << temperatures.size() << ")\n";
-            log.flush();
-        }
         if(m_Solved && temperatures == m_CachedTemperatures)
         {
             return;
@@ -160,11 +129,6 @@ namespace HygroThermFEM
                 environmentEmissivePower[idx] = sigma * std::pow(m_EnvironmentTempKelvin[idx], 4);
             }
         }
-        {
-            std::ofstream log("D:\\tmp\\htf_steady.log", std::ios::app);
-            log << "    [encl] emissive ok\n";
-            log.flush();
-        }
 
         // Radiosity system  (I - (1 - eps) F) J = eps Eb + (1 - eps) Fenv Eb_env.
         std::vector<std::vector<double>> systemData(count, std::vector<double>(count, 0.0));
@@ -182,44 +146,8 @@ namespace HygroThermFEM
                                      * environmentEmissivePower[row];
         }
 
-        // TEMP diagnostic for the CI/IGU enclosure-radiation crash: report system size, any
-        // non-finite entries (e.g. NaN view factors from degenerate gap-as-BC segments), and bracket
-        // the matrix inverse so we can tell whether it is the inverse that faults. Remove with the
-        // rest of the steady debug instrumentation.
-        {
-            int nonFiniteSystem = 0;
-            int nonFiniteRhs = 0;
-            for(const auto & systemRow : systemData)
-            {
-                for(const double value : systemRow)
-                {
-                    if(!std::isfinite(value))
-                    {
-                        ++nonFiniteSystem;
-                    }
-                }
-            }
-            for(const double value : rightHandSide)
-            {
-                if(!std::isfinite(value))
-                {
-                    ++nonFiniteRhs;
-                }
-            }
-            std::ofstream log("D:\\tmp\\htf_steady.log", std::ios::app);
-            log << "    [encl] solveIfNeeded count=" << count << " nonFiniteSystem=" << nonFiniteSystem
-                << " nonFiniteRhs=" << nonFiniteRhs << "; before inverse\n";
-            log.flush();
-        }
-
         const FenestrationCommon::SquareMatrix system{systemData};
         const auto radiosity = system.inverse() * rightHandSide;
-
-        {
-            std::ofstream log("D:\\tmp\\htf_steady.log", std::ios::app);
-            log << "    [encl] after inverse\n";
-            log.flush();
-        }
 
         // Irradiation G_i and the effective radiant temperature T_rad,i = (G_i / sigma)^(1/4).
         m_RadiantTemperature.assign(count, 0.0);
