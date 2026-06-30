@@ -52,12 +52,12 @@ TEST_F(TestMaterialChecker, TestExample_1)
     EXPECT_EQ(matCheckSteadyState.isMaterialLibraryCorrect(), false);
     EXPECT_EQ(matCheckSteadyState[0].Density, false);
     EXPECT_EQ(matCheckSteadyState[0].Emissivity, true);
-    EXPECT_EQ(matCheckSteadyState[0].Porosity, true);
+    EXPECT_EQ(matCheckSteadyState[0].Porosity, false);
     EXPECT_EQ(matCheckSteadyState[0].SpecificHeatCapacityDry, false);
     EXPECT_EQ(matCheckSteadyState[0].ThermalConductivityDry, true);
-    EXPECT_EQ(matCheckSteadyState[0].WaterVaporDiffusionResistanceFactor, true);
-    EXPECT_EQ(matCheckSteadyState[0].MoistureStorageFunction, true);
-    EXPECT_EQ(matCheckSteadyState[0].LiquidTransportationSuction, true);
+    EXPECT_EQ(matCheckSteadyState[0].WaterVaporDiffusionResistanceFactor, false);
+    EXPECT_EQ(matCheckSteadyState[0].MoistureStorageFunction, false);
+    EXPECT_EQ(matCheckSteadyState[0].LiquidTransportationSuction, false);
     EXPECT_EQ(matCheckSteadyState[0].LiquidTransportationRedistribution, false);
     EXPECT_EQ(matCheckSteadyState[0].ThermalConductivityMoistureAndTemperatureDependent, false);
 }
@@ -99,9 +99,9 @@ TEST_F(TestMaterialChecker, TestExample_2)
     EXPECT_EQ(matCheckSteadyState[0].Porosity, false);
     EXPECT_EQ(matCheckSteadyState[0].SpecificHeatCapacityDry, false);
     EXPECT_EQ(matCheckSteadyState[0].ThermalConductivityDry, true);
-    EXPECT_EQ(matCheckSteadyState[0].WaterVaporDiffusionResistanceFactor, true);
-    EXPECT_EQ(matCheckSteadyState[0].MoistureStorageFunction, true);
-    EXPECT_EQ(matCheckSteadyState[0].LiquidTransportationSuction, true);
+    EXPECT_EQ(matCheckSteadyState[0].WaterVaporDiffusionResistanceFactor, false);
+    EXPECT_EQ(matCheckSteadyState[0].MoistureStorageFunction, false);
+    EXPECT_EQ(matCheckSteadyState[0].LiquidTransportationSuction, false);
     EXPECT_EQ(matCheckSteadyState[0].LiquidTransportationRedistribution, false);
     EXPECT_EQ(matCheckSteadyState[0].ThermalConductivityMoistureAndTemperatureDependent, false);
 }
@@ -139,13 +139,13 @@ TEST_F(TestMaterialChecker, TestExample_3)
     EXPECT_EQ(matCheckSteadyState.size(), 1u);
     EXPECT_EQ(matCheckSteadyState.isMaterialLibraryCorrect(), false);
     EXPECT_EQ(matCheckSteadyState[0].Density, false);
-    EXPECT_EQ(matCheckSteadyState[0].Emissivity, false);
-    EXPECT_EQ(matCheckSteadyState[0].Porosity, true);
+    EXPECT_EQ(matCheckSteadyState[0].Emissivity, true);
+    EXPECT_EQ(matCheckSteadyState[0].Porosity, false);
     EXPECT_EQ(matCheckSteadyState[0].SpecificHeatCapacityDry, false);
-    EXPECT_EQ(matCheckSteadyState[0].ThermalConductivityDry, false);
-    EXPECT_EQ(matCheckSteadyState[0].WaterVaporDiffusionResistanceFactor, true);
-    EXPECT_EQ(matCheckSteadyState[0].MoistureStorageFunction, true);
-    EXPECT_EQ(matCheckSteadyState[0].LiquidTransportationSuction, true);
+    EXPECT_EQ(matCheckSteadyState[0].ThermalConductivityDry, true);
+    EXPECT_EQ(matCheckSteadyState[0].WaterVaporDiffusionResistanceFactor, false);
+    EXPECT_EQ(matCheckSteadyState[0].MoistureStorageFunction, false);
+    EXPECT_EQ(matCheckSteadyState[0].LiquidTransportationSuction, false);
     EXPECT_EQ(matCheckSteadyState[0].LiquidTransportationRedistribution, false);
     EXPECT_EQ(matCheckSteadyState[0].ThermalConductivityMoistureAndTemperatureDependent, false);
 }
@@ -200,10 +200,10 @@ TEST_F(TestMaterialChecker, TestExample_4)
     EXPECT_EQ(matCheckSteadyState.isMaterialLibraryCorrect(), false);
     EXPECT_EQ(matCheckSteadyState[0].Density, false);
     EXPECT_EQ(matCheckSteadyState[0].Emissivity, true);
-    EXPECT_EQ(matCheckSteadyState[0].Porosity, true);
+    EXPECT_EQ(matCheckSteadyState[0].Porosity, false);
     EXPECT_EQ(matCheckSteadyState[0].SpecificHeatCapacityDry, false);
     EXPECT_EQ(matCheckSteadyState[0].ThermalConductivityDry, true);
-    EXPECT_EQ(matCheckSteadyState[0].WaterVaporDiffusionResistanceFactor, true);
+    EXPECT_EQ(matCheckSteadyState[0].WaterVaporDiffusionResistanceFactor, false);
     EXPECT_EQ(matCheckSteadyState[0].MoistureStorageFunction, false);
     EXPECT_EQ(matCheckSteadyState[0].LiquidTransportationSuction, false);
     EXPECT_EQ(matCheckSteadyState[0].LiquidTransportationRedistribution, false);
@@ -264,8 +264,8 @@ TEST_F(TestMaterialChecker, TestExample_5)
     EXPECT_EQ(matCheckSteadyState[0].SpecificHeatCapacityDry, false);
     EXPECT_EQ(matCheckSteadyState[0].ThermalConductivityDry, true);
     EXPECT_EQ(matCheckSteadyState[0].WaterVaporDiffusionResistanceFactor, false);
-    EXPECT_EQ(matCheckSteadyState[0].MoistureStorageFunction, true);
-    EXPECT_EQ(matCheckSteadyState[0].LiquidTransportationSuction, true);
+    EXPECT_EQ(matCheckSteadyState[0].MoistureStorageFunction, false);
+    EXPECT_EQ(matCheckSteadyState[0].LiquidTransportationSuction, false);
     EXPECT_EQ(matCheckSteadyState[0].LiquidTransportationRedistribution, false);
     EXPECT_EQ(matCheckSteadyState[0].ThermalConductivityMoistureAndTemperatureDependent, false);
 }
