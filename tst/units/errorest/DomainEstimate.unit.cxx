@@ -59,10 +59,10 @@ TEST(DomainEstimate, LinearFieldHasNearZeroError)
     HygroThermFEM::MultiDomain multiDomain({.performThermal = true, .performMoisture = false});
     buildGrid(multiDomain, linear);
 
-    const auto result = HygroThermFEM::errorest::estimateError(multiDomain.thermal(), 2.0);
+    const auto estimate = HygroThermFEM::errorest::estimateError(multiDomain.thermal(), 2.0);
 
-    EXPECT_LT(result.globalErrorPercent, 1e-6);
-    EXPECT_TRUE(result.elementsToRefine.empty());
+    EXPECT_LT(estimate.result.globalErrorPercent, 1e-6);
+    EXPECT_TRUE(estimate.result.elementsToRefine.empty());
 }
 
 TEST(DomainEstimate, NonLinearFieldHasErrorAndFlagsElements)
@@ -75,8 +75,8 @@ TEST(DomainEstimate, NonLinearFieldHasErrorAndFlagsElements)
     HygroThermFEM::MultiDomain multiDomain({.performThermal = true, .performMoisture = false});
     buildGrid(multiDomain, quadratic);
 
-    const auto result = HygroThermFEM::errorest::estimateError(multiDomain.thermal(), 0.0);
+    const auto estimate = HygroThermFEM::errorest::estimateError(multiDomain.thermal(), 0.0);
 
-    EXPECT_GT(result.globalErrorPercent, 0.0);
-    EXPECT_FALSE(result.elementsToRefine.empty());
+    EXPECT_GT(estimate.result.globalErrorPercent, 0.0);
+    EXPECT_FALSE(estimate.result.elementsToRefine.empty());
 }
