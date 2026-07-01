@@ -13,8 +13,10 @@ namespace HygroThermFEM
     SquareMatrix BoundaryConditions2D::HMatrix(const size_t maxNodeIndex,
                                                const size_t timestepIndex) const
     {
-        std::vector<std::vector<double>> result{maxNodeIndex,
-                                                std::vector<double>(maxNodeIndex, 0)};
+        // Assemble directly into a triplet list. The H-matrix has only the boundary-node 2x2 blocks
+        // populated, so the previous dense maxNodeIndex x maxNodeIndex intermediate allocated and
+        // scanned O(n^2) storage for a handful of nonzeros -- setFromTriplets sums the duplicates.
+        std::vector<Eigen::Triplet<double>> tripletList;
         forEachActiveBC(timestepIndex, [&](const IBCLinear2D & bcItem)
         {
             const auto indexes = bcItem.getNodeIndexes();
@@ -23,11 +25,13 @@ namespace HygroThermFEM
             {
                 for(size_t col = 0; col < 2; ++col)
                 {
-                    result[indexes[row] - 1][indexes[col] - 1] += matH(row, col);
+                    tripletList.emplace_back(static_cast<int>(indexes[row] - 1),
+                                             static_cast<int>(indexes[col] - 1),
+                                             matH(row, col));
                 }
             }
         });
-        return SquareMatrix{result};
+        return SquareMatrix{maxNodeIndex, tripletList};
     }
 
     std::vector<double> BoundaryConditions2D::RVector(const size_t maxNodeIndex,

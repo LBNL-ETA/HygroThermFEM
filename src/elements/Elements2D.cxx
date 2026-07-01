@@ -10,7 +10,13 @@ namespace HygroThermFEM
 {
     SquareMatrix ElementsLinear2D::conductanceMatrix(const size_t maxNodeIndex)
     {
-        SquareMatrix result{maxNodeIndex};
+        // Assemble into a triplet list and build the sparse matrix once via setFromTriplets (which
+        // sums duplicate (row, col) entries -- exactly the FE assembly semantics). Inserting element
+        // contributions one at a time with coeffRef into an unreserved sparse matrix is ~O(nnz^2)
+        // and dominated the steady-state solve.
+        constexpr size_t entriesPerElement{numOfQuadrilateralNodes * numOfQuadrilateralNodes};
+        std::vector<Eigen::Triplet<double>> tripletList;
+        tripletList.reserve(m_Elements.size() * entriesPerElement);
 
 #ifdef STL_MULTITHREADING
 
@@ -20,41 +26,43 @@ namespace HygroThermFEM
                       std::begin(m_Elements),
                       std::end(m_Elements),
                       [&](auto && aElement) {
-                          auto indexes = aElement->nodeIndexes();
-                          auto conductance = aElement->DDuMatrices();
-                          // auto testConductance = conductance.toVector();
-                          auto condDer = aElement->DpDuMatrices();
-                          // auto testCondDer = condDer.toVector();
-                          mtx.lock();
+                          const auto indexes = aElement->nodeIndexes();
+                          const auto conductance = aElement->DDuMatrices();
+                          const auto condDer = aElement->DpDuMatrices();
+                          std::vector<Eigen::Triplet<double>> local;
+                          local.reserve(entriesPerElement);
                           for(size_t i = 0; i < numOfQuadrilateralNodes; ++i)
                           {
                               for(size_t j = 0; j < numOfQuadrilateralNodes; ++j)
                               {
-                                  result(indexes[i] - 1, indexes[j] - 1) +=
-                                    conductance(i, j) + condDer(i, j);
+                                  local.emplace_back(static_cast<int>(indexes[i] - 1),
+                                                     static_cast<int>(indexes[j] - 1),
+                                                     conductance(i, j) + condDer(i, j));
                               }
                           }
-                          mtx.unlock();
+                          const std::lock_guard<std::mutex> guard{mtx};
+                          tripletList.insert(tripletList.end(), local.begin(), local.end());
                       });
 
 #else
         for(const auto & element : m_Elements)
         {
-            auto indexes = element->nodeIndexes();
-            auto conductance = element->DDuMatrices();
-            // auto testConductance = conductance.toVector();
-            auto condDer = element->DpDuMatrices();
+            const auto indexes = element->nodeIndexes();
+            const auto conductance = element->DDuMatrices();
+            const auto condDer = element->DpDuMatrices();
             for(size_t i = 0; i < numOfQuadrilateralNodes; ++i)
             {
                 for(size_t j = 0; j < numOfQuadrilateralNodes; ++j)
                 {
-                    result(indexes[i] - 1, indexes[j] - 1) += conductance(i, j) + condDer(i, j);
+                    tripletList.emplace_back(static_cast<int>(indexes[i] - 1),
+                                             static_cast<int>(indexes[j] - 1),
+                                             conductance(i, j) + condDer(i, j));
                 }
             }
         }
 #endif
 
-        return result;
+        return SquareMatrix{maxNodeIndex, tripletList};
     }
 
     std::vector<double> ElementsLinear2D::getLumpedMass(const size_t maxNodeIndex,
