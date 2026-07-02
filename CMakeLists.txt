@@ -4,7 +4,7 @@ set(target_name HygroThermFEM)
 
 cmake_policy(SET CMP0048 NEW)
 
-project(${target_name} VERSION 1.0.64 LANGUAGES CXX)
+project(${target_name} VERSION 1.0.65 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 
@@ -75,7 +75,7 @@ set(BUILD_KeffC_TESTING OFF CACHE BOOL "Build KeffCavity tests" FORCE)
 # TEMPORARY (co-development): this KeffCavity branch pins Windows-CalcEngine to its enclosure
 # view-factor feature branch, which provides Viewer::computeEnclosureViewFactors. Revert to a
 # released KeffCavity tag once the WCE engine lands.
-set(KeffCavity_Branch "feature/enclosure-view-factors")
+set(KeffCavity_Branch "Version_1.1.5")
 
 if(NOT TARGET KeffCavity)
     FetchContent_Declare(
