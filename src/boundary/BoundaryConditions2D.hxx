@@ -9,6 +9,15 @@
 
 namespace HygroThermFEM
 {
+    //! \brief Heat rate through one boundary-condition element (a two-node boundary segment).
+    //! Positive when heat leaves the domain through the segment (outward-normal convention).
+    struct BoundaryHeatRate
+    {
+        size_t node1{0u};
+        size_t node2{0u};
+        double heatRate{0.0};
+    };
+
     //! \brief Container for all boundary conditions.
     //!
     //! Beside simple container that will hold all kinds of boundary conditions, responsibility of
@@ -39,6 +48,20 @@ namespace HygroThermFEM
         //! @param timestepIndex Timestep index for which matrix being calculated. It is defaulted
         //! to zero for single boundary condition input
         std::vector<double> RVector(size_t maxNodeIndex, size_t timestepIndex = 0) const;
+
+        //! \brief Per boundary-condition-element heat rates from the solved node values.
+        //!
+        //! Each element's rate is the consistent boundary-side reintegration sum_i((H*u - R)_i)
+        //! evaluated with the current node values of the given state variable: the exact heat the
+        //! boundary condition exchanges with the discrete solution (the same quantity legacy
+        //! Conrad's "eb" routines report per segment). Boundary segments without a boundary
+        //! condition (natural/adiabatic) exchange nothing and produce no entry. Nonlinear boundary
+        //! conditions evaluate their H/R at the current node state, so on a converged solution the
+        //! rates are consistent with the final assembly.
+        //! @param variable State variable of the owning domain (Variable::temperature for thermal).
+        //! @param timestepIndex Timestep index; zero for steady state.
+        [[nodiscard]] std::vector<BoundaryHeatRate> heatRates(Variable variable,
+                                                              size_t timestepIndex = 0) const;
 
         //! Returns linearity of the problem. It is important for domain to know what set of
         //! equations should be applied.

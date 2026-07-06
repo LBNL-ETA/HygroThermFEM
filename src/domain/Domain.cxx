@@ -484,6 +484,11 @@ namespace HygroThermFEM
         return m_Elements.flux(m_NodePool.maxIndex());
     }
 
+    std::vector<BoundaryHeatRate> IDomain::boundaryHeatRates(const Variable variable) const
+    {
+        return m_BCs.heatRates(variable);
+    }
+
     const ElementsLinear2D & IDomain::elements() const
     {
         return m_Elements;

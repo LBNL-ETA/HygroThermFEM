@@ -1,3 +1,5 @@
+#include <array>
+
 #include "BoundaryConditions2D.hxx"
 
 namespace HygroThermFEM
@@ -46,6 +48,36 @@ namespace HygroThermFEM
             {
                 result[indexes[idx] - 1] += vecR[idx];
             }
+        });
+        return result;
+    }
+
+    std::vector<BoundaryHeatRate> BoundaryConditions2D::heatRates(const Variable variable,
+                                                                  const size_t timestepIndex) const
+    {
+        std::vector<BoundaryHeatRate> result;
+        forEachActiveBC(timestepIndex, [&](const IBCLinear2D & bcItem)
+        {
+            const auto indexes = bcItem.getNodeIndexes();
+            const auto matH = bcItem.H_Matrix();
+            const auto vecR = bcItem.R_Vector();
+
+            std::array<double, numOfBCNodes> values{};
+            for(size_t idx = 0; idx < numOfBCNodes; ++idx)
+            {
+                values[idx] = bcItem.getNode(idx).property(variable);
+            }
+
+            double rate{0.0};
+            for(size_t row = 0; row < numOfBCNodes; ++row)
+            {
+                for(size_t col = 0; col < numOfBCNodes; ++col)
+                {
+                    rate += matH(row, col) * values[col];
+                }
+                rate -= vecR[row];
+            }
+            result.push_back({indexes[0], indexes[1], rate});
         });
         return result;
     }

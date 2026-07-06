@@ -83,6 +83,12 @@ namespace HygroThermFEM
         //! Returns flux in x and y direction
         [[nodiscard]] std::vector<NodeFlux> flux() const;
 
+        //! \brief Per boundary-condition-element heat rates from the solved node values.
+        //! The consistent boundary-side reintegration sum((H*u - R)) per boundary element;
+        //! positive when heat leaves the domain (see BoundaryConditions2D::heatRates).
+        //! @param variable State variable of this domain (Variable::temperature for thermal).
+        [[nodiscard]] std::vector<BoundaryHeatRate> boundaryHeatRates(Variable variable) const;
+
         //! \brief Read-only access to the domain's elements.
         //! Used by the error-estimator adapter to assemble per-element Gauss-point data from a
         //! solved domain.
