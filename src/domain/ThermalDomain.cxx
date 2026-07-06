@@ -262,10 +262,11 @@ namespace HygroThermFEM
     void ThermalDomain::createEnclosureRadiation(
       const std::vector<EnclosureRadiationSegment> & segments,
       const std::map<std::size_t, double> & openEnclosureTemperatures,
-      const bool smoothViewFactors)
+      const bool smoothViewFactors,
+      const EnclosureSurfaceTemperature surfaceTemperature)
     {
         auto coordinator = std::make_unique<EnclosureRadiation>(
-          m_NodePool, segments, openEnclosureTemperatures, smoothViewFactors);
+          m_NodePool, segments, openEnclosureTemperatures, smoothViewFactors, surfaceTemperature);
         auto & coordinatorRef = *coordinator;
         m_EnclosureRadiations.push_back(std::move(coordinator));
 

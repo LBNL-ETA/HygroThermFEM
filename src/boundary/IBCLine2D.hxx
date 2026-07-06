@@ -63,8 +63,27 @@ namespace HygroThermFEM
                           std::size_t Index                    //!< Shape function index
         );
 
+        //! Interpolates a nodal state variable to the given integration point.
+        [[nodiscard]] double gaussPointProperty(std::size_t integrationPointIndex,
+                                                Variable variable) const;
+
+        //! Gauss-point weighted psi*psi matrix: matrix_jk = sum_g det * c_g * psi_j(g) * psi_k(g).
+        //! For boundary coefficients that vary along the segment: the coefficient is evaluated at
+        //! the integration points (legacy Conrad's convention for temperature-dependent boundary
+        //! coefficients) instead of at the nodes, and the result is symmetric.
+        [[nodiscard]] SquareMatrix
+          psiPsiGaussWeighted(const std::vector<double> & gaussCoefficients) const;
+
+        //! Gauss-point weighted psi vector: vector_j = sum_g det * c_g * psi_j(g).
+        [[nodiscard]] std::vector<double>
+          psiGaussWeighted(const std::vector<double> & gaussCoefficients) const;
+
         LineNodes2D m_Nodes;
         bool m_Linear;
+
+        //! Jacobian of the two-node boundary segment (half its length), shared by all the
+        //! Gauss-integrated quantities.
+        double m_Determinant{0.0};
 
         //! Matrix that is base for all boundary conditions. It needs to be modified for
         //! coefficients and that will depend on type of boundary conditions

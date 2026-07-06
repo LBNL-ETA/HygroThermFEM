@@ -187,14 +187,24 @@ namespace HygroThermFEM
         m_RadiationTemperature{radiationTemperature}
     {}
 
+    std::vector<double> IRadiationBC::gaussRadiationCoefficients() const
+    {
+        std::vector<double> result(numOfIntegrationPoints(), 0.0);
+        for(std::size_t idx = 0; idx < result.size(); ++idx)
+        {
+            result[idx] = radiationCoefficientAt(gaussPointProperty(idx, Variable::temperature));
+        }
+        return result;
+    }
+
     std::vector<double> IRadiationBC::R_Vector() const
     {
-        return m_PsiVector * radiationCoefficients() * m_RadiationTemperature;
+        return psiGaussWeighted(gaussRadiationCoefficients()) * m_RadiationTemperature;
     }
 
     SquareMatrix IRadiationBC::H_Matrix() const
     {
-        return m_PsiPsiMatrix.mmultRows(radiationCoefficients());
+        return psiPsiGaussWeighted(gaussRadiationCoefficients());
     }
 
     ////////////////////////////////////////////////////////
@@ -210,18 +220,13 @@ namespace HygroThermFEM
         m_Emissivity{emissivity}
     {}
 
-    std::vector<double> BlackBodyRadiationBC::radiationCoefficients() const
+    double BlackBodyRadiationBC::radiationCoefficientAt(const double surfaceTemperature) const
     {
-        std::vector<double> result(numOfBCNodes, 0);
-        for(std::size_t idx = 0; idx < numOfBCNodes; ++idx)
-        {
-            const double surfaceTemp = celsiusToKelvin(m_Nodes[idx].property(Variable::temperature));
-            const double radiationTemp = celsiusToKelvin(m_RadiationTemperature);
-            result[idx] = (surfaceTemp + radiationTemp)
-                          * (radiationTemp * radiationTemp + surfaceTemp * surfaceTemp)
-                          * Constants::STEFANBOLTZMANN * m_Emissivity;
-        }
-        return result;
+        const double surfaceTemp = celsiusToKelvin(surfaceTemperature);
+        const double radiationTemp = celsiusToKelvin(m_RadiationTemperature);
+        return (surfaceTemp + radiationTemp)
+               * (radiationTemp * radiationTemp + surfaceTemp * surfaceTemp)
+               * Constants::STEFANBOLTZMANN * m_Emissivity;
     }
 
     ////////////////////////////////////////////////////////
@@ -236,9 +241,9 @@ namespace HygroThermFEM
         m_RadiationCoefficient(linearRadBC.RadiationCoefficient)
     {}
 
-    std::vector<double> LinearizedRadiationBC::radiationCoefficients() const
+    double LinearizedRadiationBC::radiationCoefficientAt(const double /*surfaceTemperature*/) const
     {
-        return std::vector<double>(numOfBCNodes, m_RadiationCoefficient);
+        return m_RadiationCoefficient;
     }
 
     ////////////////////////////////////////////////////////
@@ -258,13 +263,14 @@ namespace HygroThermFEM
     {}
 
     std::vector<double>
-      EnclosureRadiationBC::radiationCoefficients(const double radiantTemperature) const
+      EnclosureRadiationBC::gaussRadiationCoefficients(const double radiantTemperature) const
     {
-        std::vector<double> result(numOfBCNodes, 0);
+        std::vector<double> result(numOfIntegrationPoints(), 0.0);
         const double radiationTemp = celsiusToKelvin(radiantTemperature);
-        for(std::size_t idx = 0; idx < numOfBCNodes; ++idx)
+        for(std::size_t idx = 0; idx < result.size(); ++idx)
         {
-            const double surfaceTemp = celsiusToKelvin(m_Nodes[idx].property(Variable::temperature));
+            const double surfaceTemp =
+              celsiusToKelvin(gaussPointProperty(idx, Variable::temperature));
             result[idx] = (surfaceTemp + radiationTemp)
                           * (radiationTemp * radiationTemp + surfaceTemp * surfaceTemp)
                           * Constants::STEFANBOLTZMANN * m_Emissivity;
@@ -272,15 +278,59 @@ namespace HygroThermFEM
         return result;
     }
 
+    double EnclosureRadiationBC::isothermalCoefficient(const double surfaceTemperature,
+                                                       const double radiantTemperature) const
+    {
+        const double surfaceKelvin = celsiusToKelvin(surfaceTemperature);
+        const double radiantKelvin = celsiusToKelvin(radiantTemperature);
+        return (surfaceKelvin + radiantKelvin)
+               * (radiantKelvin * radiantKelvin + surfaceKelvin * surfaceKelvin)
+               * Constants::STEFANBOLTZMANN * m_Emissivity;
+    }
+
     std::vector<double> EnclosureRadiationBC::R_Vector() const
     {
         const double radiantTemperature = m_Coordinator.effectiveRadiantTemperature(m_SegmentIndex);
-        return m_PsiVector * radiationCoefficients(radiantTemperature) * radiantTemperature;
+        if(m_Coordinator.surfaceTemperatureModel() == EnclosureSurfaceTemperature::LocalTemperature)
+        {
+            return psiGaussWeighted(gaussRadiationCoefficients(radiantTemperature))
+                   * radiantTemperature;
+        }
+
+        // Conrad-compatible (segment-isothermal): the whole segment radiates uniformly at the
+        // fourth-power-mean surface temperature, so the net flux h * (tsurf - Trad) is shared
+        // equally by the two nodes. H stays the h * PsiPsi tangent (keeps Newton-Raphson
+        // convergent); the difference between the interpolated nodal temperature and the uniform
+        // tsurf is lagged into R at the current state, which vanishes into the Conrad fixed point
+        // at convergence: flux_i = (H*T - R)_i = psi_i * h * (tsurf - Trad).
+        const double surfaceTemperature = m_Coordinator.segmentSurfaceTemperature(m_SegmentIndex);
+        const double hCoefficient = isothermalCoefficient(surfaceTemperature, radiantTemperature);
+        std::vector<double> result(numOfBCNodes, 0.0);
+        for(std::size_t row = 0; row < numOfBCNodes; ++row)
+        {
+            double interpolated{0.0};
+            for(std::size_t col = 0; col < numOfBCNodes; ++col)
+            {
+                interpolated +=
+                  m_PsiPsiMatrix(row, col) * m_Nodes[col].property(Variable::temperature);
+            }
+            result[row] = hCoefficient
+                          * (m_PsiVector[row] * (radiantTemperature - surfaceTemperature)
+                             + interpolated);
+        }
+        return result;
     }
 
     SquareMatrix EnclosureRadiationBC::H_Matrix() const
     {
         const double radiantTemperature = m_Coordinator.effectiveRadiantTemperature(m_SegmentIndex);
-        return m_PsiPsiMatrix.mmultRows(radiationCoefficients(radiantTemperature));
+        if(m_Coordinator.surfaceTemperatureModel() == EnclosureSurfaceTemperature::LocalTemperature)
+        {
+            return psiPsiGaussWeighted(gaussRadiationCoefficients(radiantTemperature));
+        }
+        const double surfaceTemperature = m_Coordinator.segmentSurfaceTemperature(m_SegmentIndex);
+        const std::vector<double> gaussCoefficients(
+          numOfIntegrationPoints(), isothermalCoefficient(surfaceTemperature, radiantTemperature));
+        return psiPsiGaussWeighted(gaussCoefficients);
     }
 }   // namespace HygroThermFEM

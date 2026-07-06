@@ -237,9 +237,13 @@ namespace HygroThermFEM
                      bool isLinear = true            //!< Whether the BC is linear
         );
 
-        //! Returns radiation coefficients for each boundary node.
-        //! Derived classes implement specific calculation methods.
-        [[nodiscard]] virtual std::vector<double> radiationCoefficients() const = 0;
+        //! Radiation coefficient for a given surface temperature [C]. Derived classes implement
+        //! specific calculation methods. H/R integrate it at the Gauss points on the interpolated
+        //! surface temperature (legacy Conrad's convention), not at the nodes.
+        [[nodiscard]] virtual double radiationCoefficientAt(double surfaceTemperature) const = 0;
+
+        //! Radiation coefficients evaluated at each integration point of the segment.
+        [[nodiscard]] std::vector<double> gaussRadiationCoefficients() const;
 
         double m_RadiationTemperature;
     };
@@ -267,7 +271,7 @@ namespace HygroThermFEM
 
     protected:
         //! Radiative coefficient calculated using Stefan-Boltzmann law based on current temperatures
-        [[nodiscard]] std::vector<double> radiationCoefficients() const override;
+        [[nodiscard]] double radiationCoefficientAt(double surfaceTemperature) const override;
 
     private:
         double m_Emissivity;
@@ -290,8 +294,8 @@ namespace HygroThermFEM
                               const LinearizedRadiationBCCoefficients & linearRadBC);
 
     protected:
-        //! Returns constant radiation coefficient for each boundary node
-        [[nodiscard]] std::vector<double> radiationCoefficients() const override;
+        //! Returns the constant pre-calculated radiation coefficient (temperature-independent)
+        [[nodiscard]] double radiationCoefficientAt(double surfaceTemperature) const override;
 
     private:
         double m_RadiationCoefficient;
@@ -322,8 +326,16 @@ namespace HygroThermFEM
         [[nodiscard]] SquareMatrix H_Matrix() const override;
 
     private:
-        //! Stefan-Boltzmann radiative coefficients per node, using the coordinator's radiant temp.
-        [[nodiscard]] std::vector<double> radiationCoefficients(double radiantTemperature) const;
+        //! Stefan-Boltzmann radiative coefficients at each integration point, using the
+        //! coordinator's radiant temperature and the interpolated surface temperature
+        //! (LocalTemperature model).
+        [[nodiscard]] std::vector<double>
+          gaussRadiationCoefficients(double radiantTemperature) const;
+
+        //! Stefan-Boltzmann coefficient for the uniform segment surface temperature
+        //! (SegmentIsothermal / Conrad-compatible model).
+        [[nodiscard]] double isothermalCoefficient(double surfaceTemperature,
+                                                   double radiantTemperature) const;
 
         double m_Emissivity;
         EnclosureRadiation & m_Coordinator;

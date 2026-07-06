@@ -279,10 +279,14 @@ namespace HygroThermFEM
         //! @param segments Enclosure radiation segments (node indices, emissivity, enclosure id).
         //! @param openEnclosureTemperatures Environment temperature [C] for each open enclosure id.
         //! @param smoothViewFactors Apply least-squares smoothing to closed enclosures.
+        //! @param surfaceTemperature Segment surface-temperature convention (Conrad-compatible
+        //! isothermal by default; LocalTemperature is the refined along-segment treatment).
         void createEnclosureRadiation(
           const std::vector<EnclosureRadiationSegment> & segments,
           const std::map<std::size_t, double> & openEnclosureTemperatures = {},
-          bool smoothViewFactors = true);
+          bool smoothViewFactors = true,
+          EnclosureSurfaceTemperature surfaceTemperature =
+            EnclosureSurfaceTemperature::SegmentIsothermal);
 
     protected:
         void postProcess(std::vector<double> & solution) override;

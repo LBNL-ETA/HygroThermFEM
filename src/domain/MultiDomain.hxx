@@ -356,7 +356,9 @@ namespace HygroThermFEM
         void createEnclosureRadiation(
           const std::vector<EnclosureRadiationSegment> & segments,
           const std::map<std::size_t, double> & openEnclosureTemperatures = {},
-          bool smoothViewFactors = true);
+          bool smoothViewFactors = true,
+          EnclosureSurfaceTemperature surfaceTemperature =
+            EnclosureSurfaceTemperature::SegmentIsothermal);
 
         //! \brief Sets new gravity vector and performs new calculations
         //!

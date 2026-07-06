@@ -8,6 +8,19 @@ namespace HygroThermFEM
 {
     class Nodes;
 
+    //! \brief How an enclosure surface's temperature enters the radiation exchange.
+    enum class EnclosureSurfaceTemperature
+    {
+        //! Legacy-Conrad convention (bcrad2): each segment is isothermal at the fourth-power mean
+        //! of its node temperatures, and the segment's uniform net flux is shared equally by its
+        //! two nodes. Reproduces Conrad's enclosure results.
+        SegmentIsothermal,
+        //! The surface temperature varies along the segment (Gauss-point interpolation in the
+        //! boundary condition, linear-mean segment temperature in the radiosity). More refined
+        //! than Conrad; produces slightly different corner temperatures on coarse meshes.
+        LocalTemperature
+    };
+
     //! \brief What kind of surface an enclosure segment is.
     enum class EnclosureSurfaceKind
     {
@@ -59,10 +72,14 @@ namespace HygroThermFEM
         //! \param openEnclosureTemperatures For each OPEN (auto) enclosure id, the environment
         //! temperature [C]. Enclosures absent from the map are closed.
         //! \param smoothViewFactors Apply least-squares smoothing to closed enclosures.
+        //! \param surfaceTemperature Segment surface-temperature convention (Conrad-compatible
+        //! isothermal by default).
         EnclosureRadiation(Nodes & nodePool,
                            std::vector<EnclosureRadiationSegment> segments,
                            std::map<std::size_t, double> openEnclosureTemperatures,
-                           bool smoothViewFactors = true);
+                           bool smoothViewFactors = true,
+                           EnclosureSurfaceTemperature surfaceTemperature =
+                             EnclosureSurfaceTemperature::SegmentIsothermal);
 
         [[nodiscard]] std::size_t numberOfSegments() const;
 
@@ -70,12 +87,20 @@ namespace HygroThermFEM
         //! radiosity at the current nodal temperatures. Re-solves only when temperatures change.
         [[nodiscard]] double effectiveRadiantTemperature(std::size_t segmentIndex);
 
+        //! The surface-temperature convention this coordinator (and its BCs) follow.
+        [[nodiscard]] EnclosureSurfaceTemperature surfaceTemperatureModel() const;
+
+        //! Segment surface temperature [C] under the current convention (for SegmentIsothermal,
+        //! the fourth-power mean of the node temperatures - the value the segment radiates at).
+        [[nodiscard]] double segmentSurfaceTemperature(std::size_t segmentIndex);
+
     private:
         void solveIfNeeded();
         [[nodiscard]] std::vector<double> currentSegmentTemperatures() const;
 
         Nodes & m_Nodes;
         std::vector<EnclosureRadiationSegment> m_Segments;
+        EnclosureSurfaceTemperature m_SurfaceTemperature;
 
         std::vector<std::vector<double>> m_ViewFactors;   //!< block-diagonal, [i][j]
         std::vector<double> m_EnvironmentViewFactor;      //!< per segment (open-enclosure deficit)

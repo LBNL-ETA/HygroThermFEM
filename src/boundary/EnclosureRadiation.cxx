@@ -19,9 +19,11 @@ namespace HygroThermFEM
     EnclosureRadiation::EnclosureRadiation(Nodes & nodePool,
                                            std::vector<EnclosureRadiationSegment> segments,
                                            std::map<std::size_t, double> openEnclosureTemperatures,
-                                           const bool smoothViewFactors) :
+                                           const bool smoothViewFactors,
+                                           const EnclosureSurfaceTemperature surfaceTemperature) :
         m_Nodes(nodePool),
-        m_Segments(std::move(segments))
+        m_Segments(std::move(segments)),
+        m_SurfaceTemperature(surfaceTemperature)
     {
         const auto count = m_Segments.size();
 
@@ -101,7 +103,20 @@ namespace HygroThermFEM
               m_Nodes.getNode(segment.node1).property(Variable::temperature);
             const auto temperature2 =
               m_Nodes.getNode(segment.node2).property(Variable::temperature);
-            result.push_back(0.5 * (temperature1 + temperature2));
+            if(m_SurfaceTemperature == EnclosureSurfaceTemperature::SegmentIsothermal)
+            {
+                // Conrad's convention (bcrad2): the segment radiates at the fourth-power mean of
+                // its node temperatures, ts = (0.5 (T1^4 + T2^4))^(1/4), evaluated in Kelvin.
+                const auto kelvin1{celsiusToKelvin(temperature1)};
+                const auto kelvin2{celsiusToKelvin(temperature2)};
+                const auto meanKelvin{
+                  std::pow(0.5 * (std::pow(kelvin1, 4) + std::pow(kelvin2, 4)), 0.25)};
+                result.push_back(meanKelvin - zeroCelsiusInKelvin);
+            }
+            else
+            {
+                result.push_back(0.5 * (temperature1 + temperature2));
+            }
         }
         return result;
     }
@@ -170,5 +185,16 @@ namespace HygroThermFEM
     {
         solveIfNeeded();
         return m_RadiantTemperature[segmentIndex];
+    }
+
+    EnclosureSurfaceTemperature EnclosureRadiation::surfaceTemperatureModel() const
+    {
+        return m_SurfaceTemperature;
+    }
+
+    double EnclosureRadiation::segmentSurfaceTemperature(const std::size_t segmentIndex)
+    {
+        solveIfNeeded();
+        return m_CachedTemperatures[segmentIndex];
     }
 }   // namespace HygroThermFEM

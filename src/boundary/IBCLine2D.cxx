@@ -17,7 +17,7 @@ namespace HygroThermFEM
         m_PsiPsiMatrix(numOfBCNodes),
         m_PsiVector(numOfBCNodes, 0)
     {
-        const double det =
+        m_Determinant =
           0.5
           * sqrt(pow(m_Nodes[0].X() - m_Nodes[1].X(), 2) + pow(m_Nodes[0].Y() - m_Nodes[1].Y(), 2));
 
@@ -28,11 +28,53 @@ namespace HygroThermFEM
             {
                 for(std::size_t k = 0; k < numOfBCNodes; ++k)
                 {
-                    m_PsiPsiMatrix(j, k) += det * psi(i, j) * psi(i, k);
+                    m_PsiPsiMatrix(j, k) += m_Determinant * psi(i, j) * psi(i, k);
                 }
-                m_PsiVector[j] += det * psi(i, j);
+                m_PsiVector[j] += m_Determinant * psi(i, j);
             }
         }
+    }
+
+    double IBCLinear2D::gaussPointProperty(const std::size_t integrationPointIndex,
+                                           const Variable variable) const
+    {
+        double result{0.0};
+        for(std::size_t idx = 0; idx < numOfBCNodes; ++idx)
+        {
+            result += psi(integrationPointIndex, idx) * m_Nodes[idx].property(variable);
+        }
+        return result;
+    }
+
+    SquareMatrix IBCLinear2D::psiPsiGaussWeighted(const std::vector<double> & gaussCoefficients) const
+    {
+        SquareMatrix result(numOfBCNodes);
+        for(std::size_t idx = 0; idx < numOfIntegrationPoints(); ++idx)
+        {
+            for(std::size_t row = 0; row < numOfBCNodes; ++row)
+            {
+                for(std::size_t col = 0; col < numOfBCNodes; ++col)
+                {
+                    result(row, col) +=
+                      m_Determinant * gaussCoefficients[idx] * psi(idx, row) * psi(idx, col);
+                }
+            }
+        }
+        return result;
+    }
+
+    std::vector<double>
+      IBCLinear2D::psiGaussWeighted(const std::vector<double> & gaussCoefficients) const
+    {
+        std::vector<double> result(numOfBCNodes, 0.0);
+        for(std::size_t idx = 0; idx < numOfIntegrationPoints(); ++idx)
+        {
+            for(std::size_t row = 0; row < numOfBCNodes; ++row)
+            {
+                result[row] += m_Determinant * gaussCoefficients[idx] * psi(idx, row);
+            }
+        }
+        return result;
     }
 
     std::vector<size_t> IBCLinear2D::getNodeIndexes() const

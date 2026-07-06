@@ -1,3 +1,4 @@
+#include <cmath>
 #include <map>
 #include <vector>
 #include <gtest/gtest.h>
@@ -50,6 +51,38 @@ TEST(EnclosureRadiation, IsothermalClosedSquareSeesSurfaceTemperature)
     {
         EXPECT_NEAR(temperature, enclosure.effectiveRadiantTemperature(idx), 1e-6);
     }
+}
+
+// The two surface-temperature conventions: with a temperature gradient along a segment, the
+// Conrad-compatible SegmentIsothermal model radiates at the fourth-power mean of the node
+// temperatures (evaluated in Kelvin), while LocalTemperature uses the linear mean. Equal node
+// temperatures make the conventions coincide.
+TEST(EnclosureRadiation, SurfaceTemperatureConventions)
+{
+    constexpr double coldEnd = 0.0;
+    constexpr double hotEnd = 20.0;
+    auto nodes = unitSquareNodes(coldEnd, hotEnd, hotEnd, coldEnd);
+    const auto segments = closedSquareSegments(0.9);
+
+    EnclosureRadiation isothermal(
+      nodes, segments, {}, true, EnclosureSurfaceTemperature::SegmentIsothermal);
+    EnclosureRadiation local(
+      nodes, segments, {}, true, EnclosureSurfaceTemperature::LocalTemperature);
+
+    // Left wall (nodes 1-2) spans 0 C to 20 C.
+    constexpr double kelvinOffset = 273.15;
+    const double fourthPowerMean =
+      std::pow(0.5 * (std::pow(coldEnd + kelvinOffset, 4) + std::pow(hotEnd + kelvinOffset, 4)),
+               0.25)
+      - kelvinOffset;
+
+    EXPECT_NEAR(fourthPowerMean, isothermal.segmentSurfaceTemperature(0), 1e-9);
+    EXPECT_NEAR(0.5 * (coldEnd + hotEnd), local.segmentSurfaceTemperature(0), 1e-9);
+    EXPECT_GT(isothermal.segmentSurfaceTemperature(0), local.segmentSurfaceTemperature(0));
+
+    // Top wall (nodes 2-3) is uniform at 20 C: the conventions coincide.
+    EXPECT_NEAR(hotEnd, isothermal.segmentSurfaceTemperature(1), 1e-9);
+    EXPECT_NEAR(hotEnd, local.segmentSurfaceTemperature(1), 1e-9);
 }
 
 // A closed enclosure with hot (left) and cold (right) walls: each segment's radiant temperature

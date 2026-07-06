@@ -581,10 +581,11 @@ namespace HygroThermFEM
     void MultiDomain::createEnclosureRadiation(
       const std::vector<EnclosureRadiationSegment> & segments,
       const std::map<std::size_t, double> & openEnclosureTemperatures,
-      const bool smoothViewFactors)
+      const bool smoothViewFactors,
+      const EnclosureSurfaceTemperature surfaceTemperature)
     {
         m_ThermalDomain.createEnclosureRadiation(
-          segments, openEnclosureTemperatures, smoothViewFactors);
+          segments, openEnclosureTemperatures, smoothViewFactors, surfaceTemperature);
     }
 
     double MultiDomain::normError(const std::vector<double> & vec1,
