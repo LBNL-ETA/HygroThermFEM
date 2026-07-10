@@ -33,7 +33,8 @@ namespace
     WallRunResult runStuccoWall(const double initialHumidity,
                                 const unsigned numberOfSteps,
                                 const std::string & csvPath = {},
-                                const double dTime = 360.0)
+                                const double dTime = 360.0,
+                                const unsigned meshScale = 1)
     {
         WallRunResult result;
         HygroThermFEM::MultiDomain multiDomain;
@@ -56,10 +57,10 @@ namespace
           .height(0.05)
           .numElementsY(1)
           .state(initialState)
-          .addSegment({.material = stucco.name(), .numElementsX = 4, .width = 0.0254})
-          .addSegment({.material = panel.name(), .numElementsX = 3, .width = 0.01905})
-          .addSegment({.material = fiberglass.name(), .numElementsX = 6, .width = 0.0762})
-          .addSegment({.material = gypsum.name(), .numElementsX = 4, .width = 0.0254})
+          .addSegment({.material = stucco.name(), .numElementsX = 4 * meshScale, .width = 0.0254})
+          .addSegment({.material = panel.name(), .numElementsX = 3 * meshScale, .width = 0.01905})
+          .addSegment({.material = fiberglass.name(), .numElementsX = 6 * meshScale, .width = 0.0762})
+          .addSegment({.material = gypsum.name(), .numElementsX = 4 * meshScale, .width = 0.0254})
           .build();
 
         const HygroThermFEM::FixedBCHCCoefficients exterior{10.0, 7.0, 0.1};
@@ -182,6 +183,22 @@ TEST(ThermSample_StuccoWall, NearSaturatedNoLatentHeat)
             EXPECT_GT(val, 10.0 - 2.0);
             EXPECT_LT(val, 40.0 + 2.0);
         }
+    }
+}
+
+TEST(ThermSample_StuccoWall, DISABLED_NearSaturatedFineMesh)
+{
+    // THERM-mesh-density probe: same case, 8x finer mesh (~136 elements). Chases the
+    // "Linear solver failed to factorize the system matrix" reported from THERM.
+    for(const double phi0 : {0.99, 0.999, 0.99999})
+    {
+        const auto result = runStuccoWall(phi0, 20, {}, 360.0, 8);
+        std::cout << "[FineMesh] phi0=" << phi0
+                  << (result.completed ? " completed" : (" FAILED: " + result.error))
+                  << (result.completed
+                        ? ", max|T|=" + std::to_string(maxAbsValue(result.temperatures))
+                        : "")
+                  << std::endl;
     }
 }
 
