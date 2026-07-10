@@ -218,6 +218,24 @@ this change.
 
 ---
 
+## 6b. Fix progress (branch `high-moisture-solver-audit`)
+
+| Defect | Status | Notes |
+|---|---|---|
+| **D6** capacity | **Implemented + verified** | `SorptionSecantCapacity` replaces the tangent `dw/dphi` in the moisture element. Engine closed-strip drift 6% → **1.5e-4**. Thermal tests all green. Sweep total violations ~halved, worst case 34 → 14. New test: `tst/units/transient/MoistureMassConservation.unit.cxx`. |
+| **D1** vapor weak form | Pending | Targets the large-ΔT `ExtremeHumidity` cases (still violating under every setting). Moisture element only. Verify with the 1D reference under an imposed ∇T. |
+| **D3** convergence | Pending | Targets the settings-sensitivity. Shared `IDomain` — guard thermal with the full suite. |
+| **D2 / D5** | Deferred | Robustness / phase-change; revisit after D1, D3. |
+
+**Golden-test re-baseline (deferred, intentional):** the D6 capacity change shifts 24 moisture
+/ coupled golden tests (they encode the old non-conservative behaviour; shifts up to ~40% at
+near-saturation nodes). D1 and D3 will shift moisture values again, so the golden expected
+values are **re-baselined once, after all moisture fixes land**, each verified against the 1D
+reference — not three times. Until then those 24 tests are expected-red; **all pure-thermal
+tests stay green**. Verified pieces so far: the mass-conservation test passes, and the
+`hygrothermfem_python` oracle confirms the secant scheme (MMS order + machine-precision
+conservation).
+
 ## 7. What to verify next (Python 1D reference)
 
 - **Scenario 1 — isothermal, moisture-only:** term (B) is inert, so C++ and a correct 1D
