@@ -43,6 +43,36 @@ namespace HygroThermFEM
         return SquareMatrix{aMatrix};
     }
 
+    SquareMatrix
+      IQLEIntegrator2D::integrateInterpolated(const std::vector<double> & t_Values) const
+    {
+        const auto count = IntegrationPoints2D::Instance().count2D();
+        const auto & localElement = QuadrilateralLinearLocal2D::Instance();
+
+        std::vector<std::vector<double>> aMatrix{numOfQuadrilateralNodes,
+                                                 std::vector<double>(numOfQuadrilateralNodes, 0)};
+        for(auto integrationPoint = 0u; integrationPoint < count; ++integrationPoint)
+        {
+            const auto & psi = localElement.Psi(integrationPoint);
+            auto coefficient = 0.0;
+            for(size_t idx = 0; idx < t_Values.size(); ++idx)
+            {
+                coefficient += psi[idx] * t_Values[idx];
+            }
+
+            auto & intPointMatrix = m_IntegrationMatrix[integrationPoint];
+            for(size_t row = 0; row < t_Values.size(); ++row)
+            {
+                for(size_t col = 0; col < t_Values.size(); ++col)
+                {
+                    aMatrix[row][col] += intPointMatrix(row, col) * coefficient;
+                }
+            }
+        }
+
+        return SquareMatrix{aMatrix};
+    }
+
     //////////////////////////////////////////////////////////////////////////////
     ///  QLEDDUConductance2D
     //////////////////////////////////////////////////////////////////////////////
@@ -252,7 +282,9 @@ namespace HygroThermFEM
         for(const auto & cond : m_DDuFunctions)
         {
             const auto values = cond->values(m_Nodes);
-            result += DDuIntegrator.integrate(values);
+            result += m_InterpolateCoefficientsAtGaussPoints
+                        ? DDuIntegrator.integrateInterpolated(values)
+                        : DDuIntegrator.integrate(values);
         }
 
         return result;
@@ -271,7 +303,9 @@ namespace HygroThermFEM
             const auto aDerivatives = cond.derivativeValue->values(m_Nodes);
             qleDpDuIntegrator2D.setIndependentVariables(aDerivatives);
             const auto values = cond.fixedValue->values(m_Nodes);
-            result += qleDpDuIntegrator2D.integrate(values);
+            result += m_InterpolateCoefficientsAtGaussPoints
+                        ? qleDpDuIntegrator2D.integrateInterpolated(values)
+                        : qleDpDuIntegrator2D.integrate(values);
         }
 
         // Consistent (integrated-by-parts) coupling terms. Only the moisture element
@@ -283,7 +317,9 @@ namespace HygroThermFEM
             const auto aDerivatives = cond.derivativeValue->values(m_Nodes);
             qleDpDuConsistentIntegrator2D.setIndependentVariables(aDerivatives);
             const auto values = cond.fixedValue->values(m_Nodes);
-            result += qleDpDuConsistentIntegrator2D.integrate(values);
+            result += m_InterpolateCoefficientsAtGaussPoints
+                        ? qleDpDuConsistentIntegrator2D.integrateInterpolated(values)
+                        : qleDpDuConsistentIntegrator2D.integrate(values);
         }
 
         return result;
@@ -579,7 +615,7 @@ namespace HygroThermFEM
         //////////////////////////////////////////////////////////////////////
         if(m_Material.hasDiffusionResistanceFactor())
         {
-            const auto delta = Constant(2.5E-5 / m_Material.diffusionResistanceFactor());
+            const VaporPermeability delta{m_Material.diffusionResistanceFactor()};
             if(!SimulationProperties::Instance().excludeHeatOfEvaporation())
             {
                 auto evaporationHeat = HeatOfEvaporation() * delta;
@@ -615,7 +651,7 @@ namespace HygroThermFEM
         if(!SimulationProperties::Instance().excludeVaporDiffusionConduction()
            && m_Material.hasDiffusionResistanceFactor())
         {
-            const auto delta = Constant(2.5E-5 / m_Material.diffusionResistanceFactor());
+            const VaporPermeability delta{m_Material.diffusionResistanceFactor()};
             auto vapCond = Constant(-1) * delta * Constants::Cp_Vapor;
             StateValue vaporContent(Variable::vapor);
 
@@ -641,12 +677,22 @@ namespace HygroThermFEM
         // approximately and leaks ~1% under strong temperature gradients. See D6-refinement.
         m_LumpCapacityNodally = true;
 
+        // Interpolate transport coefficients at Gauss points instead of the pairwise nodal
+        // average: with interpolation the column sums of every transport matrix telescope
+        // to exactly zero, so total moisture is conserved for ANY spatially varying
+        // coefficient (c_sat(T) under a temperature gradient in particular) -- even at
+        // not-fully-converged iterates. The pairwise average was the source of the ~1%
+        // closed-strip moisture creation in the D1 gradient diagnostic.
+        m_InterpolateCoefficientsAtGaussPoints = true;
+
         //////////////////////////////////////////////////////////////////////////////
         /// Water vapor diffusion
         //////////////////////////////////////////////////////////////////////////////
         if(m_Material.hasDiffusionResistanceFactor())
         {
-            Constant delta(2.5E-5 / m_Material.diffusionResistanceFactor());
+            // Non-const: the DpDuConsistent template stores a copy through unique_ptr<IValue>,
+            // which a const-deduced T cannot provide.
+            VaporPermeability delta{m_Material.diffusionResistanceFactor()};
             auto conductance = delta * SaturationFunction();
 
             // The vapour term grad.(delta grad(phi c_sat)) splits into a moisture-gradient

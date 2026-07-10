@@ -37,6 +37,19 @@ namespace HygroThermFEM
                       t_Values   //!< Nodal values for which integration will be performed
                     ) const final;
 
+        //! \brief Integrate with the coefficient interpolated at each Gauss point via the
+        //! shape functions (coeff_g = sum_l psi_l(g) * t_Values[l]) instead of the pairwise
+        //! nodal average 0.5*(k_row + k_col) used by integrate().
+        //!
+        //! The pairwise average breaks discrete conservation when the coefficient varies
+        //! inside an element: the column sums sum_row M(row,col) * 0.5*(k_row + k_col) do
+        //! not vanish, which acts as a spurious interior moisture source wherever the
+        //! coefficient has a gradient (e.g. c_sat(T) under a temperature gradient). With
+        //! the Gauss-point-interpolated coefficient the column sums telescope to exactly
+        //! zero for ANY spatially varying coefficient, because sum_row grad(psi_row) = 0
+        //! pointwise. Used by the moisture element; thermal assembly keeps integrate().
+        SquareMatrix integrateInterpolated(const std::vector<double> & t_Values) const;
+
     protected:
 
         const QuadrilateralLinearGlobal2D & m_Global2D;
@@ -398,6 +411,14 @@ namespace HygroThermFEM
         //! to the change in stored moisture, giving machine-precision conservation (D6). Set
         //! by the moisture element; thermal keeps the default (false) so its mass is unchanged.
         bool m_LumpCapacityNodally{false};
+
+        //! When true, DDu/DpDu coefficients are interpolated at each Gauss point via the
+        //! shape functions (IQLEIntegrator2D::integrateInterpolated) instead of the pairwise
+        //! nodal average. The pairwise average is non-conservative for coefficients that vary
+        //! inside an element (e.g. delta*c_sat(T) under a temperature gradient) and was the
+        //! source of the ~1% closed-strip moisture creation in the D1 diagnostic. Set by the
+        //! moisture element; thermal keeps the default (false) so its assembly is unchanged.
+        bool m_InterpolateCoefficientsAtGaussPoints{false};
 
     private:
         //! \brief Used to evaluate complex differential equation with two variable functions. One
