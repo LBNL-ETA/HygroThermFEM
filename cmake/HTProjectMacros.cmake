@@ -62,10 +62,16 @@ function( install_remote_plist SOURCE DESTINATION APP_NAME )
 endfunction()
 
 # Add google tests macro
-macro(ADD_GOOGLE_TESTS executable)
+# Named _HTFEM to avoid the global-macro collision with dependencies that define their
+# own ADD_GOOGLE_TESTS (e.g. KeffCavity, whose copy still has the unanchored-regex bug
+# fixed below): with the shared name, whichever project configures last silently wins.
+macro(ADD_GOOGLE_TESTS_HTFEM executable)
   foreach ( source ${ARGN} )
-    string(REGEX MATCH .*cpp|.*cc source "${source}")
-    if(source)
+    # Anchored to the extension: the historical unanchored `.*cpp|.*cc` also matched any
+    # PATH containing the letters "cc" (e.g. ...StuccoWall.unit.cxx), truncated it at the
+    # match, and then file(READ) of the nonexistent truncated path broke the configure.
+    string(REGEX MATCH "\\.(cpp|cc)$" match_ext "${source}")
+    if(match_ext)
       file(READ "${source}" contents)
       string(REGEX MATCHALL "TEST_?F?\\(([A-Za-z_0-9 ,]+)\\)" found_tests ${contents})
       foreach(hit ${found_tests})
@@ -115,7 +121,7 @@ macro( CREATE_TEST_TARGETS_HTFEM BASE_NAME SRC DEPENDENCIES )
       gtest 
     )
 
-    ADD_GOOGLE_TESTS( ${BASE_NAME}_tests ${SRC} )
+    ADD_GOOGLE_TESTS_HTFEM( ${BASE_NAME}_tests ${SRC} )
   endif()
 endmacro()
 
