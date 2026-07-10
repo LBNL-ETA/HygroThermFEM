@@ -200,6 +200,22 @@ that scales with the (adaptive) sub-step size.
 Disabled with an author note that it is incorrect and "solver is not producing correct
 results" (`Element2D.cxx:458`); must be reconciled with the thermal latent-heat coupling.
 
+### D6. Non-conservative capacity → moisture-mass drift (found via the 1D reference)
+The engine discretizes the storage term as `ξ(φ) ∂φ/∂t` with `ξ = dw/dφ` evaluated at the
+current iterate (`Cap(dw/dφ)`, `Element2D.cxx:594`; lumped mass, `Elements2D.cxx:115`). This
+**non-conservative** form does not conserve total moisture `∫w(φ)` when `ξ` varies steeply
+over a step — precisely the near-saturation regime (Cottaer `w`: 63→180 kg/m³ over `φ`
+0.99→1.0). The clean-room 1D reference reproduces this: with zero-flux boundaries (no moisture
+may enter or leave), the naive `ξ φ_t` form **leaked ~6.2% of total moisture** over a 20-step
+run, while the mass-conservative form (secant capacity `(w−w_old)/(φ−φ_old)` with lumped mass,
+the Celia et al. 1990 "modified Picard" scheme) conserved mass to machine precision. Spurious
+creation/destruction of moisture directly produces non-physical, parameter-sensitive
+results in high-moisture cases.
+
+**Fix direction:** switch the moisture capacity to the mass-conservative (Celia) form. The
+`hygrothermfem_python` reference implements and verifies both forms and is the oracle for
+this change.
+
 ---
 
 ## 7. What to verify next (Python 1D reference)
