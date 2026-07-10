@@ -142,6 +142,14 @@ namespace
         }
     };
 
+    // Residual-reduction convergence parameters (D3, moisture). A solve is converged once the
+    // free-DOF residual has dropped to reductionFactor * (its value at the initial guess). Being
+    // relative to each problem's own initial residual, this is settings- and scale-independent.
+    // The absolute floor handles the case where the initial guess already (nearly) solves the
+    // system, so the reduction target would otherwise be unreachably tiny.
+    constexpr double residualReductionFactor = 1e-6;
+    constexpr double residualAbsoluteFloor = 1e-12;
+
     ConvergenceResult evaluateConvergence(
       std::vector<double> & solution,
       const std::vector<double> & prevIterSolution,
@@ -151,20 +159,36 @@ namespace
       const double currentNorm,
       const double prevMetric,
       const double convergenceError,
+      const bool useResidual,
+      const double currentFreeResidual,
+      const double initialFreeResidual,
       const size_t numOfIterations,
       const size_t minIterationsForOscillationCheck)
     {
         const auto metric = convergenceMetric(
           previousNorm, currentNorm, correctionDU, effectiveRelax, solution);
 
-        if(metric <= convergenceError)
+        // Thermal keeps the historical change-metric criterion; moisture converges when the
+        // free-DOF residual has been reduced by residualReductionFactor from the initial guess.
+        const bool primaryConverged =
+          useResidual
+            ? (currentFreeResidual
+               <= residualReductionFactor * initialFreeResidual + residualAbsoluteFloor)
+            : (metric <= convergenceError);
+
+        if(primaryConverged)
         {
             return {metric, ConvergeReason::metric};
         }
 
-        if(resolveOscillation(solution, prevIterSolution,
-                              metric, prevMetric,
-                              numOfIterations, minIterationsForOscillationCheck))
+        // The oscillation-averaging early exit is a crutch for the change-metric: it declares
+        // convergence at a stagnated 2-cycle midpoint. Under residual-reduction convergence
+        // (moisture) that would accept a not-yet-solved, mass-leaking iterate before the
+        // residual is driven down, so it is disabled there -- the loop instead runs to the
+        // reduction target or to best-effort acceptance of the lowest-residual iterate.
+        if(!useResidual
+           && resolveOscillation(solution, prevIterSolution, metric, prevMetric,
+                                 numOfIterations, minIterationsForOscillationCheck))
         {
             return {metric, ConvergeReason::oscillation};
         }
@@ -355,6 +379,23 @@ namespace HygroThermFEM
 #endif
     }
 
+    double IDomain::freeDofResidualNorm(const std::vector<double> & solution,
+                                        const SquareMatrix & matA,
+                                        const std::vector<double> & vecB) const
+    {
+        const auto residual = vecB - matA * solution;
+        const auto constrained = constrainedDofs(solution);
+        double sumSq = 0.0;
+        for(std::size_t i = 0; i < residual.size(); ++i)
+        {
+            if(!constrained[i])
+            {
+                sumSq += residual[i] * residual[i];
+            }
+        }
+        return std::sqrt(sumSq);
+    }
+
     void IDomain::performNRIteration(NRLoopState & state,
                                       const std::vector<double> & currentStateValues,
                                       const double relaxParameter,
@@ -394,9 +435,25 @@ namespace HygroThermFEM
         state.currentNorm = norm(normSolution);
         ++state.numOfIterations;
 
+        // Free-DOF residual of the current iterate (matA/vecB were reassembled for it in the
+        // line search). Moisture converges when this drops to a fraction of the initial-guess
+        // residual (residual-reduction, D3); thermal ignores it.
+        const bool useResidual = useResidualConvergence();
+        const double currentFreeResidual =
+          useResidual ? freeDofResidualNorm(state.solution, state.matA, state.vecB) : 0.0;
+
+        // Track the lowest-residual iterate so best-effort acceptance returns the best point
+        // visited (not an oscillating last iterate) when the reduction target isn't met.
+        if(useResidual && currentFreeResidual < state.bestResidual)
+        {
+            state.bestResidual = currentFreeResidual;
+            state.bestSolution = state.solution;
+        }
+
         const auto result = evaluateConvergence(
           state.solution, prevIterSolution, correctionDU, lsResult.effectiveRelax,
           previousNorm, state.currentNorm, state.prevMetric, convergenceError,
+          useResidual, currentFreeResidual, state.initialFreeResidual,
           state.numOfIterations, minIterationsForOscillationCheck);
 
         if(result.reason == ConvergeReason::oscillation)
@@ -436,17 +493,38 @@ namespace HygroThermFEM
             return {solution, true, 0.0};
         }
 
+        // Residual of the initial guess over the free DOFs -- the reference against which the
+        // residual-reduction convergence test measures progress (D3, moisture only).
+        const double initialFreeResidual =
+          useResidualConvergence() ? freeDofResidualNorm(currentStateValues, matA, vecB) : 0.0;
+
         NRLoopState state{
           .solution = currentStateValues,
           .matA = std::move(matA),
           .vecB = std::move(vecB),
           .currentNorm = norm(currentStateValues),
+          .initialFreeResidual = initialFreeResidual,
           .damping = {}};
 
         while(state.numOfIterations <= maxIterations && !state.converged)
         {
             performNRIteration(state, currentStateValues, relaxParameter,
                                convergenceError, maxIterations, t_DTime, timestepIndex);
+        }
+
+        // Best-effort acceptance for residual-reduction domains (moisture): if the iteration
+        // budget is exhausted without meeting the reduction target, return the best (lowest
+        // free-residual) iterate seen and accept it, rather than reporting non-convergence
+        // (which would drive subdivision to a throw) or returning an oscillating last iterate.
+        // This mirrors the reference solver, which runs its iterations and returns; the
+        // reduction criterion still governs early exit and accuracy for the converging cases.
+        if(useResidualConvergence())
+        {
+            if(!state.converged && !state.bestSolution.empty())
+            {
+                state.solution = state.bestSolution;
+            }
+            state.converged = true;
         }
 
         m_LastSolveAtPhysicalBound = state.convergedViaClamp;

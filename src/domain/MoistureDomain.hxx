@@ -168,5 +168,13 @@ namespace HygroThermFEM
                             double relaxParameter) const override;
         void updateNodes(const std::vector<double> & solution,
                          bool updatePreviousTimestep) override;
+
+        //! Moisture converges on the free-DOF residual reduction (settings-independent). See D3.
+        [[nodiscard]] bool useResidualConvergence() const override;
+
+        //! Marks humidity DOFs pinned at a physical bound (0 or 1); excluded from the
+        //! residual convergence test since their equations are replaced by the bound.
+        [[nodiscard]] std::vector<bool>
+          constrainedDofs(const std::vector<double> & solution) const override;
     };
 }   // namespace HygroThermFEM

@@ -242,4 +242,20 @@ namespace HygroThermFEM
             }
         }
     }
+
+    bool MoistureDomain::useResidualConvergence() const
+    {
+        return true;
+    }
+
+    std::vector<bool> MoistureDomain::constrainedDofs(const std::vector<double> & solution) const
+    {
+        constexpr double boundTolerance = 1e-9;
+        std::vector<bool> mask(solution.size(), false);
+        for(std::size_t i = 0; i < solution.size(); ++i)
+        {
+            mask[i] = (solution[i] <= boundTolerance) || (solution[i] >= 1.0 - boundTolerance);
+        }
+        return mask;
+    }
 }

@@ -138,6 +138,27 @@ namespace HygroThermFEM
                                     std::vector<double> & increment,
                                     double relaxParameter) const;
 
+        //! When true, this domain declares Newton-Raphson convergence from the *reduction* of
+        //! the residual over its free DOFs (see constrainedDofs) -- converged once the residual
+        //! has dropped to a fixed fraction of its value at the initial guess -- instead of from
+        //! the solution-change metric. Being relative to each problem's own initial residual,
+        //! this auto-scales and is independent of the relaxation / tolerance / max-iteration
+        //! settings, removing the solver's contribution to the parameter-sensitivity (D3). The
+        //! base returns false so thermal convergence stays byte-identical.
+        [[nodiscard]] virtual bool useResidualConvergence() const
+        {
+            return false;
+        }
+
+        //! Per-DOF mask marking bound-constrained DOFs (pinned at a physical bound). Their
+        //! equations are replaced by the bound constraint, so they carry an irreducible
+        //! residual and are excluded from the residual convergence test. Base: none.
+        [[nodiscard]] virtual std::vector<bool>
+          constrainedDofs(const std::vector<double> & solution) const
+        {
+            return std::vector<bool>(solution.size(), false);
+        }
+
         //! Updates node values with solution. Implemented by derived classes.
         virtual void updateNodes(const std::vector<double> & solution,
                                  bool updatePreviousTimestep) = 0;
@@ -194,12 +215,23 @@ namespace HygroThermFEM
             SquareMatrix matA;
             std::vector<double> vecB;
             double currentNorm;
+            double initialFreeResidual = 0.0;   //!< Free-DOF residual norm of the initial guess
+                                                //!< (residual-reduction convergence target, D3)
+            std::vector<double> bestSolution;   //!< Lowest-free-residual iterate seen so far,
+                                                //!< returned on best-effort acceptance (D3)
+            double bestResidual = (std::numeric_limits<double>::max)();
             double prevMetric = (std::numeric_limits<double>::max)();
             size_t numOfIterations = 0;
             bool convergedViaClamp = false;
             bool converged = false;
             AdaptiveDamping damping;
         };
+
+        //! L2 norm of the residual (vecB - matA * solution) over the free DOFs only
+        //! (constrainedDofs excluded). Used by the residual-reduction convergence test (D3).
+        [[nodiscard]] double freeDofResidualNorm(const std::vector<double> & solution,
+                                                 const SquareMatrix & matA,
+                                                 const std::vector<double> & vecB) const;
 
         //! \brief Calling timestep calculations
         TimestepResult transientTimestep(
