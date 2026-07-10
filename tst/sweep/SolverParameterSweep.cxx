@@ -154,9 +154,12 @@ namespace
             // Water content must be non-negative
             checker.expectBoundedBelow(results.moisture.values, 0.0, "water content");
 
-            // Humidity BC drives moisture in when bcHumidity >= initialHumidity, so water content
-            // should generally not decrease.
-            if(scenario.bcHumidity >= scenario.initialHumidity)
+            // Per-node monotone wetting only holds for isothermal scenarios: with a
+            // temperature difference, condensation on a still-cold surface followed by
+            // drying as it warms (and vice versa) legitimately makes local water content
+            // non-monotone in time.
+            if(scenario.bcHumidity >= scenario.initialHumidity
+               && scenario.bcTemperature == scenario.initialTemperature)
             {
                 checker.expectNonDecreasing(results.moisture.values, 1.0, "water content");
             }

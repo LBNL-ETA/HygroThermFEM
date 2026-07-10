@@ -81,6 +81,9 @@ TEST(MoistureMassConservation, ClosedStripConservesMoisture)
     for(unsigned i = 0; i < nSteps; ++i)
     {
         humidities = multiDomain.moisture().transient(humidities, dTime).value().solution;
+        // Advance the previous-timestep humidity as MultiDomain::transient does per step;
+        // the secant capacity's conservation telescoping needs the true previous step.
+        multiDomain.nodes().updateNodeHumidities(humidities, true);
         const double m = totalMoisture(multiDomain.nodes().properties(Variable::water));
         maxDrift = std::max(maxDrift, std::abs(m - m0) / m0);
     }
@@ -88,6 +91,7 @@ TEST(MoistureMassConservation, ClosedStripConservesMoisture)
     std::cout << "[MassConservation] initial moisture = " << m0
               << " kg/m, max relative drift = " << maxDrift << "\n";
 
-    // With the mass-conservative secant capacity the closed-system drift must be small.
-    EXPECT_LT(maxDrift, 1e-3);
+    // With the mass-conservative secant capacity (exact nodal lumping) the closed-system
+    // drift is machine precision (measured ~3e-14).
+    EXPECT_LT(maxDrift, 1e-12);
 }
