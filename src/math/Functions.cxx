@@ -68,6 +68,11 @@ namespace HygroThermFEM
                * 1000;
     }
 
+    double vaporDiffusionCoefficientAtTemperature(const double temperature)
+    {
+        return (22.2 + 0.14 * temperature) * 1e-6;
+    }
+
     //////////////////////////////////////////////////////////////////
     ///  IValue
     //////////////////////////////////////////////////////////////////
@@ -405,15 +410,47 @@ namespace HygroThermFEM
     ///  SuctionFunction
     //////////////////////////////////////////////////////////////////
 
+    namespace
+    {
+        //! Physically negligible liquid diffusivity used in place of exact-zero table
+        //! values so the logarithmic (geometric) interpolation stays continuous.
+        //!
+        //! Geometric interpolation against an exact-zero anchor is identically zero across
+        //! the whole segment and then JUMPS to the next table value at the segment end
+        //! (pow(0, 1-f) = 0 for every f < 1) -- a step discontinuity in the coefficient,
+        //! exactly where near-saturation cases iterate. With the floor, D_l decays
+        //! continuously and steeply toward the anchor instead (for Cottaer: ~1e-13 m^2/s
+        //! at w = 10 versus 1e-8 at the first measured point w = 27), which keeps liquid
+        //! transport physically negligible below the first measured point without the
+        //! cliff.
+        constexpr double minLiquidDiffusivity = 1e-15;
+
+        std::vector<FenestrationCommon::point>
+          floorZeroValues(const std::vector<FenestrationCommon::point> & values)
+        {
+            std::vector<FenestrationCommon::point> floored;
+            floored.reserve(values.size());
+            for(const auto & pt : values)
+            {
+                floored.emplace_back(pt.x, (std::max)(pt.y, minLiquidDiffusivity));
+            }
+            return floored;
+        }
+    }   // anonymous namespace
+
     LiquidTransportationCurve::LiquidTransportationCurve(
       const std::vector<FenestrationCommon::point> & vec, const IMaterial & material) :
-        TabularFunction1D(vec, Variable::water, FenestrationCommon::Interpolation::Logarithmic),
+        TabularFunction1D(floorZeroValues(vec),
+                          Variable::water,
+                          FenestrationCommon::Interpolation::Logarithmic),
         m_Material(material)
     {}
 
     LiquidTransportationCurve::LiquidTransportationCurve(
       const std::initializer_list<FenestrationCommon::point> & list, const IMaterial & material) :
-        TabularFunction1D(list, Variable::water, FenestrationCommon::Interpolation::Logarithmic),
+        TabularFunction1D(floorZeroValues(list),
+                          Variable::water,
+                          FenestrationCommon::Interpolation::Logarithmic),
         m_Material(material)
     {}
 
@@ -448,6 +485,20 @@ namespace HygroThermFEM
     double SaturationFunction::evaluateFunction(const double t_position, const double) const
     {
         return saturationConcentrationAtTemperature(t_position);
+    }
+
+    //////////////////////////////////////////////////////////////////
+    ///  VaporPermeability
+    //////////////////////////////////////////////////////////////////
+
+    VaporPermeability::VaporPermeability(const double t_resistanceFactor) :
+        IFunction(Variable::temperature),
+        m_ResistanceFactor(t_resistanceFactor)
+    {}
+
+    double VaporPermeability::evaluateFunction(const double t_position, const double) const
+    {
+        return vaporDiffusionCoefficientAtTemperature(t_position) / m_ResistanceFactor;
     }
 
     //////////////////////////////////////////////////////////////////

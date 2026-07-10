@@ -43,6 +43,13 @@ namespace HygroThermFEM
     //! \return Heat of evaporation
     double heatOfEvaporation(double temperature);
 
+    //! \brief Diffusion coefficient of water vapour in stagnant air (Hagentoft 2001):
+    //! E(T) = (22.2 + 0.14 * T_C) * 1e-6. Equals 2.5e-5 at exactly 20 C.
+    //!
+    //! \param temperature Temperature in Celsius
+    //! \return diffusion coefficient [m^2/s]
+    double vaporDiffusionCoefficientAtTemperature(double temperature);
+
     //! \brief Definition of interface used to perform various calculation(s) over state given in
     //! \brief node(s).
     //!
@@ -629,6 +636,26 @@ namespace HygroThermFEM
     private:
         //! Overriden evaluation function.
         double evaluateFunction(double t_position, double t_previousTimestep) const override;
+    };
+
+    //////////////////////////////////////////////////////////////////
+    ///  VaporPermeability
+    //////////////////////////////////////////////////////////////////
+
+    //! \brief Water vapour permeability delta = E(T) / mu with the temperature-dependent
+    //! diffusion coefficient E(T) per Hagentoft (see vaporDiffusionCoefficientAtTemperature)
+    //! and the material's vapour diffusion resistance factor mu.
+    class VaporPermeability : public IFunction
+    {
+    public:
+        //! \param t_resistanceFactor Material vapour diffusion resistance factor mu [-].
+        explicit VaporPermeability(double t_resistanceFactor);
+
+    private:
+        //! Overriden evaluation function.
+        double evaluateFunction(double t_position, double t_previousTimestep) const override;
+
+        double m_ResistanceFactor;
     };
 
     //////////////////////////////////////////////////////////////////
