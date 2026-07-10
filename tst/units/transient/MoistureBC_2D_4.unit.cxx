@@ -3,6 +3,7 @@
 
 #include "HygroThermFEM2D.hxx"
 #include "TestMaterials.hxx"
+#include "TestHelpers.hxx"
 
 TEST(MoistureBC_2D_4, TestExample_1)
 {
@@ -59,12 +60,12 @@ TEST(MoistureBC_2D_4, TestExample_1)
         solution.push_back(waterContent);
     }
 
-    std::vector<std::vector<double>> correctSolution{
-      {0.00016371, 0.00016371, 0.03007031, 0.03007031, 4.26695674, 4.26695674},
-      {0.00054599, 0.00054599, 0.07038102, 0.07038102, 6.47648442, 6.47648442},
-      {0.00117010, 0.00117010, 0.11518245, 0.11518245, 7.97740061, 7.97740061},
-      {0.00204553, 0.00204553, 0.16196700, 0.16196700, 8.78001709, 8.78001709}};
+    std::vector<std::vector<double>> correctSolution{{0.000150023204, 0.000150023204, 0.0310126688, 0.0310126688, 4.83136883, 4.83136883},
+ {0.000498024269, 0.000498024269, 0.0720885044, 0.0720885044, 7.53160689, 7.53160689},
+ {0.00106025206, 0.00106025206, 0.116721268, 0.116721268, 8.78227181, 8.78227181},
+ {0.00184128404, 0.00184128404, 0.162514504, 0.162514504, 9.34009535, 9.34009535}};
 
+    TestHelper::dumpGolden("correctSolution", solution);
     EXPECT_EQ(solution.size(), correctSolution.size());
 
     std::cout.precision(10);

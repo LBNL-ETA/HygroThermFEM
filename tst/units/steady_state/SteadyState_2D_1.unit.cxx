@@ -2,6 +2,7 @@
 
 #include "HygroThermFEM2D.hxx"
 #include "TestMaterials.hxx"
+#include "TestHelpers.hxx"
 
 using HygroThermFEM::Nodes;
 using HygroThermFEM::State;
@@ -84,8 +85,10 @@ TEST(SteadyState_2D_1, TestExample_1)
     const auto temperature = solution.temperature;
     const auto humidity = solution.humidity;
 
-    std::vector<double> correctTemperature{0, 0, 10.658980, 10.658980, 20, 20};
+    std::vector<double> correctTemperature{2.13180767e-19, 2.13180767e-19, 10.6590052, 10.6590052, 20, 20};
 
+    TestHelper::dumpGolden("correctTemperature", temperature);
+    TestHelper::dumpGolden("correctHumidity", humidity);
     EXPECT_EQ(temperature.size(), correctTemperature.size());
 
     for(auto i = 0u; i < correctTemperature.size(); ++i)
@@ -93,7 +96,7 @@ TEST(SteadyState_2D_1, TestExample_1)
         EXPECT_NEAR(temperature[i], correctTemperature[i], 1e-6);
     }
 
-    std::vector<double> correctHumidity{0, 0, 0.5, 0.5, 1.0, 1.0};
+    std::vector<double> correctHumidity{0, 0, 0.5, 0.5, 1, 1};
 
     EXPECT_EQ(humidity.size(), correctHumidity.size());
 

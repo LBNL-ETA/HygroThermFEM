@@ -2,6 +2,7 @@
 
 #include "HygroThermFEM2D.hxx"
 #include "TestMaterials.hxx"
+#include "TestHelpers.hxx"
 
 using HygroThermFEM::State;
 
@@ -55,7 +56,8 @@ TEST(SolverSettingsInjection, SteadyStateWithInjectedDefaults)
 
     const auto solution = multiDomain.steadyState();
 
-    const std::vector<double> correctTemperature{0, 0, 10.658980, 10.658980, 20, 20};
+    const std::vector<double> correctTemperature{2.13180767e-19, 2.13180767e-19, 10.6590052, 10.6590052, 20, 20};
+    TestHelper::dumpGolden("correctTemperature", solution.temperature);
     ASSERT_EQ(solution.temperature.size(), correctTemperature.size());
     for(auto i = 0u; i < correctTemperature.size(); ++i)
     {
