@@ -372,6 +372,36 @@ namespace HygroThermFEM
     }
 
     //////////////////////////////////////////////////////////////////
+    ///  SorptionSecantCapacity
+    //////////////////////////////////////////////////////////////////
+
+    SorptionSecantCapacity::SorptionSecantCapacity(
+      const std::vector<FenestrationCommon::point> & sorptionCurve, const Variable property) :
+        TabularFunction1D(sorptionCurve, property)
+    {}
+
+    double SorptionSecantCapacity::evaluateFunction(const double t_position,
+                                                    const double t_previousTimestep) const
+    {
+        // w(phi): the sorption curve, via the base class' linear interpolation.
+        const auto w = [this](const double phi) {
+            return TabularFunction1D::evaluateFunction(phi, phi);
+        };
+
+        const double dphi = t_position - t_previousTimestep;
+        constexpr double minDelta = 1e-12;
+        if(std::abs(dphi) > minDelta)
+        {
+            // Secant slope over the step -> mass-conservative capacity.
+            return (w(t_position) - w(t_previousTimestep)) / dphi;
+        }
+
+        // Secant undefined (no change since previous timestep): finite-difference tangent.
+        constexpr double h = 1e-6;
+        return (w(t_position + h) - w(t_position - h)) / (2.0 * h);
+    }
+
+    //////////////////////////////////////////////////////////////////
     ///  SuctionFunction
     //////////////////////////////////////////////////////////////////
 

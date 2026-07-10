@@ -589,9 +589,13 @@ namespace HygroThermFEM
         //////////////////////////////////////////////////////////////////////////////
         if(m_Material.hasSorptionCurve())
         {
-            auto sorptionDerivative2 =
-              TabularDerivativeSmooth(m_Material.sorptionCurve(), Variable::humidity);
-            Cap(sorptionDerivative2);
+            // Mass-conservative (secant) storage capacity: (w(phi) - w(phi_prev)) /
+            // (phi - phi_prev). With the lumped capacity matrix this conserves total
+            // moisture across a step, unlike the tangent dw/dphi which creates/destroys
+            // moisture where the sorption curve is steep (near saturation). See
+            // SorptionSecantCapacity and doc/Moisture Governing Equations.md (D6).
+            SorptionSecantCapacity secantCapacity(m_Material.sorptionCurve(), Variable::humidity);
+            Cap(secantCapacity);
         }
 
         //////////////////////////////////////////////////////////////////////

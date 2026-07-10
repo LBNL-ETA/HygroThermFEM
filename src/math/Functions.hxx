@@ -537,6 +537,35 @@ namespace HygroThermFEM
     };
 
     //////////////////////////////////////////////////////////////////
+    ///  SorptionSecantCapacity
+    //////////////////////////////////////////////////////////////////
+
+    //! \brief Mass-conservative moisture storage capacity xi = dw/dphi.
+    //!
+    //! Instead of the tangent slope dw/dphi evaluated at the current humidity, this
+    //! returns the secant slope (w(phi) - w(phi_prev)) / (phi - phi_prev) between the
+    //! previous-timestep humidity phi_prev and the current iterate phi. With a lumped
+    //! capacity matrix this makes C * (phi - phi_prev) telescope to the change in stored
+    //! moisture w(phi) - w(phi_prev), so the transient scheme conserves total moisture
+    //! even where the sorption curve is steeply nonlinear (near saturation). This is the
+    //! standard mass-conservative ("modified Picard", Celia et al. 1990) treatment of the
+    //! storage term; the previous tangent form could create or destroy moisture over a
+    //! step, producing the non-physical, settings-dependent results seen at high humidity.
+    //!
+    //! When phi has not changed from the previous timestep the secant is undefined and a
+    //! finite-difference tangent is used instead. w(phi) is the material sorption curve,
+    //! evaluated with the same linear interpolation as the rest of the engine.
+    class SorptionSecantCapacity : public TabularFunction1D
+    {
+    public:
+        SorptionSecantCapacity(const std::vector<FenestrationCommon::point> & sorptionCurve,
+                               Variable property);
+
+    protected:
+        double evaluateFunction(double t_position, double t_previousTimestep) const override;
+    };
+
+    //////////////////////////////////////////////////////////////////
     ///  LiquidTransportationCurve
     //////////////////////////////////////////////////////////////////
 
