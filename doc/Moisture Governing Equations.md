@@ -1,12 +1,16 @@
 # Moisture governing equations — reconstructed from the assembly code
 
-> **Status: reverse-engineered, not authoritative.** There is no original
-> differential-equation reference in the repo for the moisture model. This document
+> **Status: validated against the original THERMM documents (2026-07-10).** This document
 > reconstructs the continuous PDE, its weak form, and the discrete system **directly from the
-> element-assembly code** so the equations can be audited. Where the code and a consistent
-> finite-element derivation disagree, that is called out explicitly in
-> [§6 Defects](#6-defects-found). Cross-check against the original ORNL/LBNL formulation when
-> it surfaces.
+> element-assembly code** so the equations can be audited. The reconstruction was cross-checked
+> against the reference documents *THERMM: Theoretical Model* (rev. 03/20/2020) and *THERMM:
+> Numerical Implementation* (rev. 5/28/2019): the PDE (§2), weak form (§3), coefficient
+> formulas (p_sat, R_v, D_phi = xi*D_l) and the moisture BC are all confirmed. D1 turned out
+> to be an erratum in the Numerical Implementation document itself (its appendix §2.14.3 drops
+> `phi div(delta grad c_sat)` between eq. 515 and the discretization); the thermal-side DpDu
+> terms are advective per Theoretical eq. 424 and are **correct as written** (earlier suspicion
+> retracted). Full cross-check, errata and decision log:
+> `D:\Documents\HygroThermFEM Solver\moisture_solver_cross_check.typ`.
 
 Reconstructed from: `src/elements/Element2D.cxx`, `src/elements/Element2D.hxx`,
 `src/elements/Elements2D.cxx`, `src/math/Functions.cxx`, `src/materials/Material.cxx`,
@@ -177,8 +181,17 @@ Consequences:
 `−∫ δ ∇ψ_i·∇(φ c_sat)`, i.e. either put term (B) through the by-parts path (differentiate
 `ψ_i`, keep `φ` from the previous iterate as a coefficient), or move it to a consistent RHS
 source. Quantify the current error against the Python 1D reference with an imposed `∇T`
-([Phase B, scenario 2](#)). The analogous thermal-side vapor/liquid conduction terms
-(`Element2D.cxx:496-539`) use the same `DpDu` pattern and likely need the same correction.
+([Phase B, scenario 2](#)).
+
+> **Document cross-check (2026-07-10):** the Theoretical Model (eq. 36) confirms the full
+> divergence `∇·(δ∇(φ c_sat))` — the consistent form is correct. The original `DpDu` form is
+> exactly what the Numerical Implementation doc §1.3.1.1/[δ^φ] prescribes, but that document's
+> own appendix derivation (§2.14.3) starts from the strong first-order form and silently drops
+> `φ∇·(δ∇c_sat)` relative to its eq. 515 — an erratum in the document, not a deliberate scheme.
+> **Retracted:** the thermal-side vapor/liquid conduction terms (`Element2D.cxx:496-539`) do
+> NOT need the same correction — per Theoretical eq. 424 they are advective enthalpy-transport
+> terms (`C_l g_l·∇T`, `C_v g_v·∇T`), for which the strong-form `DpDu` treatment is the correct
+> discretization. Decision: keep the consistent form in the moisture element only.
 
 ### D2. RH primary variable saturates (structural)
 `φ ∈ [0,1]` cannot represent moisture above `w(φ=1)`. Near saturation `ξ = dw/dφ` blows up
@@ -249,12 +262,23 @@ on branch `high-moisture-solver-audit` (local, **not pushed**). Companion: the c
 reference at `~/Programming/hygrothermfem_python` (its own repo) — the **source of truth for
 correctness** (the sweep is only a smoke test).
 
-### First thing to do with the reference documents (when available)
-Cross-check the reconstructed PDEs (§2–§4) against the real technical/differential-equation
-document. Specifically confirm: (a) the vapour driving potential is `∇·(δ ∇(φ c_sat))` in the
-concentration form the code uses; (b) D1's consistent by-parts split is the intended weak form;
-(c) no transport term (e.g. an air-pressure/advective term, or a temperature-gradient liquid
-term) is missing. This validates or corrects D1 before any more solver work.
+### Reference-document cross-check — DONE (2026-07-10)
+The THERMM documents (Theoretical Model rev. 03/20/2020, Numerical Implementation rev.
+5/28/2019, in `D:\tmp\htf numerical\`) were cross-checked against §2–§4 and the code:
+(a) **Confirmed** — the vapour driving potential is `∇·(δ ∇(φ c_sat))` (Theoretical eq. 36,
+Numerical eq. 515); `p_sat`, `R_v = 461.4`, `D_φ = ξ·D_l` and the moisture BC all match the
+code exactly. (b) **D1 resolved as an erratum in the Numerical doc** — its `[δ^φ]` matrix has
+the test function undifferentiated (the original `DpDu`), but its appendix derivation drops
+`φ∇·(δ∇c_sat)` relative to its own eq. 515; the Theoretical PDE supports the consistent
+by-parts form. Decision: keep `DpDuConsistent`. Thermal-side `DpDu` terms are advective
+(Theoretical eq. 424) and correct as written. (c) **Nothing load-bearing missing** — air
+advection (no air-pressure solver, TODO in code), gravity liquid term (doc drops it too),
+rain `D_φs/D_φr` switch, sources, hysteresis, freezing (D5) are documented-but-deferred.
+**New finding:** the docs prescribe `E(T) = (22.2 + 0.14·T_C)·1e-6` (Hagentoft); code used
+constant `2.5e-5` (the 20 °C value). Decision: adopt E(T) before the golden re-baseline.
+D6 secant capacity deviates from Numerical §1.3.1.5 (tangent) but realizes Theoretical
+eq. 16 discretely — kept. Full errata/decision log:
+`D:\Documents\HygroThermFEM Solver\moisture_solver_cross_check.typ`.
 
 ### What is done and committed (all thermal-green, moisture-only where noted)
 - **D1** — consistent weak form of the temperature-gradient vapour term
@@ -298,12 +322,23 @@ full-subdivision approach is the runaway dead-end above. NOT caused by the multi
 water-content calc (`Node2D::calcWaterContent` normalizes by total weight — verified correct;
 single-material beams show the same overshoot).
 
-### Remaining levers (priority order)
-1. **Re-baseline moisture goldens** → green CI → push.
-2. **First-step overshoot** — lightweight subdivision (above).
-3. **D4 coupling** — add a per-timestep coupling (Picard) iteration in `MultiDomain::transient`;
-   this is the residual `ExtremeHumidity` tolerance/iteration variability.
-4. **D2** — only if ExtremeHumidity persists after D3/D4: RH-formulation limit near saturation.
+### Remaining levers (priority order) — UPDATED 2026-07-10 evening
+1. **Re-baseline moisture goldens** (33 red, all value-shift) → green CI → push.
+2. ~~First-step overshoot~~ **RESOLVED**: the catastrophic step-1 collapse (φ→0 clamp) no
+   longer reproduces after the conservation fixes — an instrumented sweep proved moisture
+   solutions never hit bounds there anymore. Added as insurance anyway: a bounded
+   new-bound-hit retry (`IDomain::resolveShockStep`, moisture-only via
+   `retryStepOnNewBoundHit()`): when a converged step lands DOFs on a physical bound they
+   did not start at, the step is redone ONCE as 8 fixed substeps (no recursion — not the
+   subdivide-on-clamp runaway). Fires exactly once in the whole suite (a hard-drying
+   golden case). The sweep's remaining "violations" were a NAIVE INVARIANT:
+   `expectNonDecreasing(water)` applied to non-isothermal scenarios, where condensation
+   on a cold surface followed by drying as it warms is legitimate physics — now gated to
+   isothermal scenarios only. **Sweep after all fixes: 0 / 120 combinations with issues,
+   0 throws** — full settings- and mesh-independence achieved.
+3. **D4 coupling** — no longer visibly needed (NearSaturation/ExtremeHumidity variability
+   gone from the sweep); revisit only if golden re-baseline cross-checks disagree.
+4. **D2** — same status: only if evidence appears.
 
 ### How to verify (correctness, not the smoke test)
 - Oracle self-checks: `cd ~/Programming/hygrothermfem_python && uv run pytest` (MMS order +
@@ -323,6 +358,64 @@ single-material beams show the same overshoot).
 - Coupling (D4): `src/domain/MultiDomain.cxx` (`transient`).
 - Diagnostics/tests: `tst/units/transient/MoistureMassConservation.unit.cxx`,
   `VaporTemperatureDiffusion.unit.cxx`; `tst/sweep/SolverParameterSweep.cxx`.
+
+### Session log 2026-07-10 — oracle rebuilt, E(T) adopted, engine leak root-caused
+- **Oracle rebuilt** at `D:\Programming\Python\hygrothermfem_python` (uv project, typed,
+  scipy): both D1 forms + both capacity forms selectable; banded O(n) assembly/solve
+  (2001 nodes / 24 steps in 0.05 s); 11 self-checks in ~1 s incl. MMS order 2, analytic
+  steady state `φ = C/c_sat` exact, independent scipy-BDF cross-integration
+  (`solve_reference`), machine-precision conservation; pytest-timeout 60 s.
+- **Oracle findings on D1 (strong form):** (a) NO driving force on uniform φ under ∇T
+  (trial row sums annihilate constant φ — physically wrong); (b) 6.5e-3 closed-strip
+  drift on nonuniform φ (consistent: 5.8e-16); (c) O(1) steady-state bias ~0.26 in φ
+  (consistent: exact to machine).
+- **E(T) adopted** (`vaporDiffusionCoefficientAtTemperature`, `VaporPermeability` in
+  Functions.cxx; three Element2D.cxx sites). Test suite: 148 pass / 30 fail — all
+  failures the known moisture/coupled goldens (one more than before E(T), as expected).
+- **Engine-vs-oracle:** isothermal D1 diagnostic agrees EXACTLY (diff 0.0). Gradient
+  case: engine *creates* 1.05% moisture monotonically and over-transports (up to 0.099
+  in φ). Root cause (proved in the oracle, which had the identical signature): Picard
+  residual stalls in a period-2 cycle because the liquid coefficient uses a pointwise
+  tangent of the tabulated sorption curve — discontinuous at breakpoints; damping cannot
+  break the cycle (fixed ω=0.5 still cycles). Oracle fix that removed it entirely:
+  element-secant slope `(w_j−w_i)/(φ_j−φ_i)` as the liquid coefficient — exact for the
+  element flux `−D_l ∇w` and continuous in nodal humidities.
+- **RESOLVED (same session): the 1% leak had two causes, both fixed.** A vapor-only
+  variant of the diagnostic (liquid off, T frozen ⇒ linear steps ⇒ iteration quality ruled
+  out) showed the leak unchanged ⇒ operator-level, not Picard. (1) **Engine defect:**
+  `IQLEIntegrator2D::integrate` applies coefficients as the pairwise nodal average
+  `½(k_i+k_j)`, whose column sums do NOT vanish when the coefficient varies inside an
+  element (c_sat(T) under ∇T) — a distributed spurious moisture source. Fix:
+  `integrateInterpolated` (coefficient interpolated at Gauss points; column sums
+  telescope to zero for ANY varying coefficient), enabled moisture-only via
+  `m_InterpolateCoefficientsAtGaussPoints`; thermal byte-identical. Drift 1.05e-2 → 1.3e-3.
+  (2) **Test-harness defect:** the diagnostics call `moisture().transient()` directly and
+  never rolled the nodes' previous-timestep humidity forward (that happens in
+  `MultiDomain::transient`), so the secant capacity measured against the INITIAL state —
+  production unaffected. Fixed in both diagnostic tests. Drift 1.3e-3 → 2.3e-8; uniform-T
+  conservation 2.6e-14. **Engine now matches the oracle to 2.2e-5** on the gradient
+  diagnostic (full physics AND vapor-only). The earlier pairwise-secant-liquid hypothesis
+  is retracted for the engine (oracle-only lesson; engine iteration converges fine).
+- **Liquid-curve discontinuity RESOLVED (user decision 2026-07-10):** the log/geometric
+  interpolation with a (0,0) anchor made D_l ≡ 0 across the whole first segment and then
+  JUMP 0 → 1e-8 at w = 27 (a step discontinuity exactly where near-saturation cases
+  iterate; the user confirms log-interp was an iteration-stability guess, not physics).
+  Fix: `LiquidTransportationCurve` floors exact-zero table values at a physically
+  negligible 1e-15 m²/s (`floorZeroValues`, Functions.cxx), so D_l decays continuously
+  and steeply toward the anchor (Cottaer: ~1e-13 at w = 10) instead of the hard 0 + cliff.
+  Oracle mirrors it (`MIN_LIQUID_DIFFUSIVITY`). Engine↔oracle agreement after: 2.2e-5.
+  **Consequences:** (1) three more goldens shifted red — `SteadyState_2D_1`,
+  `SolverSettingsInjection`, `MoistureBC_2D_2` (thermal capillary-conduction term now
+  nonzero in the previously dead 0<w<27 zone; shifts ~2.5e-5 °C) → suite 146 pass /
+  33 red, all value-shift goldens, re-baseline set grows to 33. (2) Sweep: NearSaturation
+  and MediumHumidity violations went to ZERO (the w=27 cliff was hurting them — floor
+  helps exactly where predicted), but step-1-overshoot-prone scenarios got noisier
+  (51→65 combos with issues, still 0 throws; all new violations are step-1 water-content
+  drops on coarse meshes — the KNOWN first-step overshoot expressing differently because
+  transiently-dry iterates now see tiny nonzero D_l). ⇒ Recommended order change: fix the
+  **first-step overshoot BEFORE re-baselining goldens**, so goldens are frozen once.
+- **Suite after fixes: 149 pass / 30 fail — all 30 are the moisture/coupled goldens**
+  (zero thermal), ready for re-baseline. Full write-up: typst cross-check doc.
 
 ## 7. What to verify next (Python 1D reference)
 
