@@ -222,19 +222,23 @@ this change.
 
 | Defect | Status | Notes |
 |---|---|---|
-| **D6** capacity | **Implemented + verified** | `SorptionSecantCapacity` replaces the tangent `dw/dphi` in the moisture element. Engine closed-strip drift 6% → **1.5e-4**. Thermal tests all green. Sweep total violations ~halved, worst case 34 → 14. New test: `tst/units/transient/MoistureMassConservation.unit.cxx`. |
-| **D1** vapor weak form | Pending | Targets the large-ΔT `ExtremeHumidity` cases (still violating under every setting). Moisture element only. Verify with the 1D reference under an imposed ∇T. |
-| **D3** convergence | Pending | Targets the settings-sensitivity. Shared `IDomain` — guard thermal with the full suite. |
-| **D2 / D5** | Deferred | Robustness / phase-change; revisit after D1, D3. |
+| **D6** capacity | **Implemented + verified** | `SorptionSecantCapacity` replaces the tangent `dw/dphi` in the moisture element. Engine closed-strip drift 6% → **1.5e-4**. Thermal green. New test: `tst/units/transient/MoistureMassConservation.unit.cxx`. |
+| **D1** vapor weak form | **Implemented (correct); convergence caveat** | `QLEDpDuConsistentIntegrator2D` gives the consistent by-parts form of the temperature-gradient vapour term; used in the moisture element only, thermal assembly byte-identical (thermal green). The term is non-symmetric, so very tight tolerances converge harder: `LowHumidity + TightTolerance` now needs the D3 convergence work to avoid a non-convergence throw in the diagnostic sweep (regular suite has no throws). Correctness is best shown against the 1D reference under an imposed ∇T (todo). |
+| **D3** convergence | **Attempted, reverted — needs redesign** | A relative-residual gate makes results settings-consistent, but it *fights the physical clamping*: when humidity is pinned at bounds the clamped iterate cannot drive `‖B−AU‖` to zero, so the gate blocks convergence and the solver subdivides to a throw (seen even on the easy `LowHumidity` case). Correct design is a **bound-constrained / free-DOF (KKT) convergence criterion** — gate the residual only on non-clamped DOFs, or accept when the active set is stable. Reverted to keep the tree clean. |
+| **D2** RH saturation | Identified as dominant remaining cause | With D6+D1 in, the residual sweep violations concentrate in near-saturation (`NearSaturation`, `ExtremeHumidity`) where the RH primary variable cannot represent the state (steep `dw/dphi`, clamping). This is a formulation limit, not a solver bug. |
+| **D5** phase change | Deferred | Above-freezing cases unaffected. |
 
-**Golden-test re-baseline (deferred, intentional):** the D6 capacity change shifts 24 moisture
-/ coupled golden tests (they encode the old non-conservative behaviour; shifts up to ~40% at
-near-saturation nodes). D1 and D3 will shift moisture values again, so the golden expected
-values are **re-baselined once, after all moisture fixes land**, each verified against the 1D
-reference — not three times. Until then those 24 tests are expected-red; **all pure-thermal
-tests stay green**. Verified pieces so far: the mass-conservation test passes, and the
-`hygrothermfem_python` oracle confirms the secant scheme (MMS order + machine-precision
-conservation).
+**Solver status now (D6+D1 on branch):** all pure-thermal tests green; **0 exceptions in the
+regular suite**; 29 moisture/coupled golden tests are expected-red (clean value mismatches —
+they encode pre-fix behaviour). The diagnostic sweep has one `TightTolerance` non-convergence
+throw attributable to D1's non-symmetric term (awaiting the D3 redesign).
+
+**Golden-test re-baseline (pending review):** the moisture goldens must be regenerated from the
+fixed engine, but deliberately **not blind-snapshotted here** — the near-saturation values are
+still formulation-limited (D2) and the D1 convergence caveat is open, so the new expected
+values should be reviewed (and the isothermal moisture-only cases cross-checked against the 1D
+reference, where D6 conservation + D1-inert make them the most trustworthy) before they are
+frozen as golden.
 
 ## 7. What to verify next (Python 1D reference)
 
