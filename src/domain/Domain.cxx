@@ -420,11 +420,21 @@ namespace HygroThermFEM
             return;
         }
 
-        state.damping.update(rawDuNorm, state.numOfIterations, maxIterations / 2);
+        // Thermal uses the historical dU-growth damping. Moisture instead adapts damping from
+        // the residual trend (below), so its damping factor -- already updated at the end of the
+        // previous iteration -- is left as-is here.
+        if(!useResidualConvergence())
+        {
+            state.damping.update(rawDuNorm, state.numOfIterations, maxIterations / 2);
+        }
 
+        // Moisture ignores the user relaxation parameter and lets the adaptive damping fully
+        // control under-relaxation, so the solve is independent of the relaxation setting;
+        // thermal keeps the historical relaxParameter * damping behaviour.
+        const double baseRelax = useResidualConvergence() ? 1.0 : relaxParameter;
         auto lsResult = backtrackingLineSearch(
           state.solution, correctionDU,
-          relaxParameter * state.damping.factor, norm(residual),
+          baseRelax * state.damping.factor, norm(residual),
           currentStateValues, dTime, timestepIndex);
         state.solution = std::move(lsResult.solution);
         state.matA = std::move(lsResult.matA);
@@ -448,6 +458,25 @@ namespace HygroThermFEM
         {
             state.bestResidual = currentFreeResidual;
             state.bestSolution = state.solution;
+        }
+
+        // Adaptive under-relaxation (moisture): if this step increased the free residual the
+        // iteration is diverging (typical at relaxation 1.0 when wetting toward saturation, where
+        // the sorption capacity is very stiff), so halve the damping factor; if it decreased,
+        // relax the damping back toward 1. The reduced factor feeds the next iteration's line
+        // search, converting a divergent fixed-relaxation solve into a stable under-relaxed one.
+        if(useResidual)
+        {
+            constexpr double minDamping = 1.0 / 64.0;
+            if(currentFreeResidual > state.prevFreeResidual)
+            {
+                state.damping.factor = std::max(state.damping.factor * 0.5, minDamping);
+            }
+            else
+            {
+                state.damping.factor = std::min(state.damping.factor * 1.5, 1.0);
+            }
+            state.prevFreeResidual = currentFreeResidual;
         }
 
         const auto result = evaluateConvergence(

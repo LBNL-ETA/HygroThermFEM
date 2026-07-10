@@ -220,6 +220,8 @@ namespace HygroThermFEM
             std::vector<double> bestSolution;   //!< Lowest-free-residual iterate seen so far,
                                                 //!< returned on best-effort acceptance (D3)
             double bestResidual = (std::numeric_limits<double>::max)();
+            double prevFreeResidual = (std::numeric_limits<double>::max)();   //!< previous
+                                                //!< iteration's free residual (adaptive relax, D3)
             double prevMetric = (std::numeric_limits<double>::max)();
             size_t numOfIterations = 0;
             bool convergedViaClamp = false;
