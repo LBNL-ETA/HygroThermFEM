@@ -242,6 +242,88 @@ values should be reviewed (and the isothermal moisture-only cases cross-checked 
 reference, where D6 conservation + D1-inert make them the most trustworthy) before they are
 frozen as golden.
 
+## 6c. Continuation guide — pick up here
+
+Written as a handoff so a later session can resume without re-deriving the above. Everything is
+on branch `high-moisture-solver-audit` (local, **not pushed**). Companion: the clean-room 1D
+reference at `~/Programming/hygrothermfem_python` (its own repo) — the **source of truth for
+correctness** (the sweep is only a smoke test).
+
+### First thing to do with the reference documents (when available)
+Cross-check the reconstructed PDEs (§2–§4) against the real technical/differential-equation
+document. Specifically confirm: (a) the vapour driving potential is `∇·(δ ∇(φ c_sat))` in the
+concentration form the code uses; (b) D1's consistent by-parts split is the intended weak form;
+(c) no transport term (e.g. an air-pressure/advective term, or a temperature-gradient liquid
+term) is missing. This validates or corrects D1 before any more solver work.
+
+### What is done and committed (all thermal-green, moisture-only where noted)
+- **D1** — consistent weak form of the temperature-gradient vapour term
+  (`QLEDpDuConsistentIntegrator2D`, used only by `ElementMoistureLinear2D`). Oracle-verified:
+  isothermal exact, gradient drives moisture hot→cold like the reference.
+- **D6 + D6-refine** — mass-conservative capacity: secant `SorptionSecantCapacity` + exact
+  nodal lumping (`m_LumpCapacityNodally`). Closed-strip conservation to **2.4e-15**.
+- **D3** — settings-independent moisture convergence: free-DOF residual-*reduction*
+  (`1e-6·‖r₀‖`) + best-effort acceptance of the lowest-residual iterate + adaptive
+  under-relaxation (moisture ignores the user relaxation). Gated by `useResidualConvergence()`
+  so thermal is byte-identical. Achieved relaxation-independence.
+- **Sweep** — refactored to a mesh-refinement axis (3/6/12/24 elements) × tolerance/iteration
+  settings; relaxation axis removed (solver-controlled now). Diagnostic only, **not in CI**.
+
+### Test state (the standard gtest suite is what CI runs)
+- **149 pass, 29 fail. All 29 failures are moisture/coupled golden tests; zero pure-thermal.**
+  They hardcode pre-fix numbers, so the correctness fixes shifted them. Full list is the
+  `Moisture*`, `MultiDomain*`, `SteadyState_2D_Exclude*`, `TestModelWithFrameCavity3`,
+  `MoistureBC_2D_*` tests. **Next step to green CI: re-baseline the *water-content* golden
+  arrays** (leave temperature arrays) from the fixed engine. Recommended: cross-check the
+  isothermal moisture-only ones against the oracle first (most trustworthy); the near-saturation
+  ones are still formulation-limited (D2), so eyeball them.
+
+### Dead ends — do NOT repeat these
+- **Subdivide-on-clamp / report-actual-convergence + subdivide**: makes non-converging cases
+  subdivide to dt/1000 on *every* coupling sub-step and grind through thousands of tiny steps →
+  runaway (minutes on tiny beams). Best-effort "always accept" exists precisely to avoid this.
+- **Fixed absolute residual gate** (`‖r‖/‖B‖ ≤ tol`): no single threshold generalizes
+  (near-saturation wants 1e-6, capacity-dominated LowHumidity can't reach it → throws). The
+  *reduction* form (`‖r‖ ≤ 1e-6·‖r₀‖`) is what works.
+- **Monotonic-only damping** (never recover toward 1.0): converges too slowly; 13/42 vs 9/42.
+  Keep the halve-on-growth / ×1.5-recovery form.
+
+### Known real defect still open: first-step overshoot
+Coupled scenarios with a temperature jump drive humidity **negative → clamped to 0 (w=0) at
+step 1 only** (40 such cases in the mesh sweep, all step 1). It's an initial-condition/boundary
+shock the big first backward-Euler step doesn't resolve, and best-effort acceptance no longer
+subdivides it. Needs a *lightweight* first-step resolver (e.g. subdivide only the first step, or
+only when a DOF newly hits a bound, with a small bounded number of subdivisions) — the naive
+full-subdivision approach is the runaway dead-end above. NOT caused by the multi-material
+water-content calc (`Node2D::calcWaterContent` normalizes by total weight — verified correct;
+single-material beams show the same overshoot).
+
+### Remaining levers (priority order)
+1. **Re-baseline moisture goldens** → green CI → push.
+2. **First-step overshoot** — lightweight subdivision (above).
+3. **D4 coupling** — add a per-timestep coupling (Picard) iteration in `MultiDomain::transient`;
+   this is the residual `ExtremeHumidity` tolerance/iteration variability.
+4. **D2** — only if ExtremeHumidity persists after D3/D4: RH-formulation limit near saturation.
+
+### How to verify (correctness, not the smoke test)
+- Oracle self-checks: `cd ~/Programming/hygrothermfem_python && uv run pytest` (MMS order +
+  machine-precision conservation).
+- Engine-vs-oracle D1 isolation: build `HygroThermFEM_tests`, run
+  `--gtest_filter=VaporTemperatureDiffusion.*` (writes `/tmp/htf_d1_*.csv`), then
+  `uv run python examples/compare_d1.py`.
+- Mass conservation: `--gtest_filter=MoistureMassConservation.*` (drift must be ~1e-15).
+
+### Key files
+- Equations/assembly: `src/elements/Element2D.cxx` (`ElementMoistureLinear2D`,
+  `QLEDpDuConsistentIntegrator2D`, `nodalLumpedCapacity`), `src/math/Functions.cxx`
+  (`SorptionSecantCapacity`, `SaturationFunction`).
+- Solver/convergence (D3): `src/domain/Domain.cxx` (`transientTimestep`, `performNRIteration`,
+  `evaluateConvergence`, `transient`), `src/domain/MoistureDomain.cxx`
+  (`useResidualConvergence`, `constrainedDofs`).
+- Coupling (D4): `src/domain/MultiDomain.cxx` (`transient`).
+- Diagnostics/tests: `tst/units/transient/MoistureMassConservation.unit.cxx`,
+  `VaporTemperatureDiffusion.unit.cxx`; `tst/sweep/SolverParameterSweep.cxx`.
+
 ## 7. What to verify next (Python 1D reference)
 
 - **Scenario 1 — isothermal, moisture-only:** term (B) is inert, so C++ and a correct 1D
