@@ -45,6 +45,9 @@ namespace HygroThermFEM
           properties(Variable t_Property   //!< Variable for which values are obtained.
           ) const;
 
+        //! Returns state values at all nodes for the requested timestep (current or previous).
+        std::vector<double> properties(Variable t_Property, Timestep t_Timestep) const;
+
         //! Update all node temperature values.
         //!
         //! @param values Vector of new temperature values.

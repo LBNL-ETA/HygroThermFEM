@@ -163,6 +163,21 @@ namespace HygroThermFEM
         virtual void updateNodes(const std::vector<double> & solution,
                                  bool updatePreviousTimestep) = 0;
 
+        //! State variable this domain solves for. Used by the new-bound-hit retry to
+        //! manage the nodes' previous-timestep values across its internal substeps.
+        [[nodiscard]] virtual Variable stateVariable() const = 0;
+
+        //! When true, a converged step whose solution drove DOFs onto a physical bound they
+        //! did not start at (clamp overshoot -- the initial-condition/boundary shock of the
+        //! very first step, typically) is redone once as a bounded chain of equal substeps
+        //! (see resolveShockStep). Deliberately a SINGLE retry with a fixed substep count and
+        //! no recursion: the subdivide-on-every-clamp scheme is a known runaway. Base:
+        //! disabled (thermal has no bounded state variable).
+        [[nodiscard]] virtual bool retryStepOnNewBoundHit() const
+        {
+            return false;
+        }
+
         Nodes & m_NodePool;
         Materials & m_MaterialPool;
         ElementsLinear2D m_Elements;
@@ -238,6 +253,19 @@ namespace HygroThermFEM
         //! \brief Calling timestep calculations
         TimestepResult transientTimestep(
           const std::vector<double> & currentStateValues, double t_DTime, size_t timestepIndex);
+
+        //! True when the solution has DOFs at a physical bound that were free at the step
+        //! start (overshoot clamped by postProcess) -- the trigger for the bound-hit retry.
+        [[nodiscard]] bool hasNewBoundHits(const std::vector<double> & startValues,
+                                           const std::vector<double> & solution) const;
+
+        //! Redo a shock step as a bounded chain of equal substeps (new-bound-hit retry).
+        //! Advances the nodes' previous-timestep values per substep (so the secant storage
+        //! capacity telescopes per substep) and restores them afterwards, because the caller
+        //! (MultiDomain coupling) owns the previous-timestep bookkeeping across the full step.
+        TimestepResult resolveShockStep(const std::vector<double> & startValues,
+                                        double t_DTime,
+                                        size_t timestepIndex);
 
         //! Performs one Newton-Raphson iteration: correction, clamp check,
         //! line search, convergence and oscillation checks.

@@ -39,6 +39,14 @@ namespace HygroThermFEM
           m_Nodes, [&](const Node2D & aNode) { return aNode.property(t_Property); });
     }
 
+    std::vector<double> Nodes::properties(const Variable t_Property,
+                                          const Timestep t_Timestep) const
+    {
+        return lbnl::transform_to_vector(m_Nodes, [&](const Node2D & aNode) {
+            return aNode.property(t_Property, t_Timestep);
+        });
+    }
+
     void Nodes::updateNodeTemperatures(const std::vector<double> & values,
                                         bool updatePreviousTimestep)
     {

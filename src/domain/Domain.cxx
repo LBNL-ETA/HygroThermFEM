@@ -320,10 +320,23 @@ namespace HygroThermFEM
         // and try again with a smaller dt. Return after the FIRST successful
         // solve, reporting the actual dt used. The caller (MultiDomain) is
         // responsible for accumulating time and exchanging cross-domain data.
+        bool retriedForBoundHit = false;
         while(true)
         {
             notify(currentDivisionLevel, 0u);
-            const auto result = transientTimestep(currentStateValues, currentDTime, timestepIndex);
+            auto result = transientTimestep(currentStateValues, currentDTime, timestepIndex);
+
+            if(result.converged && retryStepOnNewBoundHit() && !retriedForBoundHit
+               && hasNewBoundHits(currentStateValues, result.solution))
+            {
+                // Initial-condition/boundary shock: the accepted solution drove DOFs onto a
+                // physical bound they did not start at (overshoot clamped by postProcess).
+                // Resolve the shock in time by redoing this one step as a bounded substep
+                // chain. Single-shot: if the resolved step still ends at a bound, that is
+                // accepted as physical.
+                retriedForBoundHit = true;
+                result = resolveShockStep(currentStateValues, currentDTime, timestepIndex);
+            }
 
             if(result.converged)
             {
@@ -338,6 +351,55 @@ namespace HygroThermFEM
                   SolverError{currentDTime, currentDivisionLevel, result.residualNorm});
             }
         }
+    }
+
+    bool IDomain::hasNewBoundHits(const std::vector<double> & startValues,
+                                  const std::vector<double> & solution) const
+    {
+        const auto startConstrained = constrainedDofs(startValues);
+        const auto solutionConstrained = constrainedDofs(solution);
+        for(std::size_t idx = 0; idx < solution.size(); ++idx)
+        {
+            if(solutionConstrained[idx] && !startConstrained[idx])
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    IDomain::TimestepResult IDomain::resolveShockStep(const std::vector<double> & startValues,
+                                                      const double t_DTime,
+                                                      const size_t timestepIndex)
+    {
+        constexpr unsigned shockSubsteps = 8;
+        const auto entryPreviousValues =
+          m_NodePool.properties(stateVariable(), Timestep::Previous);
+        const double subDTime = t_DTime / shockSubsteps;
+
+        auto values = startValues;
+        TimestepResult result{.solution = startValues, .converged = true};
+        for(unsigned substep = 0; substep < shockSubsteps; ++substep)
+        {
+            // Make the nodes' previous-timestep value the substep start, so the secant
+            // storage capacity telescopes (conserves) per substep. Double update: the
+            // first call sets the current value, the second rolls it into previous.
+            updateNodes(values, false);
+            updateNodes(values, true);
+            result = transientTimestep(values, subDTime, timestepIndex);
+            if(!result.converged)
+            {
+                break;
+            }
+            values = result.solution;
+        }
+
+        // Restore the previous-timestep values owned by the caller (coupling repeats rely
+        // on previous == step start), then re-impose the final solution as current.
+        updateNodes(entryPreviousValues, false);
+        updateNodes(entryPreviousValues, true);
+        updateNodes(result.solution, m_AutomaticUpdatePreviousTimestep);
+        return result;
     }
 
     IDomain::LineSearchResult IDomain::backtrackingLineSearch(

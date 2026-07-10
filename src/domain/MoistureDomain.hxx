@@ -172,6 +172,13 @@ namespace HygroThermFEM
         //! Moisture converges on the free-DOF residual reduction (settings-independent). See D3.
         [[nodiscard]] bool useResidualConvergence() const override;
 
+        [[nodiscard]] Variable stateVariable() const override;
+
+        //! Humidity overshoots past a physical bound on shock steps (typically the very
+        //! first step after an initial-condition/boundary jump) are resolved by a bounded
+        //! substep retry instead of being silently clamped to w = 0.
+        [[nodiscard]] bool retryStepOnNewBoundHit() const override;
+
         //! Marks humidity DOFs pinned at a physical bound (0 or 1); excluded from the
         //! residual convergence test since their equations are replaced by the bound.
         [[nodiscard]] std::vector<bool>

@@ -293,6 +293,8 @@ namespace HygroThermFEM
         void updateNodes(const std::vector<double> & solution,
                          bool updatePreviousTimestep) override;
 
+        [[nodiscard]] Variable stateVariable() const override;
+
     private:
         //! Radiosity coordinators owned by the domain; the per-segment BCs reference them.
         std::vector<std::unique_ptr<EnclosureRadiation>> m_EnclosureRadiations;

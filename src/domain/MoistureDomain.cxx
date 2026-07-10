@@ -248,6 +248,16 @@ namespace HygroThermFEM
         return true;
     }
 
+    Variable MoistureDomain::stateVariable() const
+    {
+        return Variable::humidity;
+    }
+
+    bool MoistureDomain::retryStepOnNewBoundHit() const
+    {
+        return true;
+    }
+
     std::vector<bool> MoistureDomain::constrainedDofs(const std::vector<double> & solution) const
     {
         constexpr double boundTolerance = 1e-9;
