@@ -391,6 +391,14 @@ namespace HygroThermFEM
         const IMaterial & m_Material;
         Variable m_FluxVariable;   // State variable used to calculate flux
 
+        //! When true, the capacitance is lumped nodally as diag(v_i * xi_i) with v_i the
+        //! nodal volume integral(psi_i) and xi_i the nodal capacity value, instead of the
+        //! coefficient-averaged consistent mass integral(xi psi_i psi_j) later row-lumped.
+        //! With the secant moisture capacity this makes C*(phi - phi_prev) telescope exactly
+        //! to the change in stored moisture, giving machine-precision conservation (D6). Set
+        //! by the moisture element; thermal keeps the default (false) so its mass is unchanged.
+        bool m_LumpCapacityNodally{false};
+
     private:
         //! \brief Used to evaluate complex differential equation with two variable functions. One
         //! standing as multiplicator and other one as part of derivative. Equation k*(Dp/Dx)(Du/Dx)
@@ -426,6 +434,11 @@ namespace HygroThermFEM
         //! State-variable gradients (d/dx, d/dy) at each Gauss point. Shared building block of
         //! flux() and fluxAtGaussPoints().
         std::vector<std::array<double, 2>> stateGradientsAtGaussPoints() const;
+
+        //! Exact nodal-lumped capacity diag(v_i * nodalCapacity_i), v_i = integral(psi_i).
+        //! Used when m_LumpCapacityNodally is set (moisture). See m_LumpCapacityNodally.
+        [[nodiscard]] SquareMatrix
+          nodalLumpedCapacity(const std::vector<double> & nodalCapacity) const;
 
 
         //! Circular vector connects first and last node so that program can easily iterate

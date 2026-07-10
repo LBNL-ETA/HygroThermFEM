@@ -295,7 +295,29 @@ namespace HygroThermFEM
         for(const auto & cap : m_CapacitanceFunctions)
         {
             const auto values = cap->values(m_Nodes);
-            result += m_QLECapacitance2D.integrate(values);
+            result += m_LumpCapacityNodally ? nodalLumpedCapacity(values)
+                                            : m_QLECapacitance2D.integrate(values);
+        }
+        return result;
+    }
+
+    SquareMatrix
+      IElementLinear2D::nodalLumpedCapacity(const std::vector<double> & nodalCapacity) const
+    {
+        // Nodal volumes v_i = integral(psi_i) = row sums of the consistent mass matrix
+        // integral(psi_i psi_j) (obtained by integrating with a unit coefficient).
+        const auto massMatrix =
+          m_QLECapacitance2D.integrate(std::vector<double>(numOfQuadrilateralNodes, 1.0));
+
+        SquareMatrix result{numOfQuadrilateralNodes};
+        for(std::size_t i = 0; i < numOfQuadrilateralNodes; ++i)
+        {
+            double nodalVolume = 0.0;
+            for(std::size_t j = 0; j < numOfQuadrilateralNodes; ++j)
+            {
+                nodalVolume += massMatrix(i, j);
+            }
+            result(i, i) = nodalVolume * nodalCapacity[i];
         }
         return result;
     }
@@ -614,6 +636,11 @@ namespace HygroThermFEM
                                                      const std::string & materialName) :
         IElementLinear2D(nodePool, materialPool, index1, index2, index3, index4, materialName, Variable::humidity, false)
     {
+        // Lump the moisture capacity nodally (diag(v_i * xi_i)) so the secant capacity
+        // conserves stored moisture exactly; the averaged-then-lumped form only conserves
+        // approximately and leaks ~1% under strong temperature gradients. See D6-refinement.
+        m_LumpCapacityNodally = true;
+
         //////////////////////////////////////////////////////////////////////////////
         /// Water vapor diffusion
         //////////////////////////////////////////////////////////////////////////////
