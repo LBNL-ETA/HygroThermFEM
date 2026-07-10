@@ -118,6 +118,56 @@ namespace HygroThermFEM
     }
 
     //////////////////////////////////////////////////////////////////////////////
+    ///  QLEDpDuConsistentIntegrator2D
+    //////////////////////////////////////////////////////////////////////////////
+
+    QLEDpDuConsistentIntegrator2D::QLEDpDuConsistentIntegrator2D(
+      const QuadrilateralLinearGlobal2D & t_Element) :
+        IQLEIntegrator2D{t_Element}
+    {}
+
+    void QLEDpDuConsistentIntegrator2D::setIndependentVariables(
+      const std::vector<double> & t_Values)
+    {
+        const auto numOfIntegrationPoints = IntegrationPoints2D::Instance().count2D();
+        auto & aElement = QuadrilateralLinearLocal2D::Instance();
+
+        assert(t_Values.size() == numOfIntegrationPoints);
+
+        for(std::size_t integrationPoint = 0; integrationPoint < numOfIntegrationPoints;
+            ++integrationPoint)
+        {
+            const auto & psi = aElement.Psi(integrationPoint);
+            const auto & DPsiDx = m_Global2D.DPsiDx(integrationPoint);
+            const auto & DPsiDy = m_Global2D.DPsiDy(integrationPoint);
+            const auto det = m_Global2D.det(integrationPoint);
+
+            auto gammaX = 0.0;
+            auto gammaY = 0.0;
+            for(auto idx = 0u; idx < numOfIntegrationPoints; ++idx)
+            {
+                gammaX += DPsiDx[idx] * t_Values[idx];
+                gammaY += DPsiDy[idx] * t_Values[idx];
+            }
+
+            std::vector<std::vector<double>> matrix{numOfIntegrationPoints,
+                                                    std::vector<double>(numOfIntegrationPoints, 0)};
+
+            for(auto row = 0u; row < numOfIntegrationPoints; ++row)
+            {
+                for(auto col = 0u; col < numOfIntegrationPoints; ++col)
+                {
+                    // Transpose of QLEDpDuIntegrator2D: the test function (row) is the one
+                    // that is differentiated -> integral( (grad psi_row . grad p) psi_col ).
+                    matrix[row][col] =
+                      det * (DPsiDx[row] * gammaX + DPsiDy[row] * gammaY) * psi[col];
+                }
+            }
+            m_IntegrationMatrix[integrationPoint] = SquareMatrix{matrix};
+        }
+    }
+
+    //////////////////////////////////////////////////////////////////////////////
     ///  QLECapacitance2D
     //////////////////////////////////////////////////////////////////////////////
 
@@ -222,6 +272,18 @@ namespace HygroThermFEM
             qleDpDuIntegrator2D.setIndependentVariables(aDerivatives);
             const auto values = cond.fixedValue->values(m_Nodes);
             result += qleDpDuIntegrator2D.integrate(values);
+        }
+
+        // Consistent (integrated-by-parts) coupling terms. Only the moisture element
+        // registers these (for the vapour temperature-gradient term); thermal elements
+        // leave m_DpDuConsistentFunctions empty and are unaffected. See D1.
+        QLEDpDuConsistentIntegrator2D qleDpDuConsistentIntegrator2D{m_Global2D};
+        for(const auto & cond : m_DpDuConsistentFunctions)
+        {
+            const auto aDerivatives = cond.derivativeValue->values(m_Nodes);
+            qleDpDuConsistentIntegrator2D.setIndependentVariables(aDerivatives);
+            const auto values = cond.fixedValue->values(m_Nodes);
+            result += qleDpDuConsistentIntegrator2D.integrate(values);
         }
 
         return result;
@@ -560,11 +622,15 @@ namespace HygroThermFEM
             Constant delta(2.5E-5 / m_Material.diffusionResistanceFactor());
             auto conductance = delta * SaturationFunction();
 
-            // Note that diffusion equation is partial derivative that gets split into two
-            // derivative terms which then get into system as DDU and DpDu parts.
+            // The vapour term grad.(delta grad(phi c_sat)) splits into a moisture-gradient
+            // half (delta c_sat grad phi) and a temperature-gradient half (delta phi grad
+            // c_sat). Both must be integrated by parts consistently: the first is the DDu
+            // (stiffness) term, the second is the *consistent* DpDu term (test function
+            // differentiated). Using the plain DpDu here assembled the transpose and dropped
+            // a term, which made results swing with the temperature field. See D1.
             DDu(conductance);
 
-            DpDu(delta, SaturationFunction());
+            DpDuConsistent(delta, SaturationFunction());
 
             // Function for flux calculations.
             CondFlux(conductance);

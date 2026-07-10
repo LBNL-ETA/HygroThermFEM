@@ -86,6 +86,34 @@ namespace HygroThermFEM
     };
 
     //////////////////////////////////////////////////////////////////////////////
+    ///  QLEDpDuConsistentIntegrator2D
+    //////////////////////////////////////////////////////////////////////////////
+
+    //! \brief Consistent (integrated-by-parts) form of the (Dp/Dx)(Du/Dx) coupling term.
+    //!
+    //! QLEDpDuIntegrator2D assembles integral( psi_i (grad p . grad psi_j) ) -- the test
+    //! function psi_i is NOT differentiated, which is the strong-form Galerkin weighting of
+    //! grad(p).grad(u) and is inconsistent with the by-parts diffusion term it is paired
+    //! with. This integrator instead assembles the transpose,
+    //!     integral( (grad psi_i . grad p) psi_j ),
+    //! i.e. the test function IS differentiated. That is the correct weak form obtained by
+    //! integrating the vapour divergence grad.(delta grad(phi c_sat)) by parts once: the
+    //! moisture-gradient half (delta c_sat grad phi) is the DDu term and the
+    //! temperature-gradient half (delta phi grad c_sat) is this term. See
+    //! doc/Moisture Governing Equations.md (D1).
+    class QLEDpDuConsistentIntegrator2D : public IQLEIntegrator2D
+    {
+    public:
+        virtual ~QLEDpDuConsistentIntegrator2D() = default;
+
+        QLEDpDuConsistentIntegrator2D(const QuadrilateralLinearGlobal2D & t_Element);
+
+        //! Update independent variable p (whose gradient enters the term) and rebuild the
+        //! integration matrix.
+        void setIndependentVariables(const std::vector<double> & t_Values);
+    };
+
+    //////////////////////////////////////////////////////////////////////////////
     ///  QLECapacitance2D
     //////////////////////////////////////////////////////////////////////////////
 
@@ -265,6 +293,46 @@ namespace HygroThermFEM
                                          std::unique_ptr<U>(new U(u)));
         }
 
+        //! Consistent (integrated-by-parts) variant of DpDu. Same operands as DpDu -- a fixed
+        //! function and an independent function whose gradient enters the term -- but assembled
+        //! via QLEDpDuConsistentIntegrator2D (test function differentiated). Used for the
+        //! moisture vapour temperature-gradient term; see QLEDpDuConsistentIntegrator2D / D1.
+        template<typename T, typename U>
+        void DpDuConsistent(
+          T & t, U & u,
+          typename std::enable_if<std::is_base_of<IValue, T>::value, T>::type * = nullptr)
+        {
+            m_DpDuConsistentFunctions.emplace_back(std::unique_ptr<T>(new T(t)),
+                                                   std::unique_ptr<U>(new U(u)));
+        }
+
+        template<typename T, typename U>
+        void DpDuConsistent(
+          T && t, U & u,
+          typename std::enable_if<std::is_base_of<IValue, T>::value, T>::type * = nullptr)
+        {
+            m_DpDuConsistentFunctions.emplace_back(std::unique_ptr<T>(new T(t)),
+                                                   std::unique_ptr<U>(new U(u)));
+        }
+
+        template<typename T, typename U>
+        void DpDuConsistent(
+          T & t, U && u,
+          typename std::enable_if<std::is_base_of<IValue, T>::value, T>::type * = nullptr)
+        {
+            m_DpDuConsistentFunctions.emplace_back(std::unique_ptr<T>(new T(t)),
+                                                   std::unique_ptr<U>(new U(u)));
+        }
+
+        template<typename T, typename U>
+        void DpDuConsistent(
+          T && t, U && u,
+          typename std::enable_if<std::is_base_of<IValue, T>::value, T>::type * = nullptr)
+        {
+            m_DpDuConsistentFunctions.emplace_back(std::unique_ptr<T>(new T(t)),
+                                                   std::unique_ptr<U>(new U(u)));
+        }
+
         //! Template function that will create functions used in equivalent material conductivity
         //! and therefore used in flux calculations.
         template<typename T>
@@ -345,6 +413,7 @@ namespace HygroThermFEM
         std::vector<iValue> m_ConductanceFunctions;
         std::vector<iValue> m_CapacitanceFunctions;
         std::vector<DerivativeFunction> m_DpDuFunctions;
+        std::vector<DerivativeFunction> m_DpDuConsistentFunctions;
 
         //! Vector of values that will simply be evaluated on right hand side.
         //! This is in form [M]*{V} (Matrix * vector). First property is simply set of functions
