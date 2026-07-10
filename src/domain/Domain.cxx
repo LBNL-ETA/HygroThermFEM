@@ -465,6 +465,11 @@ namespace HygroThermFEM
         // the sorption capacity is very stiff), so halve the damping factor; if it decreased,
         // relax the damping back toward 1. The reduced factor feeds the next iteration's line
         // search, converting a divergent fixed-relaxation solve into a stable under-relaxed one.
+        // Start at full relaxation (damping factor 1.0, fresh each timestep) and ratchet it down
+        // when a step increases the free residual (divergence); recover it toward 1.0 when a step
+        // makes progress, so a case that only needs damping through an early stiff transient can
+        // speed back up once stable. Purely monotonic decrease converges too slowly for cases
+        // that recover.
         if(useResidual)
         {
             constexpr double minDamping = 1.0 / 64.0;

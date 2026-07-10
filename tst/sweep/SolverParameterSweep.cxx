@@ -3,6 +3,7 @@
 #include <iomanip>
 #include <iostream>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "HygroThermFEM2D.hxx"
@@ -36,10 +37,11 @@ namespace
         size_t maxIterations;
     };
 
-    //! Result of running one scenario with one set of settings.
+    //! Result of running one scenario on one mesh with one set of settings.
     struct SweepResult
     {
         std::string scenario;
+        std::string mesh;
         std::string settings;
         bool completed = false;
         std::string error;
@@ -65,12 +67,23 @@ namespace
         };
     }
 
+    //! Element counts (mesh densities) to sweep for the fixed-width beam. The converged solution
+    //! should be consistent across refinement; this checks the solver holds up as the mesh -- and
+    //! thus the sorption-curve stiffness resolved per element near saturation -- changes.
+    std::vector<std::size_t> createElementCounts()
+    {
+        return {3, 6, 12, 24};
+    }
+
     std::vector<SolverSettings> createSettings()
     {
+        // The relaxation parameter is no longer a meaningful axis: the moisture solver controls
+        // under-relaxation adaptively (starts at 1.0 and ratchets down when a step diverges), so
+        // the result is independent of the relaxation setting -- the earlier fixed-relaxation
+        // sweep is obsolete. These vary the tolerance and iteration budget, which still influence
+        // the result through best-effort acceptance and the staggered thermal/moisture coupling.
         return {
           {"Default", 1.0, 1e-5, 50},
-          {"Relaxed_0.8", 0.8, 1e-5, 50},
-          {"Relaxed_0.5", 0.5, 1e-5, 50},
           {"TightTolerance", 1.0, 1e-7, 100},
           {"LooseTolerance", 1.0, 1e-3, 20},
           {"FewIterations", 1.0, 1e-5, 10},
@@ -78,10 +91,24 @@ namespace
         };
     }
 
-    SweepResult runScenario(const Scenario & scenario, const SolverSettings & settings)
+    //! Top/bottom node pairs for a single-row beam with `numElements` columns. Node numbering is
+    //! column-major (bottom then top per column), so column c has nodes 2c and 2c+1 (0-based).
+    std::vector<std::pair<size_t, size_t>> symmetricPairs(std::size_t numElements)
+    {
+        std::vector<std::pair<size_t, size_t>> pairs;
+        for(std::size_t c = 0; c <= numElements; ++c)
+        {
+            pairs.emplace_back(2 * c, 2 * c + 1);
+        }
+        return pairs;
+    }
+
+    SweepResult
+      runScenario(const Scenario & scenario, std::size_t numElements, const SolverSettings & settings)
     {
         SweepResult result;
         result.scenario = scenario.name;
+        result.mesh = std::to_string(numElements) + "elem";
         result.settings = settings.name;
 
         HygroThermFEM::SimulationProperties::Instance().setIterationParameters(
@@ -92,7 +119,6 @@ namespace
             HygroThermFEM::MultiDomain multiDomain;
 
             constexpr double beamWidth = 0.10;
-            constexpr size_t numElements = 3;
 
             const HygroThermFEM::State initialState({
               .temperature = scenario.initialTemperature,
@@ -128,8 +154,8 @@ namespace
             // Water content must be non-negative
             checker.expectBoundedBelow(results.moisture.values, 0.0, "water content");
 
-            // Humidity BC is 1.0 and interior <= 1.0, so water content
-            // should generally not decrease (moisture is being driven in)
+            // Humidity BC drives moisture in when bcHumidity >= initialHumidity, so water content
+            // should generally not decrease.
             if(scenario.bcHumidity >= scenario.initialHumidity)
             {
                 checker.expectNonDecreasing(results.moisture.values, 1.0, "water content");
@@ -144,12 +170,10 @@ namespace
             checker.expectSmooth(results.temperature.values, 2.0, "temperature");
             checker.expectSmooth(results.moisture.values, 2.0, "water content");
 
-            // Symmetric node pairs (beam with 1 row: top/bottom pairs)
-            // With 3 elements, 1 row: nodes are column-major pairs (1,2), (3,4), (5,6), (7,8)
-            const std::vector<std::pair<size_t, size_t>> symmetricPairs{
-              {0, 1}, {2, 3}, {4, 5}, {6, 7}};
-            checker.expectSymmetric(results.temperature.values, symmetricPairs, 1e-6, "temperature");
-            checker.expectSymmetric(results.moisture.values, symmetricPairs, 1e-6, "water content");
+            // Symmetric top/bottom node pairs (single-row beam).
+            const auto pairs = symmetricPairs(numElements);
+            checker.expectSymmetric(results.temperature.values, pairs, 1e-6, "temperature");
+            checker.expectSymmetric(results.moisture.values, pairs, 1e-6, "water content");
 
             result.invariantViolations = checker.violationCount();
             result.invariantReport = checker.report();
@@ -165,9 +189,10 @@ namespace
     }
 }   // namespace
 
-TEST(SolverParameterSweep, AllScenariosAllSettings)
+TEST(SolverParameterSweep, AllScenariosAllMeshesAllSettings)
 {
     const auto scenarios = createScenarios();
+    const auto elementCounts = createElementCounts();
     const auto allSettings = createSettings();
 
     std::vector<SweepResult> allResults;
@@ -175,34 +200,39 @@ TEST(SolverParameterSweep, AllScenariosAllSettings)
 
     for(const auto & scenario : scenarios)
     {
-        for(const auto & settings : allSettings)
+        for(const auto numElements : elementCounts)
         {
-            auto result = runScenario(scenario, settings);
-
-            if(!result.completed || result.invariantViolations > 0)
+            for(const auto & settings : allSettings)
             {
-                ++totalFailed;
-            }
+                auto result = runScenario(scenario, numElements, settings);
 
-            allResults.push_back(std::move(result));
+                if(!result.completed || result.invariantViolations > 0)
+                {
+                    ++totalFailed;
+                }
+
+                allResults.push_back(std::move(result));
+            }
         }
     }
 
     // Print summary table
     std::cout << "\n=== Solver Parameter Sweep Results ===\n\n";
     std::cout << std::left
-              << std::setw(35) << "Scenario"
-              << std::setw(20) << "Settings"
-              << std::setw(12) << "Completed"
+              << std::setw(30) << "Scenario"
+              << std::setw(10) << "Mesh"
+              << std::setw(18) << "Settings"
+              << std::setw(11) << "Completed"
               << std::setw(12) << "Violations"
               << "Details\n";
-    std::cout << std::string(100, '-') << "\n";
+    std::cout << std::string(110, '-') << "\n";
 
     for(const auto & res : allResults)
     {
-        std::cout << std::setw(35) << res.scenario
-                  << std::setw(20) << res.settings
-                  << std::setw(12) << (res.completed ? "YES" : "NO")
+        std::cout << std::setw(30) << res.scenario
+                  << std::setw(10) << res.mesh
+                  << std::setw(18) << res.settings
+                  << std::setw(11) << (res.completed ? "YES" : "NO")
                   << std::setw(12) << res.invariantViolations;
 
         if(!res.completed)
@@ -230,7 +260,8 @@ TEST(SolverParameterSweep, AllScenariosAllSettings)
     {
         if(res.invariantViolations > 0)
         {
-            std::cout << "--- " << res.scenario << " + " << res.settings << " ---\n"
+            std::cout << "--- " << res.scenario << " / " << res.mesh << " / " << res.settings
+                      << " ---\n"
                       << res.invariantReport << "\n";
         }
     }
