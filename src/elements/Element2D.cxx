@@ -517,8 +517,11 @@ namespace HygroThermFEM
             /// Calculate functions base on node properties
             const auto values = item.MatrixFunction->values(m_Nodes);
             /// And then integrate them
-            auto M = DDuIntegrator.integrate(values);
-            auto B = m_Nodes.properties(item.PropertyVector);
+            auto M = m_InterpolateCoefficientsAtGaussPoints
+                       ? DDuIntegrator.integrateInterpolated(values)
+                       : DDuIntegrator.integrate(values);
+            auto B = item.VectorFunction ? item.VectorFunction->values(m_Nodes)
+                                         : m_Nodes.properties(item.PropertyVector);
 
             result = result + M * B;
         }
@@ -529,6 +532,11 @@ namespace HygroThermFEM
     IElementLinear2D::MatrixVector::MatrixVector(iValue && matrixFunction,
                                                  const Variable propertyVector) :
         MatrixFunction(std::move(matrixFunction)), PropertyVector(propertyVector)
+    {}
+
+    IElementLinear2D::MatrixVector::MatrixVector(iValue && matrixFunction,
+                                                 iValue && vectorFunction) :
+        MatrixFunction(std::move(matrixFunction)), VectorFunction(std::move(vectorFunction))
     {}
 
     //////////////////////////////////////////////////////////////////////////////
@@ -618,9 +626,24 @@ namespace HygroThermFEM
             const VaporPermeability delta{m_Material.diffusionResistanceFactor()};
             if(!SimulationProperties::Instance().excludeHeatOfEvaporation())
             {
-                auto evaporationHeat = HeatOfEvaporation() * delta;
-
-                multiplies(evaporationHeat, Variable::vapor);
+                // Interior latent term h_lg * div(g_v). Two corrections against the THERMM
+                // documents (see ThermSample_StuccoWall for the failure they caused):
+                //
+                // - SIGN: Theoretical Model eq. 59 defines the enthalpy of vaporization
+                //   with a leading MINUS; heatOfEvaporation() returns the positive
+                //   magnitude, so the term must be negated here. With the sign dropped,
+                //   evaporating regions HEAT instead of cool, which runs away in
+                //   near-saturated walls (self-heating far above both boundary
+                //   temperatures).
+                //
+                // - POTENTIAL: the divergence acts on the vapour flux the moisture
+                //   equation actually transports, g_v = -delta grad(c_sat * phi). The
+                //   porosity-laden stored content (Variable::vapor = c_sat * airPorosity
+                //   * phi) is NOT that flux potential: its air porosity grows ~30x when a
+                //   region dries, fabricating vapour-content gradients (and thus latent
+                //   energy) that the moisture equation never moves.
+                multiplies(Constant(-1) * HeatOfEvaporation() * delta,
+                           SaturationFunction() * StateValue(Variable::humidity));
             }
         }
 
@@ -653,9 +676,12 @@ namespace HygroThermFEM
         {
             const VaporPermeability delta{m_Material.diffusionResistanceFactor()};
             auto vapCond = Constant(-1) * delta * Constants::Cp_Vapor;
-            StateValue vaporContent(Variable::vapor);
+            // Advected enthalpy follows the vapour flux of the moisture equation,
+            // g_v = -delta grad(c_sat * phi) -- the flux-consistent potential, not the
+            // porosity-laden stored content (see the latent-term note above).
+            auto vaporFluxPotential = SaturationFunction() * StateValue(Variable::humidity);
 
-            DpDu(vapCond, vaporContent);
+            DpDu(vapCond, vaporFluxPotential);
         }
     }
 

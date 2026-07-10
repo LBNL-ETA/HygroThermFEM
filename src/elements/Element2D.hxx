@@ -377,8 +377,16 @@ namespace HygroThermFEM
               iValue && MatrixFunction,   //!< Function that will be used to create matrix
               Variable PropertyVector     //!< Node property that will be used to create vector
             );
+
+            //! Matrix-vector pair whose vector is a computed per-node function instead of a raw
+            //! node property (e.g. the vapour flux potential c_sat * phi).
+            MatrixVector(
+              iValue && MatrixFunction,   //!< Function that will be used to create matrix
+              iValue && VectorFunction    //!< Function evaluated per node to create the vector
+            );
             iValue MatrixFunction;
-            Variable PropertyVector;
+            Variable PropertyVector{Variable::temperature};
+            iValue VectorFunction;   //!< When set, takes precedence over PropertyVector.
         };
 
         //! Template function that will create necessary multiplier between matrix and vector.
@@ -389,6 +397,17 @@ namespace HygroThermFEM
           const typename std::enable_if<std::is_base_of<IValue, T>::value, T>::type * = nullptr)
         {
             m_Matrix_x_Vector.emplace_back(std::unique_ptr<T>(new T(t)), property);
+        }
+
+        //! Multiplier whose vector side is a computed per-node function (any IValue).
+        template<typename T, typename U>
+        void multiplies(
+          T && t,
+          U && u,
+          const typename std::enable_if<std::is_base_of<IValue, T>::value, T>::type * = nullptr,
+          const typename std::enable_if<std::is_base_of<IValue, U>::value, U>::type * = nullptr)
+        {
+            m_Matrix_x_Vector.emplace_back(iValue(new T(t)), iValue(new U(u)));
         }
 
         //! Template function that will create necessary multiplier between matrix and vector.
