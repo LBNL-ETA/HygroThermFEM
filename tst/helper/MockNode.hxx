@@ -37,6 +37,7 @@ namespace HygroThermFEM
 
         void setTemperature(double, bool) override;
         void setHumidity(double, bool) override;
+        void setLiquidPercent(double, bool) override;
 
         explicit MockNode2D(size_t nodeNum, double t_x, double t_y, const StateValues & values);
 

@@ -46,6 +46,17 @@ namespace HygroThermFEM
         //! \brief Resets calculation parameters back to default.
         void resetCalculationParameters();
 
+        //! \brief Enables/disables the latent-heat-of-fusion (freezing) capacity in the
+        //! heat equation. Kept separate from setCalculationParameters so existing callers
+        //! are unaffected; the default is EXCLUDED (no freezing model), matching the
+        //! engine's historical behavior. Element constructors read this flag at
+        //! construction time, so it must be set before the domain geometry is built.
+        void setExcludeLatentHeatOfFusion(bool exclude);
+
+        //! \brief Defines if the latent-heat-of-fusion capacity is excluded from the heat
+        //! equation.
+        [[nodiscard]] bool excludeLatentHeatOfFusion() const;
+
         //! \brief Resets all parameters back to default.
         void reset();
 
@@ -92,6 +103,7 @@ namespace HygroThermFEM
             const bool excludeCapillaryConduction{false};
             const bool excludeVaporDiffusionConduction{false};
             const bool thermalConductivityMoistureAndTemperatureDependent{false};
+            const bool excludeLatentHeatOfFusion{true};
         } defaultProperties;
 
         double m_RelaxationParameter;
@@ -102,5 +114,6 @@ namespace HygroThermFEM
         bool m_ExcludeCapillaryConduction;
         bool m_ExcludeVaporDiffusionConduction;
         bool m_ThermalConductivityMoistureAndTemperatureDependent;
+        bool m_ExcludeLatentHeatOfFusion;
     };
 }   // namespace HygroThermFEM

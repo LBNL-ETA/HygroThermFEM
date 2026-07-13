@@ -15,8 +15,21 @@ namespace HygroThermFEM
         m_ExcludeWaterLiquidTransportation(defaultProperties.excludeWaterLiquidTransportation),
         m_ExcludeHeatOfEvaporation(defaultProperties.excludeHeatOfEvaporation),
         m_ExcludeCapillaryConduction(defaultProperties.excludeCapillaryConduction),
-        m_ExcludeVaporDiffusionConduction(defaultProperties.excludeVaporDiffusionConduction)
+        m_ExcludeVaporDiffusionConduction(defaultProperties.excludeVaporDiffusionConduction),
+        m_ThermalConductivityMoistureAndTemperatureDependent(
+          defaultProperties.thermalConductivityMoistureAndTemperatureDependent),
+        m_ExcludeLatentHeatOfFusion(defaultProperties.excludeLatentHeatOfFusion)
     {}
+
+    void SimulationProperties::setExcludeLatentHeatOfFusion(const bool exclude)
+    {
+        m_ExcludeLatentHeatOfFusion = exclude;
+    }
+
+    bool SimulationProperties::excludeLatentHeatOfFusion() const
+    {
+        return m_ExcludeLatentHeatOfFusion;
+    }
 
     bool SimulationProperties::excludeWaterLiquidTransportation() const
     {
@@ -74,6 +87,7 @@ namespace HygroThermFEM
         m_ExcludeCapillaryConduction = defaultProperties.excludeCapillaryConduction;
         m_ExcludeVaporDiffusionConduction = defaultProperties.excludeVaporDiffusionConduction;
         m_ThermalConductivityMoistureAndTemperatureDependent = defaultProperties.thermalConductivityMoistureAndTemperatureDependent;
+        m_ExcludeLatentHeatOfFusion = defaultProperties.excludeLatentHeatOfFusion;
     }
 
     void SimulationProperties::reset()

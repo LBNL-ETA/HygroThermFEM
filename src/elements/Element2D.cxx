@@ -334,6 +334,10 @@ namespace HygroThermFEM
             result += m_LumpCapacityNodally ? nodalLumpedCapacity(values)
                                             : m_QLECapacitance2D.integrate(values);
         }
+        for(const auto & cap : m_NodalCapacitanceFunctions)
+        {
+            result += nodalLumpedCapacity(cap->values(m_Nodes));
+        }
         return result;
     }
 
@@ -559,7 +563,19 @@ namespace HygroThermFEM
                                                    const size_t index3,
                                                    const size_t index4,
                                                    const std::string & materialName) :
-        IElementLinear2D(nodePool, materialPool, index1, index2, index3, index4, materialName, Variable::temperature)
+        IElementLinear2D(nodePool,
+                         materialPool,
+                         index1,
+                         index2,
+                         index3,
+                         index4,
+                         materialName,
+                         Variable::temperature,
+                         // The fusion secant capacity depends on the temperature iterate, so
+                         // the element must go through the Newton-Raphson path; the linear
+                         // shortcut would freeze the secant at its step-start (tangent)
+                         // value and drop the latent heat entirely.
+                         SimulationProperties::Instance().excludeLatentHeatOfFusion())
     {
         //////////////////////////////////////////////////////////////////////////////////////
         /// Capacitance functions
@@ -582,11 +598,25 @@ namespace HygroThermFEM
             Cap(capacitance);
         }
 
-        // Phase change part
-        // This is incorrect phase change equation. Correct one is kept in branch IceContentFix.
-        // Disable this for now because solver is not producing correct results
-        // auto waterWithoutVapor = liquidContent + iceContent;
-        // Cap(PhaseChange() * waterWithoutVapor);
+        // Latent heat of fusion (D5 Tier 1): the mass-conservative secant of
+        // L_f * lambda(T) per kilogram of condensed water, times the condensed content
+        // (liquid + ice). Validated against the 1D reference solver's enthalpy-method
+        // freezing (Stefan front, freeze--thaw conservation). Replaces the disabled
+        // PhaseChange sketch (its correct form previously lived on the deleted
+        // IceContentFix branch). The nodes' liquidPercent is rolled from lambda(T) at
+        // each accepted timestep (MultiDomain::transient), which feeds the liquid/ice
+        // split of the sensible capacitance above. Registered via CapNodal: the fusion
+        // secant is a near-delta spike at nodes inside the freezing ramp, and the
+        // consistent pairwise-average integration would smear it onto neighbouring
+        // rows, booking phantom storage energy there (observed as a stalled Stefan
+        // front losing ~85 % of the incoming flux).
+        if(m_Material.hasDensity()
+           && !SimulationProperties::Instance().excludeLatentHeatOfFusion())
+        {
+            const StateValue liquidContent(Variable::liquid);
+            const StateValue iceContent(Variable::ice);
+            CapNodal(FusionSecantCapacity() * (liquidContent + iceContent));
+        }
 
         //////////////////////////////////////////////////////////////////////////
         /// Conductance

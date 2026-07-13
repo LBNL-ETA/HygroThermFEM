@@ -268,6 +268,20 @@ namespace HygroThermFEM
             m_CapacitanceFunctions.emplace_back(std::unique_ptr<T>(new T(t)));
         }
 
+        //! Template function that will add K * Du/Dt matrix into the system with the
+        //! capacity lumped nodally (v_i * c_i on the diagonal) regardless of
+        //! m_LumpCapacityNodally. Required for near-singular capacities such as the
+        //! latent-heat-of-fusion secant: the consistent pairwise-average integration
+        //! smears the spike onto neighbouring rows, which then book phantom storage
+        //! energy against their own temperature change.
+        template<typename T>
+        void CapNodal(T && t,
+                      typename std::enable_if<std::is_base_of<IValue, T>::value, T>::type * =
+                        nullptr)
+        {
+            m_NodalCapacitanceFunctions.emplace_back(std::unique_ptr<T>(new T(t)));
+        }
+
         //! Template function that will add K*((Dp/Dx)(Du/Dx) + (Dp/Dy)(Du/Dy)) matrix into the
         //! system.
         template<typename T, typename U>
@@ -460,6 +474,8 @@ namespace HygroThermFEM
         std::vector<iValue> m_DDuFunctions;
         std::vector<iValue> m_ConductanceFunctions;
         std::vector<iValue> m_CapacitanceFunctions;
+        //! Capacitance functions that are always lumped nodally (see CapNodal).
+        std::vector<iValue> m_NodalCapacitanceFunctions;
         std::vector<DerivativeFunction> m_DpDuFunctions;
         std::vector<DerivativeFunction> m_DpDuConsistentFunctions;
 

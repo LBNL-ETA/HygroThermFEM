@@ -64,6 +64,15 @@ namespace HygroThermFEM
         void updateNodeHumidities(const std::vector<double> & values,
                                   bool updatePreviousTimestep = false);
 
+        //! Update the liquid fraction of condensed water in every node (freezing
+        //! bookkeeping; drives the liquid/ice content split).
+        //!
+        //! @param values Vector of new liquid fractions [0, 1].
+        //! @param updatePreviousTimestep Indicates if old value should be stored as previous
+        //! timestep value.
+        void updateNodeLiquidPercents(const std::vector<double> & values,
+                                      bool updatePreviousTimestep = false);
+
         //! Delete all nodes from NodePool.
         void clear();
 

@@ -577,4 +577,44 @@ namespace HygroThermFEM
 
         return result;
     }
+
+    //////////////////////////////////////////////////////////////////
+    ///  FusionSecantCapacity
+    //////////////////////////////////////////////////////////////////
+
+    double liquidFractionFromTemperature(const double temperature)
+    {
+        using Constants::FreezingPoint;
+        using Constants::IcePoint;
+
+        const double span = FreezingPoint - IcePoint;
+        return std::clamp((temperature - IcePoint) / span, 0.0, 1.0);
+    }
+
+    FusionSecantCapacity::FusionSecantCapacity() : IFunction(Variable::temperature)
+    {}
+
+    double FusionSecantCapacity::evaluateFunction(const double t_position,
+                                                  const double t_previousTimestep) const
+    {
+        using Constants::EnthalpyOfFusion;
+        using Constants::FreezingPoint;
+        using Constants::IcePoint;
+
+        const double dTemp = t_position - t_previousTimestep;
+        constexpr double minDelta = 1e-12;
+        if(std::abs(dTemp) > minDelta)
+        {
+            // Secant over the step -> energy-conservative fusion capacity.
+            return EnthalpyOfFusion
+                   * (liquidFractionFromTemperature(t_position)
+                      - liquidFractionFromTemperature(t_previousTimestep))
+                   / dTemp;
+        }
+
+        // Secant undefined (no change since previous timestep): tangent, nonzero only
+        // inside the freezing ramp.
+        const bool insideRamp = (t_position > IcePoint) && (t_position < FreezingPoint);
+        return insideRamp ? EnthalpyOfFusion / (FreezingPoint - IcePoint) : 0.0;
+    }
 }   // namespace HygroThermFEM

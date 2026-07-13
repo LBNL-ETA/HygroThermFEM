@@ -708,4 +708,30 @@ namespace HygroThermFEM
         double evaluateFunction(double t_position, double t_previousTimestep) const override;
     };
 
+    //////////////////////////////////////////////////////////////////
+    ///  FusionSecantCapacity
+    //////////////////////////////////////////////////////////////////
+
+    //! \brief Liquid fraction lambda(T): 0 at and below Constants::IcePoint, 1 at and
+    //! above Constants::FreezingPoint, linear between.
+    [[nodiscard]] double liquidFractionFromTemperature(double temperature);
+
+    //! \brief Latent-heat-of-fusion capacity per kilogram of condensed water.
+    //!
+    //! The mass-conservative secant of the fusion enthalpy L_f * lambda(T) over the
+    //! timestep, (L_f * (lambda(T) - lambda(T_prev))) / (T - T_prev), falling back to
+    //! the tangent L_f * dlambda/dT where the increment vanishes -- the same
+    //! construction as SorptionSecantCapacity for the moisture storage. Composed in
+    //! the thermal element as FusionSecantCapacity() * (liquid + ice) [J/(m^3 K)].
+    //! Validated against the 1D reference (hygrothermfem_python freezing.py): Stefan
+    //! front and freeze--thaw enthalpy conservation.
+    class FusionSecantCapacity : public IFunction
+    {
+    public:
+        FusionSecantCapacity();
+
+    protected:
+        double evaluateFunction(double t_position, double t_previousTimestep) const override;
+    };
+
 }   // namespace HygroThermFEM

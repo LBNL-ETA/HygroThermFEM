@@ -13,6 +13,7 @@
 #include "VectorOperators.hxx"
 #include "Nodes.hxx"
 #include "Materials.hxx"
+#include "SimulationProperties.hxx"
 
 namespace HygroThermFEM
 {
@@ -574,8 +575,23 @@ namespace HygroThermFEM
     {
         const auto settings = solverSettings();
         const auto relaxParameter = settings.relaxationParameter;
-        const auto convergenceError = settings.errorTolerance;
-        const auto maxIterations = settings.maxNumberOfIterations;
+        auto convergenceError = settings.errorTolerance;
+        auto maxIterations = settings.maxNumberOfIterations;
+
+        // With the latent heat of fusion active, the change-metric acceptance is unsafe at
+        // the user's usual settings: the capacity kink makes the fixed point contract slowly,
+        // the metric stagnates below tolerance at an iterate whose RESIDUAL -- a per-step
+        // energy imbalance -- is still large, and the leak accumulates (observed to destroy
+        // ~6 % of the extracted heat over a freezing benchmark at tolerance 1e-5 with 25
+        // iterations). Floor the budget instead: at 1e-8 the metric cannot stagnate above
+        // an energy-significant residual, quasi-static steps still exit within a couple of
+        // iterations, and only the freeze-crossing steps pay for the larger budget.
+        if(!useResidualConvergence()
+           && !SimulationProperties::Instance().excludeLatentHeatOfFusion())
+        {
+            convergenceError = (std::min)(convergenceError, 1e-8);
+            maxIterations = (std::max)(maxIterations, static_cast<std::size_t>(200));
+        }
 
         auto matA = transientM_K_H_Matrix(t_DTime, timestepIndex);
         auto vecB = transientMT_R_Vector(currentStateValues, t_DTime, timestepIndex);

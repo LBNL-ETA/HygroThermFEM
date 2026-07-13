@@ -64,6 +64,7 @@ namespace HygroThermFEM
 
         virtual void setTemperature(double value, bool updatePreviousValue = true) = 0;
         virtual void setHumidity(double value, bool updatePreviousValue = true) = 0;
+        virtual void setLiquidPercent(double value, bool updatePreviousValue = true) = 0;
 
         friend bool operator==(const INode2D & first, const INode2D & second);
         friend bool operator!=(const INode2D & first, const INode2D & second);
@@ -143,6 +144,15 @@ namespace HygroThermFEM
         void setHumidity(
             double value,
             //!< New humidity value
+            bool updatePreviousValue =
+                true //!< Indicates whether previous timestep value should be updated or not.
+            ) override;
+
+        //! Sets the liquid fraction of the condensed water (freezing bookkeeping; drives
+        //! the liquid/ice split of Variable::liquid and Variable::ice)
+        void setLiquidPercent(
+            double value,
+            //!< New liquid fraction [0, 1]
             bool updatePreviousValue =
                 true //!< Indicates whether previous timestep value should be updated or not.
             ) override;

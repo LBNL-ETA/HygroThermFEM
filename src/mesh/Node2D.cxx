@@ -128,6 +128,17 @@ namespace HygroThermFEM
         updateWaterContent();
     }
 
+    void Node2D::setLiquidPercent(double value, bool updatePreviousValue)
+    {
+        if(updatePreviousValue)
+        {
+            m_State.at(Timestep::Previous).liquidPercent =
+              m_State.at(Timestep::Current).liquidPercent;
+        }
+        m_State.at(Timestep::Current).liquidPercent = value;
+        updateWaterContent();
+    }
+
     void Node2D::assignMaterial(const IMaterial & material, const double weightingCoefficient)
     {
         const auto & materialName = material.name();

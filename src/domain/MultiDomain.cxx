@@ -7,11 +7,15 @@
 #include <stdexcept>
 #include <utility>
 
+#include "lbnl/algorithm.hxx"
+
 #include "MultiDomain.hxx"
 #include "Common.hxx"
 #include "FEMMath.hxx"
+#include "Functions.hxx"
 #include "Nodes.hxx"
 #include "MaterialDataChecker.hxx"
+#include "SimulationProperties.hxx"
 
 namespace HygroThermFEM
 {
@@ -27,6 +31,13 @@ namespace HygroThermFEM
                 throw std::runtime_error("Solution failed to converge.");
             }
             return result.value();
+        }
+
+        //! Liquid fractions lambda(T) per node for the freezing bookkeeping.
+        std::vector<double> liquidPercentsFromTemperatures(const std::vector<double> & temps)
+        {
+            return lbnl::transform_to_vector(
+              temps, [](const double temp) { return liquidFractionFromTemperature(temp); });
         }
     }   // namespace
 
@@ -121,9 +132,34 @@ namespace HygroThermFEM
             currentTemperature = temperatureSolution.solution;
             m_Nodes.updateNodeTemperatures(currentTemperature, false);
             m_Nodes.updateNodeHumidities(currentHumidity, false);
+            if(!SimulationProperties::Instance().excludeLatentHeatOfFusion())
+            {
+                // Roll the freezing bookkeeping with the accepted temperatures so the
+                // liquid/ice split the capacitance terms read stays consistent.
+                m_Nodes.updateNodeLiquidPercents(
+                  liquidPercentsFromTemperatures(currentTemperature), false);
+            }
 
             totalTime += effectiveDt;
             ++subStep;
+
+            if(totalTime < t_DTime)
+            {
+                // More substeps follow: advance the nodes' previous-timestep values to the
+                // accepted substep state so the secant storage capacities (sorption,
+                // fusion) span exactly the interval the mass matrices book on the next
+                // substep, [substep start, iterate]. Leaving previous at the full step's
+                // start would leak storage energy at every substep boundary (same
+                // telescoping argument as IDomain::resolveShockStep). The current values
+                // were just set above, so a single previous-updating call rolls them.
+                m_Nodes.updateNodeTemperatures(currentTemperature, true);
+                m_Nodes.updateNodeHumidities(currentHumidity, true);
+                if(!SimulationProperties::Instance().excludeLatentHeatOfFusion())
+                {
+                    m_Nodes.updateNodeLiquidPercents(
+                      liquidPercentsFromTemperatures(currentTemperature), true);
+                }
+            }
 
             if(m_DiagStream != nullptr)
             {
@@ -184,6 +220,11 @@ namespace HygroThermFEM
         // Final update: advance the "previous timestep" values in nodes
         m_Nodes.updateNodeTemperatures(currentTemperature, true);
         m_Nodes.updateNodeHumidities(currentHumidity, true);
+        if(!SimulationProperties::Instance().excludeLatentHeatOfFusion())
+        {
+            m_Nodes.updateNodeLiquidPercents(
+              liquidPercentsFromTemperatures(currentTemperature), true);
+        }
 
         const auto waterContent = m_Nodes.properties(Variable::water);
         const auto liquidContent = m_Nodes.properties(Variable::liquid);

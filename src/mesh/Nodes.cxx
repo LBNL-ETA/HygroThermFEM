@@ -87,6 +87,26 @@ namespace HygroThermFEM
 #endif
     }
 
+    void Nodes::updateNodeLiquidPercents(const std::vector<double> & values,
+                                         bool updatePreviousTimestep)
+    {
+        assert(m_Nodes.size() == values.size());
+
+#ifdef STL_MULTITHREADING
+        std::for_each(
+          std::execution::par_unseq, std::begin(m_Nodes), std::end(m_Nodes), [&](auto && aNode) {
+              const auto nodeNumber = aNode.getNodeNumber() - 1;
+              aNode.setLiquidPercent(values[nodeNumber], updatePreviousTimestep);
+          });
+#else
+        for(auto & node : m_Nodes)
+        {
+            const auto nodeNumber = node.getNodeNumber() - 1;
+            node.setLiquidPercent(values[nodeNumber], updatePreviousTimestep);
+        }
+#endif
+    }
+
     void Nodes::clear()
     {
         m_Nodes.clear();
