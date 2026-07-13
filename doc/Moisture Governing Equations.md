@@ -322,6 +322,37 @@ full-subdivision approach is the runaway dead-end above. NOT caused by the multi
 water-content calc (`Node2D::calcWaterContent` normalizes by total weight — verified correct;
 single-material beams show the same overshoot).
 
+### Known real defect still open: start-up thermal ringing (latent-coefficient feedback)
+Found 2026-07-13 on the THERM "Ireggular_1" model (Stucco/Laminated panel/Fiberglass, saturated
+start phi=0.95, constant time-series BCs 10C/0.1/7 vs 40C/0.3/10, dt=360): ~48 of 143 nodes
+flip-flop in TEMPERATURE from step 2, max amplitude 9.3 K, damping to zero by step ~13.
+Humidity is quiet (2 tiny flips) — thermal-side only. Flipping nodes cluster in FIBERGLASS
+along the warm interior boundary. Signature is step-count-anchored, not physical-time-anchored
+(same ~10-step ringing at dt=360 and dt=36; smooth at dt=3.6), i.e. algorithmic.
+Hypothesis: temperature feedback of the (now-implicit) latent conductance
+k_lat = h_lg * delta * phi * c_sat'(T) — near 40 C it is ~4x fiberglass dry k, and the
+coefficient lags the solve between steps/iterations, giving damped over/undershoot ringing on
+large warm-up increments. Candidate remedies: evaluate the latent DDu coefficient at the
+current Picard iterate (verify it is not previous-timestep-lagged), under-relax the coefficient
+update, or first-step subdivision (shares machinery with resolveShockStep).
+Mesh refinement does NOT help (verified in THERM 2026-07-13) — consistent with the
+time-stepping-anchored signature: the cause is temporal (coefficient lag), not spatial
+resolution, so only dt/iteration-side remedies are candidates.
+DRIVER CONFIRMED (THERM GUI bisection 2026-07-13): excluding Heat of Evaporation removes the
+ringing entirely. Same latent term as the (fixed) explicit-assembly sawtooth, different
+mechanism: the now-implicit T-part's COEFFICIENT k_lat(T, phi) is re-evaluated between
+steps/iterations and lags the solve.
+ENGINE REPRODUCTION: tst/units/therm_samples/ThermSample_Irregular1.unit.cxx
+(DISABLED_StartupRinging; mesh embedded in Irregular1Mesh.hxx, generated from the THMZ by
+D:/tmp/gen_irregular1_mesh.py). Reproduces THERM exactly: maxAmp 9.3365 K vs 9.3358 from the
+THMZ analysis, last flip step 13 in both. Runs in ~2 s. Promotion criterion when fixed:
+enable the test (asserts maxAmp < 0.5 K and no flips beyond step 3).
+Detection tooling (works on any THERM transient THMZ, no GUI needed):
+`D:\tmp\thmz_flip_detector.py <thmz>\transient results` (per-step flip counts + amplitudes)
+and `D:\tmp\thmz_node_locator.py` (flip-node coordinates/materials). The full FE mesh is in
+the THMZ's `transient results/Geometry.xml`, so the case can be rebuilt as an engine unit test
+(arbitrary quads via createNode/createElement) for mesh/dt refinement without THERM.
+
 ### Remaining levers (priority order) — UPDATED 2026-07-10 evening
 1. **Re-baseline moisture goldens** (33 red, all value-shift) → green CI → push.
 2. ~~First-step overshoot~~ **RESOLVED**: the catastrophic step-1 collapse (φ→0 clamp) no
