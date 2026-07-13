@@ -258,6 +258,28 @@ TEST(ThermSample_StuccoWall, DISABLED_NearSaturatedFineMesh)
     }
 }
 
+TEST(ThermSample_StuccoWall, SaturatedThermMeshNoSawtooth)
+{
+    // Regression guard for the explicit-latent-term sawtooth (fixed by the chain-rule
+    // split: T-part implicit in the conductance). The exact THERM quadtree element counts
+    // (3/2/7/3) at full saturation were the reported failure: T sawtooth 12.9 K @ step 77
+    // before the fix. The full mesh/equation sweep lives in DISABLED_SaturatedMeshBisect.
+    const auto result = runStuccoWall(1.0, 100, {}, 360.0, 1, {3, 2, 7, 3});
+    ASSERT_TRUE(result.completed) << result.error;
+
+    const auto tempOsc = analyzeOscillations(result.temperatures);
+    EXPECT_LT(tempOsc.maxAmplitude, 0.1)
+      << "spatial temperature sawtooth at step " << tempOsc.worstStep;
+    for(const auto & temps : result.temperatures)
+    {
+        for(const auto val : temps)
+        {
+            EXPECT_GT(val, -5.0);
+            EXPECT_LT(val, 45.0);
+        }
+    }
+}
+
 TEST(ThermSample_StuccoWall, DISABLED_SaturatedMeshBisect)
 {
     // Diagnostic for the 2026-07-13 THERM-Viz report: phi0 = 1.0 (exact saturation),
