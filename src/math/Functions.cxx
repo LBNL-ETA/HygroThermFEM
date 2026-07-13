@@ -488,6 +488,21 @@ namespace HygroThermFEM
     }
 
     //////////////////////////////////////////////////////////////////
+    ///  SaturationDerivative
+    //////////////////////////////////////////////////////////////////
+
+    SaturationDerivative::SaturationDerivative() : IFunction(Variable::temperature)
+    {}
+
+    double SaturationDerivative::evaluateFunction(const double t_position, const double) const
+    {
+        constexpr double deltaTemperature{0.01};
+        return (saturationConcentrationAtTemperature(t_position + deltaTemperature)
+                - saturationConcentrationAtTemperature(t_position - deltaTemperature))
+               / (2 * deltaTemperature);
+    }
+
+    //////////////////////////////////////////////////////////////////
     ///  VaporPermeability
     //////////////////////////////////////////////////////////////////
 

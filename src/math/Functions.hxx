@@ -639,6 +639,25 @@ namespace HygroThermFEM
     };
 
     //////////////////////////////////////////////////////////////////
+    ///  SaturationDerivative
+    //////////////////////////////////////////////////////////////////
+
+    //! \brief Temperature derivative of the saturation concentration, dc_sat/dT.
+    //!
+    //! Evaluated as a central finite difference of saturationConcentrationAtTemperature so
+    //! it stays consistent with the saturation formula by construction (it tracks any
+    //! future change to the vapour-pressure expression, e.g. the over-ice branch).
+    class SaturationDerivative : public IFunction
+    {
+    public:
+        SaturationDerivative();
+
+    private:
+        //! Overriden evaluation function.
+        double evaluateFunction(double t_position, double t_previousTimestep) const override;
+    };
+
+    //////////////////////////////////////////////////////////////////
     ///  VaporPermeability
     //////////////////////////////////////////////////////////////////
 

@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <array>
 #include <fstream>
 #include <gtest/gtest.h>
 
@@ -34,7 +35,9 @@ namespace
                                 const unsigned numberOfSteps,
                                 const std::string & csvPath = {},
                                 const double dTime = 360.0,
-                                const unsigned meshScale = 1)
+                                const unsigned meshScale = 1,
+                                const std::array<unsigned, 4> & elementsPerLayer = {4, 3, 6, 4},
+                                const unsigned numElementsY = 1)
     {
         WallRunResult result;
         HygroThermFEM::MultiDomain multiDomain;
@@ -55,12 +58,20 @@ namespace
         TestHelper::BeamBuilder builder(multiDomain);
         builder.xStart(0.0)
           .height(0.05)
-          .numElementsY(1)
+          .numElementsY(numElementsY)
           .state(initialState)
-          .addSegment({.material = stucco.name(), .numElementsX = 4 * meshScale, .width = 0.0254})
-          .addSegment({.material = panel.name(), .numElementsX = 3 * meshScale, .width = 0.01905})
-          .addSegment({.material = fiberglass.name(), .numElementsX = 6 * meshScale, .width = 0.0762})
-          .addSegment({.material = gypsum.name(), .numElementsX = 4 * meshScale, .width = 0.0254})
+          .addSegment({.material = stucco.name(),
+                       .numElementsX = elementsPerLayer[0] * meshScale,
+                       .width = 0.0254})
+          .addSegment({.material = panel.name(),
+                       .numElementsX = elementsPerLayer[1] * meshScale,
+                       .width = 0.01905})
+          .addSegment({.material = fiberglass.name(),
+                       .numElementsX = elementsPerLayer[2] * meshScale,
+                       .width = 0.0762})
+          .addSegment({.material = gypsum.name(),
+                       .numElementsX = elementsPerLayer[3] * meshScale,
+                       .width = 0.0254})
           .build();
 
         const HygroThermFEM::FixedBCHCCoefficients exterior{10.0, 7.0, 0.1};
@@ -121,6 +132,51 @@ namespace
             }
         }
         return result;
+    }
+
+    struct OscillationSummary
+    {
+        std::size_t maxExtrema{0};
+        double maxAmplitude{0.0};
+        std::size_t worstStep{0};
+    };
+
+    //! Detects spatial sawtooth oscillations in a per-step nodal field. Extracts the
+    //! bottom node row (column-major layout, stride = numElementsY + 1) as the x-ordered
+    //! profile and flags interior local extrema; the amplitude of an extremum is the
+    //! smaller jump to its neighbours, so a single-node kink registers at its full size.
+    OscillationSummary analyzeOscillations(const std::vector<std::vector<double>> & fields,
+                                           const std::size_t stride = 2)
+    {
+        OscillationSummary summary;
+        for(std::size_t step = 0; step < fields.size(); ++step)
+        {
+            std::vector<double> profile;
+            for(std::size_t idx = 0; idx < fields[step].size(); idx += stride)
+            {
+                profile.push_back(fields[step][idx]);
+            }
+            std::size_t extrema{0};
+            double amplitude{0.0};
+            for(std::size_t idx = 1; idx + 1 < profile.size(); ++idx)
+            {
+                const double diffLeft = profile[idx] - profile[idx - 1];
+                const double diffRight = profile[idx + 1] - profile[idx];
+                if(diffLeft * diffRight < 0.0)
+                {
+                    ++extrema;
+                    amplitude = (std::max)(
+                      amplitude, (std::min)(std::abs(diffLeft), std::abs(diffRight)));
+                }
+            }
+            if(amplitude > summary.maxAmplitude)
+            {
+                summary.maxAmplitude = amplitude;
+                summary.worstStep = step;
+            }
+            summary.maxExtrema = (std::max)(summary.maxExtrema, extrema);
+        }
+        return summary;
     }
 
     double maxAbsValue(const std::vector<std::vector<double>> & values)
@@ -199,6 +255,87 @@ TEST(ThermSample_StuccoWall, DISABLED_NearSaturatedFineMesh)
                         ? ", max|T|=" + std::to_string(maxAbsValue(result.temperatures))
                         : "")
                   << std::endl;
+    }
+}
+
+TEST(ThermSample_StuccoWall, DISABLED_SaturatedMeshBisect)
+{
+    // Diagnostic for the 2026-07-13 THERM-Viz report: phi0 = 1.0 (exact saturation),
+    // fine mesh, dt = 360 s -- fields blow up around step 54 while a coarse mesh stays
+    // bounded. Stage 1 sweeps mesh scales under full physics to locate the failing
+    // scale; stage 2 excludes one term at a time at the fine scale to find the driver.
+    constexpr double phiStart{1.0};
+    constexpr unsigned steps{100};
+
+    const auto report = [](const std::string & label, const WallRunResult & result) {
+        double minTemp{1e9};
+        double maxTemp{-1e9};
+        size_t firstBad{0};
+        bool haveBad{false};
+        for(size_t step = 0; step < result.temperatures.size(); ++step)
+        {
+            for(const auto val : result.temperatures[step])
+            {
+                minTemp = (std::min)(minTemp, val);
+                maxTemp = (std::max)(maxTemp, val);
+                if(!haveBad && (val < -5.0 || val > 45.0))
+                {
+                    firstBad = step;
+                    haveBad = true;
+                }
+            }
+        }
+        const auto tempOsc = analyzeOscillations(result.temperatures);
+        const auto phiOsc = analyzeOscillations(result.humidities);
+        std::cout << "[SatBisect] " << label
+                  << (result.completed ? "" : " ABORTED: " + result.error) << " T=["
+                  << minTemp << ", " << maxTemp << "]"
+                  << (haveBad ? " first out-of-envelope step " + std::to_string(firstBad)
+                              : "")
+                  << " | T osc: n=" << tempOsc.maxExtrema << " amp=" << tempOsc.maxAmplitude
+                  << " @step " << tempOsc.worstStep
+                  << " | phi osc: n=" << phiOsc.maxExtrema << " amp=" << phiOsc.maxAmplitude
+                  << " @step " << phiOsc.worstStep << std::endl;
+    };
+
+    // The mesh THERM generated for the reported run: 3/2/7/3 elements per layer -- a
+    // coarse panel layer against a fine fiberglass layer. Reproduced exactly, alongside
+    // the uniform-scale sweep.
+    const std::array<unsigned, 4> thermMesh{3, 2, 7, 3};
+    report("full physics, THERM mesh 3/2/7/3",
+           runStuccoWall(phiStart, steps, "D:/tmp/htf_stucco_sat_therm_mesh.csv", 360.0, 1, thermMesh));
+
+    for(const unsigned meshScale : {1u, 2u, 4u, 8u})
+    {
+        const std::string csvPath{meshScale == 8u ? "D:/tmp/htf_stucco_sat_x8.csv"
+                                                  : std::string{}};
+        report("full physics, mesh x" + std::to_string(meshScale),
+               runStuccoWall(phiStart, steps, csvPath, 360.0, meshScale));
+    }
+
+    struct Exclusion
+    {
+        std::string label;
+        bool liquid;
+        bool evaporation;
+        bool capillary;
+        bool vapor;
+    };
+    const std::vector<Exclusion> exclusions{
+      {.label = "no liquid transport", .liquid = true},
+      {.label = "no heat of evaporation", .evaporation = true},
+      {.label = "no capillary conduction", .capillary = true},
+      {.label = "no vapor diffusion conduction", .vapor = true}};
+    for(const auto & exclusion : exclusions)
+    {
+        HygroThermFEM::SimulationProperties::Instance().setCalculationParameters(
+          exclusion.liquid,
+          exclusion.evaporation,
+          exclusion.capillary,
+          exclusion.vapor,
+          false);
+        report(exclusion.label + ", mesh x8", runStuccoWall(phiStart, steps, {}, 360.0, 8));
+        HygroThermFEM::SimulationProperties::Instance().resetCalculationParameters();
     }
 }
 

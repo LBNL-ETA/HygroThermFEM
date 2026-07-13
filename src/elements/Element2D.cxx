@@ -642,8 +642,26 @@ namespace HygroThermFEM
                 //   * phi) is NOT that flux potential: its air porosity grows ~30x when a
                 //   region dries, fabricating vapour-content gradients (and thus latent
                 //   energy) that the moisture equation never moves.
-                multiplies(Constant(-1) * HeatOfEvaporation() * delta,
-                           SaturationFunction() * StateValue(Variable::humidity));
+                //
+                // Chain-rule split, grad(c_sat * phi) = phi c_sat'(T) grad T
+                //                                       + c_sat grad phi:
+                //
+                // - The T-part is a genuine conductivity contribution
+                //   k_lat = h_lg delta phi c_sat'(T) and must be assembled IMPLICITLY
+                //   into the conductance matrix. Kept explicit on the right-hand side it
+                //   acts as explicit diffusion in T; in vapour-open materials k_lat
+                //   exceeds the dry conductivity (Fiberglass Batts: 0.053 vs 0.043 W/mK
+                //   at 20 C), the fixed-point iteration loses contraction on fine meshes
+                //   and a mesh-dependent spatial sawtooth grows (ThermSample_StuccoWall
+                //   saturated fine-mesh cases).
+                //
+                // - Only the phi-part remains an explicit right-hand-side coupling to
+                //   the moisture field, mirroring the staggered treatment of every
+                //   other cross-variable term.
+                DDu(HeatOfEvaporation() * delta * StateValue(Variable::humidity)
+                    * SaturationDerivative());
+                multiplies(Constant(-1) * HeatOfEvaporation() * delta * SaturationFunction(),
+                           Variable::humidity);
             }
         }
 
