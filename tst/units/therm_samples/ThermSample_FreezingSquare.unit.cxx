@@ -17,8 +17,8 @@
 // conductivity slows the fixed-point contraction, the change-metric acceptance then
 // stagnates at large-residual iterates, and each accepted residual is a per-step
 // energy imbalance (~6 % of the extracted heat, front lagging the Stefan solution by
-// the same amount). Locks in the fusion residual guard in IDomain::transientTimestep,
-// which rejects such accepts and subdivides instead.
+// the same amount). Locks in the residual-reduction convergence that fusion runs use
+// instead (ThermalDomain::useResidualConvergence).
 namespace
 {
     //! Solves lam * exp(lam^2) * erf(lam) = Ste / sqrt(pi) by bisection.
@@ -151,7 +151,7 @@ TEST(ThermSample_FreezingSquare, StefanFront)
     {
         const double analytic =
           2.0 * lam * std::sqrt(diffusivity * static_cast<double>(step) * dTime);
-        const double numeric = frontPosition(history[step], -0.0005) - xStart;
+        const double numeric = frontPosition(history[step], -0.05) - xStart;
         EXPECT_NEAR(numeric, analytic, 0.05 * analytic) << "step " << step;
     }
 }

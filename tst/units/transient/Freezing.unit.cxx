@@ -136,7 +136,7 @@ TEST(Freezing, StefanFrontPosition)
     {
         const double analytic =
           2.0 * lam * std::sqrt(diffusivity * static_cast<double>(step) * dTime);
-        const double numeric = frontPosition(history[step], length, -0.0005);
+        const double numeric = frontPosition(history[step], length, -0.05);
         EXPECT_NEAR(numeric, analytic, 0.05 * analytic) << "step " << step;
     }
 }
@@ -145,7 +145,7 @@ TEST(Freezing, AdiabaticTwoPhaseEquilibrium)
 {
     // Insulated strip, 60% of it liquid at +10 C and 40% frozen-cold at -10 C, high
     // water content. The sensible-only mean is clearly positive (~+2 C), but freezing
-    // the excess enthalpy pins the equilibrium INSIDE the fusion ramp [-0.001, 0]:
+    // the excess enthalpy pins the equilibrium INSIDE the fusion ramp [-0.1, 0]:
     // reachable only if the fusion capacity actually absorbs the latent heat.
     setFusionOnlyPhysics();
 
@@ -193,6 +193,6 @@ TEST(Freezing, AdiabaticTwoPhaseEquilibrium)
     resetPhysics();
 
     const auto [minTemp, maxTemp] = std::minmax_element(temperatures.begin(), temperatures.end());
-    EXPECT_GE(*minTemp, -0.0011);
+    EXPECT_GE(*minTemp, -0.101);
     EXPECT_LE(*maxTemp, 0.0001);
 }

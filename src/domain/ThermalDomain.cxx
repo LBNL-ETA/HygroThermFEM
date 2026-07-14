@@ -5,6 +5,7 @@
 #include "BoundaryCondition2D.hxx"
 #include "BoundaryCondition2DThermal.hxx"
 #include "EnclosureRadiation.hxx"
+#include "SimulationProperties.hxx"
 
 namespace HygroThermFEM
 {
@@ -324,6 +325,11 @@ namespace HygroThermFEM
     Variable ThermalDomain::stateVariable() const
     {
         return Variable::temperature;
+    }
+
+    bool ThermalDomain::useResidualConvergence() const
+    {
+        return !SimulationProperties::Instance().excludeLatentHeatOfFusion();
     }
 
     void ThermalDomain::updateNodes(const std::vector<double> & solution,

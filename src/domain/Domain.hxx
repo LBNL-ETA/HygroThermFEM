@@ -232,8 +232,8 @@ namespace HygroThermFEM
             double currentNorm;
             double initialFreeResidual = 0.0;   //!< Free-DOF residual norm of the initial guess
                                                 //!< (residual-reduction convergence target, D3)
-            std::vector<double> bestSolution;   //!< Lowest-free-residual iterate seen so far,
-                                                //!< returned on best-effort acceptance (D3)
+            std::vector<double> bestSolution{};   //!< Lowest-free-residual iterate seen so far,
+                                                  //!< returned on best-effort acceptance (D3)
             double bestResidual = (std::numeric_limits<double>::max)();
             double prevFreeResidual = (std::numeric_limits<double>::max)();   //!< previous
                                                 //!< iteration's free residual (adaptive relax, D3)

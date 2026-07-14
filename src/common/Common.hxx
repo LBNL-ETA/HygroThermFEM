@@ -22,10 +22,16 @@ namespace Constants
     static constexpr double ABSOLUTEZERO = -273.15;
     static constexpr double GravityConstant = 9.807;
 
-    // Need to handle phase change through steep function. Melting is happening
-    // between IcePoint and FreezingPoint
+    // Phase change happens over the ramp [IcePoint, FreezingPoint]: the liquid fraction
+    // goes linearly from 0 to 1 across it. Physically, pore water freezes over a range
+    // (freezing-point depression), not at a single temperature. Numerically the width
+    // matters a great deal: with a 1 mK ramp the fusion capacity is a 4-orders-of-
+    // magnitude cliff that PINS crossing nodes at its edge and 2-cycles the NR iteration
+    // at every freeze-thaw crossing (each falsely-accepted cycle midpoint leaks energy);
+    // at 0.1 K the mushy band is a resolvable, continuous region the iteration can
+    // converge into.
     static constexpr double FreezingPoint = 0.0;
-    static constexpr double IcePoint = -0.001;
+    static constexpr double IcePoint = -0.1;
 
     static constexpr double EnthalpyOfFusion = 333550;   // J/kg
 

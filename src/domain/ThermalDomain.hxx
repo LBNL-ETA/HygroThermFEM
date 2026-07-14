@@ -295,6 +295,14 @@ namespace HygroThermFEM
 
         [[nodiscard]] Variable stateVariable() const override;
 
+        //! With the latent heat of fusion active the change-metric acceptance is unsafe:
+        //! the secant capacity kink contracts the fixed point so slowly that the metric
+        //! stagnates below any tolerance at iterates whose residual is a per-step ENERGY
+        //! imbalance (a freeze-thaw cycling benchmark lost ~4 % of its gross heat
+        //! throughput this way). Residual-reduction convergence (D3) accepts on the
+        //! actual equation error instead; fusion-off runs keep the historical metric.
+        [[nodiscard]] bool useResidualConvergence() const override;
+
     private:
         //! Radiosity coordinators owned by the domain; the per-segment BCs reference them.
         std::vector<std::unique_ptr<EnclosureRadiation>> m_EnclosureRadiations;
