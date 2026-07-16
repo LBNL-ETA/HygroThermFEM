@@ -166,6 +166,11 @@ namespace HygroThermFEM
         bool limitIncrement(const std::vector<double> & currentSolution,
                             std::vector<double> & increment,
                             double relaxParameter) const override;
+
+        //! Humidity is a fraction in [0, 1]; above saturation is condensation. The steady solve
+        //! projects onto this range (the transient Newton corrections are clamped to the same
+        //! bounds via limitIncrement above).
+        [[nodiscard]] std::optional<std::pair<double, double>> solutionBounds() const override;
         void updateNodes(const std::vector<double> & solution,
                          bool updatePreviousTimestep) override;
 

@@ -294,11 +294,59 @@ namespace HygroThermFEM
         return results;
     }
 
+    std::optional<std::pair<double, double>> IDomain::solutionBounds() const
+    {
+        return std::nullopt;
+    }
+
     std::vector<double> IDomain::steadyState()
     {
-        const auto B = steadyStateRightHandSide();
-        const auto A = steadyStateLeftHandSide();
-        return CLinearSolver::solveEigen(A, B);
+        auto lhsMatrix = steadyStateLeftHandSide();
+        auto rhsVector = steadyStateRightHandSide();
+        auto solution = CLinearSolver::solveEigen(lhsMatrix, rhsVector);
+
+        const auto bounds{solutionBounds()};
+        if(!bounds.has_value())
+        {
+            return solution;
+        }
+        const auto & [lowerBound, upperBound] = bounds.value();
+
+        // Dominates every physical conductance in a row, turning it into a Dirichlet condition
+        // at the violated bound (standard penalty treatment).
+        constexpr double penalty{1e12};
+        std::vector<bool> pinned(solution.size(), false);
+
+        // Each pass pins the newly violating degrees of freedom and re-solves. Pinning only ever
+        // adds constraints, so the loop terminates after at most size() passes; in practice the
+        // condensation zone is found in one or two.
+        bool anyNewViolation{true};
+        while(anyNewViolation)
+        {
+            anyNewViolation = false;
+            for(std::size_t index = 0u; index < solution.size(); ++index)
+            {
+                if(pinned[index])
+                {
+                    continue;
+                }
+                const bool belowBound{solution[index] < lowerBound};
+                const bool aboveBound{solution[index] > upperBound};
+                if(!belowBound && !aboveBound)
+                {
+                    continue;
+                }
+                pinned[index] = true;
+                anyNewViolation = true;
+                lhsMatrix(index, index) += penalty;
+                rhsVector[index] += penalty * (aboveBound ? upperBound : lowerBound);
+            }
+            if(anyNewViolation)
+            {
+                solution = CLinearSolver::solveEigen(lhsMatrix, rhsVector);
+            }
+        }
+        return solution;
     }
 
     lbnl::ExpectedExt<SingleSolution, SolverError> IDomain::transient(

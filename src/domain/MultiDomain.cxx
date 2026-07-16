@@ -301,6 +301,8 @@ namespace HygroThermFEM
         {
             if(m_SimulateMoisture)
             {
+                // steadyState() enforces the domain's solutionBounds: condensation zones pin at
+                // saturation instead of reporting Glaser-style supersaturation.
                 humidity = m_MoistureDomain.steadyState();
                 humidityError = normError(humidity, previousHumidity);
                 previousHumidity = humidity;

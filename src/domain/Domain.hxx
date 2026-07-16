@@ -4,6 +4,7 @@
 #include <limits>
 #include <memory>
 #include <optional>
+#include <utility>
 
 #include "lbnl/expected.hxx"
 
@@ -57,8 +58,20 @@ namespace HygroThermFEM
                    //!< should not be updated till convergence is achieved.
         );
 
-        //! Calculates steady state for given data
+        //! Calculates steady state for given data. When the domain's solution variable has
+        //! physical bounds (solutionBounds), the solve enforces them: out-of-bound degrees of
+        //! freedom are pinned to the violated bound (penalty rows) and the system is re-solved
+        //! until no new violation appears -- an active-set projection. The active set is rebuilt
+        //! on every call (matrices are reassembled), so nodes pinned under one coupled iterate
+        //! are free again under the next.
         std::vector<double> steadyState();
+
+        //! Physical range of the domain's solution variable, or nullopt when unbounded.
+        //! Humidity is a fraction in [0, 1]: above saturation is condensation, which an
+        //! unconstrained steady vapor solve otherwise reports as Glaser-style supersaturation
+        //! (the transient solver already clamps its Newton corrections to the same range).
+        //! Temperature has no such box.
+        [[nodiscard]] virtual std::optional<std::pair<double, double>> solutionBounds() const;
 
         //! \brief Calculates next timestep values from current (initial) values
         //! @param currentStateValues Current values of state variable or initial condition

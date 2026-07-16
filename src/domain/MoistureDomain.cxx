@@ -160,6 +160,11 @@ namespace HygroThermFEM
         m_BCs.assignTimestepBCs(std::move(timestepBCs));
     }
 
+    std::optional<std::pair<double, double>> MoistureDomain::solutionBounds() const
+    {
+        return std::pair{0.0, 1.0};
+    }
+
     void MoistureDomain::createBC_FixedHumidity(size_t index1,
         size_t index2,
         const TemperatureAndHumidity & values)
