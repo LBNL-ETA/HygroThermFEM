@@ -10,6 +10,7 @@
 
 #include "Elements2D.hxx"
 #include "BoundaryConditions2D.hxx"
+#include "LinearSolver.hxx"
 #include "GasCavities.hxx"
 #include "BoundaryConditionCoefficients.hxx"
 #include "TimestepNotifier.hxx"
@@ -321,6 +322,10 @@ namespace HygroThermFEM
 
         bool m_AutomaticUpdatePreviousTimestep;
         bool m_LastSolveAtPhysicalBound{false};
+
+        //! Persistent sparse solver: the system's sparsity pattern is fixed by the mesh, so the
+        //! symbolic factorization is analyzed once and reused across every solve of this domain.
+        CLinearSolver m_LinearSolver;
 
         [[nodiscard]] bool lastSolveAtPhysicalBound() const;
 

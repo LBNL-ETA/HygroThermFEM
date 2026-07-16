@@ -299,52 +299,137 @@ namespace HygroThermFEM
         return std::nullopt;
     }
 
+    namespace
+    {
+        enum class PinState : char
+        {
+            none,
+            lower,
+            upper
+        };
+
+        //! Pins degrees of freedom that violate the bounds; returns true when any new pin was
+        //! added.
+        bool pinViolators(const std::vector<double> & solution,
+                          const std::pair<double, double> & bounds,
+                          std::vector<PinState> & pins)
+        {
+            const auto & [lowerBound, upperBound] = bounds;
+            bool changed{false};
+            for(std::size_t index = 0u; index < solution.size(); ++index)
+            {
+                if(pins[index] != PinState::none)
+                {
+                    continue;
+                }
+                if(solution[index] > upperBound)
+                {
+                    pins[index] = PinState::upper;
+                    changed = true;
+                }
+                else if(solution[index] < lowerBound)
+                {
+                    pins[index] = PinState::lower;
+                    changed = true;
+                }
+            }
+            return changed;
+        }
+
+        //! Releases pinned degrees of freedom whose own (unpenalized) equation pulls them back
+        //! inside the bounds -- without this the first Glaser-style supersaturated solve
+        //! over-pins whole regions that belong strictly below saturation. Returns true when any
+        //! pin was released.
+        bool releaseInactivePins(const SquareMatrix & lhsMatrix,
+                                 const std::vector<double> & rhsVector,
+                                 const std::vector<double> & solution,
+                                 const std::pair<double, double> & bounds,
+                                 std::vector<PinState> & pins)
+        {
+            // Margin against add/release chattering right at the bound.
+            constexpr double releaseMargin{1e-9};
+            const auto & [lowerBound, upperBound] = bounds;
+            const auto residual = rhsVector - lhsMatrix * solution;
+            bool changed{false};
+            for(std::size_t index = 0u; index < solution.size(); ++index)
+            {
+                if(pins[index] == PinState::none)
+                {
+                    continue;
+                }
+                // Where the DOF's original row equation would place it, its neighbours held
+                // fixed: u_i + r_i / A_ii.
+                const double freeValue{solution[index]
+                                       + residual[index] / lhsMatrix(index, index)};
+                const bool releaseUpper{pins[index] == PinState::upper
+                                        && freeValue < upperBound - releaseMargin};
+                const bool releaseLower{pins[index] == PinState::lower
+                                        && freeValue > lowerBound + releaseMargin};
+                if(releaseUpper || releaseLower)
+                {
+                    pins[index] = PinState::none;
+                    changed = true;
+                }
+            }
+            return changed;
+        }
+
+        //! Original system plus a large diagonal penalty on every pinned degree of freedom --
+        //! the penalty dominates every physical conductance in the row, turning it into a
+        //! Dirichlet condition at the bound.
+        std::pair<SquareMatrix, std::vector<double>>
+          penalizedSystem(const SquareMatrix & lhsMatrix,
+                          const std::vector<double> & rhsVector,
+                          const std::pair<double, double> & bounds,
+                          const std::vector<PinState> & pins)
+        {
+            constexpr double penalty{1e12};
+            const auto & [lowerBound, upperBound] = bounds;
+            auto matrix{lhsMatrix};
+            auto rhs{rhsVector};
+            for(std::size_t index = 0u; index < pins.size(); ++index)
+            {
+                if(pins[index] == PinState::none)
+                {
+                    continue;
+                }
+                matrix(index, index) += penalty;
+                rhs[index] += penalty * (pins[index] == PinState::upper ? upperBound : lowerBound);
+            }
+            return {std::move(matrix), std::move(rhs)};
+        }
+    }   // namespace
+
     std::vector<double> IDomain::steadyState()
     {
-        auto lhsMatrix = steadyStateLeftHandSide();
-        auto rhsVector = steadyStateRightHandSide();
-        auto solution = CLinearSolver::solveEigen(lhsMatrix, rhsVector);
+        const auto lhsMatrix = steadyStateLeftHandSide();
+        const auto rhsVector = steadyStateRightHandSide();
+        auto solution = m_LinearSolver.solve(lhsMatrix, rhsVector);
 
         const auto bounds{solutionBounds()};
         if(!bounds.has_value())
         {
             return solution;
         }
-        const auto & [lowerBound, upperBound] = bounds.value();
 
-        // Dominates every physical conductance in a row, turning it into a Dirichlet condition
-        // at the violated bound (standard penalty treatment).
-        constexpr double penalty{1e12};
-        std::vector<bool> pinned(solution.size(), false);
-
-        // Each pass pins the newly violating degrees of freedom and re-solves. Pinning only ever
-        // adds constraints, so the loop terminates after at most size() passes; in practice the
-        // condensation zone is found in one or two.
-        bool anyNewViolation{true};
-        while(anyNewViolation)
+        // Primal active set WITH release: pin bound violators, re-solve, release pins whose
+        // equations pull back inside the bounds, repeat until the set is stable. The transient
+        // solver's clamped Newton resolves the same complementarity condition; add-only pinning
+        // is not equivalent and freezes the first pass's supersaturated region at the bound.
+        // The pass cap guards against chattering on degenerate systems.
+        std::vector<PinState> pins(solution.size(), PinState::none);
+        const std::size_t maxPasses{solution.size() + 10u};
+        for(std::size_t pass = 0u; pass < maxPasses; ++pass)
         {
-            anyNewViolation = false;
-            for(std::size_t index = 0u; index < solution.size(); ++index)
+            const bool anyPinned{pinViolators(solution, bounds.value(), pins)};
+            const bool anyReleased{
+              releaseInactivePins(lhsMatrix, rhsVector, solution, bounds.value(), pins)};
+            if(!anyPinned && !anyReleased)
             {
-                if(pinned[index])
-                {
-                    continue;
-                }
-                const bool belowBound{solution[index] < lowerBound};
-                const bool aboveBound{solution[index] > upperBound};
-                if(!belowBound && !aboveBound)
-                {
-                    continue;
-                }
-                pinned[index] = true;
-                anyNewViolation = true;
-                lhsMatrix(index, index) += penalty;
-                rhsVector[index] += penalty * (aboveBound ? upperBound : lowerBound);
+                break;
             }
-            if(anyNewViolation)
-            {
-                solution = CLinearSolver::solveEigen(lhsMatrix, rhsVector);
-            }
+            const auto [matrix, rhs] = penalizedSystem(lhsMatrix, rhsVector, bounds.value(), pins);
+            solution = m_LinearSolver.solve(matrix, rhs);
         }
         return solution;
     }
@@ -520,7 +605,7 @@ namespace HygroThermFEM
         const auto prevIterSolution = state.solution;
 
         const auto residual = state.vecB - state.matA * state.solution;
-        auto correctionDU = CLinearSolver::solveEigen(state.matA, residual);
+        auto correctionDU = m_LinearSolver.solve(state.matA, residual);
         const double rawDuNorm = norm(correctionDU);
 
         if(limitIncrement(state.solution, correctionDU, relaxParameter))
@@ -642,7 +727,7 @@ namespace HygroThermFEM
 
         if(isLinear())
         {
-            auto solution = CLinearSolver::solveEigen(matA, vecB);
+            auto solution = m_LinearSolver.solve(matA, vecB);
             postProcess(solution);
             m_LastSolveAtPhysicalBound = false;
             updateNodes(solution, m_AutomaticUpdatePreviousTimestep);
