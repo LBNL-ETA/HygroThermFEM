@@ -23,6 +23,9 @@ namespace HygroThermFEM
         //! \brief Returns human-readable message about missing properties
         [[nodiscard]] std::vector<std::string> missingPropertiesMessage() const;
 
+        //! \brief Plain names of the missing properties (no prose), for list/grid displays.
+        [[nodiscard]] std::vector<std::string> missingPropertyNames() const;
+
         bool isMissingAnyProperty() const;
     };
 

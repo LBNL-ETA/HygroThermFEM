@@ -5,51 +5,62 @@ namespace HygroThermFEM
     //////////////////////////////////////////////////////////////////////////
     ///  MaterialMissingProperties
     //////////////////////////////////////////////////////////////////////////
+    std::vector<std::string> MaterialMissingProperties::missingPropertyNames() const
+    {
+        std::vector<std::string> names;
+        if(Density)
+        {
+            names.emplace_back("Density");
+        }
+        if(Emissivity)
+        {
+            names.emplace_back("Emissivity");
+        }
+        if(Porosity)
+        {
+            names.emplace_back("Porosity");
+        }
+        if(SpecificHeatCapacityDry)
+        {
+            names.emplace_back("Specific Heat Capacity Dry");
+        }
+        if(ThermalConductivityDry)
+        {
+            names.emplace_back("Thermal Conductivity Dry");
+        }
+        if(WaterVaporDiffusionResistanceFactor)
+        {
+            names.emplace_back("Water Vapor Diffusion Resistance Factor");
+        }
+        if(MoistureStorageFunction)
+        {
+            names.emplace_back("Moisture Storage Function");
+        }
+        if(LiquidTransportationSuction)
+        {
+            names.emplace_back("Liquid Transportation Suction Curve");
+        }
+        if(LiquidTransportationRedistribution)
+        {
+            names.emplace_back("Liquid Transportation Redistribution Curve");
+        }
+        if(ThermalConductivityMoistureAndTemperatureDependent)
+        {
+            names.emplace_back("Thermal Conductivity Moisture and Temperature Dependent");
+        }
+        return names;
+    }
+
     std::vector<std::string> MaterialMissingProperties::missingPropertiesMessage() const
     {
         std::vector<std::string> message{};
-        if(isMissingAnyProperty())
+        const auto names{missingPropertyNames()};
+        if(!names.empty())
         {
             message.push_back("Material " + materialName + " is missing following properties:");
-            if(Density)
+            for(const auto & name : names)
             {
-                message.emplace_back("- Density");
-            }
-            if(Emissivity)
-            {
-                message.emplace_back("- Emissivity");
-            }
-            if(Porosity)
-            {
-                message.emplace_back("- Porosity");
-            }
-            if(SpecificHeatCapacityDry)
-            {
-                message.emplace_back("- Specific Heat Capacity Dry");
-            }
-            if(ThermalConductivityDry)
-            {
-                message.emplace_back("- Thermal Conductivity Dry");
-            }
-            if(WaterVaporDiffusionResistanceFactor)
-            {
-                message.emplace_back("- Water Vapor Diffusion Resistance Factor");
-            }
-            if(MoistureStorageFunction)
-            {
-                message.emplace_back("- Moisture Storage Function");
-            }
-            if(LiquidTransportationSuction)
-            {
-                message.emplace_back("- Liquid Transportation Suction Curve");
-            }
-            if(LiquidTransportationRedistribution)
-            {
-                message.emplace_back("- Liquid Transportation Redistribution Curve");
-            }
-            if(ThermalConductivityMoistureAndTemperatureDependent)
-            {
-                message.emplace_back("- Thermal Conductivity Moisture and Temperature Dependent");
+                message.push_back("- " + name);
             }
         }
         return message;
