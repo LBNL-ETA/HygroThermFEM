@@ -354,6 +354,32 @@ namespace HygroThermFEM
                         humidityError};
     }
 
+    Solution MultiDomain::currentStateSolution()
+    {
+        const auto temperature = m_Nodes.properties(Variable::temperature);
+        const auto humidity = m_Nodes.properties(Variable::humidity);
+        const auto waterContent = m_Nodes.properties(Variable::water);
+        const auto liquidContent = m_Nodes.properties(Variable::liquid);
+        const auto vaporContent = m_Nodes.properties(Variable::vapor);
+        const auto iceContent = m_Nodes.properties(Variable::ice);
+
+        // No step has been taken from this state, so there is nothing to differentiate: the
+        // fluxes are identically zero (exact for the uniform initial condition).
+        const std::vector<NodeFlux> zeroFlux(temperature.size(), NodeFlux{0.0, 0.0});
+
+        return Solution{0.0,
+                        temperature,
+                        humidity,
+                        waterContent,
+                        liquidContent,
+                        vaporContent,
+                        iceContent,
+                        zeroFlux,
+                        zeroFlux,
+                        0.0,
+                        0.0};
+    }
+
     void MultiDomain::setDiagnosticStream(std::ostream * stream)
     {
         m_DiagStream = stream;

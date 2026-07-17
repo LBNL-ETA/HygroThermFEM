@@ -98,6 +98,13 @@ namespace HygroThermFEM
         //! Calculates steady state solution for multiple domains.
         Solution steadyState();
 
+        //! Snapshot of the current node state as a zero-duration Solution. Called before the
+        //! first transient step it captures the initial conditions -- the "timestep 0" frame
+        //! of a transient result series. Water, liquid, vapor and ice contents come from the
+        //! node state exactly as any solved frame's would; the fluxes are identically zero,
+        //! which is exact for the uniform initial state.
+        [[nodiscard]] Solution currentStateSolution();
+
         //! Runs a multi-step transient simulation, collecting per-step
         //! temperature and moisture results. Initial conditions are read
         //! from the current node state.
