@@ -32,26 +32,6 @@ namespace HygroThermFEM
         return missingProperties;
     }
 
-    MaterialsErrorCheckVector MaterialDataChecker::checkSteadyStateThermalProperties()
-    {
-        MaterialsErrorCheckVector missingProperties;
-        const auto & materialPool = multiDomain.materials();
-        for(const auto & materialName : materialPool.getSolidMaterials())
-        {
-            const auto & material{materialPool.material(materialName)};
-            MaterialMissingProperties missing;
-            missing.materialName = material.name();
-            missing.ThermalConductivityDry = !material.hasThermalConductivityDry();
-            missing.Emissivity = !material.hasEmissivity();
-            if(missing.isMissingAnyProperty())
-            {
-                missingProperties.push_back(missing);
-            }
-        }
-
-        return missingProperties;
-    }
-
     MaterialMissingProperties MaterialDataChecker::checkMaterial(const IMaterial & material,
                                                                  const bool isTransientSimulation) const
     {
@@ -88,17 +68,13 @@ namespace HygroThermFEM
               && !SimulationProperties::Instance().excludeHeatOfEvaporation()
               && multiDomain.isThermalSimulationON());
 
-        // Three options in case of Sorption Curve:
-        //  1. Thermal simulation includes capillary conduction.
-        //  2. Moisture simulation include capillary transportation.
-        //  3. Moisture simulation is transient.
+        // Sorption curve: any moisture simulation needs it (the transient capacity term and
+        // the water-content evaluation both read it, steady included), and a thermal
+        // simulation needs it when capillary conduction is on.
         missing.MoistureStorageFunction =
           (!material.hasSorptionCurve() && multiDomain.isThermalSimulationON()
            && !SimulationProperties::Instance().excludeCapillaryConduction())
-          || (!material.hasSorptionCurve() && multiDomain.isMoistureSimulationON()
-              && !SimulationProperties::Instance().excludeWaterLiquidTransportation())
-          || (!material.hasSorptionCurve() && isTransientSimulation
-              && multiDomain.isMoistureSimulationON());
+          || (!material.hasSorptionCurve() && multiDomain.isMoistureSimulationON());
 
 
         // Two options in case of Liquid Transportation Curve

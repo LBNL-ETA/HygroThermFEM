@@ -18,18 +18,14 @@ namespace HygroThermFEM
     public:
         explicit MaterialDataChecker(const MultiDomain & multiDomain);
 
-        //! \brief Check all material properties against current engine settings.
+        //! \brief Check all material properties against current engine settings. The
+        //! requirements follow the domain's thermal/moisture enables and the
+        //! SimulationProperties exclusion flags, so those must be applied before checking.
         //!
-        //! \param isTransientSimulation Different checks are needed for different simulation types.
+        //! \param isTransientSimulation Transient additionally requires the storage
+        //! properties (density, specific heat capacity).
         //! \return All missing properties for every material.
         MaterialsErrorCheckVector checkMaterialProperties(bool isTransientSimulation);
-
-        //! \brief Minimal steady-state thermal check.
-        //!
-        //! A steady-state thermal run needs only dry thermal conductivity (to conduct) and front
-        //! emissivity (for surface radiation). A complete steady-state property check is a follow-up.
-        //! \return Materials missing dry thermal conductivity or emissivity.
-        MaterialsErrorCheckVector checkSteadyStateThermalProperties();
 
     private:
         //! \brief Check single material properties against current engine settings

@@ -722,8 +722,12 @@ namespace HygroThermFEM
 
     MaterialsErrorCheckVector MultiDomain::checkMaterialsForSteadyStateSimulation() const
     {
+        // The full flag-aware check: with moisture off it reduces to the thermal essentials
+        // (dry conductivity + emissivity), and with moisture on it requires the moisture
+        // properties too -- a steady moisture run on hole-riddled legacy materials must be
+        // stopped with a report instead of reaching the engine.
         MaterialDataChecker dataChecker{*this};
-        return dataChecker.checkSteadyStateThermalProperties();
+        return dataChecker.checkMaterialProperties(false);
     }
 
     MaterialsErrorCheckVector
