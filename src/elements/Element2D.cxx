@@ -509,6 +509,38 @@ namespace HygroThermFEM
         return m_Linear;
     }
 
+    void IElementLinear2D::setVolumetricSource(const double value)
+    {
+        m_VolumetricSource = value;
+    }
+
+    std::vector<double> IElementLinear2D::volumetricSourceVector() const
+    {
+        // Consistent load vector for a constant source: q * integral(psi_i dA),
+        // integrated with the same 2x2 Gauss rule as every other element matrix.
+        // Kept separate from rightSideVector so the source enters the steady and
+        // transient right hand sides symmetrically without altering what the
+        // steady path takes from the elements otherwise.
+        std::vector<double> result(numOfQuadrilateralNodes, 0);
+        if(m_VolumetricSource == 0.0)
+        {
+            return result;
+        }
+        const auto & localElement = QuadrilateralLinearLocal2D::Instance();
+        const auto numOfIntegrationPoints = IntegrationPoints2D::Instance().count2D();
+        for(std::size_t integrationPoint = 0; integrationPoint < numOfIntegrationPoints;
+            ++integrationPoint)
+        {
+            const auto det = m_Global2D.det(integrationPoint);
+            const auto & psi = localElement.Psi(integrationPoint);
+            for(std::size_t node = 0; node < numOfQuadrilateralNodes; ++node)
+            {
+                result[node] += m_VolumetricSource * det * psi[node];
+            }
+        }
+        return result;
+    }
+
     std::vector<double> IElementLinear2D::rightSideVector() const
     {
         std::vector<double> result(numOfQuadrilateralNodes, 0);
@@ -636,6 +668,15 @@ namespace HygroThermFEM
 
             auto matCond{m_Material.thermalConductivityMoistureAndTemperatureDependent()};
             CondFlux(matCond);
+
+            // A conductivity that varies inside the element needs the Gauss-point
+            // interpolated coefficient: the pairwise average scales diagonal entries
+            // by k_i but off-diagonals by 0.5 (k_i + k_j), so the row sums of the
+            // conduction operator no longer vanish and the imbalance acts as a
+            // spurious interior heat source wherever k has a gradient (verified on
+            // UCRL-ID-106550 problem 2.9a, where it shifts the k(T) solution by ~10%).
+            // Same remedy the moisture element applies to its vapour coefficient.
+            m_InterpolateCoefficientsAtGaussPoints = true;
         }
         if(!SimulationProperties::Instance().thermalConductivityTemperatureAndMoistureDependent()
            && m_Material.hasThermalConductivityDry())

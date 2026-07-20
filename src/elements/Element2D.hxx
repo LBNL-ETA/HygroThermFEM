@@ -200,6 +200,15 @@ namespace HygroThermFEM
         //! Integrates right hand-side vector.
         std::vector<double> rightSideVector() const;
 
+        //! \brief Sets a constant volumetric source for this element [W/m^3 for the
+        //! thermal domain]. Contributes the consistent load q * integral(psi_i dA) via
+        //! volumetricSourceVector(); zero (the default) adds nothing.
+        void setVolumetricSource(double value);
+
+        //! \brief Consistent load vector of the element's volumetric source,
+        //! q * integral(psi_i dA); all zeros when no source is set.
+        [[nodiscard]] std::vector<double> volumetricSourceVector() const;
+
         std::vector<NodeFlux> flux() const;
 
         //! Heat flux (sigma = -k * grad(state)) evaluated at each 2x2 Gauss point, in the
@@ -452,6 +461,9 @@ namespace HygroThermFEM
         //! source of the ~1% closed-strip moisture creation in the D1 diagnostic. Set by the
         //! moisture element; thermal keeps the default (false) so its assembly is unchanged.
         bool m_InterpolateCoefficientsAtGaussPoints{false};
+
+        //! Constant volumetric source over the element; zero contributes nothing.
+        double m_VolumetricSource{0.0};
 
     private:
         //! \brief Used to evaluate complex differential equation with two variable functions. One

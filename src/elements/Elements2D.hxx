@@ -35,6 +35,17 @@ namespace HygroThermFEM
         //! \param maxNodeIndex Maximum node index for vector sizing.
         std::vector<double> RVector(size_t maxNodeIndex) const;
 
+        //! \brief Sets the same constant volumetric source on every element.
+        void setVolumetricSource(double value);
+
+        //! \brief Sets a constant volumetric source per element, in element creation
+        //! order; the vector size must match the number of elements.
+        void setVolumetricSource(const std::vector<double> & perElement);
+
+        //! \brief Assembled consistent load vector of all element volumetric sources.
+        //! \param maxNodeIndex Maximum node index for vector sizing.
+        std::vector<double> volumetricSourceVector(size_t maxNodeIndex) const;
+
         //! Vector of fluxes for the entire domain.
         //! \param maxNodeIndex Maximum node index for vector sizing.
         std::vector<NodeFlux> flux(size_t maxNodeIndex) const;

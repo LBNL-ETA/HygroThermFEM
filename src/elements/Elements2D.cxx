@@ -1,4 +1,5 @@
 #include <numeric>
+#include <stdexcept>
 
 #ifdef STL_MULTITHREADING
 #    include <execution>
@@ -233,6 +234,42 @@ namespace HygroThermFEM
         }
 #endif
 
+        return result;
+    }
+
+    void ElementsLinear2D::setVolumetricSource(const double value)
+    {
+        for(auto & element : m_Elements)
+        {
+            element->setVolumetricSource(value);
+        }
+    }
+
+    void ElementsLinear2D::setVolumetricSource(const std::vector<double> & perElement)
+    {
+        if(perElement.size() != m_Elements.size())
+        {
+            throw std::runtime_error(
+              "Volumetric source vector size does not match the number of elements.");
+        }
+        for(std::size_t index = 0; index < m_Elements.size(); ++index)
+        {
+            m_Elements[index]->setVolumetricSource(perElement[index]);
+        }
+    }
+
+    std::vector<double> ElementsLinear2D::volumetricSourceVector(const size_t maxNodeIndex) const
+    {
+        std::vector<double> result(maxNodeIndex, 0);
+        for(const auto & element : m_Elements)
+        {
+            const auto indexes = element->nodeIndexes();
+            const auto load = element->volumetricSourceVector();
+            for(size_t i = 0; i < numOfQuadrilateralNodes; ++i)
+            {
+                result[indexes[i] - 1] += load[i];
+            }
+        }
         return result;
     }
 

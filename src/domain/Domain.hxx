@@ -108,6 +108,15 @@ namespace HygroThermFEM
         //! solved domain.
         [[nodiscard]] const ElementsLinear2D & elements() const;
 
+        //! \brief Sets the same constant volumetric source on every element of this
+        //! domain [W/m^3 for the thermal domain]. Enters the right hand-side vector as
+        //! the consistent load q * integral(psi_i dA).
+        void setVolumetricSource(double value);
+
+        //! \brief Sets a constant volumetric source per element, in element creation
+        //! order; the vector size must match the number of elements.
+        void setVolumetricSource(const std::vector<double> & perElement);
+
         //! Adds element into domain
         virtual void createElement(
           size_t index1,                     //!< Node 1 index

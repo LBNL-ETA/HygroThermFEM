@@ -244,7 +244,8 @@ namespace HygroThermFEM
 
     std::vector<double> IDomain::steadyStateRightHandSide() const
     {
-        return m_BCs.RVector(m_NodePool.maxIndex());
+        return m_BCs.RVector(m_NodePool.maxIndex())
+               + m_Elements.volumetricSourceVector(m_NodePool.maxIndex());
     }
 
     SquareMatrix IDomain::transientM_K_H_Matrix(const double t_DTime, const size_t timestepIndex)
@@ -266,7 +267,8 @@ namespace HygroThermFEM
         const auto maxNodeIndex = m_NodePool.maxIndex();
         const std::vector<double> MassVec{m_Elements.getLumpedMass(maxNodeIndex, t_DTime)};
         const auto vecR = m_BCs.RVector(maxNodeIndex, timestepIndex)
-                          + m_Elements.RVector(maxNodeIndex);
+                          + m_Elements.RVector(maxNodeIndex)
+                          + m_Elements.volumetricSourceVector(maxNodeIndex);
 
         auto vecB = t_PreviousSolution * MassVec + vecR;
 
@@ -811,6 +813,16 @@ namespace HygroThermFEM
     const ElementsLinear2D & IDomain::elements() const
     {
         return m_Elements;
+    }
+
+    void IDomain::setVolumetricSource(const double value)
+    {
+        m_Elements.setVolumetricSource(value);
+    }
+
+    void IDomain::setVolumetricSource(const std::vector<double> & perElement)
+    {
+        m_Elements.setVolumetricSource(perElement);
     }
 
     bool IDomain::lastSolveAtPhysicalBound() const
