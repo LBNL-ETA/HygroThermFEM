@@ -26,8 +26,13 @@ namespace HygroThermFEM
         IConvectiveCoefficient & operator=(IConvectiveCoefficient && other) = delete;
         [[nodiscard]] virtual std::vector<double> convectiveCoefficients() const = 0;
 
-        //! \brief Water vapor transfer coefficient is always the same and it does not depend on
-        //! how convective film coefficient is calculated
+        //! \brief Per-node surface vapor transfer coefficient by the Lewis relation,
+        //! beta = h_c / (rho_air Cp_air), tapered to zero above saturation.
+        //!
+        //! The FORMULA is shared by every film-coefficient model (fixed, TARP, ASHRAE,
+        //! Yazdanian-Klems, Kimura): each node's beta is its convectiveCoefficients()
+        //! value divided by rho_air Cp_air -- the film coefficient IS multiplied in,
+        //! at the final line of the implementation.
         //!
         //! \return Array that contains calculated values for each node associated with the boundary
         [[nodiscard]] std::vector<double> waterVaporTransferCoefficient() const;
