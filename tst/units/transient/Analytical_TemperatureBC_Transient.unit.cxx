@@ -1,6 +1,7 @@
 #include <memory>
 #include <gtest/gtest.h>
 
+#include "DumpCsv.hxx"
 #include "HygroThermFEM2D.hxx"
 #include "SlabCreator.hxx"
 #include "TestMaterials.hxx"
@@ -8,11 +9,11 @@
 /////////////////////////////////////////////////////////////////////////////////////
 /// Transient temperature boundary conditions vs Analytical solution
 ///
-/// This is test against analytical solution obtained from Carslaw-Jeager: page 122
+/// This is test against analytical solution obtained from Carslaw-Jeager: page 97
 /// NOTE: Carslaw-Jeager equation works only for specific coefficients (as used in example).
 /////////////////////////////////////////////////////////////////////////////////////
 
-TEST(Analytical_ConvectionBC_Transient, TestExample_1)
+TEST(Analytical_TemperatureBC_Transient, TestExample_1)
 {
     SCOPED_TRACE("Begin Test: Example.");
 
@@ -51,6 +52,12 @@ TEST(Analytical_ConvectionBC_Transient, TestExample_1)
 
     const auto solution = multiDomain.thermal().transientMultiStep(
       HygroThermFEM::Variable::temperature, dTime, nSteps);
+
+    TestHelper::CsvDump dump("carslaw_temperature_step.csv", 11);
+    for(std::size_t step = 0; step < solution.size(); ++step)
+    {
+        dump.addRow(step + 1, TestHelper::bottomRow(solution[step], 11, 2));
+    }
 
     std::vector<std::vector<double>> analyticalSolution{{10.171, 7.195, 0.000},
                                                         {4.064, 2.874, 0.000},

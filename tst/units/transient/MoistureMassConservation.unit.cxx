@@ -1,7 +1,9 @@
+#include <functional>
 #include <memory>
 #include <vector>
 #include <gtest/gtest.h>
 
+#include "DumpCsv.hxx"
 #include "HygroThermFEM2D.hxx"
 #include "TestMaterials.hxx"
 
@@ -40,58 +42,90 @@ namespace
         }
         return total;
     }
+
+    // Builds the closed strip with the given per-column humidity, relaxes it for
+    // 24 hourly steps, and returns the largest relative drift of the moisture
+    // integral. Optionally dumps the per-step bottom-row humidities.
+    double closedStripMaxDrift(const std::function<double(std::size_t)> & initialHumidity,
+                               const std::string & dumpName)
+    {
+        HygroThermFEM::MultiDomain multiDomain(
+          {.performThermal = false, .performMoisture = true});
+
+        for(std::size_t c = 0; c < nCols; ++c)
+        {
+            const State state({.temperature = 20.0,
+                               .humidity = initialHumidity(c),
+                               .pressure = 101325.0,
+                               .liquidPercent = 1.0});
+            const double xPos = dx * static_cast<double>(c);
+            multiDomain.nodes().createNode(
+              {.index = nodeIndex(c, 0), .x = xPos, .y = 0.0, .state = state});
+            multiDomain.nodes().createNode(
+              {.index = nodeIndex(c, 1), .x = xPos, .y = height, .state = state});
+        }
+
+        const auto & material =
+          multiDomain.materials().createSolidMaterial(TestHelper::CottaerSandstone());
+        for(std::size_t c = 0; c < nCols - 1; ++c)
+        {
+            multiDomain.createElement({.node1 = nodeIndex(c, 0),
+                                       .node2 = nodeIndex(c + 1, 0),
+                                       .node3 = nodeIndex(c + 1, 1),
+                                       .node4 = nodeIndex(c, 1),
+                                       .material = material.name()});
+        }
+
+        // No boundary conditions -> zero flux on all edges (closed system).
+        constexpr double dTime = 3600.0;
+        constexpr unsigned nSteps = 24;
+
+        auto humidities = multiDomain.nodes().properties(Variable::humidity);
+        const double m0 = totalMoisture(multiDomain.nodes().properties(Variable::water));
+
+        TestHelper::CsvDump dump(dumpName, nCols);
+        double maxDrift = 0.0;
+        for(unsigned i = 0; i < nSteps; ++i)
+        {
+            humidities = multiDomain.moisture().transient(humidities, dTime).value().solution;
+            // Advance the previous-timestep humidity as MultiDomain::transient does per step;
+            // the secant capacity's conservation telescoping needs the true previous step.
+            multiDomain.nodes().updateNodeHumidities(humidities, true);
+            dump.addRow(i + 1, TestHelper::bottomRow(humidities, nCols, 2));
+            const double m = totalMoisture(multiDomain.nodes().properties(Variable::water));
+            maxDrift = std::max(maxDrift, std::abs(m - m0) / m0);
+        }
+
+        std::cout << "[MassConservation] initial moisture = " << m0
+                  << " kg/m, max relative drift = " << maxDrift << "\n";
+        return maxDrift;
+    }
 }   // namespace
 
 TEST(MoistureMassConservation, ClosedStripConservesMoisture)
 {
-    HygroThermFEM::MultiDomain multiDomain({.performThermal = false, .performMoisture = true});
-
     // Humidity gradient 0.9 -> 0.6 across the columns; uniform temperature.
-    for(std::size_t c = 0; c < nCols; ++c)
-    {
-        const double phi = 0.9 - 0.3 * static_cast<double>(c) / static_cast<double>(nCols - 1);
-        const State state({.temperature = 20.0,
-                           .humidity = phi,
-                           .pressure = 101325.0,
-                           .liquidPercent = 1.0});
-        multiDomain.nodes().createNode(
-          {.index = nodeIndex(c, 0), .x = dx * static_cast<double>(c), .y = 0.0, .state = state});
-        multiDomain.nodes().createNode(
-          {.index = nodeIndex(c, 1), .x = dx * static_cast<double>(c), .y = height, .state = state});
-    }
-
-    const auto & material = multiDomain.materials().createSolidMaterial(TestHelper::CottaerSandstone());
-    for(std::size_t c = 0; c < nCols - 1; ++c)
-    {
-        multiDomain.createElement({.node1 = nodeIndex(c, 0),
-                                   .node2 = nodeIndex(c + 1, 0),
-                                   .node3 = nodeIndex(c + 1, 1),
-                                   .node4 = nodeIndex(c, 1),
-                                   .material = material.name()});
-    }
-
-    // No boundary conditions -> zero flux on all edges (closed system).
-    constexpr double dTime = 3600.0;
-    constexpr unsigned nSteps = 24;
-
-    auto humidities = multiDomain.nodes().properties(Variable::humidity);
-    const double m0 = totalMoisture(multiDomain.nodes().properties(Variable::water));
-
-    double maxDrift = 0.0;
-    for(unsigned i = 0; i < nSteps; ++i)
-    {
-        humidities = multiDomain.moisture().transient(humidities, dTime).value().solution;
-        // Advance the previous-timestep humidity as MultiDomain::transient does per step;
-        // the secant capacity's conservation telescoping needs the true previous step.
-        multiDomain.nodes().updateNodeHumidities(humidities, true);
-        const double m = totalMoisture(multiDomain.nodes().properties(Variable::water));
-        maxDrift = std::max(maxDrift, std::abs(m - m0) / m0);
-    }
-
-    std::cout << "[MassConservation] initial moisture = " << m0
-              << " kg/m, max relative drift = " << maxDrift << "\n";
+    const double maxDrift = closedStripMaxDrift(
+      [](std::size_t c)
+      { return 0.9 - 0.3 * static_cast<double>(c) / static_cast<double>(nCols - 1); },
+      "moisture_conservation.csv");
 
     // With the mass-conservative secant capacity (exact nodal lumping) the closed-system
     // drift is machine precision (measured ~3e-14).
+    EXPECT_LT(maxDrift, 1e-12);
+}
+
+TEST(MoistureMassConservation, ClosedStripConservesMoistureAboveLiquidData)
+{
+    // Humidity gradient 0.99 -> 0.96: water content 34.5-63 kg/m3, entirely above
+    // Cottaer's first measured liquid transport point (w = 27). The drier gradient
+    // above runs below that point, on a curve segment set by the zero-flooring
+    // convention of the liquid table, so it cannot see the liquid coefficient at
+    // all; this sibling exercises conservation where liquid transport is live.
+    const double maxDrift = closedStripMaxDrift(
+      [](std::size_t c)
+      { return 0.99 - 0.03 * static_cast<double>(c) / static_cast<double>(nCols - 1); },
+      "moisture_conservation_wet.csv");
+
     EXPECT_LT(maxDrift, 1e-12);
 }

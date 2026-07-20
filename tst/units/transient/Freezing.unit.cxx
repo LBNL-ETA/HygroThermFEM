@@ -6,6 +6,7 @@
 #include "HygroThermFEM2D.hxx"
 
 #include "BeamBuilder.hxx"
+#include "DumpCsv.hxx"
 #include "TestMaterials.hxx"
 
 // D5 Tier 1: latent heat of fusion via the mass-conservative secant capacity
@@ -77,8 +78,8 @@ namespace
 
 // Anchor the helper above to EXTERNALLY published values before trusting it as the
 // reference for everything below. stefanLambda() is a second, independent
-// implementation of the root the Python oracle also computes
-// (hygrothermfem_python src/hygrothermfem/analytic.py); the oracle being anchored
+// implementation of the root the Python reference solver also computes
+// (hygrothermfem_python src/hygrothermfem/analytic.py); that solver being anchored
 // says nothing about this one. A dropped sqrt(pi) or a bracket that excludes the
 // root would make StefanFrontPosition validate the engine against a wrong front
 // and still pass.
@@ -159,6 +160,12 @@ TEST(Freezing, StefanFrontPosition)
         history.push_back(temperatures);
     }
     resetPhysics();
+
+    TestHelper::CsvDump dump("freezing_stefan.csv", 201);
+    for(std::size_t step = 1; step < history.size(); ++step)
+    {
+        dump.addRow(step, TestHelper::bottomRow(history[step], 201, 2));
+    }
 
     for(const unsigned step : {48u, 96u, 144u})
     {

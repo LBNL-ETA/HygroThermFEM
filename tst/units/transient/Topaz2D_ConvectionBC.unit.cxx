@@ -1,6 +1,7 @@
 #include <memory>
 #include <gtest/gtest.h>
 
+#include "DumpCsv.hxx"
 #include "HygroThermFEM2D.hxx"
 #include "TestHelpers.hxx"
 #include "TestMaterials.hxx"
@@ -58,6 +59,14 @@ TEST(Topaz2D_ConvectionBC, TestExample_1)
 
     const auto solution = multiDomain.thermal().transientMultiStep(
       HygroThermFEM::Variable::temperature, dTime, nSteps);
+
+    // Bottom nodes in ascending x (nodes 6, 4, 2 at x = 0, 0.05, 0.15); the node
+    // numbering above runs in descending x, so the row is picked out explicitly.
+    TestHelper::CsvDump dump("topaz_golden_convection.csv", 3);
+    for(std::size_t step = 0; step < solution.size(); ++step)
+    {
+        dump.addRow(step + 1, {solution[step][5], solution[step][3], solution[step][1]});
+    }
 
     std::vector<std::vector<double>> correctSolution{
       {1.4182108, 1.4182108, 3.3250259, 3.3250259, 7.6313602, 7.6313602},

@@ -430,6 +430,79 @@ TEST(CurveTest, TestTabularDerivativeSmooth)
     EXPECT_NEAR(21.222222, result, 1e-6);
 }
 
+// Pins the sorption slope used inside the LIQUID transport coefficient D_l * xi
+// near saturation, where the smoothed (midpoint-anchored) derivative and the
+// piecewise-segment derivative of the same isotherm differ by more than a factor
+// of two -- on Cottaer at phi = 0.98 the smoothed value is 2305.56 against a
+// segment slope of 950. ElementMoistureLinear2D pairs TabularDerivativeSmooth
+// with the logarithmic liquid transportation curve; this test fixes that pairing
+// numerically so a change to either form is a deliberate decision, not a drift.
+// Expected values are cross-computed by the independent 1D reference solver
+// (hygrothermfem_python: Material.storage_tangent_smooth / liquid_diffusivity).
+TEST(CurveTest, TestLiquidCoefficientSorptionSlopeNearSaturation)
+{
+    SCOPED_TRACE("Begin Test: pin the smoothed sorption slope in D_l * xi.");
+    using HygroThermFEM::MockNode2D;
+
+    // Cottaer Sandstone isotherm and liquid transport curve (TestMaterials.hxx);
+    // the liquid curve starts at its first measured point, w = 27 kg/m3.
+    const TabularDerivativeSmooth sorptionSlope({{0.000, 0.0},
+                                                 {0.500, 5.3},
+                                                 {0.650, 8.4},
+                                                 {0.800, 12},
+                                                 {0.930, 17},
+                                                 {0.950, 25},
+                                                 {0.990, 63},
+                                                 {0.995, 83},
+                                                 {0.999, 120},
+                                                 {1.000, 180}},
+                                                Variable::humidity);
+
+    const TabularFunction1D liquidDiffusivity({{27, 1E-8},
+                                               {45, 1.1E-8},
+                                               {90, 2E-8},
+                                               {126, 3.5E-8},
+                                               {144, 5E-8},
+                                               {162, 1E-7},
+                                               {171, 2E-7},
+                                               {180, 7E-7}},
+                                              Variable::water,
+                                              FenestrationCommon::Interpolation::Logarithmic);
+
+    struct PinnedPoint
+    {
+        double humidity;
+        double waterContent;   // w(phi) on the isotherm above
+        double slope;          // smoothed d w / d phi
+        double product;        // D_l(w) * slope
+    };
+
+    // phi = 0.98 is the point where smooth (2305.56) and segment (950) split 2.4x.
+    const std::vector<PinnedPoint> pinned{
+      {0.96, 34.5, 766.6666666667, 7.9772560758e-06},
+      {0.98, 53.5, 2305.5555555556, 2.8392973681e-05},
+      {0.998, 110.75, 29550.0, 8.1596571620e-04},
+    };
+
+    const size_t nodeNumber{0};
+    constexpr double x_coord{0};
+    constexpr double y_coord{0};
+
+    for(const auto & point : pinned)
+    {
+        const MockNode2D humidityNode(
+          nodeNumber, x_coord, y_coord, {Variable::humidity, point.humidity});
+        const double slope = sorptionSlope.value(humidityNode);
+        EXPECT_NEAR(point.slope, slope, 1e-6 * point.slope) << "phi = " << point.humidity;
+
+        const MockNode2D waterNode(
+          nodeNumber, x_coord, y_coord, {Variable::water, point.waterContent});
+        const double diffusivity = liquidDiffusivity.value(waterNode);
+        EXPECT_NEAR(point.product, diffusivity * slope, 1e-6 * point.product)
+          << "phi = " << point.humidity;
+    }
+}
+
 TEST(CurveTest, TestTotalMelting)
 {
     using HygroThermFEM::MockNode2D;
