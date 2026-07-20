@@ -75,6 +75,34 @@ namespace
     }
 }   // namespace
 
+// Anchor the helper above to EXTERNALLY published values before trusting it as the
+// reference for everything below. stefanLambda() is a second, independent
+// implementation of the root the Python oracle also computes
+// (hygrothermfem_python src/hygrothermfem/analytic.py); the oracle being anchored
+// says nothing about this one. A dropped sqrt(pi) or a bracket that excludes the
+// root would make StefanFrontPosition validate the engine against a wrong front
+// and still pass.
+//
+// Keep these constants in sync with
+// hygrothermfem_python tests/test_stefan_reference.py, which cites them in full.
+TEST(Freezing, StefanRootMatchesPublishedValues)
+{
+    // Gobin & Le Quere, Computer Assisted Mechanics and Engineering Sciences 7(3),
+    // 289-306 (2000), p.305. Published expressly as the yardstick for judging code
+    // accuracy in the pure-conduction limit of a 13-team comparison exercise.
+    EXPECT_NEAR(stefanLambda(0.01), 0.0705932, 1.0e-7);
+    EXPECT_NEAR(stefanLambda(0.1), 0.2200163, 1.0e-7);
+
+    // Lunardini, Heat Conduction with Freezing or Thawing, CRREL Monograph 88-1
+    // (1988), Table 2.2 p.32, zero-superheat column. Printed values are truncated
+    // rather than rounded, so 1e-3 is the meaningful tolerance.
+    EXPECT_NEAR(stefanLambda(1.0), 0.6201, 1.0e-3);
+
+    // Alexiades & Solomon, Mathematical Modeling of Melting and Freezing Processes
+    // (1993), section 2.1.E worked example: Ste = 0.314 -> lam = 0.3777 (4 d.p.).
+    EXPECT_NEAR(stefanLambda(0.314), 0.3777, 1.0e-4);
+}
+
 TEST(Freezing, StefanFrontPosition)
 {
     // One-phase Stefan: a 0.5 m strip of Stucco at phi = 0.99, initially liquid AT the
