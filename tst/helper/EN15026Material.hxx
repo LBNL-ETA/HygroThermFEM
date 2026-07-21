@@ -6,7 +6,7 @@ namespace TestHelper
 {
     //! EN 15026:2007 Annex A benchmark material -- scalar-mu projection.
     //!
-    //! GENERATED from hygrothermfem_python (src/hygrothermfem/en15026.py, which
+    //! GENERATED from hygrothermfem_python (src/hygrotherm1d/en15026.py, which
     //! transcribes the standard's Annex A property functions with page-level
     //! provenance) at n_points = 64: the tables below are numerically
     //! identical to the reference solver's "en15026_mu200" registry material,
