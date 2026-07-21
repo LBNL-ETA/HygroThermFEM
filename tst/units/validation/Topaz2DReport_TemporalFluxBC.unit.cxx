@@ -2,7 +2,6 @@
 #include <cmath>
 #include <gtest/gtest.h>
 
-#include "DumpCsv.hxx"
 #include "HygroThermFEM2D.hxx"
 #include "SlabCreator.hxx"
 #include "TestMaterials.hxx"
@@ -81,10 +80,8 @@ TEST(Topaz2DReport_TemporalFluxBC, InverseSqrtFlux)
         history.push_back(temperatures);
     }
 
-    TestHelper::CsvDump dump("topaz_temporal_flux.csv", 11);
     for(std::size_t step = 0; step < history.size(); ++step)
     {
-        dump.addRow(step + 1, TestHelper::bottomRow(history[step], 11, 2));
     }
 
     // Exact series at x = 0, 0.5, 1.0 for steps 10, 50, 100, 200 (t = step * dt).

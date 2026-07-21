@@ -1,6 +1,5 @@
 #include <gtest/gtest.h>
 
-#include "DumpCsv.hxx"
 #include "HygroThermFEM2D.hxx"
 #include "SlabCreator.hxx"
 #include "TestMaterials.hxx"
@@ -68,8 +67,6 @@ TEST(Topaz2DReport_GenerationConductivity, MaterialType3)
 
         const auto solution = multiDomain.steadyState();
 
-        TestHelper::CsvDump dump("topaz_generation_kt.csv", 11);
-        dump.addRow(1, TestHelper::bottomRow(solution.temperature, 11, 2));
 
         // The report's published analytic column (p. 17), T(0) = sqrt(2) - 1.
         const std::vector<double> expected{0.414214,

@@ -1,7 +1,6 @@
 #include <array>
 #include <gtest/gtest.h>
 
-#include "DumpCsv.hxx"
 #include "HygroThermFEM2D.hxx"
 #include "SlabCreator.hxx"
 #include "TestMaterials.hxx"
@@ -56,10 +55,8 @@ TEST(Topaz2DReport_GenerationTransient, UniformGeneration)
     const auto solution = multiDomain.thermal().transientMultiStep(
       HygroThermFEM::Variable::temperature, dTime, nSteps);
 
-    TestHelper::CsvDump dump("topaz_generation_transient.csv", 11);
     for(std::size_t step = 0; step < solution.size(); ++step)
     {
-        dump.addRow(step + 1, TestHelper::bottomRow(solution[step], 11, 2));
     }
 
     // Exact series at x = 0, 0.5, 1.0 for steps 10, 50, 100, 200 (t = step * dt).

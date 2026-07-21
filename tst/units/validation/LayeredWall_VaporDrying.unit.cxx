@@ -1,7 +1,6 @@
 #include <gtest/gtest.h>
 
 #include "BeamBuilder.hxx"
-#include "DumpCsv.hxx"
 #include "HygroThermFEM2D.hxx"
 #include "TestMaterials.hxx"
 
@@ -75,10 +74,8 @@ TEST(LayeredWall_VaporDrying, TwoLayerDryingThroughOneFace)
         history.push_back(humidities);
     }
 
-    TestHelper::CsvDump dump("layered_vapor_drying.csv", 11);
     for(std::size_t step = 0; step < history.size(); ++step)
     {
-        dump.addRow(step + 1, TestHelper::bottomRow(history[step], 11, 2));
     }
 
     // Drying sanity: humidity decreases monotonically at the exposed face and

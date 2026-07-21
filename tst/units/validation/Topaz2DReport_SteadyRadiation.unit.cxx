@@ -1,6 +1,5 @@
 #include <gtest/gtest.h>
 
-#include "DumpCsv.hxx"
 #include "HygroThermFEM2D.hxx"
 #include "SlabCreator.hxx"
 #include "TestMaterials.hxx"
@@ -57,8 +56,6 @@ TEST(Topaz2DReport_SteadyRadiation, LinearProfileFromRadiativeBalance)
 
     const auto solution = multiDomain.steadyState();
 
-    TestHelper::CsvDump dump("topaz_steady_radiation.csv", 11);
-    dump.addRow(1, TestHelper::bottomRow(solution.temperature, 11, 2));
 
     constexpr double slope = 84.707885049305;
     for(std::size_t col = 0; col < 11; ++col)

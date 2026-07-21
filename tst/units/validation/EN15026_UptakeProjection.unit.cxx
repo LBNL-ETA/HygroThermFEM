@@ -26,8 +26,8 @@
 /// 2D-conductivity branch. Bottom-row profiles at day 1 and day 7 were
 /// captured once for the book's engine dataset (hygrothermfem_python,
 /// data/engine/en15026_uptake_projection); re-capturing on demand is a
-/// matter of temporarily adding a TestHelper::CsvDump here or reproducing
-/// the configuration through the GUI.
+/// matter of temporarily writing the bottom-row profiles to CSV here or
+/// reproducing the configuration through the GUI.
 ///
 /// This configuration -- both fields pinned on one edge of a coupled run --
 /// exposed two penalty-boundary defects (fixed 2026-07-21, found by exactly this

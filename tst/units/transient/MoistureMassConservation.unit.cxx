@@ -3,7 +3,6 @@
 #include <vector>
 #include <gtest/gtest.h>
 
-#include "DumpCsv.hxx"
 #include "HygroThermFEM2D.hxx"
 #include "TestMaterials.hxx"
 
@@ -83,7 +82,6 @@ namespace
         auto humidities = multiDomain.nodes().properties(Variable::humidity);
         const double m0 = totalMoisture(multiDomain.nodes().properties(Variable::water));
 
-        TestHelper::CsvDump dump(dumpName, nCols);
         double maxDrift = 0.0;
         for(unsigned i = 0; i < nSteps; ++i)
         {
@@ -91,7 +89,6 @@ namespace
             // Advance the previous-timestep humidity as MultiDomain::transient does per step;
             // the secant capacity's conservation telescoping needs the true previous step.
             multiDomain.nodes().updateNodeHumidities(humidities, true);
-            dump.addRow(i + 1, TestHelper::bottomRow(humidities, nCols, 2));
             const double m = totalMoisture(multiDomain.nodes().properties(Variable::water));
             maxDrift = std::max(maxDrift, std::abs(m - m0) / m0);
         }

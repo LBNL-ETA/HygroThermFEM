@@ -103,4 +103,22 @@ namespace TestHelper
             EXPECT_NEAR(expected[idx], actual[idx], tolerance) << "at [" << idx << "]";
         }
     }
+
+    //! Bottom-node-row extraction for the one-element-high beam/slab 1D proxy.
+    //!
+    //! Nodes are 1-based and column-major with nodesPerColumn nodes per x-column
+    //! (SlabBuilder/BeamBuilder order), so the bottom node of column c sits at
+    //! index c * nodesPerColumn in the 0-based solution vector.
+    inline std::vector<double> bottomRow(const std::vector<double> & nodal,
+                                         std::size_t nColumns,
+                                         std::size_t nodesPerColumn)
+    {
+        std::vector<double> row;
+        row.reserve(nColumns);
+        for(std::size_t col = 0; col < nColumns; ++col)
+        {
+            row.push_back(nodal[col * nodesPerColumn]);
+        }
+        return row;
+    }
 }   // namespace TestHelper

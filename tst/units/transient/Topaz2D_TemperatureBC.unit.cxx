@@ -1,7 +1,6 @@
 #include <memory>
 #include <gtest/gtest.h>
 
-#include "DumpCsv.hxx"
 #include "HygroThermFEM2D.hxx"
 #include "TestHelpers.hxx"
 #include "TestMaterials.hxx"
@@ -53,10 +52,8 @@ TEST(Topaz2D_TemperatureBC, TestExample_1)
 
     // Bottom nodes in ascending x (nodes 6, 4, 2 at x = 0, 0.05, 0.15); the node
     // numbering above runs in descending x, so the row is picked out explicitly.
-    TestHelper::CsvDump dump("topaz_golden_temperature.csv", 3);
     for(std::size_t step = 0; step < solution.size(); ++step)
     {
-        dump.addRow(step + 1, {solution[step][5], solution[step][3], solution[step][1]});
     }
 
     std::vector<std::vector<double>> correctSolution{

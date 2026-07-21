@@ -6,7 +6,6 @@
 #include "HygroThermFEM2D.hxx"
 
 #include "BeamBuilder.hxx"
-#include "DumpCsv.hxx"
 #include "TestMaterials.hxx"
 
 // D5 Tier 1: latent heat of fusion via the mass-conservative secant capacity
@@ -161,10 +160,8 @@ TEST(Freezing, StefanFrontPosition)
     }
     resetPhysics();
 
-    TestHelper::CsvDump dump("freezing_stefan.csv", 201);
     for(std::size_t step = 1; step < history.size(); ++step)
     {
-        dump.addRow(step, TestHelper::bottomRow(history[step], 201, 2));
     }
 
     for(const unsigned step : {48u, 96u, 144u})

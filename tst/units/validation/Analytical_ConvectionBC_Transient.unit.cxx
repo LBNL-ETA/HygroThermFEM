@@ -1,7 +1,6 @@
 #include <memory>
 #include <gtest/gtest.h>
 
-#include "DumpCsv.hxx"
 #include "HygroThermFEM2D.hxx"
 #include "SlabCreator.hxx"
 #include "TestMaterials.hxx"
@@ -54,10 +53,8 @@ TEST(Analytical_ConvectionBC_Transient, TestExample_1)
     const auto solution = multiDomain.thermal().transientMultiStep(
       HygroThermFEM::Variable::temperature, dTime, nSteps);
 
-    TestHelper::CsvDump dump("carslaw_convection_slab.csv", 11);
     for(std::size_t step = 0; step < solution.size(); ++step)
     {
-        dump.addRow(step + 1, TestHelper::bottomRow(solution[step], 11, 2));
     }
 
     std::vector<std::vector<double>> analyticalSolution = {{0.99311, 0.95051, 0.72358},

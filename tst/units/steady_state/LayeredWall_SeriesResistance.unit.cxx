@@ -1,7 +1,6 @@
 #include <gtest/gtest.h>
 
 #include "BeamBuilder.hxx"
-#include "DumpCsv.hxx"
 #include "HygroThermFEM2D.hxx"
 #include "TestMaterials.hxx"
 
@@ -57,8 +56,6 @@ TEST(LayeredWall_SeriesResistance, TwoLayerSteadyConduction)
 
     const auto solution = multiDomain.steadyState();
 
-    TestHelper::CsvDump dump("layered_steady_conduction.csv", 11);
-    dump.addRow(1, TestHelper::bottomRow(solution.temperature, 11, 2));
 
     // Series resistance: R1 = 0.06 / 1.8, R2 = 0.04 / 0.85.
     constexpr auto resistance1 = 0.06 / 1.8;
