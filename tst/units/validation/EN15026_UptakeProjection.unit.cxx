@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <utility>
 #include <vector>
 
@@ -53,6 +54,31 @@ namespace
         }
         return coords;
     }
+
+    //! Linear interpolation of a bottom-row profile at position x.
+    double profileAt(const std::vector<double> & coords,
+                     const std::vector<double> & values,
+                     const double position)
+    {
+        const auto upper =
+          std::upper_bound(coords.begin(), coords.end(), position) - coords.begin();
+        const auto right = (std::min)(static_cast<std::size_t>(upper), coords.size() - 1);
+        const auto left = right - 1;
+        const double fraction = (position - coords[left]) / (coords[right] - coords[left]);
+        return values[left] + fraction * (values[right] - values[left]);
+    }
+
+    //! Validation checkpoint: reference-solver value with the tolerance set at
+    //! roughly twice the measured engine deviation at first capture.
+    struct Checkpoint
+    {
+        std::size_t dayRow;   //!< 0 = day 1, 1 = day 7
+        double position;      //!< [m]
+        double humidity;      //!< reference solver phi [-]
+        double humidityTol;
+        double temperature;   //!< reference solver T [C]
+        double temperatureTol;
+    };
 }   // namespace
 
 TEST(EN15026_UptakeProjection, SevenDaysScalarMu)
@@ -138,6 +164,40 @@ TEST(EN15026_UptakeProjection, SevenDaysScalarMu)
                                 TestHelper::bottomRow(humidityAtDays[row], nColumns, 2));
             temperatureDump.addRow(
               row + 1, TestHelper::bottomRow(temperatureAtDays[row], nColumns, 2));
+        }
+
+        // Validation checkpoints: the 1D reference solver (hygrotherm1d, case
+        // en15026_uptake_projection) running the SAME scalar-mu projection on
+        // identical tables, tight coupling, same mesh and schedule. These pin
+        // the coupled physics so a regression is caught in THIS suite; the
+        // full-profile comparison lives in the validation book. Assertions
+        // against the standard's own Tables A.1/A.2 await a moisture-dependent
+        // mu(phi) material model -- no scalar mu can satisfy them.
+        const std::vector<Checkpoint> checkpoints{
+          {0, 0.005, 0.559572, 2.0e-2, 29.92474, 3.0e-3},
+          {0, 0.010, 0.501277, 2.0e-3, 29.83188, 3.0e-3},
+          {0, 0.020, 0.500023, 2.0e-3, 29.64410, 3.0e-3},
+          {0, 0.050, 0.500018, 2.0e-3, 29.08240, 3.0e-3},
+          {0, 0.500, 0.500002, 2.0e-3, 22.41072, 3.0e-3},
+          {1, 0.005, 0.823489, 1.0e-2, 29.97626, 3.0e-3},
+          {1, 0.010, 0.629367, 1.0e-2, 29.94642, 3.0e-3},
+          {1, 0.020, 0.509540, 2.0e-3, 29.87775, 3.0e-3},
+          {1, 0.050, 0.500024, 2.0e-3, 29.66464, 3.0e-3},
+          {1, 0.500, 0.500009, 2.0e-3, 26.57880, 3.0e-3},
+        };
+        for(const auto & mark : checkpoints)
+        {
+            const auto humidityRow =
+              TestHelper::bottomRow(humidityAtDays[mark.dayRow], nColumns, 2);
+            const auto temperatureRow =
+              TestHelper::bottomRow(temperatureAtDays[mark.dayRow], nColumns, 2);
+            EXPECT_NEAR(mark.humidity, profileAt(coords, humidityRow, mark.position),
+                        mark.humidityTol)
+              << "phi, day row " << mark.dayRow << ", x = " << mark.position;
+            EXPECT_NEAR(mark.temperature,
+                        profileAt(coords, temperatureRow, mark.position),
+                        mark.temperatureTol)
+              << "T, day row " << mark.dayRow << ", x = " << mark.position;
         }
 
         // Sanity: the pins hold, the far end is undisturbed, and both day-7
