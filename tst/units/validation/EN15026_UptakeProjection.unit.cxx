@@ -4,7 +4,6 @@
 
 #include <gtest/gtest.h>
 
-#include "DumpCsv.hxx"
 #include "EN15026Material.hxx"
 #include "HygroThermFEM2D.hxx"
 #include "SlabCreator.hxx"
@@ -24,8 +23,11 @@
 /// x = 0 surface steps to 30 C / phi = 0.95 (both fields Dirichlet); the far end
 /// is natural and far enough (30 m, geometric grading) to stay undisturbed over
 /// the simulated week. Moisture-dependent lambda(w) is active via the tabular
-/// 2D-conductivity branch. Bottom-row profiles at day 1 and day 7 are dumped
-/// for the book's engine dataset.
+/// 2D-conductivity branch. Bottom-row profiles at day 1 and day 7 were
+/// captured once for the book's engine dataset (hygrothermfem_python,
+/// data/engine/en15026_uptake_projection); re-capturing on demand is a
+/// matter of temporarily adding a TestHelper::CsvDump here or reproducing
+/// the configuration through the GUI.
 ///
 /// This configuration -- both fields pinned on one edge of a coupled run --
 /// exposed two penalty-boundary defects (fixed 2026-07-21, found by exactly this
@@ -154,17 +156,6 @@ TEST(EN15026_UptakeProjection, SevenDaysScalarMu)
             }
         }
         ASSERT_EQ(2u, humidityAtDays.size());
-
-        TestHelper::CsvDump humidityDump("en15026_uptake_projection_humidity.csv", nColumns);
-        TestHelper::CsvDump temperatureDump("en15026_uptake_projection_temperature.csv",
-                                            nColumns);
-        for(std::size_t row = 0; row < humidityAtDays.size(); ++row)
-        {
-            humidityDump.addRow(row + 1,
-                                TestHelper::bottomRow(humidityAtDays[row], nColumns, 2));
-            temperatureDump.addRow(
-              row + 1, TestHelper::bottomRow(temperatureAtDays[row], nColumns, 2));
-        }
 
         // Validation checkpoints: the 1D reference solver (hygrotherm1d, case
         // en15026_uptake_projection) running the SAME scalar-mu projection on
