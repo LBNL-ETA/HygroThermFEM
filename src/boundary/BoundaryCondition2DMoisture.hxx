@@ -180,6 +180,22 @@ namespace HygroThermFEM
                               {values.Temperature, hugeFilmCoefficient, values.Humidity})
         {}
 
+        //! \brief Right-hand side evaluating the saturation concentration at the
+        //! NODE temperature, so the penalty pins the humidity itself.
+        //!
+        //! The base Robin pair drives beta (c_sat(T_node) phi_node -
+        //! c_sat(T_air) phi_air), whose fixed point under the huge film
+        //! coefficient is phi_node = phi_air c_sat(T_air) / c_sat(T_node): a
+        //! vapour-CONTENT pin, off by the saturation ratio whenever the surface
+        //! temperature differs from the nominal boundary temperature. A 20 -> 30 C
+        //! surface step scales the imposed humidity by 1.76, pushing the surface
+        //! past saturation and stalling the nonlinear iteration against the
+        //! physical clamp. Evaluating both sides at the node temperature cancels
+        //! c_sat, so the penalty row reads
+        //! beta c_sat(T_node) (phi_node - phi_air) and pins phi_node = phi_air
+        //! exactly, at any temperature.
+        [[nodiscard]] std::vector<double> R_Vector() const override;
+
     private:
         inline static const double hugeFilmCoefficient{1e18};
     };

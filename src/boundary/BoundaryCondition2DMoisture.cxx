@@ -1,4 +1,5 @@
 #include "BoundaryCondition2DMoisture.hxx"
+#include "VectorOperators.hxx"
 
 namespace HygroThermFEM
 {
@@ -125,4 +126,24 @@ namespace HygroThermFEM
                     ConvectionModelFactory::createFixedFilmCoefficient(
                       m_Nodes, fixedBchcCoefficients.ConvectionCoefficient))
     {}
+
+    /////////////////////////////////////////////////////
+    /// MoistureBCFixedHumidity
+    /////////////////////////////////////////////////////
+    std::vector<double> MoistureBCFixedHumidity::R_Vector() const
+    {
+        // Node-temperature saturation concentration on BOTH sides of the penalty
+        // row (the matrix side already uses it), so the pinned quantity is the
+        // humidity itself -- see the class comment.
+        std::vector<double> concentration(numOfBCNodes, 0.0);
+        for(std::size_t node = 0; node < numOfBCNodes; ++node)
+        {
+            concentration[node] = saturationConcentrationAtTemperature(
+              m_Nodes[node].property(Variable::temperature));
+        }
+        const auto gconv = concentration
+                           * m_ConvectiveCoeffCalc->waterVaporTransferCoefficient()
+                           * m_AirHumidity;
+        return m_PsiVector * gconv;
+    }
 }   // namespace HygroThermFEM

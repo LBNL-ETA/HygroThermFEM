@@ -122,11 +122,21 @@ namespace HygroThermFEM
     /// TemperatureBC
     ////////////////////////////////////////////////////////
 
+    // The huge film coefficient is a NUMERICAL pin, not a physical surface, so the
+    // vapor-flux energy term must stay off: that term scales with the same film
+    // coefficient (beta = h_c / (rho_air cp_air)), and at 1e18 it books a phantom
+    // latent flux of order 1e19 W/m^2 against air at humidity zero -- enough to
+    // drag the "fixed" temperature tens of kelvin off its pin and stall the
+    // coupled nonlinear iteration against it whenever moisture is simulated.
     TemperatureBC::TemperatureBC(Nodes & nodePool,
                                  const size_t index1,
                                  const size_t index2,
                                  const double t_NodeTemperatures) :
-        ConstantConvectionBC(nodePool, index1, index2, {t_NodeTemperatures, hugeFilmCoefficient})
+        ConstantConvectionBC(nodePool,
+                             index1,
+                             index2,
+                             {t_NodeTemperatures, hugeFilmCoefficient},
+                             /*simulateVaporFluxEnergy=*/false)
     {
         auto & node1 = nodePool.getNode(index1);
         auto & node2 = nodePool.getNode(index2);
@@ -139,7 +149,11 @@ namespace HygroThermFEM
                                  const size_t index2,
                                  const double t_Temp1,
                                  const double t_Temp2) :
-        ConstantConvectionBC(nodePool, index1, index2, {(t_Temp1 + t_Temp2) / 2, hugeFilmCoefficient})
+        ConstantConvectionBC(nodePool,
+                             index1,
+                             index2,
+                             {(t_Temp1 + t_Temp2) / 2, hugeFilmCoefficient},
+                             /*simulateVaporFluxEnergy=*/false)
     {
         auto & node1 = nodePool.getNode(index1);
         auto & node2 = nodePool.getNode(index2);
