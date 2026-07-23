@@ -2,6 +2,8 @@
 
 #include <array>
 #include <memory>
+#include <type_traits>
+#include <utility>
 
 #include "Functions.hxx"
 #include "Material.hxx"
@@ -95,34 +97,6 @@ namespace HygroThermFEM
 
         //! Update independent variables (corresponds to variable p in above equation) and creates
         //! new integration matrix.
-        void setIndependentVariables(const std::vector<double> & t_Values);
-    };
-
-    //////////////////////////////////////////////////////////////////////////////
-    ///  QLEDpDuConsistentIntegrator2D
-    //////////////////////////////////////////////////////////////////////////////
-
-    //! \brief Consistent (integrated-by-parts) form of the (Dp/Dx)(Du/Dx) coupling term.
-    //!
-    //! QLEDpDuIntegrator2D assembles integral( psi_i (grad p . grad psi_j) ) -- the test
-    //! function psi_i is NOT differentiated, which is the strong-form Galerkin weighting of
-    //! grad(p).grad(u) and is inconsistent with the by-parts diffusion term it is paired
-    //! with. This integrator instead assembles the transpose,
-    //!     integral( (grad psi_i . grad p) psi_j ),
-    //! i.e. the test function IS differentiated. That is the correct weak form obtained by
-    //! integrating the vapour divergence grad.(delta grad(phi c_sat)) by parts once: the
-    //! moisture-gradient half (delta c_sat grad phi) is the DDu term and the
-    //! temperature-gradient half (delta phi grad c_sat) is this term. See
-    //! doc/Moisture Governing Equations.md (D1).
-    class QLEDpDuConsistentIntegrator2D : public IQLEIntegrator2D
-    {
-    public:
-        virtual ~QLEDpDuConsistentIntegrator2D() = default;
-
-        QLEDpDuConsistentIntegrator2D(const QuadrilateralLinearGlobal2D & t_Element);
-
-        //! Update independent variable p (whose gradient enters the term) and rebuild the
-        //! integration matrix.
         void setIndependentVariables(const std::vector<double> & t_Values);
     };
 
@@ -244,22 +218,18 @@ namespace HygroThermFEM
         virtual bool isLinear() const final;
 
     protected:
-        //! Template function that will add DDu matrix into the system.
+        //! Template function that will add K*(D/Dx(Du/Dx) + D/Dy(Du/Dy)) matrix into the system,
+        //! i.e. transport of the state variable itself. The special case of the two-argument
+        //! DDu with a unit nodal factor, registered without one so the assembly skips the
+        //! scaling.
         template<typename T>
-        void
-          DDu(T & t,
-              const typename std::enable_if<std::is_base_of<IValue, T>::value, T>::type * = nullptr)
+        void DDu(T && coefficient)
         {
-            m_DDuFunctions.emplace_back(std::unique_ptr<T>(new T(t)));
-        }
-
-        //! Template function that will add K*(D/Dx(Du/Dx) + D/Dy(Du/Dy)) matrix into the system.
-        template<typename T>
-        void
-          DDu(T && t,
-              const typename std::enable_if<std::is_base_of<IValue, T>::value, T>::type * = nullptr)
-        {
-            m_DDuFunctions.emplace_back(std::unique_ptr<T>(new T(t)));
+            using CoefficientType = typename std::decay<T>::type;
+            static_assert(std::is_base_of<IValue, CoefficientType>::value,
+                          "DDu coefficient must derive from IValue");
+            m_DDuFunctions.emplace_back(
+              std::make_unique<CoefficientType>(std::forward<T>(coefficient)), nullptr);
         }
 
         //! Template function that will add K * Du/Dt matrix into the system.
@@ -329,44 +299,41 @@ namespace HygroThermFEM
                                          std::unique_ptr<U>(new U(u)));
         }
 
-        //! Consistent (integrated-by-parts) variant of DpDu. Same operands as DpDu -- a fixed
-        //! function and an independent function whose gradient enters the term -- but assembled
-        //! via QLEDpDuConsistentIntegrator2D (test function differentiated). Used for the
-        //! moisture vapour temperature-gradient term; see QLEDpDuConsistentIntegrator2D / D1.
+        //! Transport of a PRODUCT potential, div(coefficient grad(factor * u)), assembled as
+        //! the coefficient's stiffness matrix with column j scaled by the nodal factor at
+        //! node j:
+        //!
+        //!     K_ij = S_ij(coefficient) * factor_j
+        //!
+        //! The general form of the transport term; the one-argument DDu above is this with
+        //! factor = 1.
+        //!
+        //! Used for the moisture vapour term, where the transported potential is the vapour
+        //! content c_sat(T) * phi while the state variable is phi. Assembling it this way,
+        //! rather than as a stiffness in phi plus a separately integrated coupling term in
+        //! c_sat, gives two properties that the split form does not have together:
+        //!
+        //!   - equilibrium is exact: when the nodal products factor_j * u_j are all equal the
+        //!     result is factor * sum_j S_ij = 0, since a stiffness matrix has vanishing row
+        //!     sums (sum_j psi_j = 1). A sealed strip settles ON its closed-form profile on
+        //!     ANY mesh instead of converging to it as the mesh is refined;
+        //!   - moisture is conserved: sum_i K_ij = factor_j * sum_i S_ij = 0 by the same
+        //!     argument applied to the columns, for any spatially varying coefficient.
+        //!
+        //! See doc/Moisture Governing Equations.md (D1) and
+        //! tst/units/validation/SealedStrip_SteadyGradient.unit.cxx.
         template<typename T, typename U>
-        void DpDuConsistent(
-          T & t, U & u,
-          typename std::enable_if<std::is_base_of<IValue, T>::value, T>::type * = nullptr)
+        void DDu(T && coefficient, U && nodalFactor)
         {
-            m_DpDuConsistentFunctions.emplace_back(std::unique_ptr<T>(new T(t)),
-                                                   std::unique_ptr<U>(new U(u)));
-        }
-
-        template<typename T, typename U>
-        void DpDuConsistent(
-          T && t, U & u,
-          typename std::enable_if<std::is_base_of<IValue, T>::value, T>::type * = nullptr)
-        {
-            m_DpDuConsistentFunctions.emplace_back(std::unique_ptr<T>(new T(t)),
-                                                   std::unique_ptr<U>(new U(u)));
-        }
-
-        template<typename T, typename U>
-        void DpDuConsistent(
-          T & t, U && u,
-          typename std::enable_if<std::is_base_of<IValue, T>::value, T>::type * = nullptr)
-        {
-            m_DpDuConsistentFunctions.emplace_back(std::unique_ptr<T>(new T(t)),
-                                                   std::unique_ptr<U>(new U(u)));
-        }
-
-        template<typename T, typename U>
-        void DpDuConsistent(
-          T && t, U && u,
-          typename std::enable_if<std::is_base_of<IValue, T>::value, T>::type * = nullptr)
-        {
-            m_DpDuConsistentFunctions.emplace_back(std::unique_ptr<T>(new T(t)),
-                                                   std::unique_ptr<U>(new U(u)));
+            using CoefficientType = typename std::decay<T>::type;
+            using FactorType = typename std::decay<U>::type;
+            static_assert(std::is_base_of<IValue, CoefficientType>::value,
+                          "DDu coefficient must derive from IValue");
+            static_assert(std::is_base_of<IValue, FactorType>::value,
+                          "DDu nodal factor must derive from IValue");
+            m_DDuFunctions.emplace_back(
+              std::make_unique<CoefficientType>(std::forward<T>(coefficient)),
+              std::make_unique<FactorType>(std::forward<U>(nodalFactor)));
         }
 
         //! Template function that will create functions used in equivalent material conductivity
@@ -483,13 +450,27 @@ namespace HygroThermFEM
             std::unique_ptr<IValue> derivativeValue;
         };
 
-        std::vector<iValue> m_DDuFunctions;
+        //! \brief Coefficient and nodal factor of a product-form transport term, see the
+        //! two-argument DDu. The coefficient is integrated into a stiffness matrix; the nodal
+        //! factor scales its columns.
+        struct NodalProductFunction
+        {
+            NodalProductFunction(
+              std::unique_ptr<IValue> coefficient,   //!< Multiplies the gradient (e.g. delta)
+              std::unique_ptr<IValue> nodalFactor    //!< Turns the state into the transported
+                                                     //!< potential (e.g. c_sat)
+            );
+
+            std::unique_ptr<IValue> coefficient;
+            std::unique_ptr<IValue> nodalFactor;
+        };
+
+        std::vector<NodalProductFunction> m_DDuFunctions;
         std::vector<iValue> m_ConductanceFunctions;
         std::vector<iValue> m_CapacitanceFunctions;
         //! Capacitance functions that are always lumped nodally (see CapNodal).
         std::vector<iValue> m_NodalCapacitanceFunctions;
         std::vector<DerivativeFunction> m_DpDuFunctions;
-        std::vector<DerivativeFunction> m_DpDuConsistentFunctions;
 
         //! Vector of values that will simply be evaluated on right hand side.
         //! This is in form [M]*{V} (Matrix * vector). First property is simply set of functions

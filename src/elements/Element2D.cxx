@@ -10,6 +10,25 @@
 #include "VectorOperators.hxx"
 #include "SimulationProperties.hxx"
 
+namespace
+{
+    //! Scales column j of a matrix by factor j, turning the stiffness matrix of a
+    //! coefficient into the transport matrix of a product potential (see the two-argument DDu).
+    HygroThermFEM::SquareMatrix scaleColumns(const HygroThermFEM::SquareMatrix & matrix,
+                                             const std::vector<double> & factors)
+    {
+        HygroThermFEM::SquareMatrix scaled{matrix};
+        for(std::size_t row = 0; row < scaled.size(); ++row)
+        {
+            for(std::size_t col = 0; col < scaled.size(); ++col)
+            {
+                scaled(row, col) *= factors[col];
+            }
+        }
+        return scaled;
+    }
+}   // namespace
+
 namespace HygroThermFEM
 {
     //////////////////////////////////////////////////////////////////////////////
@@ -148,56 +167,6 @@ namespace HygroThermFEM
     }
 
     //////////////////////////////////////////////////////////////////////////////
-    ///  QLEDpDuConsistentIntegrator2D
-    //////////////////////////////////////////////////////////////////////////////
-
-    QLEDpDuConsistentIntegrator2D::QLEDpDuConsistentIntegrator2D(
-      const QuadrilateralLinearGlobal2D & t_Element) :
-        IQLEIntegrator2D{t_Element}
-    {}
-
-    void QLEDpDuConsistentIntegrator2D::setIndependentVariables(
-      const std::vector<double> & t_Values)
-    {
-        const auto numOfIntegrationPoints = IntegrationPoints2D::Instance().count2D();
-        auto & aElement = QuadrilateralLinearLocal2D::Instance();
-
-        assert(t_Values.size() == numOfIntegrationPoints);
-
-        for(std::size_t integrationPoint = 0; integrationPoint < numOfIntegrationPoints;
-            ++integrationPoint)
-        {
-            const auto & psi = aElement.Psi(integrationPoint);
-            const auto & DPsiDx = m_Global2D.DPsiDx(integrationPoint);
-            const auto & DPsiDy = m_Global2D.DPsiDy(integrationPoint);
-            const auto det = m_Global2D.det(integrationPoint);
-
-            auto gammaX = 0.0;
-            auto gammaY = 0.0;
-            for(auto idx = 0u; idx < numOfIntegrationPoints; ++idx)
-            {
-                gammaX += DPsiDx[idx] * t_Values[idx];
-                gammaY += DPsiDy[idx] * t_Values[idx];
-            }
-
-            std::vector<std::vector<double>> matrix{numOfIntegrationPoints,
-                                                    std::vector<double>(numOfIntegrationPoints, 0)};
-
-            for(auto row = 0u; row < numOfIntegrationPoints; ++row)
-            {
-                for(auto col = 0u; col < numOfIntegrationPoints; ++col)
-                {
-                    // Transpose of QLEDpDuIntegrator2D: the test function (row) is the one
-                    // that is differentiated -> integral( (grad psi_row . grad p) psi_col ).
-                    matrix[row][col] =
-                      det * (DPsiDx[row] * gammaX + DPsiDy[row] * gammaY) * psi[col];
-                }
-            }
-            m_IntegrationMatrix[integrationPoint] = SquareMatrix{matrix};
-        }
-    }
-
-    //////////////////////////////////////////////////////////////////////////////
     ///  QLECapacitance2D
     //////////////////////////////////////////////////////////////////////////////
 
@@ -279,12 +248,15 @@ namespace HygroThermFEM
         SquareMatrix result{numOfQuadrilateralNodes};
 
         const QLEDDuIntegrator2D DDuIntegrator{m_Global2D};
-        for(const auto & cond : m_DDuFunctions)
+        for(const auto & term : m_DDuFunctions)
         {
-            const auto values = cond->values(m_Nodes);
-            result += m_InterpolateCoefficientsAtGaussPoints
-                        ? DDuIntegrator.integrateInterpolated(values)
-                        : DDuIntegrator.integrate(values);
+            const auto coefficients = term.coefficient->values(m_Nodes);
+            const auto stiffness = m_InterpolateCoefficientsAtGaussPoints
+                                     ? DDuIntegrator.integrateInterpolated(coefficients)
+                                     : DDuIntegrator.integrate(coefficients);
+            result += term.nodalFactor == nullptr
+                        ? stiffness
+                        : scaleColumns(stiffness, term.nodalFactor->values(m_Nodes));
         }
 
         return result;
@@ -306,20 +278,6 @@ namespace HygroThermFEM
             result += m_InterpolateCoefficientsAtGaussPoints
                         ? qleDpDuIntegrator2D.integrateInterpolated(values)
                         : qleDpDuIntegrator2D.integrate(values);
-        }
-
-        // Consistent (integrated-by-parts) coupling terms. Only the moisture element
-        // registers these (for the vapour temperature-gradient term); thermal elements
-        // leave m_DpDuConsistentFunctions empty and are unaffected. See D1.
-        QLEDpDuConsistentIntegrator2D qleDpDuConsistentIntegrator2D{m_Global2D};
-        for(const auto & cond : m_DpDuConsistentFunctions)
-        {
-            const auto aDerivatives = cond.derivativeValue->values(m_Nodes);
-            qleDpDuConsistentIntegrator2D.setIndependentVariables(aDerivatives);
-            const auto values = cond.fixedValue->values(m_Nodes);
-            result += m_InterpolateCoefficientsAtGaussPoints
-                        ? qleDpDuConsistentIntegrator2D.integrateInterpolated(values)
-                        : qleDpDuConsistentIntegrator2D.integrate(values);
         }
 
         return result;
@@ -584,6 +542,11 @@ namespace HygroThermFEM
         fixedValue(std::move(fixedValue)), derivativeValue(std::move(derivativeValue))
     {}
 
+    IElementLinear2D::NodalProductFunction::NodalProductFunction(iValue coefficient,
+                                                                 iValue nodalFactor) :
+        coefficient(std::move(coefficient)), nodalFactor(std::move(nodalFactor))
+    {}
+
     //////////////////////////////////////////////////////////////////////////////
     ///  ElementThermalLinear2D
     //////////////////////////////////////////////////////////////////////////////
@@ -805,20 +768,23 @@ namespace HygroThermFEM
         //////////////////////////////////////////////////////////////////////////////
         if(m_Material.hasDiffusionResistanceFactor())
         {
-            // Non-const: the DpDuConsistent template stores a copy through unique_ptr<IValue>,
+            // Non-const: the assembly templates store a copy through unique_ptr<IValue>,
             // which a const-deduced T cannot provide.
             VaporPermeability delta{m_Material.diffusionResistanceFactor()};
             auto conductance = delta * SaturationFunction();
 
-            // The vapour term grad.(delta grad(phi c_sat)) splits into a moisture-gradient
-            // half (delta c_sat grad phi) and a temperature-gradient half (delta phi grad
-            // c_sat). Both must be integrated by parts consistently: the first is the DDu
-            // (stiffness) term, the second is the *consistent* DpDu term (test function
-            // differentiated). Using the plain DpDu here assembled the transpose and dropped
-            // a term, which made results swing with the temperature field. See D1.
-            DDu(conductance);
-
-            DpDuConsistent(delta, SaturationFunction());
+            // The vapour term grad.(delta grad(phi c_sat)) is assembled on its PRODUCT
+            // potential: the stiffness matrix of delta with column j scaled by the nodal
+            // saturation c_sat,j. Splitting it instead into a moisture-gradient half
+            // (delta c_sat grad phi) and a temperature-gradient half (delta phi grad c_sat)
+            // integrates two matrices that sum to the same continuous term but do not cancel
+            // on the profile where the continuous flux vanishes: a sealed strip then settles
+            // near, rather than on, its closed-form equilibrium phi = C / c_sat(T) (second
+            // order in the element size, 3.1e-5 on a 20-element strip under 40 -> 20 C).
+            // The product form annihilates that profile exactly on any mesh and keeps the
+            // exact conservation of the split form. See D1 and
+            // tst/units/validation/SealedStrip_SteadyGradient.unit.cxx.
+            DDu(delta, SaturationFunction());
 
             // Function for flux calculations.
             CondFlux(conductance);
