@@ -44,9 +44,8 @@ namespace
 
     // Builds the closed strip with the given per-column humidity, relaxes it for
     // 24 hourly steps, and returns the largest relative drift of the moisture
-    // integral. Optionally dumps the per-step bottom-row humidities.
-    double closedStripMaxDrift(const std::function<double(std::size_t)> & initialHumidity,
-                               const std::string & dumpName)
+    // integral.
+    double closedStripMaxDrift(const std::function<double(std::size_t)> & initialHumidity)
     {
         HygroThermFEM::MultiDomain multiDomain(
           {.performThermal = false, .performMoisture = true});
@@ -104,8 +103,7 @@ TEST(MoistureMassConservation, ClosedStripConservesMoisture)
     // Humidity gradient 0.9 -> 0.6 across the columns; uniform temperature.
     const double maxDrift = closedStripMaxDrift(
       [](std::size_t c)
-      { return 0.9 - 0.3 * static_cast<double>(c) / static_cast<double>(nCols - 1); },
-      "moisture_conservation.csv");
+      { return 0.9 - 0.3 * static_cast<double>(c) / static_cast<double>(nCols - 1); });
 
     // With the mass-conservative secant capacity (exact nodal lumping) the closed-system
     // drift is machine precision (measured ~3e-14).
@@ -121,8 +119,7 @@ TEST(MoistureMassConservation, ClosedStripConservesMoistureAboveLiquidData)
     // all; this sibling exercises conservation where liquid transport is live.
     const double maxDrift = closedStripMaxDrift(
       [](std::size_t c)
-      { return 0.99 - 0.03 * static_cast<double>(c) / static_cast<double>(nCols - 1); },
-      "moisture_conservation_wet.csv");
+      { return 0.99 - 0.03 * static_cast<double>(c) / static_cast<double>(nCols - 1); });
 
     EXPECT_LT(maxDrift, 1e-12);
 }
