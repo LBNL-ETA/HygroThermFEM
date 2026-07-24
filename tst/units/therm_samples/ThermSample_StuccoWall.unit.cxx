@@ -1,6 +1,5 @@
 #include <algorithm>
 #include <array>
-#include <fstream>
 #include <gtest/gtest.h>
 
 #include "HygroThermFEM2D.hxx"
@@ -33,7 +32,6 @@ namespace
 
     WallRunResult runStuccoWall(const double initialHumidity,
                                 const unsigned numberOfSteps,
-                                const std::string & csvPath = {},
                                 const double dTime = 360.0,
                                 const unsigned meshScale = 1,
                                 const std::array<unsigned, 4> & elementsPerLayer = {4, 3, 6, 4},
@@ -107,30 +105,6 @@ namespace
             result.error = exc.what();
         }
 
-        if(!csvPath.empty())
-        {
-            std::ofstream csv(csvPath);
-            csv << "step,field";
-            for(size_t idx = 0; idx < result.temperatures.front().size(); ++idx)
-            {
-                csv << ",n" << idx;
-            }
-            csv << "\n";
-            for(size_t step = 0; step < result.temperatures.size(); ++step)
-            {
-                const auto writeRow = [&](const char * field, const std::vector<double> & row) {
-                    csv << step << "," << field;
-                    for(const auto val : row)
-                    {
-                        csv << "," << val;
-                    }
-                    csv << "\n";
-                };
-                writeRow("T", result.temperatures[step]);
-                writeRow("phi", result.humidities[step]);
-                writeRow("w", result.waterContents[step]);
-            }
-        }
         return result;
     }
 
@@ -248,7 +222,7 @@ TEST(ThermSample_StuccoWall, DISABLED_NearSaturatedFineMesh)
     // "Linear solver failed to factorize the system matrix" reported from THERM.
     for(const double phi0 : {0.99, 0.999, 0.99999})
     {
-        const auto result = runStuccoWall(phi0, 20, {}, 360.0, 8);
+        const auto result = runStuccoWall(phi0, 20, 360.0, 8);
         std::cout << "[FineMesh] phi0=" << phi0
                   << (result.completed ? " completed" : (" FAILED: " + result.error))
                   << (result.completed
@@ -264,7 +238,7 @@ TEST(ThermSample_StuccoWall, SaturatedThermMeshNoSawtooth)
     // split: T-part implicit in the conductance). The exact THERM quadtree element counts
     // (3/2/7/3) at full saturation were the reported failure: T sawtooth 12.9 K @ step 77
     // before the fix. The full mesh/equation sweep lives in DISABLED_SaturatedMeshBisect.
-    const auto result = runStuccoWall(1.0, 100, {}, 360.0, 1, {3, 2, 7, 3});
+    const auto result = runStuccoWall(1.0, 100, 360.0, 1, {3, 2, 7, 3});
     ASSERT_TRUE(result.completed) << result.error;
 
     const auto tempOsc = analyzeOscillations(result.temperatures);
@@ -325,14 +299,12 @@ TEST(ThermSample_StuccoWall, DISABLED_SaturatedMeshBisect)
     // the uniform-scale sweep.
     const std::array<unsigned, 4> thermMesh{3, 2, 7, 3};
     report("full physics, THERM mesh 3/2/7/3",
-           runStuccoWall(phiStart, steps, "D:/tmp/htf_stucco_sat_therm_mesh.csv", 360.0, 1, thermMesh));
+           runStuccoWall(phiStart, steps, 360.0, 1, thermMesh));
 
     for(const unsigned meshScale : {1u, 2u, 4u, 8u})
     {
-        const std::string csvPath{meshScale == 8u ? "D:/tmp/htf_stucco_sat_x8.csv"
-                                                  : std::string{}};
         report("full physics, mesh x" + std::to_string(meshScale),
-               runStuccoWall(phiStart, steps, csvPath, 360.0, meshScale));
+               runStuccoWall(phiStart, steps, 360.0, meshScale));
     }
 
     struct Exclusion
@@ -356,7 +328,7 @@ TEST(ThermSample_StuccoWall, DISABLED_SaturatedMeshBisect)
           exclusion.capillary,
           exclusion.vapor,
           false);
-        report(exclusion.label + ", mesh x8", runStuccoWall(phiStart, steps, {}, 360.0, 8));
+        report(exclusion.label + ", mesh x8", runStuccoWall(phiStart, steps, 360.0, 8));
         HygroThermFEM::SimulationProperties::Instance().resetCalculationParameters();
     }
 }
@@ -366,7 +338,7 @@ TEST(ThermSample_StuccoWall, DISABLED_NearSaturatedRefinedDt)
     // dt-refinement probe (diagnostic, run explicitly with --gtest_also_run_disabled_tests):
     // same case at dt = 90 s. If the sub-freezing surface dip and the +latent overshoot
     // shrink toward the wet-bulb/condensation bounds, they are big-dt transients.
-    const auto result = runStuccoWall(0.99, 400, "/tmp/htf_stucco_wall_099_dt90.csv", 90.0);
+    const auto result = runStuccoWall(0.99, 400, 90.0);
     ASSERT_TRUE(result.completed) << result.error;
     double minTemp = 1e9;
     double maxTemp = -1e9;
@@ -393,7 +365,7 @@ TEST(ThermSample_StuccoWall, NearSaturatedInitialConditions)
     // DISABLED_NearSaturatedRefinedDt probe documents convergence to [2.2, 41.3] C at
     // dt = 90 s. NOTE: transients crossing 0 C make the (currently disabled) freezing
     // model (D5) relevant for this wall in colder climates.
-    const auto result = runStuccoWall(0.99, 100, "/tmp/htf_stucco_wall_099.csv");
+    const auto result = runStuccoWall(0.99, 100);
     ASSERT_TRUE(result.completed) << result.error;
 
     std::cout << "[StuccoWall 0.99] max|T| over run = " << maxAbsValue(result.temperatures)

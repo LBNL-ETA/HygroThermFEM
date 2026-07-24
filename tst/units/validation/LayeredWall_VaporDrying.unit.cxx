@@ -1,3 +1,5 @@
+#include <array>
+
 #include <gtest/gtest.h>
 
 #include "BeamBuilder.hxx"
@@ -74,10 +76,6 @@ TEST(LayeredWall_VaporDrying, TwoLayerDryingThroughOneFace)
         history.push_back(humidities);
     }
 
-    for(std::size_t step = 0; step < history.size(); ++step)
-    {
-    }
-
     // Drying sanity: humidity decreases monotonically at the exposed face and
     // stays between the ambient value and the initial state everywhere.
     const auto & final = history.back();
@@ -91,4 +89,28 @@ TEST(LayeredWall_VaporDrying, TwoLayerDryingThroughOneFace)
     }
     // The sealed face lags the exposed face.
     EXPECT_GT(final[0], final[20]);
+
+    // 48 h humidity checkpoints from the independently implemented 1D reference solver
+    // (hygrothermfem_python, case layered_vapor_drying) on the same two-layer grid:
+    // the sealed face, the cottaer interior, the material interface (column 6), the
+    // stucco interior and the exposed face. Tolerances are ~2x the per-node
+    // engine-reference deviation measured at capture, floored at 1e-6; the interface
+    // and the stucco interior carry the coefficient-evaluation-geometry difference the
+    // book chapter records (1.7e-3 profile-wide maximum).
+    struct Checkpoint
+    {
+        std::size_t column;
+        double humidity;
+        double tolerance;
+    };
+    constexpr std::array<Checkpoint, 5> checkpoints{
+      {{.column = 0, .humidity = 0.699997509925111, .tolerance = 1e-6},
+       {.column = 3, .humidity = 0.699884937834578, .tolerance = 2e-5},
+       {.column = 6, .humidity = 0.695045571323813, .tolerance = 4e-4},
+       {.column = 8, .humidity = 0.650816791804612, .tolerance = 2e-3},
+       {.column = 10, .humidity = 0.403467560658606, .tolerance = 1e-6}}};
+    for(const auto & [column, humidity, tolerance] : checkpoints)
+    {
+        EXPECT_NEAR(final[column * 2], humidity, tolerance) << "column " << column;
+    }
 }

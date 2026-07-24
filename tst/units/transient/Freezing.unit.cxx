@@ -160,10 +160,6 @@ TEST(Freezing, StefanFrontPosition)
     }
     resetPhysics();
 
-    for(std::size_t step = 1; step < history.size(); ++step)
-    {
-    }
-
     for(const unsigned step : {48u, 96u, 144u})
     {
         const double analytic =
