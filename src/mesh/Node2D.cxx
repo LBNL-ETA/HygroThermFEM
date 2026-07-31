@@ -79,13 +79,13 @@ namespace HygroThermFEM
                    const double t_y,
                    const State & t_State) :
         INode2D(t_NodeNumber, t_x, t_y),
-        m_State{{Timestep::Current, t_State}, {Timestep::Previous, t_State}},
+        m_State{t_State, t_State},
         m_Water(calcWaterContent())
     {}
 
     double Node2D::property(const Variable var, const Timestep iteration) const
     {
-        const auto & state = m_State.at(iteration);
+        const auto & state = m_State[stateIndex(iteration)];
         switch(var)
         {
             case Variable::temperature:
@@ -112,9 +112,10 @@ namespace HygroThermFEM
     {
         if(updatePreviousValue)
         {
-            m_State.at(Timestep::Previous).temperature = m_State.at(Timestep::Current).temperature;
+            m_State[stateIndex(Timestep::Previous)].temperature =
+              m_State[stateIndex(Timestep::Current)].temperature;
         }
-        m_State.at(Timestep::Current).temperature = value;
+        m_State[stateIndex(Timestep::Current)].temperature = value;
         updateWaterContent();
     }
 
@@ -122,9 +123,10 @@ namespace HygroThermFEM
     {
         if(updatePreviousValue)
         {
-            m_State.at(Timestep::Previous).humidity = m_State.at(Timestep::Current).humidity;
+            m_State[stateIndex(Timestep::Previous)].humidity =
+              m_State[stateIndex(Timestep::Current)].humidity;
         }
-        m_State.at(Timestep::Current).humidity = value;
+        m_State[stateIndex(Timestep::Current)].humidity = value;
         updateWaterContent();
     }
 
@@ -132,10 +134,10 @@ namespace HygroThermFEM
     {
         if(updatePreviousValue)
         {
-            m_State.at(Timestep::Previous).liquidPercent =
-              m_State.at(Timestep::Current).liquidPercent;
+            m_State[stateIndex(Timestep::Previous)].liquidPercent =
+              m_State[stateIndex(Timestep::Current)].liquidPercent;
         }
-        m_State.at(Timestep::Current).liquidPercent = value;
+        m_State[stateIndex(Timestep::Current)].liquidPercent = value;
         updateWaterContent();
     }
 

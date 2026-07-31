@@ -1,5 +1,6 @@
 #pragma once
 
+#include <array>
 #include <vector>
 #include <set>
 #include <string>
@@ -169,7 +170,16 @@ namespace HygroThermFEM
         //! Update water content for every state (liquid, vapor and ice)
         void updateWaterContent();
 
-        std::map<Timestep, State> m_State;
+        //! Indexed by Timestep. An array rather than a map because property() is one of the
+        //! hottest reads in the solver -- it runs per node, per coefficient term, per assembly,
+        //! and IFunction::value calls it twice.
+        std::array<State, 2> m_State;
+
+        //! State for the given timestep. Timestep is a contiguous zero-based enumerator.
+        [[nodiscard]] static constexpr std::size_t stateIndex(const Timestep timestep)
+        {
+            return static_cast<std::size_t>(timestep);
+        }
 
         struct MaterialContainer
         {

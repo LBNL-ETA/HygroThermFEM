@@ -1,7 +1,5 @@
 #pragma once
 
-#include <functional>
-#include <map>
 #include <utility>
 
 #include "Point.hxx"
@@ -23,11 +21,6 @@ namespace FenestrationCommon
 
     private:
         static double f(const point & t_point1, const point & t_point2, double t_position);
-
-        std::map<
-          Interpolation,
-          std::function<double(const point & t_point1, const point & t_point2, double t_position)>>
-          m_Functions;
 
         Interpolation m_Interpolation;
     };

@@ -477,15 +477,12 @@ namespace HygroThermFEM
     {}
 
     Water::Water(double water, double liquid, double vapor, double ice) :
-        m_Content{{WaterContent::Water, water},
-                  {WaterContent::Liquid, liquid},
-                  {WaterContent::Vapor, vapor},
-                  {WaterContent::Ice, ice}}
+        m_Content{water, liquid, vapor, ice}
     {}
 
     double Water::content(WaterContent content) const
     {
-        return m_Content.at(content);
+        return m_Content[contentIndex(content)];
     }
 
     Water Water::operator*(const double factor) const
@@ -498,10 +495,10 @@ namespace HygroThermFEM
 
     Water & Water::operator+=(const Water & other)
     {
-        m_Content[WaterContent::Water] += other.content(WaterContent::Water);
-        m_Content[WaterContent::Liquid] += other.content(WaterContent::Liquid);
-        m_Content[WaterContent::Vapor] += other.content(WaterContent::Vapor);
-        m_Content[WaterContent::Ice] += other.content(WaterContent::Ice);
+        m_Content[contentIndex(WaterContent::Water)] += other.content(WaterContent::Water);
+        m_Content[contentIndex(WaterContent::Liquid)] += other.content(WaterContent::Liquid);
+        m_Content[contentIndex(WaterContent::Vapor)] += other.content(WaterContent::Vapor);
+        m_Content[contentIndex(WaterContent::Ice)] += other.content(WaterContent::Ice);
         return *this;
     }
 
