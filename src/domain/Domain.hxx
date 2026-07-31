@@ -213,13 +213,21 @@ namespace HygroThermFEM
         //! Form right hand side vector in steady state solution.
         [[nodiscard]] std::vector<double> steadyStateRightHandSide() const;
 
-        //! \brief Forms mass, conductance and H (from boundary condition) matrices.
-        SquareMatrix transientM_K_H_Matrix(double t_DTime, size_t timestepIndex);
+        //! Left and right hand sides of the transient system for one timestep.
+        struct TransientSystem
+        {
+            SquareMatrix matA;          //!< Mass, conductance and boundary H matrices combined.
+            std::vector<double> vecB;   //!< M*U+R vector, where U is the state variable.
+        };
 
-        //! \brief This function retrieves M*U+R vector (where U is state variable)
-        std::vector<double> transientMT_R_Vector(const std::vector<double> & t_PreviousSolution,
-                                                 double t_DTime,
-                                                 size_t timestepIndex);
+        //! \brief Assembles both sides of the transient system.
+        //!
+        //! The two sides are always needed together and share the lumped mass vector, which is
+        //! why they are built in one pass: assembling them separately computed that vector twice
+        //! per Newton-Raphson iteration, and again for every line search attempt.
+        TransientSystem transientSystem(const std::vector<double> & t_PreviousSolution,
+                                        double t_DTime,
+                                        size_t timestepIndex);
 
         //! Returns if domain problem is linear.
         [[nodiscard]] bool isLinear() const;

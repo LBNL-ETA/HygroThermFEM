@@ -229,6 +229,29 @@ if (BUILD_HTFEM_TESTING)
         $<TARGET_PROPERTY:Windows-CalcEngine,INTERFACE_INCLUDE_DIRECTORIES>)
 endif ()
 
+# Link-time optimization. The innermost element-assembly loop calls SquareMatrix accessors
+# and operators that live in a different translation unit, so those calls cannot be inlined
+# without it. Applied to this project's own targets only; the FetchContent dependencies keep
+# whatever settings they declare for themselves.
+option(HTFEM_ENABLE_LTO "Enable interprocedural optimization for Release builds" ON)
+
+if (HTFEM_ENABLE_LTO)
+    include(CheckIPOSupported)
+    # LANGUAGES CXX because the project enables only C++; the default check would
+    # probe the (unconfigured) C compiler and always report IPO as unavailable.
+    check_ipo_supported(RESULT HTFEM_IPO_SUPPORTED OUTPUT HTFEM_IPO_ERROR LANGUAGES CXX)
+    if (HTFEM_IPO_SUPPORTED)
+        foreach(ipo_target ${target_name} ${target_name}_tests ${target_name}_sweep)
+            if (TARGET ${ipo_target})
+                set_property(TARGET ${ipo_target}
+                             PROPERTY INTERPROCEDURAL_OPTIMIZATION_RELEASE ON)
+            endif()
+        endforeach()
+    else()
+        message(STATUS "[HTFEM] IPO unavailable, building without LTO: ${HTFEM_IPO_ERROR}")
+    endif()
+endif()
+
 config_compiler_and_linker_HTFEM()
 
 if (MSVC)

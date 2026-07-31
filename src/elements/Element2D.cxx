@@ -218,6 +218,8 @@ namespace HygroThermFEM
                    nodePool.getNode(index3),
                    nodePool.getNode(index4)},
         m_QLECapacitance2D{m_Global2D},
+        m_QLEDDu2D{m_Global2D},
+        m_QLEDpDu2D{m_Global2D},
         m_Linear{isLinear && m_Material.isLinear()}
     {
         /// Evaluating material influence in every node (This is important to know when
@@ -247,13 +249,12 @@ namespace HygroThermFEM
     {
         SquareMatrix result{numOfQuadrilateralNodes};
 
-        const QLEDDuIntegrator2D DDuIntegrator{m_Global2D};
         for(const auto & term : m_DDuFunctions)
         {
             const auto coefficients = term.coefficient->values(m_Nodes);
             const auto stiffness = m_InterpolateCoefficientsAtGaussPoints
-                                     ? DDuIntegrator.integrateInterpolated(coefficients)
-                                     : DDuIntegrator.integrate(coefficients);
+                                     ? m_QLEDDu2D.integrateInterpolated(coefficients)
+                                     : m_QLEDDu2D.integrate(coefficients);
             result += term.nodalFactor == nullptr
                         ? stiffness
                         : scaleColumns(stiffness, term.nodalFactor->values(m_Nodes));
@@ -266,18 +267,17 @@ namespace HygroThermFEM
     {
         SquareMatrix result{numOfQuadrilateralNodes};
 
-        /// Integration matrix must be created every time because independent
-        /// variables changed as well.
-
-        QLEDpDuIntegrator2D qleDpDuIntegrator2D{m_Global2D};
+        /// The integration matrix has to be rebuilt for every term because the independent
+        /// variables change, but setIndependentVariables() replaces it wholesale, so the
+        /// integrator itself is reused.
         for(const auto & cond : m_DpDuFunctions)
         {
             const auto aDerivatives = cond.derivativeValue->values(m_Nodes);
-            qleDpDuIntegrator2D.setIndependentVariables(aDerivatives);
+            m_QLEDpDu2D.setIndependentVariables(aDerivatives);
             const auto values = cond.fixedValue->values(m_Nodes);
             result += m_InterpolateCoefficientsAtGaussPoints
-                        ? qleDpDuIntegrator2D.integrateInterpolated(values)
-                        : qleDpDuIntegrator2D.integrate(values);
+                        ? m_QLEDpDu2D.integrateInterpolated(values)
+                        : m_QLEDpDu2D.integrate(values);
         }
 
         return result;
@@ -503,8 +503,6 @@ namespace HygroThermFEM
     {
         std::vector<double> result(numOfQuadrilateralNodes, 0);
 
-        const QLEDDuIntegrator2D DDuIntegrator{m_Global2D};
-
         /// SquareMatrix M{numOfQuadrilateralNodes};
         for(const auto & item : m_Matrix_x_Vector)
         {
@@ -512,8 +510,8 @@ namespace HygroThermFEM
             const auto values = item.MatrixFunction->values(m_Nodes);
             /// And then integrate them
             auto M = m_InterpolateCoefficientsAtGaussPoints
-                       ? DDuIntegrator.integrateInterpolated(values)
-                       : DDuIntegrator.integrate(values);
+                       ? m_QLEDDu2D.integrateInterpolated(values)
+                       : m_QLEDDu2D.integrate(values);
             auto B = item.VectorFunction ? item.VectorFunction->values(m_Nodes)
                                          : m_Nodes.properties(item.PropertyVector);
 

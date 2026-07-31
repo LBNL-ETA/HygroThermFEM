@@ -169,17 +169,27 @@ namespace HygroThermFEM
             m_Function1(std::move(t)),
             m_Function2(std::move(s)),
             m_Operation(op)
-        {
-            m_Operator[Operation::MULT] = [&](double a, double b) { return a * b; };
-            m_Operator[Operation::DIV] = [&](double a, double b) { return a / b; };
-            m_Operator[Operation::ADD] = [&](double a, double b) { return a + b; };
-            m_Operator[Operation::SUB] = [&](double a, double b) { return a - b; };
-        }
+        {}
 
         //! Returns value of operation.
         double value(const INode2D & node) const override
         {
-            return m_Operator.at(m_Operation)(m_Function1.value(node), m_Function2.value(node));
+            const auto lhs = m_Function1.value(node);
+            const auto rhs = m_Function2.value(node);
+
+            switch(m_Operation)
+            {
+                case Operation::MULT:
+                    return lhs * rhs;
+                case Operation::DIV:
+                    return lhs / rhs;
+                case Operation::ADD:
+                    return lhs + rhs;
+                case Operation::SUB:
+                    return lhs - rhs;
+            }
+
+            return 0.0;
         }
 
     private:
@@ -189,10 +199,6 @@ namespace HygroThermFEM
         const U m_Function2;
 
         const Operation m_Operation;
-
-        /// This hold four basic operators (+, -. *. /) which is used to determine
-        /// which function pointer is to be called
-        std::map<Operation, std::function<double(double, double)>> m_Operator;
     };
 
     //////////////////////////////////////////////////////////////////

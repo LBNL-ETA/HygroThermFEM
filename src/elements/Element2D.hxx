@@ -33,11 +33,14 @@ namespace HygroThermFEM
         virtual ~IQLEIntegrator2D() = default;
         IQLEIntegrator2D(const QuadrilateralLinearGlobal2D & t_Element);
 
-        //! Integrate matrix over all points of integration
-        virtual SquareMatrix
+        //! Integrate matrix over all points of integration.
+        //!
+        //! Not virtual: no integrator overrides it. The derived types differ only in the
+        //! integration matrix their constructors build.
+        SquareMatrix
           integrate(const std::vector<double> &
                       t_Values   //!< Nodal values for which integration will be performed
-                    ) const final;
+                    ) const;
 
         //! \brief Integrate with the coefficient interpolated at each Gauss point via the
         //! shape functions (coeff_g = sum_l psi_l(g) * t_Values[l]) instead of the pairwise
@@ -214,8 +217,9 @@ namespace HygroThermFEM
         //! Returns material that is assigned to the element.
         const IMaterial & getMaterial() const;
 
-        //! Returns if element satisfies linear problem.
-        virtual bool isLinear() const final;
+        //! Returns if element satisfies linear problem. Not virtual: neither element type
+        //! overrides it, they differ only in the terms their constructors register.
+        bool isLinear() const;
 
     protected:
         //! Template function that will add K*(D/Dx(Du/Dx) + D/Dy(Du/Dy)) matrix into the system,
@@ -606,6 +610,14 @@ namespace HygroThermFEM
 
         QuadrilateralLinearGlobal2D m_Global2D;
         QLECapacitanceIntegrator2D m_QLECapacitance2D;
+
+        //! Integration matrix is derived purely from the (fixed) element geometry, so it is built
+        //! once here rather than on every assembly.
+        QLEDDuIntegrator2D m_QLEDDu2D;
+
+        //! setIndependentVariables() overwrites every entry before each use, so the integrator is
+        //! reused instead of reconstructed. Mutable because the assembly accessors are const.
+        mutable QLEDpDuIntegrator2D m_QLEDpDu2D;
 
         const bool m_Linear;
     };

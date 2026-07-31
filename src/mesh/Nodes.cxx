@@ -1,11 +1,15 @@
 #include <cassert>
 #include <algorithm>
+#include <ranges>
 
 #include "lbnl/algorithm.hxx"
 
 #include "Nodes.hxx"
 
 #ifdef STL_MULTITHREADING
+// par rather than par_unseq: every node update recomputes its water content, which allocates,
+// and allocation is not one of the vectorisation-safe operations par_unseq permits. Each node
+// writes only to itself, so the result does not depend on how the work is scheduled.
 #include <execution>
 #endif
 
@@ -26,11 +30,12 @@ namespace HygroThermFEM
 
     size_t Nodes::maxIndex() const
     {
-        Node2D aNode =
-          *max_element(m_Nodes.begin(), m_Nodes.end(), [](const Node2D & a, const Node2D & b) {
-              return a.getNodeNumber() < b.getNodeNumber();
-          });
-        return aNode.getNodeNumber();
+        // Iterator, not a copy: Node2D owns several node-local containers, so materialising
+        // one here allocated on every call -- and this runs twice per matrix assembly.
+        const auto maxNode = std::ranges::max_element(
+          m_Nodes, {}, [](const Node2D & node) { return node.getNodeNumber(); });
+
+        return maxNode->getNodeNumber();
     }
 
     std::vector<double> Nodes::properties(const Variable t_Property) const
@@ -54,7 +59,7 @@ namespace HygroThermFEM
 
 #ifdef STL_MULTITHREADING
         std::for_each(
-          std::execution::par_unseq, std::begin(m_Nodes), std::end(m_Nodes), [&](auto && aNode) {
+          std::execution::par, std::begin(m_Nodes), std::end(m_Nodes), [&](auto && aNode) {
               const auto nodeNumber = aNode.getNodeNumber() - 1;
               aNode.setTemperature(values[nodeNumber], updatePreviousTimestep);
           });
@@ -74,7 +79,7 @@ namespace HygroThermFEM
 
 #ifdef STL_MULTITHREADING
         std::for_each(
-          std::execution::par_unseq, std::begin(m_Nodes), std::end(m_Nodes), [&](auto && aNode) {
+          std::execution::par, std::begin(m_Nodes), std::end(m_Nodes), [&](auto && aNode) {
               const auto nodeNumber = aNode.getNodeNumber() - 1;
               aNode.setHumidity(values[nodeNumber], updatePreviousTimestep);
           });
@@ -94,7 +99,7 @@ namespace HygroThermFEM
 
 #ifdef STL_MULTITHREADING
         std::for_each(
-          std::execution::par_unseq, std::begin(m_Nodes), std::end(m_Nodes), [&](auto && aNode) {
+          std::execution::par, std::begin(m_Nodes), std::end(m_Nodes), [&](auto && aNode) {
               const auto nodeNumber = aNode.getNodeNumber() - 1;
               aNode.setLiquidPercent(values[nodeNumber], updatePreviousTimestep);
           });
