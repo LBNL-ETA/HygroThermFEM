@@ -19,6 +19,27 @@ namespace HygroThermFEM
     //! Constant that holds number of nodes in certain elementsCreator
     const std::size_t numOfQuadrilateralNodes = 4;
 
+    //! \brief Dense, inline 4x4 matrix for element-level integration.
+    //!
+    //! The integration matrices are read sixteen times per integration point on every call to
+    //! integrate(), which happens once per coefficient term per element per assembly. Holding
+    //! them in a sparse matrix meant every one of those reads was a binary search through an
+    //! index structure, to reach one of sixteen values that are almost all non-zero anyway.
+    struct ElementMatrix2D
+    {
+        double & operator()(const std::size_t row, const std::size_t col)
+        {
+            return values[row * numOfQuadrilateralNodes + col];
+        }
+
+        double operator()(const std::size_t row, const std::size_t col) const
+        {
+            return values[row * numOfQuadrilateralNodes + col];
+        }
+
+        std::array<double, numOfQuadrilateralNodes * numOfQuadrilateralNodes> values{};
+    };
+
     //////////////////////////////////////////////////////////////////////////////
     ///  IQLEMatrix2D
     //////////////////////////////////////////////////////////////////////////////
@@ -62,7 +83,7 @@ namespace HygroThermFEM
 
         //! This matrix will hold different forms of shape functions operations. This will mainly
         //! depend on what integrator will be used to integrate matrices.
-        std::vector<SquareMatrix> m_IntegrationMatrix;
+        std::vector<ElementMatrix2D> m_IntegrationMatrix;
     };
 
     //////////////////////////////////////////////////////////////////////////////
@@ -619,6 +640,11 @@ namespace HygroThermFEM
         //! setIndependentVariables() overwrites every entry before each use, so the integrator is
         //! reused instead of reconstructed. Mutable because the assembly accessors are const.
         mutable QLEDpDuIntegrator2D m_QLEDpDu2D;
+
+        //! Nodal volumes integral(psi_i). Geometry only, so computed once at construction --
+        //! nodalLumpedCapacity() previously rebuilt them on every call, which made it the single
+        //! most expensive thing in the assembly.
+        const std::array<double, numOfQuadrilateralNodes> m_NodalVolumes;
 
         const bool m_Linear;
     };

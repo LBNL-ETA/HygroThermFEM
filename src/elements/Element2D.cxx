@@ -27,6 +27,28 @@ namespace
         }
         return scaled;
     }
+
+    //! Nodal volumes v_i = integral(psi_i), obtained as the row sums of the consistent mass
+    //! matrix integral(psi_i psi_j) integrated with a unit coefficient. These depend only on
+    //! the element geometry, so they are computed once per element rather than rebuilt on
+    //! every capacitance evaluation.
+    std::array<double, HygroThermFEM::numOfQuadrilateralNodes>
+      computeNodalVolumes(const HygroThermFEM::QLECapacitanceIntegrator2D & integrator)
+    {
+        constexpr std::array<double, HygroThermFEM::numOfQuadrilateralNodes> unitCoefficients{
+          1.0, 1.0, 1.0, 1.0};
+        const auto massMatrix = integrator.integrate(unitCoefficients);
+
+        std::array<double, HygroThermFEM::numOfQuadrilateralNodes> volumes{};
+        for(std::size_t row = 0; row < HygroThermFEM::numOfQuadrilateralNodes; ++row)
+        {
+            for(std::size_t col = 0; col < HygroThermFEM::numOfQuadrilateralNodes; ++col)
+            {
+                volumes[row] += massMatrix(row, col);
+            }
+        }
+        return volumes;
+    }
 }   // namespace
 
 namespace HygroThermFEM
@@ -36,7 +58,7 @@ namespace HygroThermFEM
     //////////////////////////////////////////////////////////////////////////////
     IQLEIntegrator2D::IQLEIntegrator2D(const QuadrilateralLinearGlobal2D & t_Element) :
         m_Global2D{t_Element},
-        m_IntegrationMatrix{numOfQuadrilateralNodes, SquareMatrix{numOfQuadrilateralNodes}}
+        m_IntegrationMatrix{numOfQuadrilateralNodes, ElementMatrix2D{}}
     {}
 
     SquareMatrix IQLEIntegrator2D::integrate(std::span<const double> t_Values) const
@@ -109,9 +131,9 @@ namespace HygroThermFEM
             const auto det = m_Global2D.det(integrationPoint);
 
             auto & DPsiDxDyMatrix = m_IntegrationMatrix[integrationPoint];
-            for(auto row = 0u; row < DPsiDxDyMatrix.size(); ++row)
+            for(auto row = 0u; row < numOfQuadrilateralNodes; ++row)
             {
-                for(auto col = 0u; col < DPsiDxDyMatrix.size(); ++col)
+                for(auto col = 0u; col < numOfQuadrilateralNodes; ++col)
                 {
                     DPsiDxDyMatrix(row, col) =
                       (DPsiDx[row] * DPsiDx[col] + DPsiDy[row] * DPsiDy[col]) * det;
@@ -151,18 +173,15 @@ namespace HygroThermFEM
                 gammaY += DPsiDy[idx] * t_Values[idx];
             }
 
-            std::vector<std::vector<double>> matrix{numOfIntegrationPoints,
-                                                    std::vector<double>(numOfIntegrationPoints, 0)};
-
+            auto & matrix = m_IntegrationMatrix[integrationPoint];
             for(auto row = 0u; row < numOfIntegrationPoints; ++row)
             {
                 for(auto col = 0u; col < numOfIntegrationPoints; ++col)
                 {
-                    matrix[row][col] =
+                    matrix(row, col) =
                       det * (psi[row] * DPsiDx[col] * gammaX + psi[row] * DPsiDy[col] * gammaY);
                 }
             }
-            m_IntegrationMatrix[integrationPoint] = SquareMatrix{matrix};
         }
     }
 
@@ -220,6 +239,7 @@ namespace HygroThermFEM
         m_QLECapacitance2D{m_Global2D},
         m_QLEDDu2D{m_Global2D},
         m_QLEDpDu2D{m_Global2D},
+        m_NodalVolumes{computeNodalVolumes(m_QLECapacitance2D)},
         m_Linear{isLinear && m_Material.isLinear()}
     {
         /// Evaluating material influence in every node (This is important to know when
@@ -302,20 +322,10 @@ namespace HygroThermFEM
     SquareMatrix
       IElementLinear2D::nodalLumpedCapacity(std::span<const double> nodalCapacity) const
     {
-        // Nodal volumes v_i = integral(psi_i) = row sums of the consistent mass matrix
-        // integral(psi_i psi_j) (obtained by integrating with a unit coefficient).
-        const auto massMatrix =
-          m_QLECapacitance2D.integrate(std::vector<double>(numOfQuadrilateralNodes, 1.0));
-
         SquareMatrix result{numOfQuadrilateralNodes};
-        for(std::size_t i = 0; i < numOfQuadrilateralNodes; ++i)
+        for(std::size_t idx = 0; idx < numOfQuadrilateralNodes; ++idx)
         {
-            double nodalVolume = 0.0;
-            for(std::size_t j = 0; j < numOfQuadrilateralNodes; ++j)
-            {
-                nodalVolume += massMatrix(i, j);
-            }
-            result(i, i) = nodalVolume * nodalCapacity[i];
+            result(idx, idx) = m_NodalVolumes[idx] * nodalCapacity[idx];
         }
         return result;
     }
