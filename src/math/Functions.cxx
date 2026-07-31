@@ -77,9 +77,9 @@ namespace HygroThermFEM
     ///  IValue
     //////////////////////////////////////////////////////////////////
 
-    std::vector<double> IValue::values(const INodes & nodes) const
+    NodalValues IValue::values(const INodes & nodes) const
     {
-        std::vector<double> result(nodes.size(), 0);
+        NodalValues result(nodes.size());
         for(size_t idx = 0u; idx < nodes.size(); ++idx)
         {
             result[idx] = value(nodes[idx]);

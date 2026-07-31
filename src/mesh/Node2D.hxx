@@ -223,7 +223,7 @@ namespace HygroThermFEM
         INodes(std::initializer_list<std::reference_wrapper<INode2D>> t_Nodes);
 
         //! Returns properties for all nodes in the storage.
-        [[nodiscard]] std::vector<double>
+        [[nodiscard]] NodalValues
             properties(Variable property //!< Variable for which node values will be calculated.
                 ) const;
 

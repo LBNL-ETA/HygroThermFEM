@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstddef>
+#include <span>
 #include <vector>
 
 #pragma warning(push, 0)
@@ -91,8 +92,9 @@ namespace HygroThermFEM
         //! -= operator overload
         SquareMatrix & operator-=(const SquareMatrix & other);
 
-        //! Multiplication between matrix and vector (M x V)
-        std::vector<double> operator*(const std::vector<double> & tVec) const;
+        //! Multiplication between matrix and vector (M x V). Takes a span so that both a
+        //! std::vector solution and an inline NodalValues can be multiplied without conversion.
+        std::vector<double> operator*(std::span<const double> tVec) const;
 
         //! Multiplication between vector and matrix (V x M)
         friend std::vector<double> operator*(const std::vector<double> & first,

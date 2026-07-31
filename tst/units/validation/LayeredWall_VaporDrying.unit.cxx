@@ -56,7 +56,7 @@ TEST(LayeredWall_VaporDrying, TwoLayerDryingThroughOneFace)
     constexpr auto airHumidity = 0.4;
     const HygroThermFEM::FixedBCHCCoefficients interiorBc{
       /*airTemperature=*/initialTemperature, hc, airHumidity};
-    for(const auto [index1, index2] : builder.rightEdge())
+    for(const auto & [index1, index2] : builder.rightEdge())
     {
         multiDomain.createBC_FixedHc(index1, index2, interiorBc);
     }

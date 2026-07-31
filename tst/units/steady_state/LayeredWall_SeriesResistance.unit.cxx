@@ -45,11 +45,11 @@ TEST(LayeredWall_SeriesResistance, TwoLayerSteadyConduction)
 
     constexpr auto tLeft = 20.0;
     constexpr auto tRight = 0.0;
-    for(const auto [index1, index2] : builder.leftEdge())
+    for(const auto & [index1, index2] : builder.leftEdge())
     {
         multiDomain.thermal().createBC_FixedTemperature(index1, index2, tLeft);
     }
-    for(const auto [index1, index2] : builder.rightEdge())
+    for(const auto & [index1, index2] : builder.rightEdge())
     {
         multiDomain.thermal().createBC_FixedTemperature(index1, index2, tRight);
     }

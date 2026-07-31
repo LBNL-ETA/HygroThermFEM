@@ -15,7 +15,7 @@ namespace
     //! Scales column j of a matrix by factor j, turning the stiffness matrix of a
     //! coefficient into the transport matrix of a product potential (see the two-argument DDu).
     HygroThermFEM::SquareMatrix scaleColumns(const HygroThermFEM::SquareMatrix & matrix,
-                                             const std::vector<double> & factors)
+                                             std::span<const double> factors)
     {
         HygroThermFEM::SquareMatrix scaled{matrix};
         for(std::size_t row = 0; row < scaled.size(); ++row)
@@ -39,7 +39,7 @@ namespace HygroThermFEM
         m_IntegrationMatrix{numOfQuadrilateralNodes, SquareMatrix{numOfQuadrilateralNodes}}
     {}
 
-    SquareMatrix IQLEIntegrator2D::integrate(const std::vector<double> & t_Values) const
+    SquareMatrix IQLEIntegrator2D::integrate(std::span<const double> t_Values) const
     {
         const auto count = IntegrationPoints2D::Instance().count2D();
 
@@ -63,7 +63,7 @@ namespace HygroThermFEM
     }
 
     SquareMatrix
-      IQLEIntegrator2D::integrateInterpolated(const std::vector<double> & t_Values) const
+      IQLEIntegrator2D::integrateInterpolated(std::span<const double> t_Values) const
     {
         const auto count = IntegrationPoints2D::Instance().count2D();
         const auto & localElement = QuadrilateralLinearLocal2D::Instance();
@@ -128,7 +128,7 @@ namespace HygroThermFEM
         IQLEIntegrator2D{t_Element}
     {}
 
-    void QLEDpDuIntegrator2D::setIndependentVariables(const std::vector<double> & t_Values)
+    void QLEDpDuIntegrator2D::setIndependentVariables(std::span<const double> t_Values)
     {
         const auto numOfIntegrationPoints = IntegrationPoints2D::Instance().count2D();
         auto & aElement = QuadrilateralLinearLocal2D::Instance();
@@ -300,7 +300,7 @@ namespace HygroThermFEM
     }
 
     SquareMatrix
-      IElementLinear2D::nodalLumpedCapacity(const std::vector<double> & nodalCapacity) const
+      IElementLinear2D::nodalLumpedCapacity(std::span<const double> nodalCapacity) const
     {
         // Nodal volumes v_i = integral(psi_i) = row sums of the consistent mass matrix
         // integral(psi_i psi_j) (obtained by integrating with a unit coefficient).

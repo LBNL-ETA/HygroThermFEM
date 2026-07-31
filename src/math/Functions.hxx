@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "Interpolator.hxx"
+#include "NodalArray.hxx"
 #include "Point.hxx"
 
 /// Functions interface is used to build function that are used for matrix
@@ -69,7 +70,7 @@ namespace HygroThermFEM
         //!
         //! \param nodes Array of nodes for which values are being requested
         //! \return Array of state variable values for requested nodes
-        virtual std::vector<double> values(const INodes & nodes) const;
+        virtual NodalValues values(const INodes & nodes) const;
 
         //! \brief Missing default destructor in abstract class can cause memory leaks.
         virtual ~IValue() = default;

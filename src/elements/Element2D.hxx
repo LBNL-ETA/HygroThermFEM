@@ -2,6 +2,7 @@
 
 #include <array>
 #include <memory>
+#include <span>
 #include <type_traits>
 #include <utility>
 
@@ -38,7 +39,7 @@ namespace HygroThermFEM
         //! Not virtual: no integrator overrides it. The derived types differ only in the
         //! integration matrix their constructors build.
         SquareMatrix
-          integrate(const std::vector<double> &
+          integrate(std::span<const double>
                       t_Values   //!< Nodal values for which integration will be performed
                     ) const;
 
@@ -53,7 +54,7 @@ namespace HygroThermFEM
         //! the Gauss-point-interpolated coefficient the column sums telescope to exactly
         //! zero for ANY spatially varying coefficient, because sum_row grad(psi_row) = 0
         //! pointwise. Used by the moisture element; thermal assembly keeps integrate().
-        SquareMatrix integrateInterpolated(const std::vector<double> & t_Values) const;
+        SquareMatrix integrateInterpolated(std::span<const double> t_Values) const;
 
     protected:
 
@@ -100,7 +101,7 @@ namespace HygroThermFEM
 
         //! Update independent variables (corresponds to variable p in above equation) and creates
         //! new integration matrix.
-        void setIndependentVariables(const std::vector<double> & t_Values);
+        void setIndependentVariables(std::span<const double> t_Values);
     };
 
     //////////////////////////////////////////////////////////////////////////////
@@ -491,7 +492,7 @@ namespace HygroThermFEM
         //! Exact nodal-lumped capacity diag(v_i * nodalCapacity_i), v_i = integral(psi_i).
         //! Used when m_LumpCapacityNodally is set (moisture). See m_LumpCapacityNodally.
         [[nodiscard]] SquareMatrix
-          nodalLumpedCapacity(const std::vector<double> & nodalCapacity) const;
+          nodalLumpedCapacity(std::span<const double> nodalCapacity) const;
 
 
         //! Circular vector connects first and last node so that program can easily iterate

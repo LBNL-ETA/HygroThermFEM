@@ -310,10 +310,10 @@ TEST(ThermSample_StuccoWall, DISABLED_SaturatedMeshBisect)
     struct Exclusion
     {
         std::string label;
-        bool liquid;
-        bool evaporation;
-        bool capillary;
-        bool vapor;
+        bool liquid{false};
+        bool evaporation{false};
+        bool capillary{false};
+        bool vapor{false};
     };
     const std::vector<Exclusion> exclusions{
       {.label = "no liquid transport", .liquid = true},

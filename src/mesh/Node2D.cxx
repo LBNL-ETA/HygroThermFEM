@@ -256,9 +256,9 @@ namespace HygroThermFEM
         return m_Nodes.size();
     }
 
-    std::vector<double> INodes::properties(const Variable property) const
+    NodalValues INodes::properties(const Variable property) const
     {
-        std::vector<double> result;
+        NodalValues result;
         for(const auto & node : m_Nodes)
         {
             result.push_back(node.get().property(property));

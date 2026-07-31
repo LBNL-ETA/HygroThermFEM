@@ -3,9 +3,16 @@
 #include <Eigen/Cholesky>
 #pragma warning(pop)
 
+#include <atomic>
 #include <stdexcept>
 
 #include "LinearSolver.hxx"
+
+namespace
+{
+    std::atomic<std::size_t> patternAnalyses{0};
+    std::atomic<std::size_t> solves{0};
+}   // namespace
 
 namespace HygroThermFEM
 {
@@ -28,12 +35,15 @@ namespace HygroThermFEM
     std::vector<double> CLinearSolver::solve(const SquareMatrix & lhsMatrix,
                                              const std::vector<double> & rhsVector)
     {
+        solves.fetch_add(1, std::memory_order_relaxed);
+
         const Eigen::SparseMatrix<double> & matrix = lhsMatrix.getSparseMatrix();
 
         const bool samePattern = matrix.rows() == m_State->analyzedSize
                                  && matrix.nonZeros() == m_State->analyzedNonZeros;
         if(!samePattern)
         {
+            patternAnalyses.fetch_add(1, std::memory_order_relaxed);
             m_State->solver.analyzePattern(matrix);
             m_State->analyzedSize = matrix.rows();
             m_State->analyzedNonZeros = matrix.nonZeros();
@@ -61,6 +71,16 @@ namespace HygroThermFEM
     {
         CLinearSolver oneShot;
         return oneShot.solve(t_MatrixA, t_VectorB);
+    }
+
+    std::size_t CLinearSolver::patternAnalysisCount()
+    {
+        return patternAnalyses.load(std::memory_order_relaxed);
+    }
+
+    std::size_t CLinearSolver::solveCount()
+    {
+        return solves.load(std::memory_order_relaxed);
     }
 
 }   // namespace HygroThermFEM

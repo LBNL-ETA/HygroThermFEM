@@ -167,9 +167,10 @@ namespace HygroThermFEM
         return res;
     }
 
-    std::vector<double> SquareMatrix::operator*(const std::vector<double> & tVec) const
+    std::vector<double> SquareMatrix::operator*(std::span<const double> tVec) const
     {
-        const Eigen::VectorXd vec = Eigen::VectorXd::Map(tVec.data(), tVec.size());
+        const Eigen::VectorXd vec =
+          Eigen::VectorXd::Map(tVec.data(), static_cast<Eigen::Index>(tVec.size()));
         Eigen::VectorXd res = m_Matrix * vec;
         return std::vector<double>(res.data(), res.data() + res.rows() * res.cols());
     }
