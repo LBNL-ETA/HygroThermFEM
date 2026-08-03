@@ -14,13 +14,13 @@ namespace
 {
     //! Scales column j of a matrix by factor j, turning the stiffness matrix of a
     //! coefficient into the transport matrix of a product potential (see the two-argument DDu).
-    HygroThermFEM::SquareMatrix scaleColumns(const HygroThermFEM::SquareMatrix & matrix,
-                                             std::span<const double> factors)
+    HygroThermFEM::ElementMatrix2D scaleColumns(const HygroThermFEM::ElementMatrix2D & matrix,
+                                                std::span<const double> factors)
     {
-        HygroThermFEM::SquareMatrix scaled{matrix};
-        for(std::size_t row = 0; row < scaled.size(); ++row)
+        HygroThermFEM::ElementMatrix2D scaled{matrix};
+        for(std::size_t row = 0; row < HygroThermFEM::numOfQuadrilateralNodes; ++row)
         {
-            for(std::size_t col = 0; col < scaled.size(); ++col)
+            for(std::size_t col = 0; col < HygroThermFEM::numOfQuadrilateralNodes; ++col)
             {
                 scaled(row, col) *= factors[col];
             }
@@ -61,12 +61,11 @@ namespace HygroThermFEM
         m_IntegrationMatrix{numOfQuadrilateralNodes, ElementMatrix2D{}}
     {}
 
-    SquareMatrix IQLEIntegrator2D::integrate(std::span<const double> t_Values) const
+    ElementMatrix2D IQLEIntegrator2D::integrate(std::span<const double> t_Values) const
     {
         const auto count = IntegrationPoints2D::Instance().count2D();
 
-        std::vector<std::vector<double>> aMatrix{numOfQuadrilateralNodes,
-                                                 std::vector<double>(numOfQuadrilateralNodes, 0)};
+        ElementMatrix2D aMatrix{};
         for(auto integrationPoint = 0u; integrationPoint < count; ++integrationPoint)
         {
             auto & intPointMatrix = m_IntegrationMatrix[integrationPoint];
@@ -75,23 +74,22 @@ namespace HygroThermFEM
             {
                 for(size_t col = 0; col < t_Values.size(); ++col)
                 {
-                    aMatrix[row][col] += intPointMatrix(row, col)
+                    aMatrix(row, col) += intPointMatrix(row, col)
                                          * 0.5 * (t_Values[row] + t_Values[col]);
                 }
             }
         }
 
-        return SquareMatrix{aMatrix};
+        return aMatrix;
     }
 
-    SquareMatrix
+    ElementMatrix2D
       IQLEIntegrator2D::integrateInterpolated(std::span<const double> t_Values) const
     {
         const auto count = IntegrationPoints2D::Instance().count2D();
         const auto & localElement = QuadrilateralLinearLocal2D::Instance();
 
-        std::vector<std::vector<double>> aMatrix{numOfQuadrilateralNodes,
-                                                 std::vector<double>(numOfQuadrilateralNodes, 0)};
+        ElementMatrix2D aMatrix{};
         for(auto integrationPoint = 0u; integrationPoint < count; ++integrationPoint)
         {
             const auto & psi = localElement.Psi(integrationPoint);
@@ -106,12 +104,12 @@ namespace HygroThermFEM
             {
                 for(size_t col = 0; col < t_Values.size(); ++col)
                 {
-                    aMatrix[row][col] += intPointMatrix(row, col) * coefficient;
+                    aMatrix(row, col) += intPointMatrix(row, col) * coefficient;
                 }
             }
         }
 
-        return SquareMatrix{aMatrix};
+        return aMatrix;
     }
 
     //////////////////////////////////////////////////////////////////////////////
@@ -265,9 +263,9 @@ namespace HygroThermFEM
         }
     }
 
-    SquareMatrix IElementLinear2D::DDuMatrices() const
+    ElementMatrix2D IElementLinear2D::DDuMatrices() const
     {
-        SquareMatrix result{numOfQuadrilateralNodes};
+        ElementMatrix2D result{};
 
         for(const auto & term : m_DDuFunctions)
         {
@@ -283,9 +281,9 @@ namespace HygroThermFEM
         return result;
     }
 
-    SquareMatrix IElementLinear2D::DpDuMatrices() const
+    ElementMatrix2D IElementLinear2D::DpDuMatrices() const
     {
-        SquareMatrix result{numOfQuadrilateralNodes};
+        ElementMatrix2D result{};
 
         /// The integration matrix has to be rebuilt for every term because the independent
         /// variables change, but setIndependentVariables() replaces it wholesale, so the
@@ -303,9 +301,9 @@ namespace HygroThermFEM
         return result;
     }
 
-    SquareMatrix IElementLinear2D::capacitanceMatrices() const
+    ElementMatrix2D IElementLinear2D::capacitanceMatrices() const
     {
-        SquareMatrix result{numOfQuadrilateralNodes};
+        ElementMatrix2D result{};
         for(const auto & cap : m_CapacitanceFunctions)
         {
             const auto values = cap->values(m_Nodes);
@@ -319,10 +317,10 @@ namespace HygroThermFEM
         return result;
     }
 
-    SquareMatrix
+    ElementMatrix2D
       IElementLinear2D::nodalLumpedCapacity(std::span<const double> nodalCapacity) const
     {
-        SquareMatrix result{numOfQuadrilateralNodes};
+        ElementMatrix2D result{};
         for(std::size_t idx = 0; idx < numOfQuadrilateralNodes; ++idx)
         {
             result(idx, idx) = m_NodalVolumes[idx] * nodalCapacity[idx];
@@ -519,13 +517,17 @@ namespace HygroThermFEM
             /// Calculate functions base on node properties
             const auto values = item.MatrixFunction->values(m_Nodes);
             /// And then integrate them
-            auto M = m_InterpolateCoefficientsAtGaussPoints
-                       ? m_QLEDDu2D.integrateInterpolated(values)
-                       : m_QLEDDu2D.integrate(values);
-            auto B = item.VectorFunction ? item.VectorFunction->values(m_Nodes)
-                                         : m_Nodes.properties(item.PropertyVector);
+            const auto M = m_InterpolateCoefficientsAtGaussPoints
+                             ? m_QLEDDu2D.integrateInterpolated(values)
+                             : m_QLEDDu2D.integrate(values);
+            const auto B = item.VectorFunction ? item.VectorFunction->values(m_Nodes)
+                                               : m_Nodes.properties(item.PropertyVector);
 
-            result = result + M * B;
+            const auto contribution = M * B;
+            for(std::size_t idx = 0; idx < numOfQuadrilateralNodes; ++idx)
+            {
+                result[idx] += contribution[idx];
+            }
         }
 
         return result;

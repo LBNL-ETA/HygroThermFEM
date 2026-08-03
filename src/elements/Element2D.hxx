@@ -37,6 +37,30 @@ namespace HygroThermFEM
             return values[row * numOfQuadrilateralNodes + col];
         }
 
+        ElementMatrix2D & operator+=(const ElementMatrix2D & other)
+        {
+            for(std::size_t idx = 0; idx < values.size(); ++idx)
+            {
+                values[idx] += other.values[idx];
+            }
+            return *this;
+        }
+
+        //! Matrix-vector product on the stack; no heap allocation.
+        [[nodiscard]] std::array<double, numOfQuadrilateralNodes>
+          operator*(std::span<const double> vec) const
+        {
+            std::array<double, numOfQuadrilateralNodes> product{};
+            for(std::size_t row = 0; row < numOfQuadrilateralNodes; ++row)
+            {
+                for(std::size_t col = 0; col < numOfQuadrilateralNodes; ++col)
+                {
+                    product[row] += (*this)(row, col) * vec[col];
+                }
+            }
+            return product;
+        }
+
         std::array<double, numOfQuadrilateralNodes * numOfQuadrilateralNodes> values{};
     };
 
@@ -59,7 +83,7 @@ namespace HygroThermFEM
         //!
         //! Not virtual: no integrator overrides it. The derived types differ only in the
         //! integration matrix their constructors build.
-        SquareMatrix
+        ElementMatrix2D
           integrate(std::span<const double>
                       t_Values   //!< Nodal values for which integration will be performed
                     ) const;
@@ -75,7 +99,7 @@ namespace HygroThermFEM
         //! the Gauss-point-interpolated coefficient the column sums telescope to exactly
         //! zero for ANY spatially varying coefficient, because sum_row grad(psi_row) = 0
         //! pointwise. Used by the moisture element; thermal assembly keeps integrate().
-        SquareMatrix integrateInterpolated(std::span<const double> t_Values) const;
+        ElementMatrix2D integrateInterpolated(std::span<const double> t_Values) const;
 
     protected:
 
@@ -188,13 +212,13 @@ namespace HygroThermFEM
         );
 
         //! Integrates all matrices that are part of K * (D/Dx(Du/Dx) + D/Dy(Du/Dy)) equation.
-        SquareMatrix DDuMatrices() const;
+        ElementMatrix2D DDuMatrices() const;
 
         //! Integrates all matrices that are part of K * ((Dp/Dx)(Du/Dx) + (Dp/Dy)(Du/Dy)) equation.
-        SquareMatrix DpDuMatrices() const;
+        ElementMatrix2D DpDuMatrices() const;
 
         //! Integrates all matrices that are part of K * Du/Dt equation.
-        SquareMatrix capacitanceMatrices() const;
+        ElementMatrix2D capacitanceMatrices() const;
 
         //! Integrates right hand-side vector.
         std::vector<double> rightSideVector() const;
@@ -512,7 +536,7 @@ namespace HygroThermFEM
 
         //! Exact nodal-lumped capacity diag(v_i * nodalCapacity_i), v_i = integral(psi_i).
         //! Used when m_LumpCapacityNodally is set (moisture). See m_LumpCapacityNodally.
-        [[nodiscard]] SquareMatrix
+        [[nodiscard]] ElementMatrix2D
           nodalLumpedCapacity(std::span<const double> nodalCapacity) const;
 
 
