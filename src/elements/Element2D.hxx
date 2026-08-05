@@ -221,16 +221,20 @@ namespace HygroThermFEM
         ElementMatrix2D capacitanceMatrices() const;
 
         //! Integrates right hand-side vector.
-        std::vector<double> rightSideVector() const;
+        std::array<double, numOfQuadrilateralNodes> rightSideVector() const;
 
         //! \brief Sets a constant volumetric source for this element [W/m^3 for the
         //! thermal domain]. Contributes the consistent load q * integral(psi_i dA) via
         //! volumetricSourceVector(); zero (the default) adds nothing.
         void setVolumetricSource(double value);
 
+        //! True when a nonzero volumetric source is set; lets the assembly skip the
+        //! element entirely in the common no-source case.
+        [[nodiscard]] bool hasVolumetricSource() const;
+
         //! \brief Consistent load vector of the element's volumetric source,
         //! q * integral(psi_i dA); all zeros when no source is set.
-        [[nodiscard]] std::vector<double> volumetricSourceVector() const;
+        [[nodiscard]] std::array<double, numOfQuadrilateralNodes> volumetricSourceVector() const;
 
         std::vector<NodeFlux> flux() const;
 

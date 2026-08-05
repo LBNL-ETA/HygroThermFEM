@@ -480,14 +480,19 @@ namespace HygroThermFEM
         m_VolumetricSource = value;
     }
 
-    std::vector<double> IElementLinear2D::volumetricSourceVector() const
+    bool IElementLinear2D::hasVolumetricSource() const
+    {
+        return m_VolumetricSource != 0.0;
+    }
+
+    std::array<double, numOfQuadrilateralNodes> IElementLinear2D::volumetricSourceVector() const
     {
         // Consistent load vector for a constant source: q * integral(psi_i dA),
         // integrated with the same 2x2 Gauss rule as every other element matrix.
         // Kept separate from rightSideVector so the source enters the steady and
         // transient right hand sides symmetrically without altering what the
         // steady path takes from the elements otherwise.
-        std::vector<double> result(numOfQuadrilateralNodes, 0);
+        std::array<double, numOfQuadrilateralNodes> result{};
         if(m_VolumetricSource == 0.0)
         {
             return result;
@@ -507,9 +512,9 @@ namespace HygroThermFEM
         return result;
     }
 
-    std::vector<double> IElementLinear2D::rightSideVector() const
+    std::array<double, numOfQuadrilateralNodes> IElementLinear2D::rightSideVector() const
     {
-        std::vector<double> result(numOfQuadrilateralNodes, 0);
+        std::array<double, numOfQuadrilateralNodes> result{};
 
         /// SquareMatrix M{numOfQuadrilateralNodes};
         for(const auto & item : m_Matrix_x_Vector)

@@ -244,8 +244,9 @@ namespace HygroThermFEM
 
     std::vector<double> IDomain::steadyStateRightHandSide() const
     {
-        return m_BCs.RVector(m_NodePool.maxIndex())
-               + m_Elements.volumetricSourceVector(m_NodePool.maxIndex());
+        auto vecR = m_BCs.RVector(m_NodePool.maxIndex());
+        vecR += m_Elements.volumetricSourceVector(m_NodePool.maxIndex());
+        return vecR;
     }
 
     IDomain::TransientSystem
@@ -257,14 +258,15 @@ namespace HygroThermFEM
         const auto MassVec = m_Elements.getLumpedMass(maxNodeIndex, t_DTime);
 
         auto M_K_H = m_Elements.conductanceMatrix(maxNodeIndex);
-        M_K_H = M_K_H.addDiagonal(MassVec);
+        M_K_H.addToDiagonal(MassVec);
         M_K_H += m_BCs.HMatrix(maxNodeIndex, timestepIndex);
 
-        const auto vecR = m_BCs.RVector(maxNodeIndex, timestepIndex)
-                          + m_Elements.RVector(maxNodeIndex)
-                          + m_Elements.volumetricSourceVector(maxNodeIndex);
+        auto vecR = m_BCs.RVector(maxNodeIndex, timestepIndex);
+        vecR += m_Elements.RVector(maxNodeIndex);
+        vecR += m_Elements.volumetricSourceVector(maxNodeIndex);
+        vecR += t_PreviousSolution * MassVec;
 
-        return {std::move(M_K_H), t_PreviousSolution * MassVec + vecR};
+        return {std::move(M_K_H), std::move(vecR)};
     }
 
     std::vector<std::vector<double>> IDomain::transientMultiStep(const Variable variable,

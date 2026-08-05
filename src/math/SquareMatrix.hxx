@@ -53,6 +53,10 @@ namespace HygroThermFEM
         	const std::vector<double> & tInput //!< Values that will be added to matrix diagonal
         	) const;
 
+        //! Adds values to the diagonal in place, without the matrix copy and sparse-addition
+        //! temporaries of addDiagonal. Existing diagonal entries are updated directly.
+        void addToDiagonal(std::span<const double> tInput);
+
         //! Calculates and returns inverse matrix
         SquareMatrix inverse() const;
 

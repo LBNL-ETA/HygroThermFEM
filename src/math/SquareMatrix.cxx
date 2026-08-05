@@ -97,6 +97,18 @@ namespace HygroThermFEM
         return mat + diag;
     }
 
+    void SquareMatrix::addToDiagonal(std::span<const double> tInput)
+    {
+        // In-place: an assembled finite-element matrix already has every diagonal entry
+        // populated, so coeffRef finds the value without restructuring; the copy + diagonal
+        // matrix + sparse addition that addDiagonal performs allocated three temporaries per
+        // assembly on the transient hot path.
+        for(std::size_t idx = 0; idx < tInput.size(); ++idx)
+        {
+            m_Matrix.coeffRef(static_cast<int>(idx), static_cast<int>(idx)) += tInput[idx];
+        }
+    }
+
     SquareMatrix::SquareMatrix(Eigen::SparseMatrix<double> && tMatrix) :
         m_size(tMatrix.innerSize()),
         m_Matrix(tMatrix)

@@ -39,6 +39,21 @@ namespace HygroThermFEM
         return operator+(second, first);
     }
 
+    //! In-place accumulation; avoids the temporary that chained operator+ calls allocate
+    //! per assembly on the solver hot path.
+    template<class T>
+    std::vector<T> & operator+=(std::vector<T> & first, const std::vector<T> & second)
+    {
+        if(first.size() != second.size())
+        {
+            throw std::runtime_error("Vectors must be identical in size.");
+        }
+
+        std::transform(first.begin(), first.end(), second.begin(), first.begin(), std::plus<T>());
+
+        return first;
+    }
+
     /// Operator -
     template<class T>
     std::vector<T> operator-(const std::vector<T> & first, const std::vector<T> & second)

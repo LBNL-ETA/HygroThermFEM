@@ -45,8 +45,18 @@ namespace HygroThermFEM
 
 #ifdef STL_MULTITHREADING
         // par, not par_unseq: the element kernel allocates, which is not vectorisation-safe.
-        std::for_each(
-          std::execution::par, std::begin(m_Elements), std::end(m_Elements), assembleElement);
+        // Below the threshold the per-call parallel dispatch costs more than the element
+        // work itself (this runs once per Newton-Raphson iteration), so stay serial.
+        constexpr std::size_t parallelThreshold{512};
+        if(m_Elements.size() >= parallelThreshold)
+        {
+            std::for_each(
+              std::execution::par, std::begin(m_Elements), std::end(m_Elements), assembleElement);
+        }
+        else
+        {
+            std::for_each(std::begin(m_Elements), std::end(m_Elements), assembleElement);
+        }
 #else
         std::for_each(std::begin(m_Elements), std::end(m_Elements), assembleElement);
 #endif
@@ -180,6 +190,10 @@ namespace HygroThermFEM
         std::vector<double> result(maxNodeIndex, 0);
         for(const auto & element : m_Elements)
         {
+            if(!element->hasVolumetricSource())
+            {
+                continue;
+            }
             const auto indexes = element->nodeIndexes();
             const auto load = element->volumetricSourceVector();
             for(size_t i = 0; i < numOfQuadrilateralNodes; ++i)
