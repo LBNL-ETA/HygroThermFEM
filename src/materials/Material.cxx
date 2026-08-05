@@ -393,8 +393,15 @@ namespace HygroThermFEM
 
     Water SolidMaterial::waterContent(const INode2D & node) const
     {
-        return {
-          totalWaterContent(node), liquidWaterContent(node), vaporContent(node), iceContent(node)};
+        // Evaluate the sorption curve and the saturation exponential once and derive the
+        // liquid/ice split from them: composing this from the per-component accessors
+        // repeated both evaluations three times, and this runs on every node update of
+        // every Newton-Raphson iteration.
+        const auto total = totalWaterContent(node);
+        const auto vapor = vaporContent(node);
+        const auto liquidPercent = node.property(Variable::liquidPercent);
+        const auto condensed = total - vapor;
+        return {total, liquidPercent * condensed, vapor, (1 - liquidPercent) * condensed};
     }
 
     double SolidMaterial::totalWaterContent(const INode2D & node) const

@@ -61,6 +61,18 @@ namespace HygroThermFEM
                / ((t_temperature + 273.15) * gasConstantForWaterVapor);
     }
 
+    double saturationConcentrationDerivativeAtTemperature(const double t_temperature)
+    {
+        // c_sat(T) = exp(77.345 + 0.0057 T - 7235 / T) / (R_v T^9.2) with T in Kelvin, so
+        // d(ln c_sat)/dT = 0.0057 + 7235 / T^2 - 9.2 / T and the derivative is that
+        // logarithmic factor times c_sat itself -- one curve evaluation instead of the
+        // two a central finite difference needs, and exact.
+        const auto temperature = t_temperature + 273.15;
+        const auto logDerivative =
+          0.0057 + 7235.0 / (temperature * temperature) - 9.2 / temperature;
+        return saturationConcentrationAtTemperature(t_temperature) * logDerivative;
+    }
+
     double heatOfEvaporation(const double temperature)
     {
         return (2500.8 - 2.36 * temperature + 0.016 * std::pow(temperature, 2)
@@ -96,6 +108,11 @@ namespace HygroThermFEM
 
     double IFunction::value(const INode2D & node) const
     {
+        return evaluateFunction(node.property(m_Property));
+    }
+
+    double IFunction::valueWithPreviousTimestep(const INode2D & node) const
+    {
         return evaluateFunction(node.property(m_Property),
                                 node.property(m_Property, Timestep::Previous));
     }
@@ -106,6 +123,11 @@ namespace HygroThermFEM
 
     Constant::Constant(const double value) : IFunction(Variable::temperature), m_Value(value)
     {}
+
+    double Constant::value(const INode2D &) const
+    {
+        return m_Value;
+    }
 
     double Constant::evaluateFunction(const double, const double) const
     {
@@ -385,6 +407,11 @@ namespace HygroThermFEM
         TabularFunction1D(sorptionCurve, property)
     {}
 
+    double SorptionSecantCapacity::value(const INode2D & node) const
+    {
+        return valueWithPreviousTimestep(node);
+    }
+
     double SorptionSecantCapacity::evaluateFunction(const double t_position,
                                                     const double t_previousTimestep) const
     {
@@ -496,10 +523,7 @@ namespace HygroThermFEM
 
     double SaturationDerivative::evaluateFunction(const double t_position, const double) const
     {
-        constexpr double deltaTemperature{0.01};
-        return (saturationConcentrationAtTemperature(t_position + deltaTemperature)
-                - saturationConcentrationAtTemperature(t_position - deltaTemperature))
-               / (2 * deltaTemperature);
+        return saturationConcentrationDerivativeAtTemperature(t_position);
     }
 
     //////////////////////////////////////////////////////////////////
@@ -533,6 +557,11 @@ namespace HygroThermFEM
     //////////////////////////////////////////////////////////////////
     PhaseChange::PhaseChange() : IFunction(Variable::temperature)
     {}
+
+    double PhaseChange::value(const INode2D & node) const
+    {
+        return valueWithPreviousTimestep(node);
+    }
 
     double PhaseChange::evaluateFunction(const double t_position,
                                          const double t_PreviousTimestep) const
@@ -593,6 +622,11 @@ namespace HygroThermFEM
 
     FusionSecantCapacity::FusionSecantCapacity() : IFunction(Variable::temperature)
     {}
+
+    double FusionSecantCapacity::value(const INode2D & node) const
+    {
+        return valueWithPreviousTimestep(node);
+    }
 
     double FusionSecantCapacity::evaluateFunction(const double t_position,
                                                   const double t_previousTimestep) const

@@ -1,7 +1,6 @@
 #include <ranges>
 #include <stdexcept>
 
-#include "lbnl/algorithm.hxx"
 
 #include "Node2D.hxx"
 
@@ -163,16 +162,16 @@ namespace HygroThermFEM
         // Node can end up in several different elements and elements can have different materials.
         // Only materials with both a sorption curve and porosity contribute water content; the
         // others are skipped because their optional properties are missing.
-        const auto contributing =
-          lbnl::filter(m_Materials | std::views::values, [](const MaterialContainer & container) {
-              return container.material.hasSorptionCurve() && container.material.hasPorosity();
-          });
-
-        // Weighted average of each contributing material's water content.
+        // Weighted average of each contributing material's water content. Filtered inline:
+        // materialising the contributing set allocated a vector on every node update.
         Water sum;
         double weighting = 0;
-        for(const auto & container : contributing)
+        for(const auto & container : m_Materials | std::views::values)
         {
+            if(!container.material.hasSorptionCurve() || !container.material.hasPorosity())
+            {
+                continue;
+            }
             sum += container.material.waterContent(*this) * container.weightingFactor;
             weighting += container.weightingFactor;
         }
