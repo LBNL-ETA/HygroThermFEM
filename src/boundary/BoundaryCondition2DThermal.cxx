@@ -173,19 +173,15 @@ namespace HygroThermFEM
         m_Flux(t_Flux)
     {}
 
-    std::vector<double> FluxBC::R_Vector() const
+    BCVector FluxBC::R_Vector() const
     {
-        std::vector<double> result(m_PsiVector.size(), 0);
-        std::transform(m_PsiVector.begin(), m_PsiVector.end(), result.begin(), [&](auto && data) {
-            return data * m_Flux;
-        });
-        return result;
+        return m_PsiVector * m_Flux;
     }
 
-    SquareMatrix FluxBC::H_Matrix() const
+    BCMatrix2D FluxBC::H_Matrix() const
     {
         // Flux boundary conditions do not have H matrix (It is zero)
-        return SquareMatrix(4);
+        return BCMatrix2D{};
     }
 
     ////////////////////////////////////////////////////////
@@ -201,24 +197,28 @@ namespace HygroThermFEM
         m_RadiationTemperature{radiationTemperature}
     {}
 
-    std::vector<double> IRadiationBC::gaussRadiationCoefficients() const
+    double IRadiationBC::gaussRadiationCoefficient(const std::size_t integrationPointIndex) const
     {
-        std::vector<double> result(numOfIntegrationPoints(), 0.0);
-        for(std::size_t idx = 0; idx < result.size(); ++idx)
+        return radiationCoefficientAt(
+          gaussPointProperty(integrationPointIndex, Variable::temperature));
+    }
+
+    BCVector IRadiationBC::R_Vector() const
+    {
+        const auto coefficientAt = [this](const std::size_t idx)
         {
-            result[idx] = radiationCoefficientAt(gaussPointProperty(idx, Variable::temperature));
-        }
-        return result;
+            return gaussRadiationCoefficient(idx);
+        };
+        return psiGaussWeighted(coefficientAt) * m_RadiationTemperature;
     }
 
-    std::vector<double> IRadiationBC::R_Vector() const
+    BCMatrix2D IRadiationBC::H_Matrix() const
     {
-        return psiGaussWeighted(gaussRadiationCoefficients()) * m_RadiationTemperature;
-    }
-
-    SquareMatrix IRadiationBC::H_Matrix() const
-    {
-        return psiPsiGaussWeighted(gaussRadiationCoefficients());
+        const auto coefficientAt = [this](const std::size_t idx)
+        {
+            return gaussRadiationCoefficient(idx);
+        };
+        return psiPsiGaussWeighted(coefficientAt);
     }
 
     ////////////////////////////////////////////////////////
@@ -276,20 +276,16 @@ namespace HygroThermFEM
         m_SegmentIndex{segmentIndex}
     {}
 
-    std::vector<double>
-      EnclosureRadiationBC::gaussRadiationCoefficients(const double radiantTemperature) const
+    double
+      EnclosureRadiationBC::gaussRadiationCoefficient(const std::size_t integrationPointIndex,
+                                                      const double radiantTemperature) const
     {
-        std::vector<double> result(numOfIntegrationPoints(), 0.0);
         const double radiationTemp = celsiusToKelvin(radiantTemperature);
-        for(std::size_t idx = 0; idx < result.size(); ++idx)
-        {
-            const double surfaceTemp =
-              celsiusToKelvin(gaussPointProperty(idx, Variable::temperature));
-            result[idx] = (surfaceTemp + radiationTemp)
-                          * (radiationTemp * radiationTemp + surfaceTemp * surfaceTemp)
-                          * Constants::STEFANBOLTZMANN * m_Emissivity;
-        }
-        return result;
+        const double surfaceTemp =
+          celsiusToKelvin(gaussPointProperty(integrationPointIndex, Variable::temperature));
+        return (surfaceTemp + radiationTemp)
+               * (radiationTemp * radiationTemp + surfaceTemp * surfaceTemp)
+               * Constants::STEFANBOLTZMANN * m_Emissivity;
     }
 
     double EnclosureRadiationBC::isothermalCoefficient(const double surfaceTemperature,
@@ -302,13 +298,16 @@ namespace HygroThermFEM
                * Constants::STEFANBOLTZMANN * m_Emissivity;
     }
 
-    std::vector<double> EnclosureRadiationBC::R_Vector() const
+    BCVector EnclosureRadiationBC::R_Vector() const
     {
         const double radiantTemperature = m_Coordinator.effectiveRadiantTemperature(m_SegmentIndex);
         if(m_Coordinator.surfaceTemperatureModel() == EnclosureSurfaceTemperature::LocalTemperature)
         {
-            return psiGaussWeighted(gaussRadiationCoefficients(radiantTemperature))
-                   * radiantTemperature;
+            const auto coefficientAt = [this, radiantTemperature](const std::size_t idx)
+            {
+                return gaussRadiationCoefficient(idx, radiantTemperature);
+            };
+            return psiGaussWeighted(coefficientAt) * radiantTemperature;
         }
 
         // Conrad-compatible (segment-isothermal): the whole segment radiates uniformly at the
@@ -319,7 +318,7 @@ namespace HygroThermFEM
         // at convergence: flux_i = (H*T - R)_i = psi_i * h * (tsurf - Trad).
         const double surfaceTemperature = m_Coordinator.segmentSurfaceTemperature(m_SegmentIndex);
         const double hCoefficient = isothermalCoefficient(surfaceTemperature, radiantTemperature);
-        std::vector<double> result(numOfBCNodes, 0.0);
+        BCVector result{};
         for(std::size_t row = 0; row < numOfBCNodes; ++row)
         {
             double interpolated{0.0};
@@ -335,16 +334,19 @@ namespace HygroThermFEM
         return result;
     }
 
-    SquareMatrix EnclosureRadiationBC::H_Matrix() const
+    BCMatrix2D EnclosureRadiationBC::H_Matrix() const
     {
         const double radiantTemperature = m_Coordinator.effectiveRadiantTemperature(m_SegmentIndex);
         if(m_Coordinator.surfaceTemperatureModel() == EnclosureSurfaceTemperature::LocalTemperature)
         {
-            return psiPsiGaussWeighted(gaussRadiationCoefficients(radiantTemperature));
+            const auto coefficientAt = [this, radiantTemperature](const std::size_t idx)
+            {
+                return gaussRadiationCoefficient(idx, radiantTemperature);
+            };
+            return psiPsiGaussWeighted(coefficientAt);
         }
         const double surfaceTemperature = m_Coordinator.segmentSurfaceTemperature(m_SegmentIndex);
-        const std::vector<double> gaussCoefficients(
-          numOfIntegrationPoints(), isothermalCoefficient(surfaceTemperature, radiantTemperature));
-        return psiPsiGaussWeighted(gaussCoefficients);
+        const double hCoefficient = isothermalCoefficient(surfaceTemperature, radiantTemperature);
+        return psiPsiGaussWeighted([hCoefficient](const std::size_t) { return hCoefficient; });
     }
 }   // namespace HygroThermFEM

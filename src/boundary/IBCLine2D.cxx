@@ -1,4 +1,5 @@
 #include <cmath>
+#include <stdexcept>
 
 #include "IBCLine2D.hxx"
 #include "IntegrationPoints.hxx"
@@ -13,9 +14,7 @@ namespace HygroThermFEM
                              const size_t index2,
                              const bool t_Linear) :
         m_Nodes(nodePool.getNode(index1), nodePool.getNode(index2)),
-        m_Linear(t_Linear),
-        m_PsiPsiMatrix(numOfBCNodes),
-        m_PsiVector(numOfBCNodes, 0)
+        m_Linear(t_Linear)
     {
         m_Determinant =
           0.5
@@ -46,40 +45,9 @@ namespace HygroThermFEM
         return result;
     }
 
-    SquareMatrix IBCLinear2D::psiPsiGaussWeighted(const std::vector<double> & gaussCoefficients) const
+    std::array<std::size_t, numOfBCNodes> IBCLinear2D::getNodeIndexes() const
     {
-        SquareMatrix result(numOfBCNodes);
-        for(std::size_t idx = 0; idx < numOfIntegrationPoints(); ++idx)
-        {
-            for(std::size_t row = 0; row < numOfBCNodes; ++row)
-            {
-                for(std::size_t col = 0; col < numOfBCNodes; ++col)
-                {
-                    result(row, col) +=
-                      m_Determinant * gaussCoefficients[idx] * psi(idx, row) * psi(idx, col);
-                }
-            }
-        }
-        return result;
-    }
-
-    std::vector<double>
-      IBCLinear2D::psiGaussWeighted(const std::vector<double> & gaussCoefficients) const
-    {
-        std::vector<double> result(numOfBCNodes, 0.0);
-        for(std::size_t idx = 0; idx < numOfIntegrationPoints(); ++idx)
-        {
-            for(std::size_t row = 0; row < numOfBCNodes; ++row)
-            {
-                result[row] += m_Determinant * gaussCoefficients[idx] * psi(idx, row);
-            }
-        }
-        return result;
-    }
-
-    std::vector<size_t> IBCLinear2D::getNodeIndexes() const
-    {
-        return m_Nodes.getNodeIndexes();
+        return {m_Nodes[0].getNodeNumber(), m_Nodes[1].getNodeNumber()};
     }
 
     size_t IBCLinear2D::numOfIntegrationPoints()

@@ -19,6 +19,7 @@ namespace HygroThermFEM
         // populated, so the previous dense maxNodeIndex x maxNodeIndex intermediate allocated and
         // scanned O(n^2) storage for a handful of nonzeros -- setFromTriplets sums the duplicates.
         std::vector<Eigen::Triplet<double>> tripletList;
+        tripletList.reserve((m_BCs.size() + m_TransientBCs.size()) * numOfBCNodes * numOfBCNodes);
         forEachActiveBC(timestepIndex, [&](const IBCLinear2D & bcItem)
         {
             const auto indexes = bcItem.getNodeIndexes();

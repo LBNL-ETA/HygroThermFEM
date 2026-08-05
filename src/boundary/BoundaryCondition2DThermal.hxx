@@ -199,10 +199,10 @@ namespace HygroThermFEM
         );
 
         //! Function that calculates right hand side vector.
-        [[nodiscard]] std::vector<double> R_Vector() const override;
+        [[nodiscard]] BCVector R_Vector() const override;
 
         //! Function that calculates matrix.
-        [[nodiscard]] SquareMatrix H_Matrix() const override;
+        [[nodiscard]] BCMatrix2D H_Matrix() const override;
 
     private:
         double m_Flux;
@@ -223,10 +223,10 @@ namespace HygroThermFEM
         virtual ~IRadiationBC() = default;
 
         //! Function that calculates right hand side vector.
-        [[nodiscard]] std::vector<double> R_Vector() const override;
+        [[nodiscard]] BCVector R_Vector() const override;
 
         //! Function that calculates matrix.
-        [[nodiscard]] SquareMatrix H_Matrix() const override;
+        [[nodiscard]] BCMatrix2D H_Matrix() const override;
 
     protected:
         //! Construction of radiation boundary condition base.
@@ -242,8 +242,8 @@ namespace HygroThermFEM
         //! surface temperature (legacy Conrad's convention), not at the nodes.
         [[nodiscard]] virtual double radiationCoefficientAt(double surfaceTemperature) const = 0;
 
-        //! Radiation coefficients evaluated at each integration point of the segment.
-        [[nodiscard]] std::vector<double> gaussRadiationCoefficients() const;
+        //! Radiation coefficient evaluated at one integration point of the segment.
+        [[nodiscard]] double gaussRadiationCoefficient(std::size_t integrationPointIndex) const;
 
         double m_RadiationTemperature;
     };
@@ -322,15 +322,15 @@ namespace HygroThermFEM
                              size_t segmentIndex             //!< This segment's index in the coordinator
         );
 
-        [[nodiscard]] std::vector<double> R_Vector() const override;
-        [[nodiscard]] SquareMatrix H_Matrix() const override;
+        [[nodiscard]] BCVector R_Vector() const override;
+        [[nodiscard]] BCMatrix2D H_Matrix() const override;
 
     private:
-        //! Stefan-Boltzmann radiative coefficients at each integration point, using the
+        //! Stefan-Boltzmann radiative coefficient at one integration point, using the
         //! coordinator's radiant temperature and the interpolated surface temperature
         //! (LocalTemperature model).
-        [[nodiscard]] std::vector<double>
-          gaussRadiationCoefficients(double radiantTemperature) const;
+        [[nodiscard]] double gaussRadiationCoefficient(std::size_t integrationPointIndex,
+                                                       double radiantTemperature) const;
 
         //! Stefan-Boltzmann coefficient for the uniform segment surface temperature
         //! (SegmentIsothermal / Conrad-compatible model).

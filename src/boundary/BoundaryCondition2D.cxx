@@ -41,7 +41,7 @@ namespace HygroThermFEM
         m_SimulateVaporFluxEnergy(simulateMoisture)
     {}
 
-    std::vector<double> IConvectionBC::R_Vector() const
+    BCVector IConvectionBC::R_Vector() const
     {
         auto rightHandSide = m_ConvectiveCoeffCalc->convectiveCoefficients() * m_AirTemperature;
 
@@ -53,7 +53,7 @@ namespace HygroThermFEM
         if(m_SimulateVaporFluxEnergy && !excludeHeatOfEvaporation)
         {
             // Vapor leaking part is added here
-            std::vector<double> vaporLeak(numOfBCNodes, 0);
+            BCVector vaporLeak{};
             for(std::size_t j = 0; j < numOfBCNodes; ++j)
             {
                 const double nodeTemperature = m_Nodes[j].property(Variable::temperature);
@@ -71,9 +71,9 @@ namespace HygroThermFEM
         return m_PsiVector * rightHandSide;
     }
 
-    SquareMatrix IConvectionBC::H_Matrix() const
+    BCMatrix2D IConvectionBC::H_Matrix() const
     {
-        return m_PsiPsiMatrix.mmultRows(m_ConvectiveCoeffCalc->convectiveCoefficients());
+        return m_PsiPsiMatrix.mmultColumns(m_ConvectiveCoeffCalc->convectiveCoefficients());
     }
 
     /////////////////////////////////////////////////////
@@ -92,7 +92,7 @@ namespace HygroThermFEM
         m_Material(materialPool.material(materialName))
     {}
 
-    std::vector<double> IMoistureBC::R_Vector() const
+    BCVector IMoistureBC::R_Vector() const
     {
         const auto satOutside = saturationConcentrationAtTemperature(m_AirTemperature);
         const auto gconv =
@@ -100,9 +100,9 @@ namespace HygroThermFEM
         return m_PsiVector * gconv;
     }
 
-    SquareMatrix IMoistureBC::H_Matrix() const
+    BCMatrix2D IMoistureBC::H_Matrix() const
     {
-        std::vector<double> concentration(numOfBCNodes, 0);
+        BCVector concentration{};
         for(std::size_t j = 0; j < numOfBCNodes; ++j)
         {
             const double nodeTemperature = m_Nodes[j].property(Variable::temperature);
@@ -111,7 +111,7 @@ namespace HygroThermFEM
         const auto vaporFlux =
           concentration * m_ConvectiveCoeffCalc->waterVaporTransferCoefficient();
 
-        return m_PsiPsiMatrix.mmultRows(vaporFlux);
+        return m_PsiPsiMatrix.mmultColumns(vaporFlux);
     }
 
 }   // namespace HygroThermFEM

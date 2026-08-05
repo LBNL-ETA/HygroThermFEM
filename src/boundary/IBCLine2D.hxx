@@ -1,15 +1,13 @@
 #pragma once
 
-#include <vector>
+#include <array>
 
-#include "SquareMatrix.hxx"
+#include "BCTypes.hxx"
 #include "Node2D.hxx"
 #include "Nodes.hxx"
 
 namespace HygroThermFEM
 {
-    const std::size_t numOfBCNodes = 2;
-
     class LineNodes2D;
     class LineLinearLocal1D;
 
@@ -38,18 +36,18 @@ namespace HygroThermFEM
         );
 
         //! Returns node indexes
-        [[nodiscard]] std::vector<std::size_t> getNodeIndexes() const;
+        [[nodiscard]] std::array<std::size_t, numOfBCNodes> getNodeIndexes() const;
 
         //! Returns node with given index.
         INode2D & getNode(std::size_t index) const;
 
         //! Virtual function that will calculate vector from the boundary condition.
         //! Any inherited boundary condition must define its own vector calculations.
-        virtual std::vector<double> R_Vector() const = 0;
+        virtual BCVector R_Vector() const = 0;
 
         //! Virtual function that will calculate matrix from the boundary condition.
         //! Any inherited boundary condition must define its own matrix calculations.
-        virtual SquareMatrix H_Matrix() const = 0;
+        virtual BCMatrix2D H_Matrix() const = 0;
 
         //! Shows if boundary condition is linear or not.
         bool isLinear() const;
@@ -70,13 +68,43 @@ namespace HygroThermFEM
         //! Gauss-point weighted psi*psi matrix: matrix_jk = sum_g det * c_g * psi_j(g) * psi_k(g).
         //! For boundary coefficients that vary along the segment: the coefficient is evaluated at
         //! the integration points (legacy Conrad's convention for temperature-dependent boundary
-        //! coefficients) instead of at the nodes, and the result is symmetric.
-        [[nodiscard]] SquareMatrix
-          psiPsiGaussWeighted(const std::vector<double> & gaussCoefficients) const;
+        //! coefficients) instead of at the nodes, and the result is symmetric. The coefficient is
+        //! supplied as a callable c(g) so no intermediate coefficient vector is materialized.
+        template<typename CoeffAt>
+        [[nodiscard]] BCMatrix2D psiPsiGaussWeighted(CoeffAt && coefficientAt) const
+        {
+            BCMatrix2D result{};
+            for(std::size_t idx = 0; idx < numOfIntegrationPoints(); ++idx)
+            {
+                const double coefficient = coefficientAt(idx);
+                for(std::size_t row = 0; row < numOfBCNodes; ++row)
+                {
+                    for(std::size_t col = 0; col < numOfBCNodes; ++col)
+                    {
+                        result(row, col) +=
+                          m_Determinant * coefficient * psi(idx, row) * psi(idx, col);
+                    }
+                }
+            }
+            return result;
+        }
 
-        //! Gauss-point weighted psi vector: vector_j = sum_g det * c_g * psi_j(g).
-        [[nodiscard]] std::vector<double>
-          psiGaussWeighted(const std::vector<double> & gaussCoefficients) const;
+        //! Gauss-point weighted psi vector: vector_j = sum_g det * c_g * psi_j(g). The coefficient
+        //! is supplied as a callable c(g), mirroring psiPsiGaussWeighted.
+        template<typename CoeffAt>
+        [[nodiscard]] BCVector psiGaussWeighted(CoeffAt && coefficientAt) const
+        {
+            BCVector result{};
+            for(std::size_t idx = 0; idx < numOfIntegrationPoints(); ++idx)
+            {
+                const double coefficient = coefficientAt(idx);
+                for(std::size_t row = 0; row < numOfBCNodes; ++row)
+                {
+                    result[row] += m_Determinant * coefficient * psi(idx, row);
+                }
+            }
+            return result;
+        }
 
         LineNodes2D m_Nodes;
         bool m_Linear;
@@ -87,12 +115,12 @@ namespace HygroThermFEM
 
         //! Matrix that is base for all boundary conditions. It needs to be modified for
         //! coefficients and that will depend on type of boundary conditions
-        SquareMatrix m_PsiPsiMatrix;
+        BCMatrix2D m_PsiPsiMatrix;
 
         //! Vector that is base for all boundary conditions (it depends on psi functions).
         //! It needs to be modified for coefficients and that will depend on type of boundary
         //! conditions
-        std::vector<double> m_PsiVector;
+        BCVector m_PsiVector{};
     };
 
 }   // namespace HygroThermFEM

@@ -1,8 +1,9 @@
 #pragma once
 
 #include <memory>
-#include <vector>
 #include <map>
+
+#include "BCTypes.hxx"
 
 namespace HygroThermFEM
 {
@@ -24,7 +25,7 @@ namespace HygroThermFEM
         IConvectiveCoefficient(IConvectiveCoefficient && other) = default;
         IConvectiveCoefficient & operator=(const IConvectiveCoefficient & other) = delete;
         IConvectiveCoefficient & operator=(IConvectiveCoefficient && other) = delete;
-        [[nodiscard]] virtual std::vector<double> convectiveCoefficients() const = 0;
+        [[nodiscard]] virtual BCVector convectiveCoefficients() const = 0;
 
         //! \brief Per-node surface vapor transfer coefficient by the Lewis relation,
         //! beta = h_c / (rho_air Cp_air), tapered to zero above saturation.
@@ -35,7 +36,7 @@ namespace HygroThermFEM
         //! at the final line of the implementation.
         //!
         //! \return Array that contains calculated values for each node associated with the boundary
-        [[nodiscard]] std::vector<double> waterVaporTransferCoefficient() const;
+        [[nodiscard]] BCVector waterVaporTransferCoefficient() const;
 
     protected:
         //! Nodes associated with the boundary
@@ -51,7 +52,7 @@ namespace HygroThermFEM
     public:
         FixedConvectionCoefficient(const INodes & nodes, double convectionFilmCoefficient);
 
-        [[nodiscard]] std::vector<double> convectiveCoefficients() const override;
+        [[nodiscard]] BCVector convectiveCoefficients() const override;
 
     private:
         double m_ConvectionFilmCoefficient;
@@ -71,7 +72,7 @@ namespace HygroThermFEM
         //! \param airTemperature Air temperature of the ambient [degrees Celsius]
         //! \param surfaceTilt Surface tilt for which film coefficient is being calculated [degrees]
         TARPFilmCoefficient(const INodes & nodes, double airTemperature, double surfaceTilt = 90);
-        [[nodiscard]] std::vector<double> convectiveCoefficients() const override;
+        [[nodiscard]] BCVector convectiveCoefficients() const override;
 
     private:
         double m_AirTemperature;
@@ -91,7 +92,7 @@ namespace HygroThermFEM
                                     double surfaceTilt,
                                     double surfaceHeight);
 
-        [[nodiscard]] std::vector<double> convectiveCoefficients() const override;
+        [[nodiscard]] BCVector convectiveCoefficients() const override;
 
     private:
         double m_AirTemperature;
@@ -109,7 +110,7 @@ namespace HygroThermFEM
     public:
         ASHRAEOutsideFilmCoefficient(const INodes & nodes, double windSpeed);
 
-        [[nodiscard]] std::vector<double> convectiveCoefficients() const override;
+        [[nodiscard]] BCVector convectiveCoefficients() const override;
 
     private:
         double m_WindSpeed;
@@ -133,7 +134,7 @@ namespace HygroThermFEM
                                       double windSpeed,
                                       WindDirection direction);
 
-        [[nodiscard]] std::vector<double> convectiveCoefficients() const override;
+        [[nodiscard]] BCVector convectiveCoefficients() const override;
 
     private:
         double m_AirTemperature;
@@ -159,7 +160,7 @@ namespace HygroThermFEM
     public:
         KimuraFilmCoefficient(const INodes & nodes, double mWindSpeed, WindDirection mDirection);
 
-        std::vector<double> convectiveCoefficients() const override;
+        BCVector convectiveCoefficients() const override;
 
     private:
         double m_WindSpeed;

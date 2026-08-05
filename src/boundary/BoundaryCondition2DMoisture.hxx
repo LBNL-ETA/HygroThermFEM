@@ -194,7 +194,7 @@ namespace HygroThermFEM
         //! c_sat, so the penalty row reads
         //! beta c_sat(T_node) (phi_node - phi_air) and pins phi_node = phi_air
         //! exactly, at any temperature.
-        [[nodiscard]] std::vector<double> R_Vector() const override;
+        [[nodiscard]] BCVector R_Vector() const override;
 
     private:
         inline static const double hugeFilmCoefficient{1e18};

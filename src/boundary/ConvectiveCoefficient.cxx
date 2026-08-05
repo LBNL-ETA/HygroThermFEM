@@ -5,8 +5,6 @@
 #include "Common.hxx"
 #include "FEMMath.hxx"
 #include "Node2D.hxx"
-#include "VectorOperators.hxx"
-#include "IBCLine2D.hxx"
 
 namespace HygroThermFEM
 {
@@ -17,7 +15,7 @@ namespace HygroThermFEM
     IConvectiveCoefficient::IConvectiveCoefficient(const INodes & nodes) : m_Nodes(nodes)
     {}
 
-    std::vector<double> IConvectiveCoefficient::waterVaporTransferCoefficient() const
+    BCVector IConvectiveCoefficient::waterVaporTransferCoefficient() const
     {
         const double betaValue = 1.0 / (Constants::Cp_Air * Constants::Density_Air);
 
@@ -31,7 +29,7 @@ namespace HygroThermFEM
         // discontinuity and allows the solver to converge smoothly near saturation.
         constexpr double transitionWidth = 0.01;
 
-        std::vector<double> beta(m_Nodes.size(), 0);
+        BCVector beta{};
         for(std::size_t j = 0; j < numOfBCNodes; ++j)
         {
             const double humidity = m_Nodes[j].property(Variable::humidity);
@@ -56,9 +54,10 @@ namespace HygroThermFEM
         IConvectiveCoefficient(nodes), m_ConvectionFilmCoefficient(filmCoefficient)
     {}
 
-    std::vector<double> FixedConvectionCoefficient::convectiveCoefficients() const
+    BCVector FixedConvectionCoefficient::convectiveCoefficients() const
     {
-        std::vector<double> result(m_Nodes.size(), m_ConvectionFilmCoefficient);
+        BCVector result{};
+        result.fill(m_ConvectionFilmCoefficient);
 
         return result;
     }
@@ -73,16 +72,17 @@ namespace HygroThermFEM
         IConvectiveCoefficient(nodes), m_AirTemperature(airTemperature), m_SurfaceTilt(surfaceTilt)
     {}
 
-    std::vector<double> TARPFilmCoefficient::convectiveCoefficients() const
+    BCVector TARPFilmCoefficient::convectiveCoefficients() const
     {
         constexpr auto minimumConvectionCoefficient = 3.0;
-        std::vector<double> result;
-        for(const auto & temperature : m_Nodes.properties(Variable::temperature))
+        BCVector result{};
+        for(std::size_t node = 0; node < numOfBCNodes; ++node)
         {
-            result.push_back(
+            const double temperature = m_Nodes[node].property(Variable::temperature);
+            result[node] =
               std::max(minimumConvectionCoefficient,
                        1.81 * std::pow(std::abs(temperature - m_AirTemperature), 1.0 / 3.0)
-                         / (1.382 - std::abs(std::cos(radians(m_SurfaceTilt))))));
+                         / (1.382 - std::abs(std::cos(radians(m_SurfaceTilt)))));
         }
         return result;
     }
@@ -103,12 +103,13 @@ namespace HygroThermFEM
         m_SurfaceHeight(mSurfaceHeight)
     {}
 
-    std::vector<double> ASHRAEInsideFilmCoefficient::convectiveCoefficients() const
+    BCVector ASHRAEInsideFilmCoefficient::convectiveCoefficients() const
     {
-        std::vector<double> result;
+        BCVector result{};
         const auto surfaceTiltRad{radians(m_SurfaceTilt)};
-        for(const auto & temperature : m_Nodes.properties(Variable::temperature))
+        for(std::size_t node = 0; node < numOfBCNodes; ++node)
         {
+            const double temperature = m_Nodes[node].property(Variable::temperature);
             const double tMean{m_AirTemperature
                                + 0.25 * (celsiusToKelvin(temperature) - m_AirTemperature)};
             const double deltaT{std::abs(m_AirTemperature - celsiusToKelvin(temperature))};
@@ -146,7 +147,7 @@ namespace HygroThermFEM
             {
                 Gnui = 0.58 * std::pow(RaL, 1.0 / 3.0);
             }
-            result.push_back(Gnui * (prop.m_ThermalConductivity / m_SurfaceHeight));
+            result[node] = Gnui * (prop.m_ThermalConductivity / m_SurfaceHeight);
         }
         return result;
     }
@@ -160,13 +161,10 @@ namespace HygroThermFEM
         IConvectiveCoefficient(nodes), m_WindSpeed(windSpeed)
     {}
 
-    std::vector<double> ASHRAEOutsideFilmCoefficient::convectiveCoefficients() const
+    BCVector ASHRAEOutsideFilmCoefficient::convectiveCoefficients() const
     {
-        std::vector<double> result;
-        for(size_t i = 0u; i < m_Nodes.size(); ++i)
-        {
-            result.push_back(4 + 4 * m_WindSpeed);
-        }
+        BCVector result{};
+        result.fill(4 + 4 * m_WindSpeed);
         return result;
     }
 
@@ -184,16 +182,17 @@ namespace HygroThermFEM
         m_Direction(direction)
     {}
 
-    std::vector<double> YazdanianKlemsFilmCoefficient::convectiveCoefficients() const
+    BCVector YazdanianKlemsFilmCoefficient::convectiveCoefficients() const
     {
-        std::vector<double> result;
-        for(const auto & temperature : m_Nodes.properties(Variable::temperature))
+        BCVector result{};
+        const auto & [coeffA, coeffB] = coeffs.at(m_Direction);
+        const auto windPart{std::pow(coeffA * std::pow(m_WindSpeed, coeffB), 2)};
+        for(std::size_t node = 0; node < numOfBCNodes; ++node)
         {
-            const auto first{
+            const double temperature = m_Nodes[node].property(Variable::temperature);
+            const auto naturalPart{
               std::pow(0.84 * std::pow(std::abs(temperature - m_AirTemperature), 0.33), 2)};
-            const auto second{std::pow(
-              coeffs.at(m_Direction).A * std::pow(m_WindSpeed, coeffs.at(m_Direction).B), 2)};
-            result.push_back(std::pow(first + second, 0.5));
+            result[node] = std::pow(naturalPart + windPart, 0.5);
         }
         return result;
     }
@@ -208,18 +207,16 @@ namespace HygroThermFEM
         IConvectiveCoefficient(nodes), m_WindSpeed(mWindSpeed), m_Direction(mDirection)
     {}
 
-    std::vector<double> KimuraFilmCoefficient::convectiveCoefficients() const
+    BCVector KimuraFilmCoefficient::convectiveCoefficients() const
     {
-        std::vector<double> result;
-        std::map<WindDirection, double> Vc{
-          {WindDirection::Windward, m_WindSpeed > 2 ? 0.25 * m_WindSpeed : 0.5 * m_WindSpeed},
-          {WindDirection::Leeward, 0.3 + 0.05 * m_WindSpeed}};
-        const auto filmCoefficient{4.7 + 7.6 * Vc.at(m_Direction)};
+        const double windwardSpeed{m_WindSpeed > 2 ? 0.25 * m_WindSpeed : 0.5 * m_WindSpeed};
+        const double leewardSpeed{0.3 + 0.05 * m_WindSpeed};
+        const double correctedSpeed{m_Direction == WindDirection::Windward ? windwardSpeed
+                                                                           : leewardSpeed};
+        const auto filmCoefficient{4.7 + 7.6 * correctedSpeed};
 
-        for(auto i = 0u; i < m_Nodes.size(); ++i)
-        {
-            result.push_back(filmCoefficient);
-        }
+        BCVector result{};
+        result.fill(filmCoefficient);
         return result;
     }
 
