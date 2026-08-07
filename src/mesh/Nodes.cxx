@@ -15,15 +15,14 @@
 
 namespace
 {
-    //! Serial below the threshold: node updates run several times per Newton-Raphson
-    //! iteration, and for small meshes the per-call parallel dispatch costs more than
-    //! the node work itself.
-    constexpr std::size_t parallelUpdateThreshold{512};
-
     template<typename NodeContainer, typename UpdateOne>
     void updateEachNode(NodeContainer & nodes, UpdateOne && updateOne)
     {
 #ifdef STL_MULTITHREADING
+        //! Serial below the threshold: node updates run several times per Newton-Raphson
+        //! iteration, and for small meshes the per-call parallel dispatch costs more than
+        //! the node work itself.
+        constexpr std::size_t parallelUpdateThreshold{512};
         if(nodes.size() >= parallelUpdateThreshold)
         {
             std::for_each(std::execution::par, std::begin(nodes), std::end(nodes), updateOne);
