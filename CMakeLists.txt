@@ -70,11 +70,9 @@ if(NOT TARGET eigen)
     include_directories(${eigenexternal_SOURCE_DIR})
 endif()
 
-# Include KeffCavity
+# Include KeffCavity. It also owns the Windows-CalcEngine pin, re-exported as a target
+# property and read back below, so the version is chosen in exactly one place.
 set(BUILD_KeffC_TESTING OFF CACHE BOOL "Build KeffCavity tests" FORCE)
-# TEMPORARY (co-development): this KeffCavity branch pins Windows-CalcEngine to its enclosure
-# view-factor feature branch, which provides Viewer::computeEnclosureViewFactors. Revert to a
-# released KeffCavity tag once the WCE engine lands.
 set(KeffCavity_Branch "Version_1.1.5")
 
 if(NOT TARGET KeffCavity)

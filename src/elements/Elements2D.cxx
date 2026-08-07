@@ -129,14 +129,43 @@ namespace HygroThermFEM
         return isLinear;
     }
 
+    void ElementsLinear2D::ensureNodeIndex()
+    {
+        if(m_NodeIndexValid)
+        {
+            return;
+        }
+
+        m_NodeToElements.clear();
+        for(size_t elementIndex = 0u; elementIndex < m_Elements.size(); ++elementIndex)
+        {
+            for(const auto nodeIndex : m_Elements[elementIndex]->nodeIndexes())
+            {
+                m_NodeToElements[nodeIndex].push_back(elementIndex);
+            }
+        }
+        m_NodeIndexValid = true;
+    }
+
     IElementLinear2D * ElementsLinear2D::findElement(const size_t index1, const size_t index2)
     {
-        IElementLinear2D * el = nullptr;
-        for(auto & element : m_Elements)
+        ensureNodeIndex();
+
+        const auto first{m_NodeToElements.find(index1)};
+        const auto second{m_NodeToElements.find(index2)};
+        if(first == m_NodeToElements.end() || second == m_NodeToElements.end())
         {
-            if(element->haveBothNodes(index1, index2))
+            return nullptr;
+        }
+
+        // Both lists are in ascending element order, so keeping the last common entry returns
+        // the same element the previous full scan did (it overwrote its result on every hit).
+        IElementLinear2D * el = nullptr;
+        for(const auto elementIndex : first->second)
+        {
+            if(std::binary_search(second->second.begin(), second->second.end(), elementIndex))
             {
-                el = element.get();
+                el = m_Elements[elementIndex].get();
             }
         }
         return el;
@@ -145,6 +174,7 @@ namespace HygroThermFEM
     void ElementsLinear2D::assignElement(std::unique_ptr<IElementLinear2D> && el)
     {
         m_Elements.push_back(std::move(el));
+        m_NodeIndexValid = false;
     }
 
     std::vector<double> ElementsLinear2D::RVector(const size_t maxNodeIndex) const
@@ -257,6 +287,8 @@ namespace HygroThermFEM
     void ElementsLinear2D::clearElements()
     {
         m_Elements.clear();
+        m_NodeToElements.clear();
+        m_NodeIndexValid = false;
     }
 
 

@@ -1,6 +1,9 @@
 #pragma once
 
+#include <map>
 #include <memory>
+#include <vector>
+
 #include "Element2D.hxx"
 #include "SquareMatrix.hxx"
 
@@ -57,6 +60,11 @@ namespace HygroThermFEM
         //! edge, however, that edge will have have nodes in different order and becuase of that
         //! node order passed to this function is important.
         //!
+        //! Boundary condition creation calls this once per boundary condition, so it is served
+        //! from a node-to-elements index built on first use rather than by scanning every
+        //! element: the scan made boundary condition setup cost (boundary conditions x
+        //! elements), which dominated large models.
+        //!
         //! \param index1 First node of the segment.
         //! \param index2 Second node of the segment.
         //! \return Returns element (if exists)
@@ -75,6 +83,15 @@ namespace HygroThermFEM
 
     protected:
         std::vector<std::unique_ptr<IElementLinear2D>> m_Elements;
+
+    private:
+        //! Builds the node-to-elements index when it is missing. Element index lists are in
+        //! ascending element order, which findElement relies on to return the last match.
+        void ensureNodeIndex();
+
+        //! Node number -> indices into m_Elements, empty while it needs rebuilding.
+        std::map<size_t, std::vector<size_t>> m_NodeToElements;
+        bool m_NodeIndexValid{false};
     };
 
 }   // namespace HygroThermFEM
