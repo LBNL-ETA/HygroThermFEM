@@ -18,7 +18,7 @@
 //! library), so a fixture can be JSON or XML — Common::loadFromFile auto-detects the format.
 //! FileParse is a test-only dependency; nothing here reaches the HygroThermFEM library.
 //! See tst/units/errorest/fixtures/*.json.
-namespace lbnl::errorest::test
+namespace HygroThermFEM::errorest::test
 {
     //! On-disk shape (mirrors the JSON/XML). Coordinates/fluxes are flat x,y pairs.
     struct FixtureElement

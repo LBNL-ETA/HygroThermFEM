@@ -2,7 +2,7 @@
 
 #include "FeKernels.hxx"
 
-namespace lbnl::errorest::detail
+namespace HygroThermFEM::errorest::detail
 {
     namespace
     {

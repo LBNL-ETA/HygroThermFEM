@@ -8,7 +8,7 @@
 //! These are the domain-independent building blocks; they hold no state and are
 //! individually unit-testable. The linear algebra (SPR normal-equation solve)
 //! lives in the orchestration unit and reuses Windows-CalcEngine matrices.
-namespace lbnl::errorest::detail
+namespace HygroThermFEM::errorest::detail
 {
     //! Bilinear quad shape functions N_k at reference point (rrr, sss).
     [[nodiscard]] std::array<double, 4> shapeFunctions(double rrr, double sss);

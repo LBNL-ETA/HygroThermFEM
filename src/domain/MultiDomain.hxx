@@ -32,7 +32,7 @@ namespace HygroThermFEM
         size_t node3 = 0;
         size_t node4 = 0;
         std::string material;
-};
+    };
 
     //! \brief Keeps solution from current timestep for every node in the domain.
     struct Solution

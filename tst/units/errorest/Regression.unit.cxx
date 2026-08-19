@@ -14,7 +14,7 @@
 #define ERROREST_FIXTURE_DIR ""
 #endif
 
-using namespace lbnl::errorest;
+using namespace HygroThermFEM::errorest;
 
 namespace fs = std::filesystem;
 

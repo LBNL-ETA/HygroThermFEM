@@ -15,7 +15,7 @@
 #include "ErrorEstimator.hxx"
 #include "FeKernels.hxx"
 
-namespace lbnl::errorest
+namespace HygroThermFEM::errorest
 {
     namespace
     {

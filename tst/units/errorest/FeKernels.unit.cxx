@@ -5,8 +5,8 @@
 
 #include "FeKernels.hxx"
 
-using namespace lbnl::errorest;
-using namespace lbnl::errorest::detail;
+using namespace HygroThermFEM::errorest;
+using namespace HygroThermFEM::errorest::detail;
 
 TEST(FeKernels, ShapeFunctionsAreNodalAtCorners)
 {
