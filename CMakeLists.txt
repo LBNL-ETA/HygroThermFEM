@@ -4,7 +4,7 @@ set(target_name HygroThermFEM)
 
 cmake_policy(SET CMP0048 NEW)
 
-project(${target_name} VERSION 1.0.71 LANGUAGES CXX)
+project(${target_name} VERSION 1.0.72 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 
@@ -86,7 +86,7 @@ set(BUILD_KeffC_TESTING OFF CACHE BOOL "Build KeffCavity tests" FORCE)
 # Branch pin while the Windows/Clang -fPIC fix is under test. KeffCavity carries
 # the same fix and re-exports the Windows-CalcEngine pin. Re-pin to a released
 # tag once it lands.
-set(KeffCavity_Branch "fix/no-fpic-on-windows")
+set(KeffCavity_Branch "Version_1.1.6")
 
 if(NOT TARGET KeffCavity)
     FetchContent_Declare(
@@ -195,7 +195,7 @@ if (BUILD_HTFEM_TESTING)
     # HygroThermFEM library, so consumers (BUILD_HTFEM_TESTING off) never pull it.
     # FileParse PUBLIC-links xmlParser + nlohmann_json; in local mode the foreach above
     # points all three at their ../ siblings.
-    set(FileParse_Branch "Version_1.1.5")
+    set(FileParse_Branch "Version_1.1.6")
     set(BUILD_FileParse_tests OFF CACHE BOOL "Build FileParse tests" FORCE)
     if(NOT TARGET FileParse)
         FetchContent_Declare(
