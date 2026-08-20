@@ -99,7 +99,7 @@ endif()
 
 # LBNLCPPCommon: ExpectedExt/OptionalExt etc. (the C++20 stand-ins for std::expected/
 # std::optional) used by the errorest component. Header-only; no C++ standard bump.
-set(LBNLCPPCommon_Branch "v0.18")
+set(LBNLCPPCommon_Branch "v0.19")
 if(NOT TARGET LBNLCPPCommon)
     FetchContent_Declare(
             LBNLCPPCommon
