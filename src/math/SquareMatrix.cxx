@@ -1,10 +1,14 @@
 #include <cmath>
 #include "SquareMatrix.hxx"
 
-#pragma warning(push, 0)
+#ifdef _MSC_VER
+#    pragma warning(push, 0)
+#endif
 #include <Eigen/Dense>
 #include <Eigen/SparseLU>
-#pragma warning(pop)
+#ifdef _MSC_VER
+#    pragma warning(pop)
+#endif
 
 namespace HygroThermFEM
 {

@@ -4,10 +4,14 @@
 #include <span>
 #include <vector>
 
-#pragma warning(push, 0)
+#ifdef _MSC_VER
+#    pragma warning(push, 0)
+#endif
 //#include <Eigen/Core>
 #include <Eigen/SparseCore>
-#pragma warning(pop)
+#ifdef _MSC_VER
+#    pragma warning(pop)
+#endif
 
 namespace HygroThermFEM
 {

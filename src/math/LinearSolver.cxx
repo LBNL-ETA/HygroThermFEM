@@ -1,7 +1,11 @@
-#pragma warning(push, 0)
+#ifdef _MSC_VER
+#    pragma warning(push, 0)
+#endif
 #include <Eigen/Sparse>
 #include <Eigen/Cholesky>
-#pragma warning(pop)
+#ifdef _MSC_VER
+#    pragma warning(pop)
+#endif
 
 #include <atomic>
 #include <stdexcept>
