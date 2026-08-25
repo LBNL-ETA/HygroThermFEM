@@ -24,7 +24,14 @@ TEST(TestSingleElementMatrices2D, TestConductionMatrix)
     params.heatCapacity = 1.0;
     const auto & material = multiDomain.materials().createSolidMaterial(params);
 
-    const HygroThermFEM::ElementThermalLinear2D aElem{multiDomain.nodes(), multiDomain.materials(), 1, 2, 3, 4, material.name()};
+    const HygroThermFEM::ElementThermalLinear2D aElem{multiDomain.nodes(),
+                                                      multiDomain.materials(),
+                                                      1,
+                                                      2,
+                                                      3,
+                                                      4,
+                                                      material.name(),
+                                                      multiDomain.physicsOptions()};
 
     auto condMat = aElem.DDuMatrices();
 

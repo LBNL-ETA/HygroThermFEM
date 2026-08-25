@@ -13,7 +13,6 @@
 #include "VectorOperators.hxx"
 #include "Nodes.hxx"
 #include "Materials.hxx"
-#include "SimulationProperties.hxx"
 
 namespace HygroThermFEM
 {
@@ -711,8 +710,7 @@ namespace HygroThermFEM
         // contracts the fixed point slowly, so the iteration needs room to drive the
         // residual down before best-effort acceptance -- the user's usual budget (~25)
         // was tuned for the fast change-metric exits.
-        if(useResidualConvergence()
-           && !SimulationProperties::Instance().excludeLatentHeatOfFusion())
+        if(useResidualConvergence() && !physicsOptions().excludeLatentHeatOfFusion)
         {
             maxIterations = (std::max)(maxIterations, static_cast<std::size_t>(200));
         }
@@ -782,6 +780,16 @@ namespace HygroThermFEM
     SolverSettings IDomain::solverSettings() const
     {
         return m_SolverSettings ? *m_SolverSettings : SolverSettings::fromGlobals();
+    }
+
+    void IDomain::setPhysicsOptions(const PhysicsOptions & options)
+    {
+        m_PhysicsOptions = options;
+    }
+
+    PhysicsOptions IDomain::physicsOptions() const
+    {
+        return m_PhysicsOptions ? *m_PhysicsOptions : PhysicsOptions::fromGlobals();
     }
 
     IDomain::IDomain(Nodes & nodePool,

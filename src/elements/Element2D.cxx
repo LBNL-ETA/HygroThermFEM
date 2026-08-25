@@ -8,7 +8,6 @@
 #include "Materials.hxx"
 #include "QuadrilateralLocal2D.hxx"
 #include "VectorOperators.hxx"
-#include "SimulationProperties.hxx"
 
 namespace
 {
@@ -572,7 +571,8 @@ namespace HygroThermFEM
                                                    const size_t index2,
                                                    const size_t index3,
                                                    const size_t index4,
-                                                   const std::string & materialName) :
+                                                   const std::string & materialName,
+                                                   const PhysicsOptions & physics) :
         IElementLinear2D(nodePool,
                          materialPool,
                          index1,
@@ -585,7 +585,7 @@ namespace HygroThermFEM
                          // the element must go through the Newton-Raphson path; the linear
                          // shortcut would freeze the secant at its step-start (tangent)
                          // value and drop the latent heat entirely.
-                         SimulationProperties::Instance().excludeLatentHeatOfFusion())
+                         physics.excludeLatentHeatOfFusion)
     {
         //////////////////////////////////////////////////////////////////////////////////////
         /// Capacitance functions
@@ -620,8 +620,7 @@ namespace HygroThermFEM
         // consistent pairwise-average integration would smear it onto neighbouring
         // rows, booking phantom storage energy there (observed as a stalled Stefan
         // front losing ~85 % of the incoming flux).
-        if(m_Material.hasDensity()
-           && !SimulationProperties::Instance().excludeLatentHeatOfFusion())
+        if(m_Material.hasDensity() && !physics.excludeLatentHeatOfFusion)
         {
             const StateValue liquidContent(Variable::liquid);
             const StateValue iceContent(Variable::ice);
@@ -637,7 +636,7 @@ namespace HygroThermFEM
         //  TabularFunction1D(m_Material.thermalConductivityMoistureAndTemperatureDependent(),
         //  Variable::water);
 
-        if(SimulationProperties::Instance().thermalConductivityTemperatureAndMoistureDependent()
+        if(physics.thermalConductivityMoistureAndTemperatureDependent
            && m_Material.hasThermalConductivityMoistureAndTemperatureDependent())
         {
             auto materialConductivity =
@@ -656,7 +655,7 @@ namespace HygroThermFEM
             // Same remedy the moisture element applies to its vapour coefficient.
             m_InterpolateCoefficientsAtGaussPoints = true;
         }
-        if(!SimulationProperties::Instance().thermalConductivityTemperatureAndMoistureDependent()
+        if(!physics.thermalConductivityMoistureAndTemperatureDependent
            && m_Material.hasThermalConductivityDry())
         {
             auto materialConductivity = Constant(m_Material.thermalConductivityDry());
@@ -673,7 +672,7 @@ namespace HygroThermFEM
         if(m_Material.hasDiffusionResistanceFactor())
         {
             const VaporPermeability delta{m_Material.diffusionResistanceFactor()};
-            if(!SimulationProperties::Instance().excludeHeatOfEvaporation())
+            if(!physics.excludeHeatOfEvaporation)
             {
                 // Interior latent term h_lg * div(g_v). Two corrections against the THERMM
                 // documents (see ThermSample_StuccoWall for the failure they caused):
@@ -724,8 +723,8 @@ namespace HygroThermFEM
         //////////////////////////////////////////////////////////////////////
         ///  Conduction from liquid
         //////////////////////////////////////////////////////////////////////
-        if(!SimulationProperties::Instance().excludeCapillaryConduction()
-           && m_Material.hasSorptionCurve() && m_Material.hasLiquidTransportationCurve())
+        if(!physics.excludeCapillaryConduction && m_Material.hasSorptionCurve()
+           && m_Material.hasLiquidTransportationCurve())
         {
             auto humidity = StateValue(Variable::humidity);
             const TabularDerivativeSmooth sorptionDerivative(m_Material.sorptionCurve(),
@@ -738,8 +737,7 @@ namespace HygroThermFEM
         //////////////////////////////////////////////////////////////////////
         ///  Conduction from vapor
         //////////////////////////////////////////////////////////////////////
-        if(!SimulationProperties::Instance().excludeVaporDiffusionConduction()
-           && m_Material.hasDiffusionResistanceFactor())
+        if(!physics.excludeVaporDiffusionConduction && m_Material.hasDiffusionResistanceFactor())
         {
             const VaporPermeability delta{m_Material.diffusionResistanceFactor()};
             auto vapCond = Constant(-1) * delta * Constants::Cp_Vapor;
@@ -762,7 +760,8 @@ namespace HygroThermFEM
                                                      const size_t index2,
                                                      const size_t index3,
                                                      const size_t index4,
-                                                     const std::string & materialName) :
+                                                     const std::string & materialName,
+                                                     const PhysicsOptions & physics) :
         IElementLinear2D(nodePool, materialPool, index1, index2, index3, index4, materialName, Variable::humidity, false)
     {
         // Lump the moisture capacity nodally (diag(v_i * xi_i)) so the secant capacity
@@ -808,8 +807,8 @@ namespace HygroThermFEM
         //////////////////////////////////////////////////////////////////////////////
         /// Water liquid transportation
         //////////////////////////////////////////////////////////////////////////////
-        if(!SimulationProperties::Instance().excludeWaterLiquidTransportation()
-           && m_Material.hasSorptionCurve() && m_Material.hasLiquidTransportationCurve())
+        if(!physics.excludeWaterLiquidTransportation && m_Material.hasSorptionCurve()
+           && m_Material.hasLiquidTransportationCurve())
         {
             auto sorptionDerivative =
               TabularDerivativeSmooth(m_Material.sorptionCurve(), Variable::humidity);
@@ -836,8 +835,7 @@ namespace HygroThermFEM
         //////////////////////////////////////////////////////////////////////
         /// Functions for flux calculations
         //////////////////////////////////////////////////////////////////////
-        if(!SimulationProperties::Instance().excludeWaterLiquidTransportation()
-           && m_Material.hasLiquidTransportationCurve())
+        if(!physics.excludeWaterLiquidTransportation && m_Material.hasLiquidTransportationCurve())
         {
             CondFlux(LiquidTransportationCurve(m_Material.liquidTransportationCurve(), m_Material));
         }

@@ -11,6 +11,7 @@
 #include "Materials.hxx"
 #include "Node2D.hxx"
 #include "Nodes.hxx"
+#include "PhysicsOptions.hxx"
 #include "Quadrilateral2D.hxx"
 #include "SquareMatrix.hxx"
 
@@ -687,13 +688,14 @@ namespace HygroThermFEM
     {
     public:
         ElementThermalLinear2D(
-          Nodes & nodePool,               //!< Reference to NodePool for node lookup
-          Materials & materialPool,          //!< Reference to MaterialPool for material lookup
-          size_t index1,                     //!< Node 1 index
-          size_t index2,                     //!< Node 2 index
-          size_t index3,                     //!< Node 3 index
-          size_t index4,                     //!< Node 4 index
-          const std::string & materialName   //!< SolidMaterial name assigned to the element
+          Nodes & nodePool,                   //!< Reference to NodePool for node lookup
+          Materials & materialPool,           //!< Reference to MaterialPool for material lookup
+          size_t index1,                      //!< Node 1 index
+          size_t index2,                      //!< Node 2 index
+          size_t index3,                      //!< Node 3 index
+          size_t index4,                      //!< Node 4 index
+          const std::string & materialName,   //!< SolidMaterial name assigned to the element
+          const PhysicsOptions & physics      //!< Physics flags deciding which terms to register
         );
     };
 
@@ -706,13 +708,14 @@ namespace HygroThermFEM
     {
     public:
         ElementMoistureLinear2D(
-          Nodes & nodePool,               //!< Reference to NodePool for node lookup
-          Materials & materialPool,          //!< Reference to MaterialPool for material lookup
-          size_t index1,                     //!< Node 1 index
-          size_t index2,                     //!< Node 2 index
-          size_t index3,                     //!< Node 3 index
-          size_t index4,                     //!< Node 4 index
-          const std::string & materialName   //!< SolidMaterial name assigned to the element
+          Nodes & nodePool,                   //!< Reference to NodePool for node lookup
+          Materials & materialPool,           //!< Reference to MaterialPool for material lookup
+          size_t index1,                      //!< Node 1 index
+          size_t index2,                      //!< Node 2 index
+          size_t index3,                      //!< Node 3 index
+          size_t index4,                      //!< Node 4 index
+          const std::string & materialName,   //!< SolidMaterial name assigned to the element
+          const PhysicsOptions & physics      //!< Physics flags deciding which terms to register
         );
     };
 

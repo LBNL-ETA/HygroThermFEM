@@ -413,6 +413,18 @@ namespace HygroThermFEM
         //! time, preserving the historical behaviour.
         void setSolverSettings(const SolverSettings & settings);
 
+        //! \brief Inject the physics-model flags for the coupling loop and both sub-domains.
+        //!
+        //! Element constructors read the flags to decide which equation terms to register, so
+        //! this must be called BEFORE the geometry is built (the first createElement call). When
+        //! not set, the global SimulationProperties singleton is read, preserving the historical
+        //! behaviour.
+        void setPhysicsOptions(const PhysicsOptions & options);
+
+        //! \brief The physics flags this multi-domain solves with: the injected value, or a
+        //! snapshot of the process-global singleton when none was injected.
+        [[nodiscard]] PhysicsOptions physicsOptions() const;
+
         //! @brief Access to thermal domain for single-domain operations
         //! @return Reference to the ThermalDomain
         ThermalDomain & thermal();
@@ -454,6 +466,9 @@ namespace HygroThermFEM
 
         //! Optional injected solver configuration. Empty means "read the global singletons live".
         std::optional<SolverSettings> m_SolverSettings;
+
+        //! Optional injected physics flags. Empty means "read the global singleton live".
+        std::optional<PhysicsOptions> m_PhysicsOptions;
     };
 
 }   // namespace HygroThermFEM
