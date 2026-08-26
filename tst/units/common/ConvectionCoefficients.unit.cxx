@@ -51,6 +51,42 @@ TEST(ConvectionCoefficientsTest, WindDirectionClassification)
     EXPECT_EQ(WindDirection::Windward, classifyWindDirection(350.0, 10.0));
 }
 
+TEST(ConvectionCoefficientsTest, WindExposureClassification)
+{
+    SCOPED_TRACE("Begin Test: Three-band Montazeri exposure classification.");
+    using HygroThermFEM::classifyWindExposure;
+    using HygroThermFEM::WindExposure;
+
+    // Symmetric 45/135-degree bands (provisional pending the orientation-semantics
+    // review); Roof is never produced by the classifier.
+    EXPECT_EQ(WindExposure::Windward, classifyWindExposure(0.0, 0.0));
+    EXPECT_EQ(WindExposure::Windward, classifyWindExposure(0.0, 45.0));
+    EXPECT_EQ(WindExposure::Side, classifyWindExposure(0.0, 46.0));
+    EXPECT_EQ(WindExposure::Side, classifyWindExposure(0.0, 134.0));
+    EXPECT_EQ(WindExposure::Leeward, classifyWindExposure(0.0, 135.0));
+    EXPECT_EQ(WindExposure::Leeward, classifyWindExposure(0.0, 180.0));
+    EXPECT_EQ(WindExposure::Side, classifyWindExposure(350.0, 80.0));
+}
+
+TEST(ConvectionCoefficientsTest, MontazeriFilmCoefficient)
+{
+    SCOPED_TRACE("Begin Test: Montazeri film coefficient per exposure band.");
+    using HygroThermFEM::montazeriFilmCoefficient;
+    using HygroThermFEM::SurfaceRoughness;
+
+    // Values pinned against an independent evaluation of the published coefficient
+    // table (same inputs, reference implementation outside this codebase).
+    EXPECT_NEAR(19.865362,
+                montazeriFilmCoefficient(0.0, 20.0, 5.0, 4.0, 0.0, SurfaceRoughness::Smooth),
+                1e-6);
+    EXPECT_NEAR(10.177584,
+                montazeriFilmCoefficient(0.0, 20.0, 5.0, 4.0, 180.0, SurfaceRoughness::VeryRough),
+                1e-6);
+    EXPECT_NEAR(5.641713,
+                montazeriFilmCoefficient(0.0, 10.0, 8.0, 2.0, 90.0, SurfaceRoughness::VerySmooth),
+                1e-6);
+}
+
 TEST(ConvectionCoefficientsTest, TestTARPCoefficient)
 {
     SCOPED_TRACE("Begin Test: Test comprehensive natural convection model.");

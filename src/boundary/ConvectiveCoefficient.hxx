@@ -135,6 +135,50 @@ namespace HygroThermFEM
     [[nodiscard]] WindDirection classifyWindDirection(double surfaceAzimuth, double windDirection);
 
     ////////////////////////////////////////////////////////
+    /// Montazeri film coefficient
+    ////////////////////////////////////////////////////////
+
+    //! Wind exposure classes for the Montazeri correlation. Roof carries its own
+    //! coefficient set but is never produced by classifyWindExposure; a horizontal-surface
+    //! classification is a future decision.
+    enum class WindExposure
+    {
+        Leeward,
+        Windward,
+        Side,
+        Roof
+    };
+
+    //! Surface roughness classes for the Montazeri correlation, mirroring the material
+    //! library's categories; the caller maps its own roughness type onto these.
+    enum class SurfaceRoughness
+    {
+        VeryRough,
+        Rough,
+        MediumRough,
+        MediumSmooth,
+        Smooth,
+        VerySmooth
+    };
+
+    //! Three-band wind classification for the Montazeri correlation, same azimuth
+    //! conventions as classifyWindDirection: windward within 45 degrees of facing the
+    //! wind, leeward within 45 degrees of facing away, side between. The symmetric
+    //! 45/135-degree bands are a provisional choice pending the orientation-semantics
+    //! review. WindExposure::Roof is never produced.
+    [[nodiscard]] WindExposure classifyWindExposure(double surfaceAzimuth, double windDirection);
+
+    //! Montazeri-Blocken film coefficient for an exterior building surface [W/m2K]:
+    //! a wind-speed power law scaled by the roughness multiplier, times a polynomial in
+    //! building width and height with per-exposure coefficient sets.
+    [[nodiscard]] double montazeriFilmCoefficient(double surfaceAzimuth,
+                                                  double buildingWidth,
+                                                  double buildingHeight,
+                                                  double windSpeed,
+                                                  double windDirection,
+                                                  SurfaceRoughness roughness);
+
+    ////////////////////////////////////////////////////////
     /// YazdanianKlemsFilmCoefficient
     ////////////////////////////////////////////////////////
 

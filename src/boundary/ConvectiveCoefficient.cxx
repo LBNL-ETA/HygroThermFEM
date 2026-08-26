@@ -1,7 +1,9 @@
 #include "ConvectiveCoefficient.hxx"
 
 #include <algorithm>
+#include <array>
 #include <cmath>
+#include <map>
 
 #include "Common.hxx"
 #include "FEMMath.hxx"
@@ -179,6 +181,99 @@ namespace HygroThermFEM
     {
         return angularDifference(surfaceAzimuth, windDirection) <= 90.0 ? WindDirection::Windward
                                                                         : WindDirection::Leeward;
+    }
+
+    ////////////////////////////////////////////////////////
+    /// Montazeri film coefficient
+    ////////////////////////////////////////////////////////
+
+    WindExposure classifyWindExposure(const double surfaceAzimuth, const double windDirection)
+    {
+        const auto diff{angularDifference(surfaceAzimuth, windDirection)};
+        if(diff <= 45.0)
+        {
+            return WindExposure::Windward;
+        }
+        if(diff >= 135.0)
+        {
+            return WindExposure::Leeward;
+        }
+        return WindExposure::Side;
+    }
+
+    namespace
+    {
+        //! Per-exposure Montazeri polynomial coefficients: [0] wind-speed exponent,
+        //! [1] constant term, [2..5] width powers 1-4 of the B term, [6..9] width powers
+        //! 1-4 of the C term, [10..18] the width x height cross terms of the D term.
+        using MontazeriCoefficientSet = std::array<double, 19>;
+
+        const MontazeriCoefficientSet & montazeriCoefficients(const WindExposure exposure)
+        {
+            // clang-format off
+            static const std::map<WindExposure, MontazeriCoefficientSet> coefficients{
+              {WindExposure::Windward,
+               {0.84, 7.559, -0.2277, 0.0060337, -0.00007801, 0.000000381,
+                0.04485, -0.000819, 0.0000108, -6.02E-08,
+                0.001047, -0.0000243, 1.793E-07, -0.000003591, 1.385E-07, -1.353E-09,
+                -9.369E-08, 1.757E-09, -9.134E-12}},
+              {WindExposure::Leeward,
+               {0.89, 0.3691, 0.05848, -0.003662, 0.00006995, -4.174E-07,
+                0.05621, -0.002847, 0.00005155, -3.011E-07,
+                0.007582, -0.0001455, 8.924E-07, -0.0001488, 0.000002751, -1.646E-08,
+                8.907E-07, -1.569E-08, 9.019E-11}},
+              {WindExposure::Side,
+               {0.88, 3.217, -0.004235, 0.001118, -0.00002301, 1.382E-07,
+                0.006551, 0.001843, -0.00004576, 3.014E-07,
+                -0.006985, 0.0001402, -8.728E-07, 0.0001043, -0.000002052, 1.268E-08,
+                -5.537E-07, 1.07E-08, -6.574E-11}},
+              {WindExposure::Roof,
+               {0.9, 5.383, -0.132, 0.002211, -0.000006099, -6.369E-08,
+                0.232, -0.004653, 0.0000483, -2.004E-07,
+                0.005224, -0.0001244, 9.642E-07, -0.0001643, 0.00000381, -2.892E-08,
+                0.000001115, -2.541E-08, 1.921E-10}}};
+            // clang-format on
+            return coefficients.at(exposure);
+        }
+
+        double roughnessMultiplier(const SurfaceRoughness roughness)
+        {
+            static const std::map<SurfaceRoughness, double> multipliers{
+              {SurfaceRoughness::VeryRough, 2.17},
+              {SurfaceRoughness::Rough, 1.67},
+              {SurfaceRoughness::MediumRough, 1.52},
+              {SurfaceRoughness::MediumSmooth, 1.13},
+              {SurfaceRoughness::Smooth, 1.11},
+              {SurfaceRoughness::VerySmooth, 1.0}};
+            return multipliers.at(roughness);
+        }
+    }   // namespace
+
+    double montazeriFilmCoefficient(const double surfaceAzimuth,
+                                    const double buildingWidth,
+                                    const double buildingHeight,
+                                    const double windSpeed,
+                                    const double windDirection,
+                                    const SurfaceRoughness roughness)
+    {
+        const auto exposure{classifyWindExposure(surfaceAzimuth, windDirection)};
+        const auto & aaa{montazeriCoefficients(exposure)};
+        const auto speedTerm{roughnessMultiplier(roughness) * std::pow(windSpeed, aaa[0])};
+        const auto widthTermB{aaa[2] * buildingWidth + aaa[3] * std::pow(buildingWidth, 2)
+                              + aaa[4] * std::pow(buildingWidth, 3) + aaa[5] * std::pow(buildingWidth, 4)};
+        const auto widthTermC{aaa[6] * buildingWidth + aaa[7] * std::pow(buildingWidth, 2)
+                              + aaa[8] * std::pow(buildingWidth, 3) + aaa[9] * std::pow(buildingWidth, 4)};
+        const auto crossTermD{aaa[10] * buildingWidth * buildingHeight
+                              + aaa[11] * buildingWidth * std::pow(buildingHeight, 2)
+                              + aaa[12] * buildingWidth * std::pow(buildingHeight, 3)
+                              + aaa[13] * std::pow(buildingWidth, 2) * buildingHeight
+                              + aaa[14] * std::pow(buildingWidth, 2) * std::pow(buildingHeight, 2)
+                              + aaa[15] * std::pow(buildingWidth, 2) * std::pow(buildingHeight, 3)
+                              + aaa[16] * std::pow(buildingWidth, 3) * buildingHeight
+                              + aaa[17] * std::pow(buildingWidth, 3) * std::pow(buildingHeight, 2)
+                              + aaa[18] * std::pow(buildingWidth, 3) * std::pow(buildingHeight, 3)};
+
+        return speedTerm * (aaa[1] + widthTermB + widthTermC + crossTermD);
     }
 
     ////////////////////////////////////////////////////////
