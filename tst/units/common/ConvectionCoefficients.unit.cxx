@@ -33,6 +33,24 @@ TEST(ConvectionCoefficientsTest, TestFixedCoefficient)
     EXPECT_NEAR(fixedFilmCoefficient, result[1], 1e-6);
 }
 
+TEST(ConvectionCoefficientsTest, WindDirectionClassification)
+{
+    SCOPED_TRACE("Begin Test: Windward/leeward classification with circular wraparound.");
+    using HygroThermFEM::angularDifference;
+    using HygroThermFEM::classifyWindDirection;
+    using HygroThermFEM::WindDirection;
+
+    EXPECT_DOUBLE_EQ(20.0, angularDifference(350.0, 10.0));
+    EXPECT_DOUBLE_EQ(180.0, angularDifference(0.0, 180.0));
+
+    // A surface facing into the wind (circular difference <= 90 degrees) is windward.
+    EXPECT_EQ(WindDirection::Windward, classifyWindDirection(0.0, 45.0));
+    EXPECT_EQ(WindDirection::Windward, classifyWindDirection(0.0, 90.0));
+    EXPECT_EQ(WindDirection::Leeward, classifyWindDirection(0.0, 91.0));
+    EXPECT_EQ(WindDirection::Leeward, classifyWindDirection(0.0, 180.0));
+    EXPECT_EQ(WindDirection::Windward, classifyWindDirection(350.0, 10.0));
+}
+
 TEST(ConvectionCoefficientsTest, TestTARPCoefficient)
 {
     SCOPED_TRACE("Begin Test: Test comprehensive natural convection model.");

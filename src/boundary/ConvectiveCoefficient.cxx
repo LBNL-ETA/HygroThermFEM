@@ -1,6 +1,7 @@
 #include "ConvectiveCoefficient.hxx"
 
 #include <algorithm>
+#include <cmath>
 
 #include "Common.hxx"
 #include "FEMMath.hxx"
@@ -166,6 +167,18 @@ namespace HygroThermFEM
         BCVector result{};
         result.fill(4 + 4 * m_WindSpeed);
         return result;
+    }
+
+    double angularDifference(const double firstAzimuth, const double secondAzimuth)
+    {
+        const double raw{std::fmod(std::abs(firstAzimuth - secondAzimuth), 360.0)};
+        return raw > 180.0 ? 360.0 - raw : raw;
+    }
+
+    WindDirection classifyWindDirection(const double surfaceAzimuth, const double windDirection)
+    {
+        return angularDifference(surfaceAzimuth, windDirection) <= 90.0 ? WindDirection::Windward
+                                                                        : WindDirection::Leeward;
     }
 
     ////////////////////////////////////////////////////////

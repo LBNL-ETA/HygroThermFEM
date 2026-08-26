@@ -122,6 +122,18 @@ namespace HygroThermFEM
         Leeward
     };
 
+    //! Circular angular difference between two compass azimuths, in [0, 180] degrees:
+    //! 350 and 10 are 20 degrees apart, not 340.
+    [[nodiscard]] double angularDifference(double firstAzimuth, double secondAzimuth);
+
+    //! Windward/leeward classification for the wind-driven correlations. @surfaceAzimuth
+    //! is the compass direction the exterior surface faces (its outward normal - THERM's
+    //! model orientation); @windDirection is the weather-file value, the direction the
+    //! wind blows FROM. A surface facing into the wind (circular difference of at most
+    //! 90 degrees) is windward. Lives with the correlations so every consumer classifies
+    //! identically.
+    [[nodiscard]] WindDirection classifyWindDirection(double surfaceAzimuth, double windDirection);
+
     ////////////////////////////////////////////////////////
     /// YazdanianKlemsFilmCoefficient
     ////////////////////////////////////////////////////////
