@@ -1,9 +1,27 @@
 #pragma once
 
+#include <vector>
+
 #include "HygroThermFEM2D.hxx"
 
 namespace TestHelper
 {
+    //! Geometric mesh from the wetted surface: dxFirst at x = 0 growing by `growth` per
+    //! element until `minLength` is covered -- the same rule as the reference solver's
+    //! Grid1D.graded, so the two sides discretise the benchmark identically.
+    inline std::vector<double>
+      en15026GradedCoordinates(const double dxFirst, const double growth, const double minLength)
+    {
+        std::vector<double> coords{0.0};
+        double width{dxFirst};
+        while(coords.back() < minLength)
+        {
+            coords.push_back(coords.back() + width);
+            width *= growth;
+        }
+        return coords;
+    }
+
     //! EN 15026:2007 Annex A benchmark material -- scalar-mu projection.
     //!
     //! GENERATED from hygrothermfem_python (src/hygrotherm1d/en15026.py, which
@@ -34,8 +52,14 @@ namespace TestHelper
     //! - Liquid transport is the annex's K(w) converted per the standard's
     //!   eq. (19): D_w = -K dp_suc/dw, tabulated over (w, D_w).
     //!
+    //! \param scalarMu The single diffusion resistance factor this material carries. The
+    //!        default is the annex's dry-range base value. Passing something enormous
+    //!        suppresses vapour transport altogether, which reduces the model to pure liquid
+    //!        diffusion and is how the standard's K to D_w conversion is exercised on its own
+    //!        (see EN15026_LiquidUptakeSimilarity).
+    //!
     //! Usage: multiDomain.materials().createSolidMaterial(TestHelper::EN15026AnnexA());
-    inline HygroThermFEM::SolidMaterialParams EN15026AnnexA()
+    inline HygroThermFEM::SolidMaterialParams EN15026AnnexA(const double scalarMu = 200.0)
     {
         return {
             .name = "EN 15026 Annex A (scalar-mu projection)",
@@ -43,7 +67,7 @@ namespace TestHelper
             .density = 660.0,
             .porosity = 0.146,
             .heatCapacity = 2763.6363636363635,
-            .diffusionResistanceFactor = 200.0,
+            .diffusionResistanceFactor = scalarMu,
             .thermalConductivityMoistureDependent =
               {{0.0, 1.5},
                {0.0010000000000000009, 1.673146608588444},

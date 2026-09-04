@@ -42,21 +42,6 @@
 
 namespace
 {
-    //! Geometric mesh from the wetted surface: dx_first at x = 0 growing by
-    //! `growth` per element until `minLength` is covered -- the same rule as the
-    //! reference solver's Grid1D.graded (141 elements here).
-    std::vector<double> gradedCoordinates(double dxFirst, double growth, double minLength)
-    {
-        std::vector<double> coords{0.0};
-        double width{dxFirst};
-        while(coords.back() < minLength)
-        {
-            coords.push_back(coords.back() + width);
-            width *= growth;
-        }
-        return coords;
-    }
-
     //! Linear interpolation of a bottom-row profile at position x.
     double profileAt(const std::vector<double> & coords,
                      const std::vector<double> & values,
@@ -112,7 +97,7 @@ TEST(EN15026_UptakeProjection, SevenDaysScalarMu)
         const auto & material =
           multiDomain.materials().createSolidMaterial(TestHelper::EN15026AnnexA());
 
-        const auto coords = gradedCoordinates(5.0e-4, 1.06, 30.0);
+        const auto coords = TestHelper::en15026GradedCoordinates(5.0e-4, 1.06, 30.0);
         const auto nColumns = coords.size();
 
         TestHelper::SlabBuilder(multiDomain)
