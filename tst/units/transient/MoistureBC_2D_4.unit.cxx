@@ -68,12 +68,12 @@ TEST(MoistureBC_2D_4, TestExample_1)
     TestHelper::dumpGolden("correctSolution", solution);
     EXPECT_EQ(solution.size(), correctSolution.size());
 
-    std::cout.precision(10);
     for(auto i = 0u; i < correctSolution.size(); ++i)
     {
         for(auto j = 0u; j < correctSolution[i].size(); ++j)
         {
-            EXPECT_NEAR(correctSolution[i][j], solution[i][j], 1e-8);
+            EXPECT_NEAR(correctSolution[i][j], solution[i][j], 1e-8)
+              << "step " << i << ", node " << j;
         }
     }
 }

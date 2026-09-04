@@ -133,8 +133,6 @@ TEST(VaporTemperatureDiffusion, GradientVaporOnly)
 
     HygroThermFEM::SimulationProperties::Instance().resetCalculationParameters();
 
-    std::cout << "[D1] vapor-only gradient drift = " << vaporOnlyDrift << "\n";
-
     // Bounded by nonlinear-iteration residual only (measured 2.3e-8 over 24 steps).
     // NOTE: for Cottaer this case is numerically identical to the full-physics gradient
     // case, because the logarithmically interpolated liquid transport curve is exactly
@@ -151,9 +149,6 @@ TEST(VaporTemperatureDiffusion, IsothermalControlAndGradient)
     // Test: linear temperature gradient 40 C (x=0) -> 20 C (x=L). Only the D1 vapour
     // temperature-gradient term can redistribute moisture.
     const auto gradient = runClosedStrip([](double x) { return 40.0 - 20.0 * (x / length); });
-
-    std::cout << "[D1] isothermal drift = " << isothermal.maxDrift
-              << ", gradient drift = " << gradient.maxDrift << "\n";
 
     // Isothermal: the D1 term is inert, so nothing moves and mass is exactly conserved.
     EXPECT_LT(isothermal.maxDrift, 1e-9);

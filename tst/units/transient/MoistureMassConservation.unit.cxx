@@ -92,8 +92,6 @@ namespace
             maxDrift = std::max(maxDrift, std::abs(m - m0) / m0);
         }
 
-        std::cout << "[MassConservation] initial moisture = " << m0
-                  << " kg/m, max relative drift = " << maxDrift << "\n";
         return maxDrift;
     }
 }   // namespace

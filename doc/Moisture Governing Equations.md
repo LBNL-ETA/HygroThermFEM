@@ -10,7 +10,8 @@
 > `phi div(delta grad c_sat)` between eq. 515 and the discretization); the thermal-side DpDu
 > terms are advective per Theoretical eq. 424 and are **correct as written** (earlier suspicion
 > retracted). Full cross-check, errata and decision log:
-> `D:\Documents\HygroThermFEM Solver\moisture_solver_cross_check.typ`.
+> the design document "Moisture solver cross-check" (typst source, kept with the project
+> technical documentation, not in this repository).
 
 Reconstructed from: `src/elements/Element2D.cxx`, `src/elements/Element2D.hxx`,
 `src/elements/Elements2D.cxx`, `src/math/Functions.cxx`, `src/materials/Material.cxx`,
@@ -249,7 +250,7 @@ creation/destruction of moisture directly produces non-physical, parameter-sensi
 results in high-moisture cases.
 
 **Fix direction:** switch the moisture capacity to the mass-conservative (Celia) form. The
-`hygrothermfem_python` reference implements and verifies both forms and is the oracle for
+`hygrothermfem_python` reference implements and verifies both forms and is the reference for
 this change.
 
 ---
@@ -282,12 +283,12 @@ frozen as golden.
 
 Written as a handoff so a later session can resume without re-deriving the above. Everything is
 on branch `high-moisture-solver-audit` (local, **not pushed**). Companion: the clean-room 1D
-reference at `~/Programming/hygrothermfem_python` (its own repo) — the **source of truth for
+reference in the `hygrothermfem_python` repository — the **source of truth for
 correctness** (the sweep is only a smoke test).
 
 ### Reference-document cross-check — DONE (2026-07-10)
 The THERMM documents (Theoretical Model rev. 03/20/2020, Numerical Implementation rev.
-5/28/2019, in `D:\tmp\htf numerical\`) were cross-checked against §2–§4 and the code:
+5/28/2019) were cross-checked against §2–§4 and the code:
 (a) **Confirmed** — the vapour driving potential is `∇·(δ ∇(φ c_sat))` (Theoretical eq. 36,
 Numerical eq. 515); `p_sat`, `R_v = 461.4`, `D_φ = ξ·D_l` and the moisture BC all match the
 code exactly. (b) **D1 resolved as an erratum in the Numerical doc** — its `[δ^φ]` matrix has
@@ -301,11 +302,12 @@ rain `D_φs/D_φr` switch, sources, hysteresis, freezing (D5) are documented-but
 constant `2.5e-5` (the 20 °C value). Decision: adopt E(T) before the golden re-baseline.
 D6 secant capacity deviates from Numerical §1.3.1.5 (tangent) but realizes Theoretical
 eq. 16 discretely — kept. Full errata/decision log:
-`D:\Documents\HygroThermFEM Solver\moisture_solver_cross_check.typ`.
+the design document "Moisture solver cross-check" (typst source, kept with the
+project technical documentation, not in this repository).
 
 ### What is done and committed (all thermal-green, moisture-only where noted)
 - **D1** — consistent weak form of the temperature-gradient vapour term
-  (`QLEDpDuConsistentIntegrator2D`, used only by `ElementMoistureLinear2D`). Oracle-verified:
+  (`QLEDpDuConsistentIntegrator2D`, used only by `ElementMoistureLinear2D`). Reference-verified:
   isothermal exact, gradient drives moisture hot→cold like the reference.
 - **D6 + D6-refine** — mass-conservative capacity: secant `SorptionSecantCapacity` + exact
   nodal lumping (`m_LumpCapacityNodally`). Closed-strip conservation to **2.4e-15**.
@@ -322,7 +324,7 @@ eq. 16 discretely — kept. Full errata/decision log:
   `Moisture*`, `MultiDomain*`, `SteadyState_2D_Exclude*`, `TestModelWithFrameCavity3`,
   `MoistureBC_2D_*` tests. **Next step to green CI: re-baseline the *water-content* golden
   arrays** (leave temperature arrays) from the fixed engine. Recommended: cross-check the
-  isothermal moisture-only ones against the oracle first (most trustworthy); the near-saturation
+  isothermal moisture-only ones against the reference solver first (most trustworthy); the near-saturation
   ones are still formulation-limited (D2), so eyeball them.
 
 ### Dead ends — do NOT repeat these
@@ -366,13 +368,13 @@ ringing entirely. Same latent term as the (fixed) explicit-assembly sawtooth, di
 mechanism: the now-implicit T-part's COEFFICIENT k_lat(T, phi) is re-evaluated between
 steps/iterations and lags the solve.
 ENGINE REPRODUCTION: tst/units/therm_samples/ThermSample_Irregular1.unit.cxx
-(DISABLED_StartupRinging; mesh embedded in Irregular1Mesh.hxx, generated from the THMZ by
-D:/tmp/gen_irregular1_mesh.py). Reproduces THERM exactly: maxAmp 9.3365 K vs 9.3358 from the
+(DISABLED_StartupRinging; mesh embedded in Irregular1Mesh.hxx, extracted from the THMZ).
+Reproduces THERM exactly: maxAmp 9.3365 K vs 9.3358 from the
 THMZ analysis, last flip step 13 in both. Runs in ~2 s. Promotion criterion when fixed:
 enable the test (asserts maxAmp < 0.5 K and no flips beyond step 3).
-Detection tooling (works on any THERM transient THMZ, no GUI needed):
-`D:\tmp\thmz_flip_detector.py <thmz>\transient results` (per-step flip counts + amplitudes)
-and `D:\tmp\thmz_node_locator.py` (flip-node coordinates/materials). The full FE mesh is in
+Detection tooling (throwaway scripts; works on any THERM transient THMZ, no GUI needed): a
+flip detector over `<thmz>/transient results` (per-step flip counts + amplitudes)
+and a node locator (flip-node coordinates/materials). The full FE mesh is in
 the THMZ's `transient results/Geometry.xml`, so the case can be rebuilt as an engine unit test
 (arbitrary quads via createNode/createElement) for mesh/dt refinement without THERM.
 
@@ -395,9 +397,9 @@ the THMZ's `transient results/Geometry.xml`, so the case can be rebuilt as an en
 4. **D2** — same status: only if evidence appears.
 
 ### How to verify (correctness, not the smoke test)
-- Oracle self-checks: `cd ~/Programming/hygrothermfem_python && uv run pytest` (MMS order +
-  machine-precision conservation).
-- Engine-vs-oracle D1 isolation: build `HygroThermFEM_tests`, run
+- Reference-solver self-checks: `uv run pytest` in the `hygrothermfem_python` repository
+  (MMS order + machine-precision conservation).
+- Engine-vs-reference D1 isolation: build `HygroThermFEM_tests`, run
   `--gtest_filter=VaporTemperatureDiffusion.*` (writes `/tmp/htf_d1_*.csv`), then
   `uv run python examples/compare_d1.py`.
 - Mass conservation: `--gtest_filter=MoistureMassConservation.*` (drift must be ~1e-15).
@@ -413,25 +415,25 @@ the THMZ's `transient results/Geometry.xml`, so the case can be rebuilt as an en
 - Diagnostics/tests: `tst/units/transient/MoistureMassConservation.unit.cxx`,
   `VaporTemperatureDiffusion.unit.cxx`; `tst/sweep/SolverParameterSweep.cxx`.
 
-### Session log 2026-07-10 — oracle rebuilt, E(T) adopted, engine leak root-caused
-- **Oracle rebuilt** at `D:\Programming\Python\hygrothermfem_python` (uv project, typed,
+### Session log 2026-07-10 — reference solver rebuilt, E(T) adopted, engine leak root-caused
+- **Reference solver rebuilt** in the `hygrothermfem_python` repo (uv project, typed,
   scipy): both D1 forms + both capacity forms selectable; banded O(n) assembly/solve
   (2001 nodes / 24 steps in 0.05 s); 11 self-checks in ~1 s incl. MMS order 2, analytic
   steady state `φ = C/c_sat` exact, independent scipy-BDF cross-integration
   (`solve_reference`), machine-precision conservation; pytest-timeout 60 s.
-- **Oracle findings on D1 (strong form):** (a) NO driving force on uniform φ under ∇T
+- **Reference-solver findings on D1 (strong form):** (a) NO driving force on uniform φ under ∇T
   (trial row sums annihilate constant φ — physically wrong); (b) 6.5e-3 closed-strip
   drift on nonuniform φ (consistent: 5.8e-16); (c) O(1) steady-state bias ~0.26 in φ
   (consistent: exact to machine).
 - **E(T) adopted** (`vaporDiffusionCoefficientAtTemperature`, `VaporPermeability` in
   Functions.cxx; three Element2D.cxx sites). Test suite: 148 pass / 30 fail — all
   failures the known moisture/coupled goldens (one more than before E(T), as expected).
-- **Engine-vs-oracle:** isothermal D1 diagnostic agrees EXACTLY (diff 0.0). Gradient
+- **Engine-vs-reference:** isothermal D1 diagnostic agrees EXACTLY (diff 0.0). Gradient
   case: engine *creates* 1.05% moisture monotonically and over-transports (up to 0.099
-  in φ). Root cause (proved in the oracle, which had the identical signature): Picard
+  in φ). Root cause (proved in the reference solver, which had the identical signature): Picard
   residual stalls in a period-2 cycle because the liquid coefficient uses a pointwise
   tangent of the tabulated sorption curve — discontinuous at breakpoints; damping cannot
-  break the cycle (fixed ω=0.5 still cycles). Oracle fix that removed it entirely:
+  break the cycle (fixed ω=0.5 still cycles). Reference-solver fix that removed it entirely:
   element-secant slope `(w_j−w_i)/(φ_j−φ_i)` as the liquid coefficient — exact for the
   element flux `−D_l ∇w` and continuous in nodal humidities.
 - **RESOLVED (same session): the 1% leak had two causes, both fixed.** A vapor-only
@@ -447,9 +449,9 @@ the THMZ's `transient results/Geometry.xml`, so the case can be rebuilt as an en
   never rolled the nodes' previous-timestep humidity forward (that happens in
   `MultiDomain::transient`), so the secant capacity measured against the INITIAL state —
   production unaffected. Fixed in both diagnostic tests. Drift 1.3e-3 → 2.3e-8; uniform-T
-  conservation 2.6e-14. **Engine now matches the oracle to 2.2e-5** on the gradient
+  conservation 2.6e-14. **Engine now matches the reference solver to 2.2e-5** on the gradient
   diagnostic (full physics AND vapor-only). The earlier pairwise-secant-liquid hypothesis
-  is retracted for the engine (oracle-only lesson; engine iteration converges fine).
+  is retracted for the engine (reference-solver-only lesson; engine iteration converges fine).
 - **Liquid-curve discontinuity RESOLVED (user decision 2026-07-10):** the log/geometric
   interpolation with a (0,0) anchor made D_l ≡ 0 across the whole first segment and then
   JUMP 0 → 1e-8 at w = 27 (a step discontinuity exactly where near-saturation cases
@@ -457,7 +459,7 @@ the THMZ's `transient results/Geometry.xml`, so the case can be rebuilt as an en
   Fix: `LiquidTransportationCurve` floors exact-zero table values at a physically
   negligible 1e-15 m²/s (`floorZeroValues`, Functions.cxx), so D_l decays continuously
   and steeply toward the anchor (Cottaer: ~1e-13 at w = 10) instead of the hard 0 + cliff.
-  Oracle mirrors it (`MIN_LIQUID_DIFFUSIVITY`). Engine↔oracle agreement after: 2.2e-5.
+  The reference solver mirrors it (`MIN_LIQUID_DIFFUSIVITY`). Engine-to-reference agreement after: 2.2e-5.
   **Consequences:** (1) three more goldens shifted red — `SteadyState_2D_1`,
   `SolverSettingsInjection`, `MoistureBC_2D_2` (thermal capillary-conduction term now
   nonzero in the previously dead 0<w<27 zone; shifts ~2.5e-5 °C) → suite 146 pass /
@@ -478,5 +480,5 @@ the THMZ's `transient results/Geometry.xml`, so the case can be rebuilt as an en
 - **Scenario 2 — imposed `∇T`:** term (B) is active; expect C++ to diverge from a consistent
   reference — this is the direct test of D1.
 - **Scenario 3 — fully coupled:** exposes D4.
-- **Oracle self-checks:** manufactured-solution convergence order and step-wise mass
+- **Reference-solver self-checks:** manufactured-solution convergence order and step-wise mass
   conservation (both independent of any external tool).

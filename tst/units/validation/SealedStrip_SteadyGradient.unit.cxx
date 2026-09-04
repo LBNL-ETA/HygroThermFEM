@@ -1,6 +1,6 @@
+#include <array>
 #include <cmath>
 #include <cstddef>
-#include <iomanip>
 #include <vector>
 
 #include <gtest/gtest.h>
@@ -169,13 +169,11 @@ TEST(SealedStrip_SteadyGradient, ZeroFluxClosedForm)
     HygroThermFEM::SimulationProperties::Instance().setCalculationParameters(
       true, false, false, false, false);
 
+    constexpr std::array<std::size_t, 4> meshSizes{10u, 20u, 40u, 80u};
     std::vector<double> deviations;
-    for(const std::size_t nElements : {10, 20, 40, 80})
+    for(const std::size_t nElements : meshSizes)
     {
-        const auto profile = runToSteady(nElements + 1);
-        deviations.push_back(maxDeviationFromClosedForm(profile));
-        std::cout << "[sealed strip] " << std::setw(3) << nElements << " elements, max |phi - "
-                  << "closed form| = " << std::setprecision(4) << deviations.back() << "\n";
+        deviations.push_back(maxDeviationFromClosedForm(runToSteady(nElements + 1)));
     }
 
     HygroThermFEM::SimulationProperties::Instance().resetCalculationParameters();
@@ -190,6 +188,6 @@ TEST(SealedStrip_SteadyGradient, ZeroFluxClosedForm)
     // the floor.
     for(std::size_t idx = 0; idx < deviations.size(); ++idx)
     {
-        EXPECT_LT(deviations[idx], 1e-8) << "mesh index " << idx;
+        EXPECT_LT(deviations[idx], 1e-8) << meshSizes[idx] << " elements";
     }
 }

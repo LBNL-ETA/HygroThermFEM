@@ -128,11 +128,8 @@ TEST(SealedStrip_Conservation, TotalWaterIsInvariant)
           std::max(maxDrift, std::abs(totalWater(multiDomain) - initialWater) / initialWater);
     }
 
-    std::cout << "[sealed strip] relative drift in total water over " << nSteps
-              << " steps = " << std::setprecision(4) << maxDrift << "\n";
-
     // Pinned at twice the measured 1.053e-7. The transport operator conserves
     // structurally (its column sums vanish), so this residue enters through the storage
     // side of the step rather than through the flux; see the header note.
-    EXPECT_LT(maxDrift, 2.2e-7);
+    EXPECT_LT(maxDrift, 2.2e-7) << "relative drift in total water over " << nSteps << " steps";
 }

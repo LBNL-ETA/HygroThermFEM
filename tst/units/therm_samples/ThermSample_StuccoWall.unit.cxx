@@ -1,5 +1,7 @@
 #include <algorithm>
 #include <array>
+#include <limits>
+#include <vector>
 #include <gtest/gtest.h>
 
 #include "HygroThermFEM2D.hxx"
@@ -165,6 +167,59 @@ namespace
         }
         return result;
     }
+
+    //! Where a run reaches its extremes, so a breach can be reported by step and node.
+    struct SeriesExtremes
+    {
+        double minimum{(std::numeric_limits<double>::max)()};
+        double maximum{std::numeric_limits<double>::lowest()};
+        std::size_t minimumStep{0u};
+        std::size_t minimumNode{0u};
+        std::size_t maximumStep{0u};
+        std::size_t maximumNode{0u};
+    };
+
+    SeriesExtremes extremesOf(const std::vector<std::vector<double>> & series)
+    {
+        SeriesExtremes extremes;
+        for(std::size_t step = 0u; step < series.size(); ++step)
+        {
+            for(std::size_t node = 0u; node < series[step].size(); ++node)
+            {
+                const double value{series[step][node]};
+                if(value < extremes.minimum)
+                {
+                    extremes.minimum = value;
+                    extremes.minimumStep = step;
+                    extremes.minimumNode = node;
+                }
+                if(value > extremes.maximum)
+                {
+                    extremes.maximum = value;
+                    extremes.maximumStep = step;
+                    extremes.maximumNode = node;
+                }
+            }
+        }
+        return extremes;
+    }
+
+    //! Two assertions over the whole run rather than one per value: a breach then reports
+    //! where it happened and how far out it went, which is what a blow-up needs, and a run
+    //! that stays inside says nothing at all.
+    void expectWithinEnvelope(const std::vector<std::vector<double>> & series,
+                              const double low,
+                              const double high,
+                              const char * what)
+    {
+        const auto extremes = extremesOf(series);
+        EXPECT_GE(extremes.minimum, low)
+          << what << " fell below the envelope at step " << extremes.minimumStep << ", node "
+          << extremes.minimumNode;
+        EXPECT_LE(extremes.maximum, high)
+          << what << " rose above the envelope at step " << extremes.maximumStep << ", node "
+          << extremes.maximumNode;
+    }
 }   // namespace
 
 TEST(ThermSample_StuccoWall, SampleInitialConditions)
@@ -174,22 +229,9 @@ TEST(ThermSample_StuccoWall, SampleInitialConditions)
     const auto result = runStuccoWall(0.1, 100);
     ASSERT_TRUE(result.completed) << result.error;
 
-    for(const auto & temps : result.temperatures)
-    {
-        for(const auto val : temps)
-        {
-            EXPECT_GT(val, 10.0 - 2.0);
-            EXPECT_LT(val, 40.0 + 2.0);
-        }
-    }
-    for(const auto & phis : result.humidities)
-    {
-        for(const auto val : phis)
-        {
-            EXPECT_GE(val, 0.0);
-            EXPECT_LE(val, 1.0);
-        }
-    }
+    // The two film temperatures plus a transient margin.
+    expectWithinEnvelope(result.temperatures, 10.0 - 2.0, 40.0 + 2.0, "temperature");
+    expectWithinEnvelope(result.humidities, 0.0, 1.0, "humidity");
 }
 
 TEST(ThermSample_StuccoWall, NearSaturatedNoLatentHeat)
@@ -204,16 +246,8 @@ TEST(ThermSample_StuccoWall, NearSaturatedNoLatentHeat)
     HygroThermFEM::SimulationProperties::Instance().resetCalculationParameters();
 
     ASSERT_TRUE(result.completed) << result.error;
-    std::cout << "[StuccoWall 0.99, no latent] max|T| over run = "
-              << maxAbsValue(result.temperatures) << "\n";
-    for(const auto & temps : result.temperatures)
-    {
-        for(const auto val : temps)
-        {
-            EXPECT_GT(val, 10.0 - 2.0);
-            EXPECT_LT(val, 40.0 + 2.0);
-        }
-    }
+    expectWithinEnvelope(
+      result.temperatures, 10.0 - 2.0, 40.0 + 2.0, "temperature without the latent term");
 }
 
 TEST(ThermSample_StuccoWall, DISABLED_NearSaturatedFineMesh)
@@ -368,29 +402,8 @@ TEST(ThermSample_StuccoWall, NearSaturatedInitialConditions)
     const auto result = runStuccoWall(0.99, 100);
     ASSERT_TRUE(result.completed) << result.error;
 
-    std::cout << "[StuccoWall 0.99] max|T| over run = " << maxAbsValue(result.temperatures)
-              << ", final T range = ["
-              << *std::min_element(result.temperatures.back().begin(),
-                                   result.temperatures.back().end())
-              << ", "
-              << *std::max_element(result.temperatures.back().begin(),
-                                   result.temperatures.back().end())
-              << "]\n";
-
-    for(const auto & temps : result.temperatures)
-    {
-        for(const auto val : temps)
-        {
-            EXPECT_GT(val, -5.0);   // wet-bulb floor plus coarse-dt transient margin
-            EXPECT_LT(val, 45.0);   // condensation-warming ceiling plus margin
-        }
-    }
-    for(const auto & phis : result.humidities)
-    {
-        for(const auto val : phis)
-        {
-            EXPECT_GE(val, 0.0);
-            EXPECT_LE(val, 1.0);
-        }
-    }
+    // Low bound: the wet-bulb floor plus a coarse-dt transient margin. High bound: the
+    // condensation-warming ceiling plus a margin.
+    expectWithinEnvelope(result.temperatures, -5.0, 45.0, "temperature");
+    expectWithinEnvelope(result.humidities, 0.0, 1.0, "humidity");
 }

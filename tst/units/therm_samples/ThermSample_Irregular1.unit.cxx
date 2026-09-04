@@ -30,7 +30,7 @@ namespace
     //! Temporal flip: a nodal value reversing direction between consecutive steps with
     //! both increments above the noise threshold. Physical relaxation under constant
     //! boundary conditions is monotone after the initial adjustment, so clustered large
-    //! flips indicate solver flip-flop (same metric as D:/tmp/thmz_flip_detector.py).
+    //! flips indicate solver flip-flop.
     FlipSummary temporalFlips(const std::vector<std::vector<double>> & series,
                               const double threshold)
     {

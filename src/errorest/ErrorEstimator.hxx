@@ -10,8 +10,9 @@
 //!
 //! Field-agnostic by design: the estimator never references temperature,
 //! moisture, or any specific physics. The only physical input is the per-element
-//! inverse constitutive tensor that defines the energy norm. See the methodology
-//! document `D:\Documents\Error Estimator\error_estimation_methodology.typ`.
+//! inverse constitutive tensor that defines the energy norm. Derivation and the choice of
+//! recovery scheme are in the design document "Error estimation methodology" (typst source,
+//! kept with the project's technical documentation, not in this repository).
 namespace HygroThermFEM::errorest
 {
     using Point = std::array<double, 2>;    //!< Global (x, y) coordinate.

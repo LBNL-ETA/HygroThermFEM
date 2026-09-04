@@ -2,8 +2,10 @@
 
 #include <array>
 
-// GENERATED from the THERM sample Ireggular_1.thmz (transient results
-// Geometry.xml + Model.xml BC segments) by D:/tmp/gen_irregular1_mesh.py.
+// GENERATED from the THERM sample Ireggular_1.thmz by a throwaway script that read the
+// node/element table out of its "transient results/Geometry.xml" and the boundary segments
+// out of its Model.xml. Regenerating means repeating that extraction; the mesh is checked in
+// so the test needs no THERM file at run time.
 // Quadtree mesh of an irregular three-material shape; exercises skewed
 // quadrilaterals that the BeamBuilder rectangles never produce.
 namespace Irregular1Mesh
