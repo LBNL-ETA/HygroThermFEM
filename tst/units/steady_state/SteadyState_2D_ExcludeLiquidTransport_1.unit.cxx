@@ -40,6 +40,19 @@ TEST_F(SteadyState_2D_ExcludeLiquidTransport_1, TestExample_1)
 
     HygroThermFEM::MultiDomain multiDomain({.performThermal = true, .performMoisture = true});
 
+    // The boundaries below impose Dirichlet conditions through a film coefficient of 1e20,
+    // twenty orders above the physical conductances, which leaves the moisture system
+    // severely ill-conditioned and its Newton converging very slowly. The engine default of
+    // 50 iterations stops it well short of the solution, at a point that depends on
+    // floating-point detail: this test disagreed by 9e-4 in humidity between Windows and
+    // macOS/Ubuntu, both platforms reporting the solve as converged. The budget below is
+    // enough to actually converge, which makes the answer the same everywhere.
+    multiDomain.setSolverSettings({.relaxationParameter = 1.0,
+                                   .errorTolerance = 1e-5,
+                                   .maxNumberOfIterations = 5000,
+                                   .maxDivisions = 3,
+                                   .numberOfSubtimesteps = 10});
+
     // Enter nodes. Arguments are: node number, x-coordinate, y-coordinate
     multiDomain.nodes().createNode({.index = 1, .x = 1, .y = 5, .state = State{
         .temperature = initialTemperature,
@@ -108,7 +121,7 @@ TEST_F(SteadyState_2D_ExcludeLiquidTransport_1, TestExample_1)
     const auto temperature = solution.temperature;
     const auto humidity = solution.humidity;
 
-    std::vector<double> correctTemperature{-1.67840865827e-15, 8.39504475561e-16, 10.0011751993, 10.0011751993, 20, 20};
+    std::vector<double> correctTemperature{-1.67840876417e-15, 8.39504369665e-16, 10.0012182843, 10.0012182843, 20, 20};
 
     TestHelper::dumpGolden("correctTemperature", temperature);
     TestHelper::dumpGolden("correctHumidity", humidity);
@@ -119,7 +132,7 @@ TEST_F(SteadyState_2D_ExcludeLiquidTransport_1, TestExample_1)
         EXPECT_NEAR(temperature[i], correctTemperature[i], 1e-6);
     }
 
-    std::vector<double> correctHumidity{0.8, 0.8, 0.201155940472, 0.201155940472, 4.55907394455e-24, 4.55907394455e-24};
+    std::vector<double> correctHumidity{0.8, 0.8, 0.20026061165, 0.20026061165, 4.55912228171e-24, 4.55912228171e-24};
 
     EXPECT_EQ(humidity.size(), correctHumidity.size());
 

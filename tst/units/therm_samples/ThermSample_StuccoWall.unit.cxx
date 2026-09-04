@@ -155,19 +155,6 @@ namespace
         return summary;
     }
 
-    double maxAbsValue(const std::vector<std::vector<double>> & values)
-    {
-        double result = 0.0;
-        for(const auto & row : values)
-        {
-            for(const auto val : row)
-            {
-                result = (std::max)(result, std::abs(val));
-            }
-        }
-        return result;
-    }
-
     //! Where a run reaches its extremes, so a breach can be reported by step and node.
     struct SeriesExtremes
     {
@@ -250,19 +237,21 @@ TEST(ThermSample_StuccoWall, NearSaturatedNoLatentHeat)
       result.temperatures, 10.0 - 2.0, 40.0 + 2.0, "temperature without the latent term");
 }
 
-TEST(ThermSample_StuccoWall, DISABLED_NearSaturatedFineMesh)
+TEST(ThermSample_StuccoWall, NearSaturatedFineMesh)
 {
-    // THERM-mesh-density probe: same case, 8x finer mesh (~136 elements). Chases the
-    // "Linear solver failed to factorize the system matrix" reported from THERM.
+    // The "Linear solver failed to factorize the system matrix" reported from THERM: this
+    // case, on an 8x finer mesh (~136 elements), started from humidities right up against
+    // saturation. It was a live defect and this was a printing probe for it.
+    //
+    // It stopped reproducing once the moisture Newton took a true Newton direction with the
+    // humidity bound applied to the correction system (2026-09-03), so the case is kept as a
+    // guard: all three starts must now run to completion with a physical field.
     for(const double phi0 : {0.99, 0.999, 0.99999})
     {
         const auto result = runStuccoWall(phi0, 20, 360.0, 8);
-        std::cout << "[FineMesh] phi0=" << phi0
-                  << (result.completed ? " completed" : (" FAILED: " + result.error))
-                  << (result.completed
-                        ? ", max|T|=" + std::to_string(maxAbsValue(result.temperatures))
-                        : "")
-                  << std::endl;
+        ASSERT_TRUE(result.completed) << "initial humidity " << phi0 << ": " << result.error;
+        expectWithinEnvelope(result.temperatures, 10.0, 40.0, "temperature");
+        expectWithinEnvelope(result.humidities, 0.0, 1.0, "humidity");
     }
 }
 
@@ -393,17 +382,20 @@ TEST(ThermSample_StuccoWall, NearSaturatedInitialConditions)
     // The formerly reported blow-up: the wall started from RH 0.99. Before the latent-term
     // corrections (sign of h_lg per Theoretical Model eq. 59; flux-consistent vapour
     // potential c_sat*phi) this self-heated to the 1000-clamp; now temperatures stay
-    // within the latent-effect envelope: evaporative cooling can reach the exterior air's
-    // wet-bulb temperature (~2 C for 10 C / RH 0.10, briefly overshot at this coarse
-    // dt = 360 s) and condensation warms a few degrees above the warm boundary. The
-    // DISABLED_NearSaturatedRefinedDt probe documents convergence to [2.2, 41.3] C at
-    // dt = 90 s. NOTE: transients crossing 0 C make the (currently disabled) freezing
-    // model (D5) relevant for this wall in colder climates.
+    // within the two film temperatures: the field now runs between 11.6 and 35.3 C at this
+    // dt = 360 s, and between 10.1 and 35.3 C at the finer dt = 90 s of the
+    // DISABLED_NearSaturatedRefinedDt probe.
+    //
+    // The bound below is therefore the driving temperatures themselves rather than the wide
+    // envelope this test used to carry. Latent effects can in principle break it in both
+    // directions, evaporative cooling pulling the surface toward the exterior air's wet-bulb
+    // temperature and condensation warming the interior side above its film, and they used to
+    // do exactly that. If this starts failing, that is the signal, and the bound should be
+    // reopened with a measurement rather than widened on principle. NOTE: transients crossing
+    // 0 C would make the (currently disabled) freezing model (D5) relevant here.
     const auto result = runStuccoWall(0.99, 100);
     ASSERT_TRUE(result.completed) << result.error;
 
-    // Low bound: the wet-bulb floor plus a coarse-dt transient margin. High bound: the
-    // condensation-warming ceiling plus a margin.
-    expectWithinEnvelope(result.temperatures, -5.0, 45.0, "temperature");
+    expectWithinEnvelope(result.temperatures, 10.0, 40.0, "temperature");
     expectWithinEnvelope(result.humidities, 0.0, 1.0, "humidity");
 }
