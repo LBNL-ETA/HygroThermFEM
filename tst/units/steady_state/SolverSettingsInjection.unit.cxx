@@ -56,7 +56,7 @@ TEST(SolverSettingsInjection, SteadyStateWithInjectedDefaults)
 
     const auto solution = multiDomain.steadyState();
 
-    const std::vector<double> correctTemperature{2.13589875986e-19, 2.13589875986e-19, 10.6729505981, 10.6729505981, 20, 20};
+    const std::vector<double> correctTemperature{2.13589875986e-19, 2.13589875986e-19, 10.6810280535, 10.6810280535, 20, 20};
     TestHelper::dumpGolden("correctTemperature", solution.temperature);
     ASSERT_EQ(solution.temperature.size(), correctTemperature.size());
     for(auto i = 0u; i < correctTemperature.size(); ++i)

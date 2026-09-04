@@ -295,48 +295,49 @@ namespace HygroThermFEM
 
     Solution MultiDomain::steadyState()
     {
+        // The steady state is the fixed point of the transient step, so it is found by
+        // marching the transient with a pseudo-time step that grows geometrically: the early
+        // passes keep the storage terms as natural damping while the fields are far off, the
+        // late passes are a Newton solve of the steady equations themselves. Every pass reuses
+        // the transient machinery - damped Newton with line search, the humidity clamp,
+        // adaptive subdivision - which is the solver validated against the reference solver.
+        //
+        // The previous scheme alternated two LINEAR solves with coefficients re-evaluated
+        // between them. Once liquid transport near saturation entered, that alternation
+        // oscillated instead of converging (2026-09-03, stucco/fiberglass wall: exit change
+        // 0.012 in humidity at a tolerance of 1e-9 after 5000 passes), landed on a
+        // start-dependent field, and returned it as if converged. With capillary conduction
+        // it produced temperatures of 300 C; with every moisture option on, a singular matrix.
         const auto settings = solverSettings();
-        const auto ConvergenceError = settings.errorTolerance;
+        const auto tolerance = settings.errorTolerance;
+        const std::size_t maxPasses{(std::max)(settings.maxNumberOfIterations, static_cast<std::size_t>(200))};
+        constexpr double initialPseudoStep{1.0e5};   // seconds; about a day of storage damping
+        constexpr double pseudoStepGrowth{4.0};
+        constexpr double maxPseudoStep{1.0e12};      // storage terms negligible: pure steady Newton
+        constexpr std::size_t steadyBoundaryStep{0u};   // steady boundary conditions carry one value
+
+        auto temperature = m_Nodes.properties(Variable::temperature);
+        auto humidity = m_Nodes.properties(Variable::humidity);
         auto temperatureError{std::numeric_limits<double>::max()};
         auto humidityError{std::numeric_limits<double>::max()};
-        const auto MaxIterations = settings.maxNumberOfIterations;
-        size_t currentIteration{0};
-        auto humidity = m_Nodes.properties(Variable::humidity);
-        auto previousHumidity = humidity;
-        auto temperature = m_Nodes.properties(Variable::temperature);
-        auto previousTemperature = temperature;
-        // Steady-state coupling loop: alternately solve moisture and thermal domains,
-        // exchanging cross-domain data after each solve, until both domains converge.
-        // Uses || (either unconverged) so the loop only exits when both are satisfied.
-        do
+        double pseudoStep{initialPseudoStep};
+        bool converged{false};
+        std::size_t passesTaken{0u};
+        for(std::size_t pass = 0u; pass < maxPasses && !converged; ++pass)
         {
-            if(m_SimulateMoisture)
-            {
-                // steadyState() enforces the domain's solutionBounds: condensation zones pin at
-                // saturation instead of reporting Glaser-style supersaturation.
-                humidity = m_MoistureDomain.steadyState();
-                humidityError = normError(humidity, previousHumidity);
-                previousHumidity = humidity;
-                m_Nodes.updateNodeHumidities(humidity);
-            }
-            else
-            {
-                humidityError = 0;
-            }
-            if(m_SimulateThermal)
-            {
-                temperature = m_ThermalDomain.steadyState();
-                temperatureError = normError(temperature, previousTemperature);
-                previousTemperature = temperature;
-                m_Nodes.updateNodeTemperatures(temperature);
-            }
-            else
-            {
-                temperatureError = 0;
-            }
-            ++currentIteration;
-        } while((temperatureError > ConvergenceError || humidityError > ConvergenceError)
-                && currentIteration < MaxIterations);
+            passesTaken = pass + 1u;
+            // A small change over a SHORT pseudo-step says nothing about the distance to the
+            // steady state; only a pass at the cap, a Newton iteration on the steady equations,
+            // may declare convergence.
+            const bool steadyRegime{pseudoStep >= maxPseudoStep};
+            const auto step = transient(temperature, humidity, pseudoStep, steadyBoundaryStep);
+            temperatureError = m_SimulateThermal ? normError(step.temperature, temperature) : 0.0;
+            humidityError = m_SimulateMoisture ? normError(step.humidity, humidity) : 0.0;
+            temperature = step.temperature;
+            humidity = step.humidity;
+            converged = steadyRegime && temperatureError <= tolerance && humidityError <= tolerance;
+            pseudoStep = (std::min)(pseudoStep * pseudoStepGrowth, maxPseudoStep);
+        }
 
         m_Nodes.updateNodeHumidities(humidity, true);
         m_Nodes.updateNodeTemperatures(temperature, true);
@@ -352,7 +353,7 @@ namespace HygroThermFEM
         const auto heatFlux = m_SimulateThermal ? m_ThermalDomain.flux() : std::vector<NodeFlux>{};
         const auto waterFlux = m_SimulateMoisture ? m_MoistureDomain.flux() : std::vector<NodeFlux>{};
 
-        return Solution{0,
+        Solution result{0,
                         temperature,
                         humidity,
                         waterContent,
@@ -363,6 +364,9 @@ namespace HygroThermFEM
                         waterFlux,
                         temperatureError,
                         humidityError};
+        result.converged = converged;
+        result.steadyPasses = passesTaken;
+        return result;
     }
 
     Solution MultiDomain::currentStateSolution()

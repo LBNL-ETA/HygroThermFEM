@@ -288,8 +288,33 @@ namespace HygroThermFEM
             AdaptiveDamping damping;
         };
 
+        //! Exact Jacobian J_ij = dF_i/du_j of the nonlinear residual F(u) = A(u) u - b(u) by
+        //! coloured finite differences: the columns are grouped so that no two columns of a
+        //! group share a row of the sparsity pattern, and one reassembly per group recovers
+        //! every column of that group. The group count depends on the mesh connectivity
+        //! (a few dozen at most), not on the mesh size. Bounded domains (moisture) use it in
+        //! place of the lagged-coefficient (Picard) correction, which is not a descent
+        //! direction where the liquid conductivity rises steeply with humidity
+        //! (2026-09-03, stucco/fiberglass wall: Picard crawled, Newton converged in 13 passes).
+        [[nodiscard]] SquareMatrix finiteDifferenceJacobian(const std::vector<double> & solution,
+                                                            const SquareMatrix & matA,
+                                                            const std::vector<double> & vecB,
+                                                            const std::vector<double> & currentStateValues,
+                                                            double dTime,
+                                                            size_t timestepIndex,
+                                                            const std::pair<double, double> & bounds);
+
+        //! Rebuilds the column groups when the pattern (size or non-zero count) changed.
+        void ensureJacobianColumnGroups(const SquareMatrix & pattern);
+
+        std::vector<std::vector<std::size_t>> m_JacobianColumnGroups;
+        std::vector<std::vector<std::size_t>> m_JacobianRowsOfColumn;
+        std::size_t m_JacobianPatternSize{0};
+        std::size_t m_JacobianPatternNonZeros{0};
+
         //! L2 norm of the residual (vecB - matA * solution) over the free DOFs only
-        //! (constrainedDofs excluded). Used by the residual-reduction convergence test (D3).
+        //! (constrainedDofs excluded). Used by the residual-reduction convergence test and
+        //! the line search (D3).
         [[nodiscard]] double freeDofResidualNorm(const std::vector<double> & solution,
                                                  const SquareMatrix & matA,
                                                  const std::vector<double> & vecB) const;

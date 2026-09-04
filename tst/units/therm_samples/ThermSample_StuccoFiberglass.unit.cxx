@@ -106,6 +106,10 @@ namespace
         HygroThermFEM::MultiDomain multiDomain;
         build(multiDomain);
         const auto solution = multiDomain.steadyState();
+        std::cout << "[StuccoFiberglass] steady solve: converged = " << std::boolalpha
+                  << solution.converged << ", passes = " << solution.steadyPasses
+                  << ", last-pass change T = " << solution.temperatureError
+                  << ", RH = " << solution.humidityError << "\n";
         return {solution.temperature, solution.humidity, solution.waterContent};
     }
 

@@ -5,6 +5,7 @@
 #include <memory>
 #include <ostream>
 
+#include "lbnl/algorithm.hxx"
 #include "Domain.hxx"
 #include "LinearSolver.hxx"
 #include "Common.hxx"
@@ -76,7 +77,7 @@ namespace
     void printNRHeader(std::ostream & out, const size_t numDOFs)
     {
         out << "subtimestep_dt,nr_iter,metric,converge_tol,correction_norm,"
-               "damping_factor,all_clamped,converged,reason";
+               "damping_factor,free_residual,converged,reason";
         for(size_t dof = 0; dof < numDOFs; ++dof)
         {
             out << ",u" << dof;
@@ -204,7 +205,7 @@ namespace
                     const double convergeTol,
                     const double correctionNorm,
                     const double dampingFactor,
-                    const bool allClamped,
+                    const double freeResidual,
                     const bool converged,
                     const char * reason,
                     const std::vector<double> & solution)
@@ -217,7 +218,8 @@ namespace
             << correctionNorm << ','
             << std::fixed << std::setprecision(6)
             << dampingFactor << ','
-            << allClamped << ','
+            << std::scientific << std::setprecision(8)
+            << freeResidual << ','
             << converged << ','
             << reason;
         out << std::scientific << std::setprecision(8);
@@ -393,40 +395,223 @@ namespace HygroThermFEM
             }
             return {std::move(matrix), std::move(rhs)};
         }
+
+        //! Solves lhsMatrix * u = rhsVector with u held inside the bounds. Primal active set
+        //! WITH release: pin bound violators, re-solve, release pins whose equations pull back
+        //! inside the bounds, repeat until the set is stable. Add-only pinning is not
+        //! equivalent: it freezes the first pass's Glaser-style supersaturated region at the
+        //! bound. The pass cap guards against chattering on degenerate systems.
+        std::vector<double> boundedSolve(CLinearSolver & solver,
+                                         const SquareMatrix & lhsMatrix,
+                                         const std::vector<double> & rhsVector,
+                                         const std::pair<double, double> & bounds)
+        {
+            auto solution = solver.solve(lhsMatrix, rhsVector);
+            std::vector<PinState> pins(solution.size(), PinState::none);
+            const std::size_t maxPasses{solution.size() + 10u};
+            for(std::size_t pass = 0u; pass < maxPasses; ++pass)
+            {
+                const bool anyPinned{pinViolators(solution, bounds, pins)};
+                const bool anyReleased{
+                  releaseInactivePins(lhsMatrix, rhsVector, solution, bounds, pins)};
+                if(!anyPinned && !anyReleased)
+                {
+                    break;
+                }
+                const auto [matrix, rhs] = penalizedSystem(lhsMatrix, rhsVector, bounds, pins);
+                solution = solver.solve(matrix, rhs);
+            }
+            return solution;
+        }
     }   // namespace
+
+    namespace
+    {
+        //! Newton correction d from J d = residual with the projected state u + d held inside
+        //! the bounds: primal active set with release on the correction system. A pinned DOF
+        //! gets d_i = bound - u_i through a penalty row; a pin is released when its own
+        //! unpenalised row would bring the DOF back inside.
+        std::vector<double> boundedCorrection(CLinearSolver & solver,
+                                              const SquareMatrix & jacobian,
+                                              const std::vector<double> & residual,
+                                              const std::vector<double> & solution,
+                                              const std::pair<double, double> & bounds)
+        {
+            constexpr double penalty{1e12};
+            constexpr double releaseMargin{1e-9};
+            const auto & [lowerBound, upperBound] = bounds;
+            const auto size = solution.size();
+            std::vector<PinState> pins(size, PinState::none);
+            auto correction = solver.solve(jacobian, residual);
+            const std::size_t maxPasses{size + 10u};
+            for(std::size_t pass = 0u; pass < maxPasses; ++pass)
+            {
+                bool changed{false};
+                const auto rowResidual = residual - jacobian * correction;
+                for(std::size_t index = 0u; index < size; ++index)
+                {
+                    const double projected{solution[index] + correction[index]};
+                    if(pins[index] == PinState::none)
+                    {
+                        if(projected > upperBound)
+                        {
+                            pins[index] = PinState::upper;
+                            changed = true;
+                        }
+                        else if(projected < lowerBound)
+                        {
+                            pins[index] = PinState::lower;
+                            changed = true;
+                        }
+                        continue;
+                    }
+                    const double freeProjected{projected + rowResidual[index] / jacobian(index, index)};
+                    const bool releaseUpper{pins[index] == PinState::upper && freeProjected < upperBound - releaseMargin};
+                    const bool releaseLower{pins[index] == PinState::lower && freeProjected > lowerBound + releaseMargin};
+                    if(releaseUpper || releaseLower)
+                    {
+                        pins[index] = PinState::none;
+                        changed = true;
+                    }
+                }
+                if(!changed)
+                {
+                    break;
+                }
+                auto matrix{jacobian};
+                auto rhs{residual};
+                for(std::size_t index = 0u; index < size; ++index)
+                {
+                    if(pins[index] == PinState::none)
+                    {
+                        continue;
+                    }
+                    const double target{pins[index] == PinState::upper ? upperBound : lowerBound};
+                    matrix(index, index) += penalty;
+                    rhs[index] += penalty * (target - solution[index]);
+                }
+                correction = solver.solve(matrix, rhs);
+            }
+            return correction;
+        }
+    }
+
+    void IDomain::ensureJacobianColumnGroups(const SquareMatrix & pattern)
+    {
+        const auto & sparse = pattern.getSparseMatrix();
+        const auto nonZeros = static_cast<std::size_t>(sparse.nonZeros());
+        const auto size = pattern.size();
+        if(!m_JacobianColumnGroups.empty() && m_JacobianPatternSize == size
+           && m_JacobianPatternNonZeros == nonZeros)
+        {
+            return;
+        }
+
+        // Rows a column touches: its pattern entries plus its own diagonal.
+        std::vector<std::vector<std::size_t>> rowsOfColumn(size);
+        for(int outer = 0; outer < sparse.outerSize(); ++outer)
+        {
+            for(Eigen::SparseMatrix<double>::InnerIterator entry(sparse, outer); entry; ++entry)
+            {
+                rowsOfColumn[static_cast<std::size_t>(entry.col())].push_back(
+                  static_cast<std::size_t>(entry.row()));
+            }
+        }
+        for(std::size_t column = 0u; column < size; ++column)
+        {
+            // Each row exactly once: the triplet constructor SUMS duplicates, and a doubled
+            // diagonal halves every Newton step (found 2026-09-03 on the sealed strip).
+            rowsOfColumn[column].push_back(column);
+            rowsOfColumn[column] = lbnl::sorted_unique(rowsOfColumn[column]);
+        }
+
+        // Greedy grouping: a column joins the first group none of whose taken rows it touches.
+        std::vector<std::vector<std::size_t>> groups;
+        std::vector<std::vector<bool>> rowsTaken;
+        for(std::size_t column = 0u; column < size; ++column)
+        {
+            const auto & rows = rowsOfColumn[column];
+            std::size_t group{0u};
+            for(; group < groups.size(); ++group)
+            {
+                const auto & taken = rowsTaken[group];
+                if(std::ranges::none_of(rows, [&taken](const std::size_t row) { return taken[row]; }))
+                {
+                    break;
+                }
+            }
+            if(group == groups.size())
+            {
+                groups.emplace_back();
+                rowsTaken.emplace_back(size, false);
+            }
+            groups[group].push_back(column);
+            for(const auto row : rows)
+            {
+                rowsTaken[group][row] = true;
+            }
+        }
+
+        m_JacobianColumnGroups = std::move(groups);
+        m_JacobianRowsOfColumn = std::move(rowsOfColumn);
+        m_JacobianPatternSize = size;
+        m_JacobianPatternNonZeros = nonZeros;
+    }
+
+    SquareMatrix IDomain::finiteDifferenceJacobian(const std::vector<double> & solution,
+                                                   const SquareMatrix & matA,
+                                                   const std::vector<double> & vecB,
+                                                   const std::vector<double> & currentStateValues,
+                                                   const double dTime,
+                                                   const size_t timestepIndex,
+                                                   const std::pair<double, double> & bounds)
+    {
+        constexpr double perturbation{1e-6};
+        ensureJacobianColumnGroups(matA);
+        const auto size = solution.size();
+        const auto baseline = matA * solution - vecB;
+
+        std::vector<Eigen::Triplet<double>> triplets;
+        triplets.reserve(m_JacobianPatternNonZeros + size);
+        for(const auto & group : m_JacobianColumnGroups)
+        {
+            auto perturbed = solution;
+            std::vector<double> steps(size, 0.0);
+            for(const auto column : group)
+            {
+                // Step away from the upper bound so the perturbed state stays physical.
+                const double step{solution[column] + perturbation > bounds.second ? -perturbation
+                                                                                   : perturbation};
+                perturbed[column] += step;
+                steps[column] = step;
+            }
+            updateNodes(perturbed, false);
+            const auto [matP, vecP] = transientSystem(currentStateValues, dTime, timestepIndex);
+            const auto shifted = matP * perturbed - vecP;
+            for(const auto column : group)
+            {
+                for(const auto row : m_JacobianRowsOfColumn[column])
+                {
+                    triplets.emplace_back(static_cast<int>(row),
+                                          static_cast<int>(column),
+                                          (shifted[row] - baseline[row]) / steps[column]);
+                }
+            }
+        }
+        updateNodes(solution, false);
+        return SquareMatrix(size, triplets);
+    }
 
     std::vector<double> IDomain::steadyState()
     {
         const auto lhsMatrix = steadyStateLeftHandSide();
         const auto rhsVector = steadyStateRightHandSide();
-        auto solution = m_LinearSolver.solve(lhsMatrix, rhsVector);
-
         const auto bounds{solutionBounds()};
         if(!bounds.has_value())
         {
-            return solution;
+            return m_LinearSolver.solve(lhsMatrix, rhsVector);
         }
-
-        // Primal active set WITH release: pin bound violators, re-solve, release pins whose
-        // equations pull back inside the bounds, repeat until the set is stable. The transient
-        // solver's clamped Newton resolves the same complementarity condition; add-only pinning
-        // is not equivalent and freezes the first pass's supersaturated region at the bound.
-        // The pass cap guards against chattering on degenerate systems.
-        std::vector<PinState> pins(solution.size(), PinState::none);
-        const std::size_t maxPasses{solution.size() + 10u};
-        for(std::size_t pass = 0u; pass < maxPasses; ++pass)
-        {
-            const bool anyPinned{pinViolators(solution, bounds.value(), pins)};
-            const bool anyReleased{
-              releaseInactivePins(lhsMatrix, rhsVector, solution, bounds.value(), pins)};
-            if(!anyPinned && !anyReleased)
-            {
-                break;
-            }
-            const auto [matrix, rhs] = penalizedSystem(lhsMatrix, rhsVector, bounds.value(), pins);
-            solution = m_LinearSolver.solve(matrix, rhs);
-        }
-        return solution;
+        return boundedSolve(m_LinearSolver, lhsMatrix, rhsVector, bounds.value());
     }
 
     lbnl::ExpectedExt<SingleSolution, SolverError> IDomain::transient(
@@ -552,7 +737,7 @@ namespace HygroThermFEM
             updateNodes(trialSolution, m_AutomaticUpdatePreviousTimestep);
             auto [matA, vecB] = transientSystem(currentStateValues, dTime, timestepIndex);
 
-            const double trialResidualNorm = norm(vecB - matA * trialSolution);
+            const double trialResidualNorm = freeDofResidualNorm(trialSolution, matA, vecB);
 
             if(trialResidualNorm < currentResidualNorm || attempt == maxAttempts - 1)
             {
@@ -598,8 +783,25 @@ namespace HygroThermFEM
         const double previousNorm = state.currentNorm;
         const auto prevIterSolution = state.solution;
 
+        // Bounded domains (moisture) take a true Newton direction, J d = residual with the
+        // exact Jacobian, and the physical bounds enter the correction system itself:
+        // violators are pinned at the bound and the free nodes re-solved against them. A
+        // correction solved without the pins asks the saturated nodes for Glaser-style
+        // supersaturation; once the clamp truncates those components the free nodes'
+        // corrections solve nothing and the iteration creeps by a fixed amount per step,
+        // independent of the timestep, until the budget runs out (2026-09-03,
+        // stucco/fiberglass wall). Unbounded domains (thermal) keep the historical
+        // lagged-coefficient correction, byte-identical.
         const auto residual = state.vecB - state.matA * state.solution;
+        const auto bounds = solutionBounds();
         auto correctionDU = m_LinearSolver.solve(state.matA, residual);
+        if(bounds.has_value())
+        {
+            const auto jacobian = finiteDifferenceJacobian(
+              state.solution, state.matA, state.vecB, currentStateValues, dTime, timestepIndex, bounds.value());
+            correctionDU =
+              boundedCorrection(m_LinearSolver, jacobian, residual, state.solution, bounds.value());
+        }
         const double rawDuNorm = norm(correctionDU);
 
         if(limitIncrement(state.solution, correctionDU, relaxParameter))
@@ -622,9 +824,13 @@ namespace HygroThermFEM
         // control under-relaxation, so the solve is independent of the relaxation setting;
         // thermal keeps the historical relaxParameter * damping behaviour.
         const double baseRelax = useResidualConvergence() ? 1.0 : relaxParameter;
+        // Pinned rows carry an irreducible residual; the line search must judge progress on the
+        // free rows only, or that constant masks every real change (no-op for thermal, which
+        // constrains nothing).
         auto lsResult = backtrackingLineSearch(
           state.solution, correctionDU,
-          baseRelax * state.damping.factor, norm(residual),
+          baseRelax * state.damping.factor,
+          freeDofResidualNorm(state.solution, state.matA, state.vecB),
           currentStateValues, dTime, timestepIndex);
         state.solution = std::move(lsResult.solution);
         state.matA = std::move(lsResult.matA);
@@ -691,7 +897,8 @@ namespace HygroThermFEM
         {
             printNRRow(*m_DiagStream, dTime, state.numOfIterations, result.metric,
                        convergenceError, rawDuNorm, state.damping.factor,
-                       false, state.converged, reasonLabel(result.reason), state.solution);
+                       currentFreeResidual, state.converged, reasonLabel(result.reason),
+                       state.solution);
         }
     }
 

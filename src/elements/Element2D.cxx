@@ -723,8 +723,13 @@ namespace HygroThermFEM
         //////////////////////////////////////////////////////////////////////
         ///  Conduction from liquid
         //////////////////////////////////////////////////////////////////////
-        if(!physics.excludeCapillaryConduction && m_Material.hasSorptionCurve()
-           && m_Material.hasLiquidTransportationCurve())
+        // Heat advected by the liquid flux, c_w D_l (dw/dphi) grad(phi) . grad(T). The flux
+        // must be the one the moisture equation carries: with liquid transport excluded the
+        // moisture field keeps its steep vapour-only humidity gradients, D_l near saturation
+        // turns them into a fictitious flux with a Peclet number in the thousands, and the
+        // thermal solve blows up (2026-09-03, stucco/fiberglass beam: -273 C mid-wall).
+        if(!physics.excludeCapillaryConduction && !physics.excludeWaterLiquidTransportation
+           && m_Material.hasSorptionCurve() && m_Material.hasLiquidTransportationCurve())
         {
             auto humidity = StateValue(Variable::humidity);
             const TabularDerivativeSmooth sorptionDerivative(m_Material.sorptionCurve(),

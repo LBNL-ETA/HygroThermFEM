@@ -85,7 +85,7 @@ TEST(SteadyState_2D_1, TestExample_1)
     const auto temperature = solution.temperature;
     const auto humidity = solution.humidity;
 
-    std::vector<double> correctTemperature{2.13589875986e-19, 2.13589875986e-19, 10.6729505981, 10.6729505981, 20, 20};
+    std::vector<double> correctTemperature{2.13589875986e-19, 2.13589875986e-19, 10.6810280535, 10.6810280535, 20, 20};
 
     TestHelper::dumpGolden("correctTemperature", temperature);
     TestHelper::dumpGolden("correctHumidity", humidity);

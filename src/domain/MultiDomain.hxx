@@ -60,6 +60,12 @@ namespace HygroThermFEM
         std::vector<NodeFlux> waterFlux;
         double temperatureError;
         double humidityError;
+        //! False for a steady-state solve that stopped on its pass budget with the fields
+        //! still changing by more than the tolerance; the errors above say by how much.
+        //! Transient steps always report true.
+        bool converged{true};
+        //! Number of pseudo-time passes a steady-state solve took; zero for transient steps.
+        std::size_t steadyPasses{0};
     };
 
     //! Per-field results (values + errors) accumulated over multiple timesteps.
