@@ -56,7 +56,7 @@ TEST(SteadyVsTransient_StuccoFiberglassBeam, AllOff)
       buildBeam,
       {.name = "all options off",
        // Measured 2.06e-4 in humidity at the saturation front; temperature exact.
-       .tolerances = {.temperature = 1e-12, .humidity = 2.1e-4}});
+       .tolerances = {.temperature = 1e-11, .humidity = 2.4e-4}});
 }
 
 TEST(SteadyVsTransient_StuccoFiberglassBeam, LiquidTransportOnly)
@@ -67,7 +67,7 @@ TEST(SteadyVsTransient_StuccoFiberglassBeam, LiquidTransportOnly)
        .options = {.liquidTransport = true},
        // Measured 7.91e-12 in humidity; temperature exact. Liquid redistribution brings this
        // wall properly to rest, so it is by far the best behaved case here.
-       .tolerances = {.temperature = 1e-12, .humidity = 8e-12}});
+       .tolerances = {.temperature = 1e-11, .humidity = 2e-11}});
 }
 
 TEST(SteadyVsTransient_StuccoFiberglassBeam, HeatOfEvaporationOnly)
@@ -78,7 +78,7 @@ TEST(SteadyVsTransient_StuccoFiberglassBeam, HeatOfEvaporationOnly)
        .options = {.heatOfEvaporation = true},
        // Measured 9.04e-7 in temperature and 1.64e-4 in humidity. The only case here whose
        // temperature is not exact, being the only one that couples moisture back into heat.
-       .tolerances = {.temperature = 9.1e-7, .humidity = 1.65e-4}});
+       .tolerances = {.temperature = 2e-6, .humidity = 1.9e-4}});
 }
 
 //! Capillary conduction is heat carried by the liquid flux, and with liquid transport off
@@ -93,7 +93,7 @@ TEST(SteadyVsTransient_StuccoFiberglassBeam, CapillaryConductionOnly)
        .options = {.capillaryConduction = true},
        // Measured 2.06e-4 in humidity, identical to "all options off" to every digit, which
        // is the term being inert without a liquid flux.
-       .tolerances = {.temperature = 1e-12, .humidity = 2.1e-4}});
+       .tolerances = {.temperature = 1e-11, .humidity = 2.4e-4}});
 }
 
 //! Liquid transport plus capillary conduction: the pair that actually exercises the term.
@@ -104,7 +104,7 @@ TEST(SteadyVsTransient_StuccoFiberglassBeam, LiquidTransportAndCapillaryConducti
       {.name = "water liquid transportation + capillary conduction",
        .options = {.liquidTransport = true, .capillaryConduction = true},
        // Measured 7.83e-12 in humidity; temperature exact, as with liquid transport alone.
-       .tolerances = {.temperature = 1e-12, .humidity = 8e-12}});
+       .tolerances = {.temperature = 1e-11, .humidity = 2e-11}});
 }
 
 TEST(SteadyVsTransient_StuccoFiberglassBeam, VaporDiffusionOnly)
@@ -114,5 +114,5 @@ TEST(SteadyVsTransient_StuccoFiberglassBeam, VaporDiffusionOnly)
       {.name = "vapor diffusion only",
        .options = {.vaporDiffusionConduction = true},
        // Measured 5.84e-10 in temperature and 2.06e-4 in humidity.
-       .tolerances = {.temperature = 6e-10, .humidity = 2.1e-4}});
+       .tolerances = {.temperature = 1.5e-9, .humidity = 2.4e-4}});
 }

@@ -277,12 +277,50 @@ TEST(ThermSample_StuccoWall, SaturatedThermMeshNoSawtooth)
     }
 }
 
+TEST(ThermSample_StuccoWall, SaturatedMeshRefinementStaysStable)
+{
+    // The 2026-07-13 THERM-Viz report: at exact saturation on a fine mesh the fields blew up
+    // around step 54 while a coarse mesh stayed bounded. It stopped reproducing once the
+    // moisture Newton took a true Newton direction with the humidity bound applied to the
+    // correction (2026-09-03), so the mesh sweep is kept as a guard: refining the mesh must
+    // not destabilise the run.
+    //
+    // Its sibling SaturatedThermMeshNoSawtooth covers the mesh THERM actually generated for
+    // that report, 3/2/7/3 elements per layer; this one covers uniform refinement, where the
+    // blow-up was reported. The per-term sweep that hunted the driver stays disabled below.
+    constexpr double phiStart{1.0};
+    constexpr unsigned steps{100};
+
+    for(const unsigned meshScale : {1u, 8u})
+    {
+        const auto result = runStuccoWall(phiStart, steps, 360.0, meshScale);
+        ASSERT_TRUE(result.completed) << "mesh x" << meshScale << ": " << result.error;
+
+        // Measured across these scales: 4.1 to 24.8 C. The envelope is the one its sibling
+        // uses, wide enough to allow the evaporative cooling this fully saturated start
+        // produces and narrow enough to catch the reported blow-up.
+        expectWithinEnvelope(result.temperatures, -5.0, 45.0, "temperature");
+        expectWithinEnvelope(result.humidities, 0.0, 1.0, "humidity");
+
+        const auto tempOsc = analyzeOscillations(result.temperatures);
+        EXPECT_LT(tempOsc.maxAmplitude, 0.1)
+          << "mesh x" << meshScale << ": spatial temperature sawtooth at step "
+          << tempOsc.worstStep;
+    }
+}
+
 TEST(ThermSample_StuccoWall, DISABLED_SaturatedMeshBisect)
 {
-    // Diagnostic for the 2026-07-13 THERM-Viz report: phi0 = 1.0 (exact saturation),
-    // fine mesh, dt = 360 s -- fields blow up around step 54 while a coarse mesh stays
-    // bounded. Stage 1 sweeps mesh scales under full physics to locate the failing
-    // scale; stage 2 excludes one term at a time at the fine scale to find the driver.
+    // Diagnostic kept for the open finding it carries: with heat of evaporation excluded at
+    // mesh x8 the wall reaches 47.3 C, above the 40 C interior film, first leaving the
+    // envelope at step 50. The vapour and capillary conduction terms still advect enthalpy
+    // when the latent term is off, so energy is carried without its latent counterpart --
+    // the same shape of problem as capillary conduction running without a liquid flux. It is
+    // mesh-dependent: the coarse-mesh version of that case passes. Heat of evaporation is a
+    // checkbox a THERM user can untick, so this is reachable.
+    //
+    // Excludes one term at a time at the fine scale to find the driver. Run explicitly with
+    // --gtest_also_run_disabled_tests.
     constexpr double phiStart{1.0};
     constexpr unsigned steps{100};
 
@@ -317,19 +355,6 @@ TEST(ThermSample_StuccoWall, DISABLED_SaturatedMeshBisect)
                   << " @step " << phiOsc.worstStep << std::endl;
     };
 
-    // The mesh THERM generated for the reported run: 3/2/7/3 elements per layer -- a
-    // coarse panel layer against a fine fiberglass layer. Reproduced exactly, alongside
-    // the uniform-scale sweep.
-    const std::array<unsigned, 4> thermMesh{3, 2, 7, 3};
-    report("full physics, THERM mesh 3/2/7/3",
-           runStuccoWall(phiStart, steps, 360.0, 1, thermMesh));
-
-    for(const unsigned meshScale : {1u, 2u, 4u, 8u})
-    {
-        report("full physics, mesh x" + std::to_string(meshScale),
-               runStuccoWall(phiStart, steps, 360.0, meshScale));
-    }
-
     struct Exclusion
     {
         std::string label;
@@ -356,25 +381,23 @@ TEST(ThermSample_StuccoWall, DISABLED_SaturatedMeshBisect)
     }
 }
 
-TEST(ThermSample_StuccoWall, DISABLED_NearSaturatedRefinedDt)
+TEST(ThermSample_StuccoWall, NearSaturatedRefinedDt)
 {
-    // dt-refinement probe (diagnostic, run explicitly with --gtest_also_run_disabled_tests):
-    // same case at dt = 90 s. If the sub-freezing surface dip and the +latent overshoot
-    // shrink toward the wet-bulb/condensation bounds, they are big-dt transients.
+    // The same near-saturated case at a quarter of the timestep, dt = 90 s. This began as a
+    // probe asking whether the sub-freezing surface dip and the latent overshoot the wall
+    // once showed were artefacts of the coarse step. They were: both are gone, and refining
+    // the step no longer changes the answer materially, 10.1 to 35.3 C here against 11.6 to
+    // 35.3 at dt = 360 s.
+    //
+    // Kept as a guard on that. The bound is a degree below the exterior film rather than the
+    // film itself, because the measured floor sits only 0.06 C above it and evaporative
+    // cooling legitimately pushes that way; it is still far tighter than the 2.2 C dip and
+    // 41.3 C overshoot this case used to produce.
     const auto result = runStuccoWall(0.99, 400, 90.0);
     ASSERT_TRUE(result.completed) << result.error;
-    double minTemp = 1e9;
-    double maxTemp = -1e9;
-    for(const auto & temps : result.temperatures)
-    {
-        for(const auto val : temps)
-        {
-            minTemp = (std::min)(minTemp, val);
-            maxTemp = (std::max)(maxTemp, val);
-        }
-    }
-    std::cout << "[StuccoWall 0.99, dt=90] T range over run = [" << minTemp << ", "
-              << maxTemp << "]" << std::endl;
+
+    expectWithinEnvelope(result.temperatures, 9.0, 40.0, "temperature");
+    expectWithinEnvelope(result.humidities, 0.0, 1.0, "humidity");
 }
 
 TEST(ThermSample_StuccoWall, NearSaturatedInitialConditions)
@@ -383,8 +406,8 @@ TEST(ThermSample_StuccoWall, NearSaturatedInitialConditions)
     // corrections (sign of h_lg per Theoretical Model eq. 59; flux-consistent vapour
     // potential c_sat*phi) this self-heated to the 1000-clamp; now temperatures stay
     // within the two film temperatures: the field now runs between 11.6 and 35.3 C at this
-    // dt = 360 s, and between 10.1 and 35.3 C at the finer dt = 90 s of the
-    // DISABLED_NearSaturatedRefinedDt probe.
+    // dt = 360 s, and between 10.1 and 35.3 C at the finer dt = 90 s of
+    // NearSaturatedRefinedDt.
     //
     // The bound below is therefore the driving temperatures themselves rather than the wide
     // envelope this test used to carry. Latent effects can in principle break it in both

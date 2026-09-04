@@ -10,13 +10,30 @@
 // skewed quadrilaterals) as a direct engine run. Documents the known-open start-up thermal
 // ringing (doc/Moisture Governing Equations.md, "start-up thermal ringing"): ~48 of 143
 // nodes flip-flop in temperature from step 2 (max ~9 K), damping to zero by step ~13, with
-// the humidity field quiet. The flipping nodes cluster in Fiberglass Batts along the warm
-// boundary; signature is step-count-anchored (same ringing at dt 360 and 36, smooth at
-// 3.6) and mesh-refinement-independent, i.e. temporal-algorithmic. Suspected driver: the
-// latent conductance coefficient k_lat = h_lg delta phi c_sat'(T) lagging the solve.
+// the humidity field quiet.
 //
-// DISABLED while the defect is parked. Promotion criterion once fixed: enable the test --
-// the flip assertions at the bottom then guard the fix.
+// THE CAUSE IS THE MESH, NOT THE SOLVER (measured 2026-09-04). The element stiffness of this
+// mesh has six positive off-diagonal entries, the largest 0.020 against a largest diagonal of
+// 2.5, and six of the 143 rows are not diagonally dominant. A conductance matrix with
+// positive off-diagonals is not an M-matrix, so the discretisation obeys no discrete maximum
+// principle and the solution is free to overshoot and oscillate in space, even though
+// backward Euler is unconditionally stable and the thermal system here is linear. The mass
+// term adds M/dt to the diagonal, so a small enough timestep restores dominance and the
+// ringing disappears, which is exactly the reported signature: present at dt 360 and 36, gone
+// at 3.6. A handful of badly shaped quadrilaterals from the quadtree is all it takes.
+//
+// Two earlier hypotheses were tested and disproved on 2026-09-04, both by measurement:
+//  - A lagged latent conductance coefficient. Giving the thermal domain the same exact
+//    finite-difference Jacobian the moisture domain uses changed the result by not one digit,
+//    because with the moisture-to-heat coefficients frozen inside a step the thermal system
+//    is linear and its Jacobian already equals its assembled matrix.
+//  - The single-pass thermal/moisture coupling. Running the identical case with moisture
+//    switched off leaves the ringing in place, larger in count and longer lived.
+//
+// DISABLED because no solver change can fix it. The remedies are better element shapes out of
+// the mesher, or a discretisation that guarantees an M-matrix on distorted quads. Promotion
+// criterion is unchanged: enable the test, and the flip assertions at the bottom guard the
+// fix.
 namespace
 {
     struct FlipSummary

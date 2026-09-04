@@ -76,7 +76,7 @@ TEST(SteadyVsTransient_StuccoWall, AllOff)
       {.name = "all options off",
        // Measured 9.79e-6 in humidity at the barrier face; temperature exact. Twenty times
        // closer than the same case on the two-material wall.
-       .tolerances = {.temperature = 1e-12, .humidity = 9.8e-6}});
+       .tolerances = {.temperature = 1e-11, .humidity = 1.2e-5}});
 }
 
 //! Liquid transport wets the stucco from 0.50 to 0.94 and leaves everything inside the
@@ -88,7 +88,7 @@ TEST(SteadyVsTransient_StuccoWall, LiquidTransportOnly)
       {.name = "water liquid transportation only",
        .options = {.liquidTransport = true},
        // Measured 8.79e-11 in humidity; temperature exact.
-       .tolerances = {.temperature = 1e-12, .humidity = 9e-11}});
+       .tolerances = {.temperature = 1e-11, .humidity = 2e-10}});
 }
 
 //! The latent release now happens behind the barrier, and the wall runs about 1 C warmer
@@ -101,7 +101,7 @@ TEST(SteadyVsTransient_StuccoWall, HeatOfEvaporationOnly)
        .options = {.heatOfEvaporation = true},
        // Measured 2.85e-7 in temperature and 1.02e-4 in humidity: the loosest case on this
        // wall, and still tighter than the two-material wall manages with nothing on.
-       .tolerances = {.temperature = 2.9e-7, .humidity = 1.03e-4}});
+       .tolerances = {.temperature = 6e-7, .humidity = 1.2e-4}});
 }
 
 TEST(SteadyVsTransient_StuccoWall, LiquidTransportAndCapillaryConduction)
@@ -111,5 +111,5 @@ TEST(SteadyVsTransient_StuccoWall, LiquidTransportAndCapillaryConduction)
       {.name = "water liquid transportation + capillary conduction",
        .options = {.liquidTransport = true, .capillaryConduction = true},
        // Measured 4.28e-12 in temperature and 8.73e-11 in humidity.
-       .tolerances = {.temperature = 5e-12, .humidity = 9e-11}});
+       .tolerances = {.temperature = 1e-11, .humidity = 2e-10}});
 }

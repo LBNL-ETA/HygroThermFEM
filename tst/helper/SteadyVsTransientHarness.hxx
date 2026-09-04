@@ -60,7 +60,15 @@ namespace TestHelper::SteadyVsTransient
     //! How far the two solvers may sit apart. This is not solver error but the transient's
     //! remaining distance from rest, so it belongs to the case: how fast a wall settles
     //! depends on which options are switched on, and the cases below differ by orders of
-    //! magnitude. Each states its own measured value.
+    //! magnitude. Each states its own measured value in a comment, and sets a tolerance a
+    //! small factor above it.
+    //!
+    //! The factor is there because the same case does not land on exactly the same number on
+    //! every platform: the liquid-transport beam drifts 7.91e-12 on Windows and 8.03e-12 on
+    //! Ubuntu, one and a half percent apart. Tolerances set at the measured edge passed on
+    //! the machine they were measured on and failed in CI. Roughly double the measurement for
+    //! the near-zero cases and ten per cent for the ones limited by physical approach keeps
+    //! the recorded magnitude visible while leaving room for that.
     struct Tolerances
     {
         double temperature{1e-3};   //!< C
