@@ -63,7 +63,7 @@ namespace
                      const double position)
     {
         const auto upper =
-          std::upper_bound(coords.begin(), coords.end(), position) - coords.begin();
+          std::ranges::upper_bound(coords, position) - coords.begin();
         const auto right = (std::min)(static_cast<std::size_t>(upper), coords.size() - 1);
         const auto left = right - 1;
         const double fraction = (position - coords[left]) / (coords[right] - coords[left]);
