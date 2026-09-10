@@ -169,6 +169,131 @@ TEST(Freezing, StefanFrontPosition)
     }
 }
 
+TEST(Freezing, IceContentReportedBehindFront)
+{
+    // The Stefan tests validate the thermal front, which depends only on the TOTAL
+    // condensed water (liquid + ice). This one pins the reported split: behind the
+    // front the condensed water must be reported as ice, ahead of it as liquid. A
+    // stalled liquid fraction leaves the front intact and the ice field identically
+    // zero, which is exactly what the tests above cannot see.
+    setFusionOnlyPhysics();
+
+    HygroThermFEM::MultiDomain multiDomain;
+    multiDomain.performThermalSimulation(true);
+    multiDomain.performMoistureSimulation(false);
+
+    const auto & stucco = multiDomain.materials().createSolidMaterial(TestHelper::Stucco());
+
+    constexpr double length{0.5};
+    const HygroThermFEM::State initialState({.temperature = 0.0,
+                                             .humidity = 0.99,
+                                             .pressure = 101325.0,
+                                             .liquidPercent = 1.0});
+
+    TestHelper::BeamBuilder builder(multiDomain);
+    builder.xStart(0.0)
+      .height(0.05)
+      .numElementsY(1)
+      .state(initialState)
+      .addSegment({.material = stucco.name(), .numElementsX = 200, .width = length})
+      .build();
+
+    const HygroThermFEM::FixedBCHCCoefficients coldSurface{-10.0, 1.0e6, 0.5};
+    builder.applyBC_FixedHc(TestHelper::BeamBuilder::Edge::Left, coldSurface);
+
+    constexpr double dTime{600.0};
+    constexpr unsigned numberOfSteps{48};
+
+    auto temperatures = multiDomain.nodes().properties(HygroThermFEM::Variable::temperature);
+    auto humidities = multiDomain.nodes().properties(HygroThermFEM::Variable::humidity);
+    HygroThermFEM::Solution solution = multiDomain.currentStateSolution();
+    for(unsigned step = 0; step < numberOfSteps; ++step)
+    {
+        solution = multiDomain.transient(temperatures, humidities, dTime, step);
+        temperatures = solution.temperature;
+        humidities = solution.humidity;
+    }
+    resetPhysics();
+
+    ASSERT_EQ(solution.iceContent.size(), solution.temperature.size());
+
+    // Column-major nodes, one element row: node 0 sits on the cold face, the last node
+    // on the far (still liquid) end.
+    const std::size_t coldFace{0u};
+    const std::size_t farEnd{solution.temperature.size() - 1u};
+    EXPECT_LT(solution.temperature[coldFace], -5.0);
+    EXPECT_GT(solution.temperature[farEnd], -0.1);
+
+    const double condensedAtColdFace =
+      solution.waterContent[coldFace] - solution.vaporContent[coldFace];
+    EXPECT_GT(condensedAtColdFace, 50.0);
+    EXPECT_NEAR(solution.iceContent[coldFace], condensedAtColdFace, 1e-6);
+    EXPECT_NEAR(solution.liquidWaterContent[coldFace], 0.0, 1e-6);
+
+    const double condensedAtFarEnd = solution.waterContent[farEnd] - solution.vaporContent[farEnd];
+    EXPECT_NEAR(solution.iceContent[farEnd], 0.0, 1e-6);
+    EXPECT_NEAR(solution.liquidWaterContent[farEnd], condensedAtFarEnd, 1e-6);
+}
+
+TEST(Freezing, IceContentReportedWithMoistureCoupling)
+{
+    // THERM's transient configuration: both domains solved, every moisture coupling term
+    // on, moisture/temperature-dependent conductivity on, fusion on. A saturated stucco
+    // strip between a -10 C face and a warm face must report ice at the cold face.
+    HygroThermFEM::SimulationProperties::Instance().setCalculationParameters(
+      false, false, false, false, true);
+    HygroThermFEM::SimulationProperties::Instance().setExcludeLatentHeatOfFusion(false);
+
+    HygroThermFEM::MultiDomain multiDomain({.performThermal = true, .performMoisture = true});
+
+    const auto & stucco = multiDomain.materials().createSolidMaterial(TestHelper::Stucco());
+
+    const HygroThermFEM::State initialState({.temperature = 21.0,
+                                             .humidity = 0.99,
+                                             .pressure = 101325.0,
+                                             .liquidPercent = 1.0});
+
+    TestHelper::BeamBuilder builder(multiDomain);
+    builder.xStart(0.0)
+      .height(0.05)
+      .numElementsY(1)
+      .state(initialState)
+      .addSegment({.material = stucco.name(), .numElementsX = 40, .width = 0.2})
+      .build();
+
+    // Strong cold film on a 0.2 m strip: the steady cold-face temperature is about
+    // -16 C, so the face is well inside the frozen range long before 24 h.
+    const HygroThermFEM::FixedBCHCCoefficients coldSurface{-20.0, 25.0, 0.1};
+    const HygroThermFEM::FixedBCHCCoefficients warmSurface{20.0, 8.0, 0.3};
+    builder.applyBC_FixedHc(TestHelper::BeamBuilder::Edge::Left, coldSurface);
+    builder.applyBC_FixedHc(TestHelper::BeamBuilder::Edge::Right, warmSurface);
+
+    constexpr double dTime{3600.0};
+    constexpr unsigned numberOfSteps{24};
+
+    auto temperatures = multiDomain.nodes().properties(HygroThermFEM::Variable::temperature);
+    auto humidities = multiDomain.nodes().properties(HygroThermFEM::Variable::humidity);
+    HygroThermFEM::Solution solution = multiDomain.currentStateSolution();
+    for(unsigned step = 0; step < numberOfSteps; ++step)
+    {
+        solution = multiDomain.transient(temperatures, humidities, dTime, step);
+        temperatures = solution.temperature;
+        humidities = solution.humidity;
+    }
+    resetPhysics();
+
+    const std::size_t coldFace{0u};
+    ASSERT_LT(solution.temperature[coldFace], -0.1) << "cold face never froze";
+
+    // The face dries toward the 10 % ambient over the day, so only a few kg/m3 remain
+    // condensed there; the point is that whatever remains is reported frozen.
+    const double condensedAtColdFace =
+      solution.waterContent[coldFace] - solution.vaporContent[coldFace];
+    EXPECT_GT(condensedAtColdFace, 1.0);
+    EXPECT_NEAR(solution.iceContent[coldFace], condensedAtColdFace, 1e-6);
+    EXPECT_NEAR(solution.liquidWaterContent[coldFace], 0.0, 1e-6);
+}
+
 TEST(Freezing, AdiabaticTwoPhaseEquilibrium)
 {
     // Insulated strip, 60% of it liquid at +10 C and 40% frozen-cold at -10 C, high
