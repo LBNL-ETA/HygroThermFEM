@@ -341,6 +341,10 @@ namespace HygroThermFEM
 
         m_Nodes.updateNodeHumidities(humidity, true);
         m_Nodes.updateNodeTemperatures(temperature, true);
+        // The latent-heat capacity has no meaning at steady state and stays out of the
+        // equations, but the equilibrium liquid/ice split of the condensed water is a
+        // function of the final temperature alone, so the reported contents follow it.
+        m_Nodes.updateNodeLiquidPercents(liquidPercentsFromTemperatures(temperature), true);
 
         const auto waterContent = m_Nodes.properties(Variable::water);
         const auto liquidContent = m_Nodes.properties(Variable::liquid);
