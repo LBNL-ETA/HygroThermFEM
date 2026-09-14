@@ -530,10 +530,49 @@ namespace HygroThermFEM
     ///  VaporPermeability
     //////////////////////////////////////////////////////////////////
 
+    ResistanceFactorCurve::ResistanceFactorCurve(
+      const std::vector<FenestrationCommon::point> & curve) :
+        TabularFunction1D(curve, Variable::water)
+    {}
+
+    double ResistanceFactorCurve::at(const double waterContent) const
+    {
+        return evaluateFunction(waterContent, waterContent);
+    }
+
     VaporPermeability::VaporPermeability(const double t_resistanceFactor) :
         IFunction(Variable::temperature),
         m_ResistanceFactor(t_resistanceFactor)
     {}
+
+    VaporPermeability::VaporPermeability(
+      const std::vector<FenestrationCommon::point> & t_resistanceFactorCurve,
+      const IMaterial & t_material) :
+        IFunction(Variable::temperature),
+        m_ResistanceFactorCurve(t_resistanceFactorCurve),
+        m_Material(&t_material)
+    {}
+
+    double VaporPermeability::resistanceFactorAt(const INode2D & node) const
+    {
+        if(!m_ResistanceFactorCurve.has_value())
+        {
+            return m_ResistanceFactor;
+        }
+
+        // Resolve w through the bound material rather than through the node's averaged
+        // Variable::water: at a material interface the averaged content is not consistent
+        // with this material's own curve, which would make the coefficient non-uniform
+        // across an element. Same reasoning as LiquidTransportationCurve::value.
+        return m_ResistanceFactorCurve->at(
+          m_Material->waterContent(node).content(WaterContent::Water));
+    }
+
+    double VaporPermeability::value(const INode2D & node) const
+    {
+        return vaporDiffusionCoefficientAtTemperature(node.property(Variable::temperature))
+               / resistanceFactorAt(node);
+    }
 
     double VaporPermeability::evaluateFunction(const double t_position, const double) const
     {

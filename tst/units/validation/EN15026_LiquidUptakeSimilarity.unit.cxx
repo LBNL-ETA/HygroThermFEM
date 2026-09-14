@@ -32,12 +32,8 @@
 /// wrong SHAPE breaks the collapse, because the profiles are then not related by a
 /// pure stretch. A D_w of the wrong SCALE keeps the shape but moves the front at the
 /// wrong rate, which the same comparison sees as a horizontal offset. Neither needs
-/// the standard's tables, so this test stands even though the engine cannot yet run
-/// the full benchmark (its material model carries one scalar diffusion resistance
-/// factor while the annex's is moisture dependent -- see EN15026_UptakeProjection).
-///
-/// Mirrors the reference solver's test_liquid_only_uptake_collapses_in_boltzmann_variable
-/// (hygrothermfem_python), on the same material, mesh rule and schedule.
+/// the standard's tables, so this test stands independently of how far the engine
+/// gets on the full benchmark (see EN15026_AnnexABenchmark).
 /////////////////////////////////////////////////////////////////////////////////////
 
 namespace
@@ -69,9 +65,9 @@ TEST(EN15026_LiquidUptakeSimilarity, ProfilesCollapseInTheBoltzmannVariable)
     // Vapour transport suppressed, so only the annex's liquid curve moves moisture.
     HygroThermFEM::MultiDomain multiDomain({.performThermal = false, .performMoisture = true});
     const auto & material =
-      multiDomain.materials().createSolidMaterial(TestHelper::EN15026AnnexA(1.0e9));
+      multiDomain.materials().createSolidMaterial(TestHelper::EN15026::material(1.0e9));
 
-    const auto coords = TestHelper::en15026GradedCoordinates(1.0e-4, 1.04, 0.5);
+    const auto coords = TestHelper::EN15026::gradedCoordinates(1.0e-4, 1.04, 0.5);
     const auto nColumns = coords.size();
 
     TestHelper::SlabBuilder(multiDomain)
@@ -122,11 +118,10 @@ TEST(EN15026_LiquidUptakeSimilarity, ProfilesCollapseInTheBoltzmannVariable)
     EXPECT_NEAR(late.back(), initialWater.back(), 1e-9) << "the far end was disturbed";
 
     // The similarity itself: w(x, 4t) against w(2x, t). Measured worst difference 0.25 kg/m3
-    // here, against 0.11 in the 1D reference solver, over a profile spanning about 86 kg/m3.
-    // So the collapse holds to about a third of a percent of the range; the engine is looser
-    // than the reference by roughly a factor of two, which is the discretisation difference
-    // between a 2D quadrilateral mesh with lumped capacity and a 1D solver, not a property
-    // error. A conversion mistake would miss by a large fraction of the range, not by this.
+    // over a profile spanning about 86 kg/m3, so the collapse holds to about a third of a
+    // percent of the range. That residual is the discretisation of a 2D quadrilateral mesh
+    // with lumped capacity, not a property error: a conversion mistake would miss by a
+    // large fraction of the range, not by this.
     constexpr double collapseTolerance = 0.5;
     double worstCollapse{0.0};
     double worstPosition{0.0};

@@ -13,7 +13,7 @@
 /// x = 0, convection h (T - 0) with h = 1 at x = 1. Analytical solution: Biot
 /// series with the roots of beta tan(beta) = h L / k, Carslaw & Jaeger p. 122.
 /// Expected values are the exact series at the report's checkpoints
-/// (hygrothermfem_python, analytic.slab_convection); the tolerance is the
+///; the tolerance is the
 /// measured backward-Euler discretization band at dt = 0.01 on ten elements
 /// (max 4.7e-3).
 /////////////////////////////////////////////////////////////////////////////////////

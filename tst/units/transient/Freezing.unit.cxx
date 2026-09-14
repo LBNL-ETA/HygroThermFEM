@@ -9,9 +9,9 @@
 #include "TestMaterials.hxx"
 
 // D5 Tier 1: latent heat of fusion via the mass-conservative secant capacity
-// (FusionSecantCapacity * condensed water), moisture immobilized. Mirrors the 1D
-// reference solver's validation (hygrothermfem_python tests/test_freezing.py):
-// the one-phase Stefan benchmark and the adiabatic two-phase equilibrium.
+// (FusionSecantCapacity * condensed water), moisture immobilized. Validated the way
+// the enthalpy method usually is: the one-phase Stefan benchmark and the adiabatic
+// two-phase equilibrium.
 namespace
 {
     //! Solves lam * exp(lam^2) * erf(lam) = Ste / sqrt(pi) by bisection.
@@ -76,15 +76,13 @@ namespace
 }   // namespace
 
 // Anchor the helper above to EXTERNALLY published values before trusting it as the
-// reference for everything below. stefanLambda() is a second, independent
-// implementation of the root the Python reference solver also computes
-// (hygrothermfem_python src/hygrothermfem/analytic.py); that solver being anchored
+// reference for everything below. stefanLambda() is an independent implementation
+// of that root, so it needs its own anchor: another implementation being correct
 // says nothing about this one. A dropped sqrt(pi) or a bracket that excludes the
 // root would make StefanFrontPosition validate the engine against a wrong front
 // and still pass.
 //
-// Keep these constants in sync with
-// hygrothermfem_python tests/test_stefan_reference.py, which cites them in full.
+// The published values are cited in full at the assertions below.
 TEST(Freezing, StefanRootMatchesPublishedValues)
 {
     // Gobin & Le Quere, Computer Assisted Mechanics and Engineering Sciences 7(3),

@@ -437,8 +437,8 @@ TEST(CurveTest, TestTabularDerivativeSmooth)
 // segment slope of 950. ElementMoistureLinear2D pairs TabularDerivativeSmooth
 // with the logarithmic liquid transportation curve; this test fixes that pairing
 // numerically so a change to either form is a deliberate decision, not a drift.
-// Expected values are cross-computed by the independent 1D reference solver
-// (hygrothermfem_python: Material.storage_tangent_smooth / liquid_diffusivity).
+// Expected values are cross-computed from an independent implementation of the
+// same two closed forms.
 TEST(CurveTest, TestLiquidCoefficientSorptionSlopeNearSaturation)
 {
     SCOPED_TRACE("Begin Test: pin the smoothed sorption slope in D_l * xi.");

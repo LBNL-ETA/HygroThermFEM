@@ -62,10 +62,12 @@ namespace HygroThermFEM
           && !physics.thermalConductivityMoistureAndTemperatureDependent;
 
         // Water vapor diffusion is required in moisture always and in thermal only in case heat of
-        // evaporation calculation is on
+        // evaporation calculation is on. Either form satisfies it: a material may carry the
+        // single value or a curve in water content, and a material carrying only the curve
+        // is fully specified.
         missing.WaterVaporDiffusionResistanceFactor =
-          (!material.hasDiffusionResistanceFactor() && multiDomain.isMoistureSimulationON())
-          || (!material.hasDiffusionResistanceFactor() && !physics.excludeHeatOfEvaporation
+          (!material.hasAnyDiffusionResistanceFactor() && multiDomain.isMoistureSimulationON())
+          || (!material.hasAnyDiffusionResistanceFactor() && !physics.excludeHeatOfEvaporation
               && multiDomain.isThermalSimulationON());
 
         // Sorption curve: any moisture simulation needs it (the transient capacity term and

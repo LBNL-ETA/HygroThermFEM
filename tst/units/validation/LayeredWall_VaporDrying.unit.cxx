@@ -14,9 +14,8 @@
 /// while water content jumps with the isotherms, and the drying front crosses
 /// the interface within the simulated two days.
 ///
-/// This is the validation book's first LAYERED engine dataset: the bottom node
-/// row is compared against the 1D reference solver running the same two-layer
-/// grid (hygrothermfem_python, case layered_vapor_drying). The humidity stays
+/// The bottom node row is compared against independently computed reference
+/// values for the same two-layer grid. The humidity stays
 /// well below the near-saturation taper, so the vapor transfer coefficient is
 /// the plain Lewis value beta = h_c / (rho_air Cp_air) on both sides
 /// (IConvectiveCoefficient::waterVaporTransferCoefficient multiplies the
@@ -90,8 +89,7 @@ TEST(LayeredWall_VaporDrying, TwoLayerDryingThroughOneFace)
     // The sealed face lags the exposed face.
     EXPECT_GT(final[0], final[20]);
 
-    // 48 h humidity checkpoints from the independently implemented 1D reference solver
-    // (hygrothermfem_python, case layered_vapor_drying) on the same two-layer grid:
+    // 48 h humidity checkpoints, independently computed for the same two-layer grid:
     // the sealed face, the cottaer interior, the material interface (column 6), the
     // stucco interior and the exposed face. Tolerances are ~2x the per-node
     // engine-reference deviation measured at capture, floored at 1e-6; the interface

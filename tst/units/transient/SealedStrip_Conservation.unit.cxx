@@ -23,12 +23,9 @@
 /// The measured drift is 1.05e-7 relative over the 240 steps. Its origin is NOT the
 /// nonlinear iteration: sweeping the solver's error tolerance from 1e-6 to 1e-12
 /// leaves the number bit-identical, as does removing the vapour storage term by
-/// running the non-porous twin material. The 1D reference solver on the same case
-/// stays at 4.7e-12. What sets the engine's level is not yet identified; the value
+/// running the non-porous twin material. An independent implementation of the same
+/// case stays at 4.7e-12. What sets the engine's level is not yet identified; the value
 /// is pinned here so that it cannot move unnoticed.
-///
-/// Validation book (hygrothermfem_python) dataset: sealed_strip_conservation, chapter
-/// "The sealed strip: steady state and conservation".
 /////////////////////////////////////////////////////////////////////////////////////
 
 namespace

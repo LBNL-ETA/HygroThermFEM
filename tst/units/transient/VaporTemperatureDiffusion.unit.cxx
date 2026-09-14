@@ -19,9 +19,7 @@ using HygroThermFEM::Variable;
 // temperature-gradient vapour term delta*phi*grad(c_sat) -- exactly the term D1 fixes.
 // So this isolates D1's behaviour, and being closed it also re-checks D6 conservation.
 //
-// The full-profile comparison against the 1D reference solver lives in the validation
-// book (hygrothermfem_python, cases vapor_isothermal_cottaer and vapor_gradient_cottaer);
-// what is asserted here is the closed system's own invariant, its stored moisture.
+// What is asserted here is the closed system's own invariant, its stored moisture.
 namespace
 {
     constexpr std::size_t nCols = 11;   // 10 elements along x
@@ -162,10 +160,8 @@ TEST(VaporTemperatureDiffusion, IsothermalControlAndGradient)
     // 2.3e-8 over 24 steps; the transport operator's column sums vanish).
     EXPECT_LT(gradient.maxDrift, 1e-6);
 
-    // Day-end humidity checkpoints from the independently implemented 1D reference
-    // solver (hygrothermfem_python, case vapor_gradient_cottaer) on the same grid,
-    // steps and material tables. Tolerance ~2x the measured engine-reference
-    // deviation of 4.1e-6.
+    // Day-end humidity checkpoints, independently computed on the same grid, steps
+    // and material tables. Tolerance ~2x the measured deviation of 4.1e-6.
     struct Checkpoint
     {
         std::size_t column;

@@ -300,7 +300,7 @@ namespace HygroThermFEM
         // passes keep the storage terms as natural damping while the fields are far off, the
         // late passes are a Newton solve of the steady equations themselves. Every pass reuses
         // the transient machinery - damped Newton with line search, the humidity clamp,
-        // adaptive subdivision - which is the solver validated against the reference solver.
+        // adaptive subdivision - which is the path the validation suite exercises.
         //
         // The previous scheme alternated two LINEAR solves with coefficients re-evaluated
         // between them. Once liquid transport near saturation entered, that alternation

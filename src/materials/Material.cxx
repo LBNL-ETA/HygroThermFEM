@@ -161,6 +161,28 @@ namespace HygroThermFEM
         return m_DiffusionResistanceFactor.has_value();
     }
 
+    const std::vector<FenestrationCommon::point> &
+      IMaterial::diffusionResistanceFactorMoistureDependent() const
+    {
+        return m_DiffusionResistanceFactorMoistureDependent;
+    }
+
+    void IMaterial::setDiffusionResistanceFactorMoistureDependent(
+      const std::vector<FenestrationCommon::point> & diffusionResistanceFactorMoistureDependent)
+    {
+        m_DiffusionResistanceFactorMoistureDependent = diffusionResistanceFactorMoistureDependent;
+    }
+
+    bool IMaterial::hasDiffusionResistanceFactorMoistureDependent() const
+    {
+        return !m_DiffusionResistanceFactorMoistureDependent.empty();
+    }
+
+    bool IMaterial::hasAnyDiffusionResistanceFactor() const
+    {
+        return hasDiffusionResistanceFactor() || hasDiffusionResistanceFactorMoistureDependent();
+    }
+
     bool IMaterial::isLinear() const
     {
         return m_Linear;
@@ -389,7 +411,15 @@ namespace HygroThermFEM
                       params.liquidTransportCurve,
                       params.sorptionCurve,
                       params.emissivity)
-    {}
+    {
+        // Not a constructor parameter: the positional SolidMaterial constructor is a
+        // long-standing public signature and this curve is optional on every material.
+        if(!params.diffusionResistanceFactorMoistureDependent.empty())
+        {
+            setDiffusionResistanceFactorMoistureDependent(
+              params.diffusionResistanceFactorMoistureDependent);
+        }
+    }
 
     Water SolidMaterial::waterContent(const INode2D & node) const
     {

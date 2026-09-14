@@ -12,9 +12,8 @@
 ///
 /// Cottaer Sandstone (k = 1.8, 0.06 m) against Stucco (k = 0.85, 0.04 m).
 /// Nodally exact for linear elements, so the tolerance is a solver tolerance,
-/// not a discretization band. The bottom node row is the layered 1D proxy the
-/// validation book compares (hygrothermfem_python tests/test_multimaterial.py
-/// asserts the same closed form for the reference solver).
+/// not a discretization band. The bottom node row is the layered one-dimensional
+/// proxy for that closed form.
 /////////////////////////////////////////////////////////////////////////////////////
 
 TEST(LayeredWall_SeriesResistance, TwoLayerSteadyConduction)

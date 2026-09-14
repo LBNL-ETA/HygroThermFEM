@@ -13,7 +13,7 @@
 /// Unit slab (alpha = 1) at zero initial temperature, adiabatic at x = 0, surface
 /// at x = 1 held at T0 e^(beta t) with T0 = 1, beta = 0.1. Analytical solution:
 /// Carslaw & Jaeger p. 132. Expected values are the exact series at the report's
-/// checkpoints (hygrothermfem_python, analytic.slab_temperature_exponential); the
+/// checkpoints; the
 /// tolerance is the measured backward-Euler discretization band at dt = 0.01 on
 /// ten elements (max 8.8e-3).
 ///

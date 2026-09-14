@@ -30,9 +30,6 @@
 /// between steps), and total water is conserved to 1e-13, so what the deviation
 /// from the closed form measures is the discretization of the vapor
 /// temperature-gradient term alone: it falls at second order under refinement.
-///
-/// Validation book (hygrothermfem_python) dataset: sealed_strip_steady_gradient,
-/// chapter "The sealed strip: steady state and conservation".
 /////////////////////////////////////////////////////////////////////////////////////
 
 namespace

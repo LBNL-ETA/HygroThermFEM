@@ -12,8 +12,7 @@
 /// Unit slab (alpha = 1, k = 1) at zero initial temperature, adiabatic at x = 0,
 /// convection h = 1 at x = 1 into an ambient that ramps as Ta = C0 t with C0 = 1.
 /// Analytical solution: Carslaw & Jaeger p. 127. Expected values are the exact
-/// series at the report's checkpoints (hygrothermfem_python,
-/// analytic.slab_convection_ramp); the tolerance is the measured backward-Euler
+/// series at the report's checkpoints; the tolerance is the measured backward-Euler
 /// discretization band at dt = 0.01 on ten elements (max 1.9e-3).
 ///
 /// Per-step BC vectors advance only through the explicit timestepIndex argument

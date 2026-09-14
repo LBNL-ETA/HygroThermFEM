@@ -956,7 +956,7 @@ namespace HygroThermFEM
         // budget is exhausted without meeting the reduction target, return the best (lowest
         // free-residual) iterate seen and accept it, rather than reporting non-convergence
         // (which would drive subdivision to a throw) or returning an oscillating last iterate.
-        // This mirrors the reference solver, which runs its iterations and returns; the
+        // The established behaviour here is to run the iterations and return; the
         // reduction criterion still governs early exit and accuracy for the converging cases.
         if(useResidualConvergence())
         {

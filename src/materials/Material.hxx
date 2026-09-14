@@ -151,6 +151,29 @@ namespace HygroThermFEM
         //! \brief Checks if value has been set
         [[nodiscard]] bool hasDiffusionResistanceFactor() const;
 
+        //! \brief Diffusion resistance factor as a curve in water content, mu(w).
+        //!
+        //! Supersedes the scalar above when set. A material supplies one form or the
+        //! other; the scalar stays the dry-range value for materials whose resistance
+        //! does not vary with moisture, which is most of them.
+        //! (x-water content [kg/m3], y-resistance factor [-])
+        [[nodiscard]] const std::vector<FenestrationCommon::point> &
+          diffusionResistanceFactorMoistureDependent() const;
+
+        //! \brief Sets the moisture-dependent diffusion resistance factor curve.
+        void setDiffusionResistanceFactorMoistureDependent(
+          const std::vector<FenestrationCommon::point> & diffusionResistanceFactorMoistureDependent);
+
+        //! \brief Checks if the curve has been set
+        [[nodiscard]] bool hasDiffusionResistanceFactorMoistureDependent() const;
+
+        //! \brief True when the material can supply a resistance factor in EITHER form.
+        //!
+        //! Every consumer of vapour permeability should gate on this rather than on the
+        //! scalar alone, or a material carrying only the curve is treated as having no
+        //! vapour transport at all.
+        [[nodiscard]] bool hasAnyDiffusionResistanceFactor() const;
+
         //! Material can require nonlinear iterations.
         [[nodiscard]] bool isLinear() const;
 
@@ -237,6 +260,10 @@ namespace HygroThermFEM
         std::optional<double> m_SpecificHeatCapacity{};
         std::optional<double> m_DiffusionResistanceFactor{};
 
+        //! Diffusion resistance factor against water content, mu(w). Empty for the great
+        //! majority of materials, whose resistance is a single number.
+        std::vector<FenestrationCommon::point> m_DiffusionResistanceFactorMoistureDependent{};
+
         //! Thermal conductivity table is (x-water content [kg/m3], temperature[Celsius], y-thermal
         //! conductivity[W/(mK)]). Concrete type, optional-by-design (empty when unset).
         std::optional<TabularFunction2D> m_ThermalConductivity2DTable;
@@ -317,6 +344,8 @@ namespace HygroThermFEM
         double porosity = 0.0;
         double heatCapacity = 0.0;
         double diffusionResistanceFactor = 0.0;
+        //! Optional mu(w) curve; when non-empty it supersedes the scalar above.
+        std::vector<FenestrationCommon::point> diffusionResistanceFactorMoistureDependent = {};
         std::vector<FenestrationCommon::point> thermalConductivityMoistureDependent = {};
         double moistureDependentMeasurementTemperature = 0.0;
         std::vector<FenestrationCommon::point> thermalConductivityTemperatureDependent = {};

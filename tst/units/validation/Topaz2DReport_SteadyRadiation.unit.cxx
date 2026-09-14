@@ -17,7 +17,7 @@
 /// The report states the same problem with temperatures already absolute; here the
 /// parameters are engine-native (Celsius, sigma = 5.6697e-8), and the expected
 /// slope C0 = 84.707885049305 comes from the same root equation in those units
-/// (hygrothermfem_python, analytic.radiation_steady_slope). The steady coupling
+///. The steady coupling
 /// loop re-linearizes the radiation coefficient about each pass's surface
 /// temperature, which is the Picard iteration for the T^4 balance.
 /////////////////////////////////////////////////////////////////////////////////////

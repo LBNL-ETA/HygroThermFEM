@@ -12,7 +12,7 @@
 /// Unit slab (alpha = 1) at uniform initial temperature 1.0, adiabatic at x = 0,
 /// surface at x = 1 stepped to 0. Analytical solution: odd-cosine series,
 /// Carslaw & Jaeger p. 97. Expected values are the exact series at the report's
-/// checkpoints (hygrothermfem_python, analytic.slab_temperature_step); the
+/// checkpoints; the
 /// tolerance is the measured backward-Euler discretization band at dt = 0.01 on
 /// ten elements (max 8.8e-3).
 /////////////////////////////////////////////////////////////////////////////////////

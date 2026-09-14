@@ -13,7 +13,7 @@
 /// surface at x = 1 held at 0, uniform generation q = 1 switched on at t = 0.
 /// Analytical solution: the steady parabola minus its decaying odd-cosine series
 /// (report section 3.4). Expected values are the exact series at the report's
-/// checkpoints (hygrothermfem_python, analytic.slab_generation_transient); the
+/// checkpoints; the
 /// tolerance is the measured backward-Euler discretization band at dt = 0.01 on
 /// ten elements (max 2.7e-3).
 /////////////////////////////////////////////////////////////////////////////////////

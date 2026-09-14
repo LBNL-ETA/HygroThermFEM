@@ -11,8 +11,8 @@
 // D5 Tier 1 conservation guard: repeated freeze--thaw cycling through the fusion ramp.
 // The Freezing tests only ever freeze monotonically; here every near-surface node
 // crosses the ramp in BOTH directions several times, which is where an asymmetric or
-// non-telescoping latent booking would hide. Mirrors the 1D reference solver's
-// freeze--thaw enthalpy-conservation test (hygrothermfem_python tests/test_freezing.py).
+// non-telescoping latent booking would hide. This is the enthalpy method's standard
+// freeze--thaw conservation check.
 //
 // Checks, in order: freezing actually happens each cold phase; the slab returns to its
 // initial uniform state after the final warm hold (no hysteresis -- thaw repays exactly

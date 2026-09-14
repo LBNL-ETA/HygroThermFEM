@@ -12,9 +12,9 @@
 /// Unit slab (alpha = 1, k = 1) at zero initial temperature, adiabatic at x = 0,
 /// surface at x = 1 held at 0, spatially varying generation q(x) = 1 - (x/L)^2
 /// applied per element at its midpoint. Analytical solution: the odd-cosine
-/// eigenfunction expansion (hygrothermfem_python, analytic.slab_generation_spatial;
-/// its docstring records why the report's printed series, which also carries
-/// even-index terms, does not satisfy T(L) = 0). Expected values are the exact
+/// eigenfunction expansion. The report's printed series also carries even-index
+/// terms and so does not satisfy T(L) = 0, which is why only the odd-index terms
+/// are summed here. Expected values are the exact
 /// odd-index series at the report's checkpoints; the tolerance is the measured
 /// backward-Euler discretization band at dt = 0.01 on ten elements (max 2.5e-3).
 /////////////////////////////////////////////////////////////////////////////////////

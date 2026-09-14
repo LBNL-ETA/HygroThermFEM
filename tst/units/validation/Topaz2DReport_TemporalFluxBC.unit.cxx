@@ -14,7 +14,7 @@
 /// surface heat flux q = q0 / sqrt(t) at x = 1 (the m = -1 member of the report's
 /// q0 t^(m/2) family). Analytical solution: image-source erfc series, Carslaw &
 /// Jaeger p. 113. Expected values are the exact series at the report's
-/// checkpoints (hygrothermfem_python, analytic.slab_flux_inverse_sqrt); the
+/// checkpoints; the
 /// tolerance is the measured backward-Euler discretization band at dt = 0.01 on
 /// ten elements (max 1.7e-2, largest at the singular start).
 ///

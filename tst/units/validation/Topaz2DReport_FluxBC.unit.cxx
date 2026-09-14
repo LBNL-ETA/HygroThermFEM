@@ -16,7 +16,7 @@
 /// against the series below; the opposite of the left-edge Topaz2D_FluxBC golden,
 /// where a negative value heats). Analytical solution:
 /// Carslaw & Jaeger p. 112. Expected values are the exact series at the report's
-/// checkpoints (hygrothermfem_python, analytic.slab_constant_flux); the tolerance
+/// checkpoints; the tolerance
 /// is the measured backward-Euler discretization band at dt = 0.01 on ten
 /// elements (max 6.8e-3).
 /////////////////////////////////////////////////////////////////////////////////////

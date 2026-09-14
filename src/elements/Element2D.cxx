@@ -11,6 +11,21 @@
 
 namespace
 {
+    //! Builds the material's vapour permeability in whichever form it supplies its
+    //! diffusion resistance factor: a curve in water content when it has one, otherwise
+    //! the single value. One concrete type either way, because the callers compose it
+    //! into static expression templates.
+    [[nodiscard]] HygroThermFEM::VaporPermeability
+      vaporPermeabilityOf(const HygroThermFEM::IMaterial & material)
+    {
+        if(material.hasDiffusionResistanceFactorMoistureDependent())
+        {
+            return HygroThermFEM::VaporPermeability{
+              material.diffusionResistanceFactorMoistureDependent(), material};
+        }
+        return HygroThermFEM::VaporPermeability{material.diffusionResistanceFactor()};
+    }
+
     //! Scales column j of a matrix by factor j, turning the stiffness matrix of a
     //! coefficient into the transport matrix of a product potential (see the two-argument DDu).
     HygroThermFEM::ElementMatrix2D scaleColumns(const HygroThermFEM::ElementMatrix2D & matrix,
@@ -610,8 +625,8 @@ namespace HygroThermFEM
 
         // Latent heat of fusion (D5 Tier 1): the mass-conservative secant of
         // L_f * lambda(T) per kilogram of condensed water, times the condensed content
-        // (liquid + ice). Validated against the 1D reference solver's enthalpy-method
-        // freezing (Stefan front, freeze--thaw conservation). Replaces the disabled
+        // (liquid + ice). Validated against the enthalpy method's published freezing
+        // benchmarks (Stefan front, freeze--thaw conservation). Replaces the disabled
         // PhaseChange sketch (its correct form previously lived on the deleted
         // IceContentFix branch). The nodes' liquidPercent is rolled from lambda(T) at
         // each accepted timestep (MultiDomain::transient), which feeds the liquid/ice
@@ -669,9 +684,9 @@ namespace HygroThermFEM
         //////////////////////////////////////////////////////////////////////
         ///  Conversion from liquid to gas (vapor part)
         //////////////////////////////////////////////////////////////////////
-        if(m_Material.hasDiffusionResistanceFactor())
+        if(m_Material.hasAnyDiffusionResistanceFactor())
         {
-            const VaporPermeability delta{m_Material.diffusionResistanceFactor()};
+            const VaporPermeability delta{vaporPermeabilityOf(m_Material)};
             if(!physics.excludeHeatOfEvaporation)
             {
                 // Interior latent term h_lg * div(g_v). Two corrections against the THERMM
@@ -742,9 +757,9 @@ namespace HygroThermFEM
         //////////////////////////////////////////////////////////////////////
         ///  Conduction from vapor
         //////////////////////////////////////////////////////////////////////
-        if(!physics.excludeVaporDiffusionConduction && m_Material.hasDiffusionResistanceFactor())
+        if(!physics.excludeVaporDiffusionConduction && m_Material.hasAnyDiffusionResistanceFactor())
         {
-            const VaporPermeability delta{m_Material.diffusionResistanceFactor()};
+            const VaporPermeability delta{vaporPermeabilityOf(m_Material)};
             auto vapCond = Constant(-1) * delta * Constants::Cp_Vapor;
             // Advected enthalpy follows the vapour flux of the moisture equation,
             // g_v = -delta grad(c_sat * phi) -- the flux-consistent potential, not the
@@ -785,11 +800,11 @@ namespace HygroThermFEM
         //////////////////////////////////////////////////////////////////////////////
         /// Water vapor diffusion
         //////////////////////////////////////////////////////////////////////////////
-        if(m_Material.hasDiffusionResistanceFactor())
+        if(m_Material.hasAnyDiffusionResistanceFactor())
         {
             // Non-const: the assembly templates store a copy through unique_ptr<IValue>,
             // which a const-deduced T cannot provide.
-            VaporPermeability delta{m_Material.diffusionResistanceFactor()};
+            VaporPermeability delta{vaporPermeabilityOf(m_Material)};
             auto conductance = delta * SaturationFunction();
 
             // The vapour term grad.(delta grad(phi c_sat)) is assembled on its PRODUCT

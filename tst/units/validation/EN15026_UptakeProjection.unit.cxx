@@ -12,22 +12,19 @@
 /////////////////////////////////////////////////////////////////////////////////////
 /// EN 15026:2007 Annex A -- moisture uptake in a semi-infinite region, run as the
 /// SCALAR-MU PROJECTION of the benchmark (see EN15026Material.hxx: the annex's
-/// mu(w) spans 212..875 over the benchmark's own moisture range and the material
+/// mu(w) spans 212..866 over the benchmark's own moisture range and the material
 /// model carries one value, so the standard's Tables A.1/A.2 are NOT the pass
-/// criterion here -- the validation book shows no scalar mu satisfies them). The
-/// engine is instead compared against the 1D reference solver running the SAME
-/// projection (hygrothermfem_python, case en15026_uptake_projection), which
-/// isolates engine discretization and coupling from the representation question.
+/// criterion here; the two end values are asserted in EN15026_AnnexAProperties,
+/// and EN15026_AnnexABenchmark measures the engine against those tables directly).
+/// The checkpoints below are instead independently computed reference values for
+/// the SAME projection, which isolates engine discretization and coupling from the
+/// representation question.
 ///
 /// Setup per the annex: uniform initial state 20 C / phi = 0.5; at t = 0 the
 /// x = 0 surface steps to 30 C / phi = 0.95 (both fields Dirichlet); the far end
 /// is natural and far enough (30 m, geometric grading) to stay undisturbed over
 /// the simulated week. Moisture-dependent lambda(w) is active via the tabular
-/// 2D-conductivity branch. Bottom-row profiles at day 1 and day 7 were
-/// captured once for the book's engine dataset (hygrothermfem_python,
-/// data/engine/en15026_uptake_projection); re-capturing on demand is a
-/// matter of temporarily writing the bottom-row profiles to CSV here or
-/// reproducing the configuration through the GUI.
+/// 2D-conductivity branch.
 ///
 /// This configuration -- both fields pinned on one edge of a coupled run --
 /// exposed two penalty-boundary defects (fixed 2026-07-21, found by exactly this
@@ -55,15 +52,15 @@ namespace
         return values[left] + fraction * (values[right] - values[left]);
     }
 
-    //! Validation checkpoint: reference-solver value with the tolerance set at
-    //! roughly twice the measured engine deviation at first capture.
+    //! Validation checkpoint: an independently computed value, with the tolerance
+    //! set at roughly twice the measured engine deviation at first capture.
     struct Checkpoint
     {
         std::size_t dayRow;   //!< 0 = day 1, 1 = day 7
         double position;      //!< [m]
-        double humidity;      //!< reference solver phi [-]
+        double humidity;      //!< independently computed phi [-]
         double humidityTol;
-        double temperature;   //!< reference solver T [C]
+        double temperature;   //!< independently computed T [C]
         double temperatureTol;
     };
 }   // namespace
@@ -95,9 +92,9 @@ TEST(EN15026_UptakeProjection, SevenDaysScalarMu)
         });
 
         const auto & material =
-          multiDomain.materials().createSolidMaterial(TestHelper::EN15026AnnexA());
+          multiDomain.materials().createSolidMaterial(TestHelper::EN15026::material());
 
-        const auto coords = TestHelper::en15026GradedCoordinates(5.0e-4, 1.06, 30.0);
+        const auto coords = TestHelper::EN15026::gradedCoordinates(5.0e-4, 1.06, 30.0);
         const auto nColumns = coords.size();
 
         TestHelper::SlabBuilder(multiDomain)
@@ -142,13 +139,12 @@ TEST(EN15026_UptakeProjection, SevenDaysScalarMu)
         }
         ASSERT_EQ(2u, humidityAtDays.size());
 
-        // Validation checkpoints: the 1D reference solver (hygrotherm1d, case
-        // en15026_uptake_projection) running the SAME scalar-mu projection on
-        // identical tables, tight coupling, same mesh and schedule. These pin
-        // the coupled physics so a regression is caught in THIS suite; the
-        // full-profile comparison lives in the validation book. Assertions
-        // against the standard's own Tables A.1/A.2 await a moisture-dependent
-        // mu(phi) material model -- no scalar mu can satisfy them.
+        // Validation checkpoints: independently computed values for the SAME
+        // scalar-mu projection, on identical tables, with tight coupling and the
+        // same mesh and schedule. These pin
+        // the coupled physics so a regression is caught here, at tolerances far
+        // tighter than the standard's own bands. Assertions against Tables A.1
+        // and A.2 live in EN15026_AnnexABenchmark.
         const std::vector<Checkpoint> checkpoints{
           {0, 0.005, 0.559572, 2.0e-2, 29.92474, 3.0e-3},
           {0, 0.010, 0.501277, 2.0e-3, 29.83188, 3.0e-3},

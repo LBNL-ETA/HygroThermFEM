@@ -4,6 +4,7 @@
 #include <functional>
 #include <map>
 #include <memory>
+#include <optional>
 #include <vector>
 
 #include "Interpolator.hxx"
@@ -692,17 +693,55 @@ namespace HygroThermFEM
     //! \brief Water vapour permeability delta = E(T) / mu with the temperature-dependent
     //! diffusion coefficient E(T) per Hagentoft (see vaporDiffusionCoefficientAtTemperature)
     //! and the material's vapour diffusion resistance factor mu.
+    //! \brief mu(w) lookup for a moisture-dependent vapour diffusion resistance factor.
+    //!
+    //! Exists so VaporPermeability can evaluate the curve at a water content resolved
+    //! through the MATERIAL rather than at the node's averaged Variable::water. The
+    //! distinction matters at a material interface, where the node's averaged water
+    //! content is not consistent with this material's own curve -- the same reason
+    //! LiquidTransportationCurve overrides value().
+    class ResistanceFactorCurve : public TabularFunction1D
+    {
+    public:
+        explicit ResistanceFactorCurve(const std::vector<FenestrationCommon::point> & curve);
+
+        //! Resistance factor at a given water content [kg/m3].
+        [[nodiscard]] double at(double waterContent) const;
+    };
+
+    //! \brief Water vapour permeability, delta_p = D_air(T) / mu [kg/(m s Pa)].
+    //!
+    //! The resistance factor mu is EITHER a single value OR a curve in water content, and
+    //! both live in this one class on purpose. The element assembly composes this function
+    //! into static expression templates, so a material that varies mu must not change the
+    //! concrete type the element builds -- which is what a separate class for the tabular
+    //! form would force. Constructing with a curve is what EN 15026:2007 Annex A needs:
+    //! its resistance factor runs from 212 to 866 over the benchmark's moisture range.
     class VaporPermeability : public IFunction
     {
     public:
         //! \param t_resistanceFactor Material vapour diffusion resistance factor mu [-].
         explicit VaporPermeability(double t_resistanceFactor);
 
+        //! \param t_resistanceFactorCurve Resistance factor against water content, mu(w).
+        //! \param t_material Material whose water content resolves the lookup key.
+        VaporPermeability(const std::vector<FenestrationCommon::point> & t_resistanceFactorCurve,
+                          const IMaterial & t_material);
+
+        //! Evaluates delta_p at the node, taking mu from whichever form was supplied.
+        [[nodiscard]] double value(const INode2D & node) const override;
+
     private:
-        //! Overriden evaluation function.
+        //! Constant-factor evaluation. The moisture-dependent form resolves its water
+        //! content from a node and so is served by value() instead.
         double evaluateFunction(double t_position, double t_previousTimestep) const override;
 
-        double m_ResistanceFactor;
+        //! The resistance factor this material applies at the given node.
+        [[nodiscard]] double resistanceFactorAt(const INode2D & node) const;
+
+        double m_ResistanceFactor{0.0};
+        std::optional<ResistanceFactorCurve> m_ResistanceFactorCurve{};
+        const IMaterial * m_Material{nullptr};
     };
 
     //////////////////////////////////////////////////////////////////
@@ -754,8 +793,8 @@ namespace HygroThermFEM
     //! the tangent L_f * dlambda/dT where the increment vanishes -- the same
     //! construction as SorptionSecantCapacity for the moisture storage. Composed in
     //! the thermal element as FusionSecantCapacity() * (liquid + ice) [J/(m^3 K)].
-    //! Validated against the 1D reference (hygrothermfem_python freezing.py): Stefan
-    //! front and freeze--thaw enthalpy conservation.
+    //! Validated by the suite's Stefan-front and freeze--thaw enthalpy-conservation
+    //! tests.
     class FusionSecantCapacity : public IFunction
     {
     public:
