@@ -292,9 +292,9 @@ namespace TestHelper::HAMSTAD
         return table;
     }
 
-    //! lambda keyed by relative humidity, because the engine builds its moisture dependent
-    //! conductivity with Variable::humidity: the report's linear lambda(w) enters as
-    //! lambda(w(phi)) on the same suction grid.
+    //! lambda(w) as (w, lambda), the axis the engine keys its moisture dependent
+    //! conductivity by, sampled at the suction grid's water contents and closed at dry
+    //! and free saturation so that it spans exactly the isotherm's range.
     [[nodiscard]] inline std::vector<FenestrationCommon::point>
       conductivityTable(const Material & material, const std::vector<double> & suctions)
     {
@@ -302,10 +302,11 @@ namespace TestHelper::HAMSTAD
         table.reserve(suctions.size() + 2u);
         for(const double suction : suctions)
         {
-            table.emplace_back(humidityFromSuction(suction),
-                               thermalConductivity(material, waterContent(material, suction)));
+            const double water{waterContent(material, suction)};
+            table.emplace_back(water, thermalConductivity(material, water));
         }
-        table.emplace_back(1.0, thermalConductivity(material, material.freeSaturation));
+        table.emplace_back(material.freeSaturation,
+                           thermalConductivity(material, material.freeSaturation));
         return table;
     }
 
@@ -515,7 +516,7 @@ namespace TestHelper::HAMSTAD
               .diffusionResistanceFactor = engineResistanceFactor(),
               .diffusionResistanceFactorMoistureDependent = {},
               .thermalConductivityMoistureDependent = {{0.0, thermalConductivity},
-                                                       {1.0, thermalConductivity}},
+                                                       {116.0, thermalConductivity}},
               .moistureDependentMeasurementTemperature = 0,
               .thermalConductivityTemperatureDependent = {{0.0, thermalConductivity},
                                                           {100.0, thermalConductivity}},

@@ -183,7 +183,7 @@ namespace HygroThermFEM
         //! Sets thermal condctivity dependence on temperature and moisture
         //!
         //! \param thermalConductivityMoistureDependent table of thermal conductivity values in
-        //! relation to moisture content
+        //! relation to water content (x-water content [kg/m3], y-conductivity [W/(mK)])
         //! \param moistureDependentMeasuredTemperature temperature at
         //! which moisture dependent thermal conductivity is measured
         //! \param thermalConductivityTemperatureDependent table of thermal conductivity values

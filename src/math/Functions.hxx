@@ -403,6 +403,11 @@ namespace HygroThermFEM
                           FenestrationCommon::Interpolator interpolator =
                             FenestrationCommon::Interpolation::Linear);
 
+        //! \brief The table read at a given abscissa, for callers that resolve the
+        //! abscissa themselves (a material's own water content, for instance) rather than
+        //! through a node's state.
+        [[nodiscard]] double at(double position) const;
+
         //! \brief Returns maximum value for first column.
         double maxX() const;
 
@@ -472,10 +477,22 @@ namespace HygroThermFEM
 
         double value(const INode2D & node) const override;
 
+        //! \brief Resolves the first table's abscissa through a material instead of the
+        //! node's averaged state.
+        //!
+        //! A moisture-dependent conductivity is keyed by water content, and at a material
+        //! interface the node's averaged Variable::water is not this material's own w at
+        //! the node's humidity -- the same reason LiquidTransportationCurve and
+        //! VaporPermeability bind to a material. Bound tables read w through
+        //! material.waterContent(node); unbound ones read the node property as before.
+        void bindMaterial(const IMaterial & material);
+
         double maxXFirstTable() const;
         double maxYFirstTable() const;
 
     private:
+        //! First-table abscissa at a node, through the bound material when there is one.
+        [[nodiscard]] double firstTableValue(const INode2D & node) const;
 
         //! \brief Function to find y value from vector of points
         //!
@@ -485,6 +502,8 @@ namespace HygroThermFEM
         double findValueAtPoint(const std::vector<FenestrationCommon::point> & table, double value) const;
 
         TabularFunction1D m_FirstTable;
+        Variable m_FirstProperty;
+        const IMaterial * m_Material{nullptr};
 
         // Both tables need to match resulting value at measured properties
         double m_CommonValueAtMeasuredTables;

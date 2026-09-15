@@ -18,9 +18,9 @@
 //! evaluating these functions, so the file can be read against the document.
 //!
 //! EN15026_AnnexAProperties asserts this transcription against the standard's own
-//! published values. The two places where the engine's material model cannot hold what
-//! the annex specifies -- the scalar diffusion resistance factor, and the
-//! humidity-keyed conductivity table -- are called out at the functions concerned.
+//! published values. The one representation choice the annex does not prescribe -- the
+//! split of its printed rho_0 c_0 into the engine's density and specific heat -- is
+//! called out at the constant concerned.
 namespace TestHelper::EN15026
 {
     /////////////////////////////////////////////////////////////////////////////
@@ -262,10 +262,9 @@ namespace TestHelper::EN15026
         return table;
     }
 
-    //! lambda keyed by RELATIVE HUMIDITY rather than by water content, because the
-    //! engine builds its moisture-dependent conductivity with Variable::humidity. The
-    //! annex's linear lambda(w) therefore enters as lambda(w(phi)) on the sorption
-    //! grid -- the same curve, sampled through the isotherm.
+    //! lambda(w) as (w, lambda), the axis the engine keys its moisture-dependent
+    //! conductivity by, sampled at the water contents of the sorption grid and closed at
+    //! dry and free saturation so that it spans exactly the isotherm's range.
     [[nodiscard]] inline std::vector<FenestrationCommon::point>
       conductivityTable(const std::vector<double> & humidities)
     {
@@ -273,9 +272,10 @@ namespace TestHelper::EN15026
         table.reserve(humidities.size() + 2u);
         for(const double humidity : humidities)
         {
-            table.emplace_back(humidity, thermalConductivity(waterContent(humidity)));
+            const double water{waterContent(humidity)};
+            table.emplace_back(water, thermalConductivity(water));
         }
-        table.emplace_back(1.0, thermalConductivity(freeSaturation));
+        table.emplace_back(freeSaturation, thermalConductivity(freeSaturation));
         return table;
     }
 

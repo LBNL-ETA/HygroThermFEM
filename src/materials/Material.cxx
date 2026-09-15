@@ -196,7 +196,12 @@ namespace HygroThermFEM
                                      + " do not have assigned table for moisture and temperature "
                                        "dependent thermal conductivity.");
         }
-        return *m_ThermalConductivity2DTable;
+        // Bound on the way out rather than in storage: the copy the element keeps then
+        // resolves water content through THIS material, and the stored table never carries
+        // a pointer that a copy of the material would leave dangling.
+        auto table{*m_ThermalConductivity2DTable};
+        table.bindMaterial(*this);
+        return table;
     }
 
     void IMaterial::setThermalConductivityMoistureAndTemperatureDependent(
@@ -205,9 +210,13 @@ namespace HygroThermFEM
       const std::vector<FenestrationCommon::point> & thermalConductivityTemperatureDependent,
       double temperatureDependentMeasurementHumidity)
     {
+        // Keyed by WATER CONTENT [kg/m3], the axis the material libraries measure and store
+        // it against; the element reads it through the material's own isotherm (see
+        // thermalConductivityMoistureAndTemperatureDependent). It was keyed by relative
+        // humidity for a while, which silently read every library table at 0 to 1 kg/m3.
         m_ThermalConductivity2DTable.emplace(thermalConductivityMoistureDependent,
                                              moistureDependentMeasuredTemperature,
-                                             Variable::humidity,
+                                             Variable::water,
                                              thermalConductivityTemperatureDependent,
                                              temperatureDependentMeasurementHumidity,
                                              Variable::temperature);
@@ -390,7 +399,7 @@ namespace HygroThermFEM
         }
         catch(const std::runtime_error & e)
         {
-            std::cout << e.what();
+            std::cerr << "Material " << m_Name << ": " << e.what() << '\n';
         }
     }
 

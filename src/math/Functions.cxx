@@ -207,6 +207,11 @@ namespace HygroThermFEM
         return std::make_pair(pt1, pt2);
     }
 
+    double TabularFunction1D::at(const double position) const
+    {
+        return evaluateFunction(position, position);
+    }
+
     double TabularFunction1D::maxX() const
     {
         return m_Curve.back().x;
@@ -258,7 +263,8 @@ namespace HygroThermFEM
       Variable secondProperty,
       const FenestrationCommon::Interpolator & interpolator) :
         TabularFunction1D(secondValues, secondProperty, interpolator),
-        m_FirstTable(firstValues, firstProperty, interpolator)
+        m_FirstTable(firstValues, firstProperty, interpolator),
+        m_FirstProperty(firstProperty)
     {
         const double tolerance{1e-6};
         const double y1{findValueAtPoint(firstValues, secondTableMeasureAt)};
@@ -274,9 +280,23 @@ namespace HygroThermFEM
         }
     }
 
+    void TabularFunction2D::bindMaterial(const IMaterial & material)
+    {
+        m_Material = &material;
+    }
+
+    double TabularFunction2D::firstTableValue(const INode2D & node) const
+    {
+        if(m_Material != nullptr && m_FirstProperty == Variable::water)
+        {
+            return m_FirstTable.at(m_Material->waterContent(node).content(WaterContent::Water));
+        }
+        return m_FirstTable.value(node);
+    }
+
     double TabularFunction2D::value(const INode2D & node) const
     {
-        const auto value1 = m_FirstTable.value(node);
+        const auto value1 = firstTableValue(node);
         const auto value2 = TabularFunction1D::value(node);
         // This is simplified version of following result = m_CommonValueAtMeasuredTables + (value1
         // - m_CommonValueAtMeasuredTables) + (value2 - m_CommonValueAtMeasuredTables)

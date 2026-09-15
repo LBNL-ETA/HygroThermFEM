@@ -646,11 +646,6 @@ namespace HygroThermFEM
         /// Conductance
         //////////////////////////////////////////////////////////////////////////
 
-        /// material
-        // const auto materialConductivity =
-        //  TabularFunction1D(m_Material.thermalConductivityMoistureAndTemperatureDependent(),
-        //  Variable::water);
-
         if(physics.thermalConductivityMoistureAndTemperatureDependent
            && m_Material.hasThermalConductivityMoistureAndTemperatureDependent())
         {
