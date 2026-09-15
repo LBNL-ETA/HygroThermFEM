@@ -52,7 +52,7 @@ namespace
         std::vector<HygroThermFEM::FixedBCHCCoefficients> series;
         for(const double airTemperature : airTemperatureSeries())
         {
-            series.push_back({airTemperature, filmCoefficient, 0.8});
+            series.emplace_back(airTemperature, filmCoefficient, 0.8);
         }
         return series;
     }

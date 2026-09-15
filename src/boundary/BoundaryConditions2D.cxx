@@ -78,7 +78,8 @@ namespace HygroThermFEM
                 }
                 rate -= vecR[row];
             }
-            result.push_back({indexes[0], indexes[1], rate});
+            result.push_back(
+              {.node1 = indexes[0], .node2 = indexes[1], .heatRate = rate});
         });
         return result;
     }

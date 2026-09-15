@@ -256,9 +256,9 @@ namespace TestHelper::EN15026
         table.reserve(humidities.size() + 2u);
         for(const double humidity : humidities)
         {
-            table.push_back({humidity, waterContent(humidity)});
+            table.emplace_back(humidity, waterContent(humidity));
         }
-        table.push_back({1.0, freeSaturation});
+        table.emplace_back(1.0, freeSaturation);
         return table;
     }
 
@@ -273,9 +273,9 @@ namespace TestHelper::EN15026
         table.reserve(humidities.size() + 2u);
         for(const double humidity : humidities)
         {
-            table.push_back({humidity, thermalConductivity(waterContent(humidity))});
+            table.emplace_back(humidity, thermalConductivity(waterContent(humidity)));
         }
-        table.push_back({1.0, thermalConductivity(freeSaturation)});
+        table.emplace_back(1.0, thermalConductivity(freeSaturation));
         return table;
     }
 
@@ -291,7 +291,7 @@ namespace TestHelper::EN15026
         for(const double humidity : humidities)
         {
             const double water{waterContent(humidity)};
-            table.push_back({water, vapourResistanceFactor(water)});
+            table.emplace_back(water, vapourResistanceFactor(water));
         }
         return table;
     }
@@ -306,7 +306,7 @@ namespace TestHelper::EN15026
         for(const double humidity : humidities)
         {
             const double water{waterContent(humidity)};
-            table.push_back({water, moistureDiffusivity(water)});
+            table.emplace_back(water, moistureDiffusivity(water));
         }
         return table;
     }
