@@ -104,101 +104,105 @@ namespace
     }
 }   // namespace
 
-//! Runs the benchmark ONCE for the whole suite: it is the most expensive test in the
-//! repository and both enabled tests read the same three profiles from it.
-class EN15026_AnnexABenchmark : public ::testing::Test
+namespace
 {
-protected:
-    static std::vector<double> coordinates;
-    static std::map<int, std::vector<double>> waterByDay;
-    static std::map<int, std::vector<double>> temperatureByDay;
-
-    static void SetUpTestSuite()
+    //! Runs the benchmark ONCE for the whole suite: it is the most expensive test in the
+    //! repository and both enabled tests read the same three profiles from it.
+    class EN15026_AnnexABenchmark : public ::testing::Test
     {
-        // Every physical term in, plus the moisture-dependent conductivity branch:
-        // the annex specifies lambda(w), liquid transport and latent heat together.
-        HygroThermFEM::SimulationProperties::Instance().setCalculationParameters(
-          false, false, false, false, true);
-        HygroThermFEM::SimulationProperties::Instance().setIterationParameters(1.0, 1e-9, 500);
+    protected:
+        static std::vector<double> coordinates;
+        static std::map<int, std::vector<double>> waterByDay;
+        static std::map<int, std::vector<double>> temperatureByDay;
 
-        HygroThermFEM::MultiDomain multiDomain({.performThermal = true, .performMoisture = true});
-
-        // The material the annex actually specifies, resistance factor curve included.
-        const auto & material = multiDomain.materials().createSolidMaterial(
-          Annex::material(Annex::dryResistanceFactor, true));
-
-        // "Semi-infinite" in practice: Table A.2 reads temperature out to 5 m, and over
-        // 365 days the thermal front reaches roughly 12 m, so the far end must sit well
-        // beyond that to stay undisturbed. Cells grow geometrically from half a
-        // millimetre at the wetted surface, where the moisture gradient is steep.
-        coordinates = Annex::gradedCoordinates(5.0e-4, 1.06, 30.0);
-        const auto nColumns = coordinates.size();
-
-        TestHelper::SlabBuilder(multiDomain)
-          .gridXCoordinates(coordinates)
-          .height(0.05)
-          .material(material.name())
-          .state({.temperature = 20.0,
-                  .humidity = 0.5,
-                  .pressure = 101325.0,
-                  .liquidPercent = 1.0})
-          .build();
-
-        // A.2: uniform 20 C and phi = 0,5, then the surface steps to 30 C and phi = 0,95
-        // with no boundary resistance, so both fields are imposed directly on the edge.
-        multiDomain.thermal().createBC_FixedTemperature(1, 2, 30.0);
-        multiDomain.moisture().createBC_FixedHumidity(
-          1, 2, HygroThermFEM::TemperatureAndHumidity{30.0, 0.95});
-
-        // Backward Euler, refined through the first hour where the step change is
-        // sharpest, then six-hourly to a year. Block boundaries land exactly on the
-        // three days the annex asks for. Six-hourly is a cost choice, not an accuracy
-        // one: two-hourly steps move the worst Table A.1 miss by 0,007 kg/m3 and
-        // daily steps by 0,03, against bands 4,3 wide.
-        const std::vector<std::pair<double, int>> timeBlocks{
-          {30.0, 120}, {600.0, 138}, {21600.0, 24}, {21600.0, 92}, {21600.0, 1340}};
-        const std::map<int, int> captureAt{{282, 7}, {374, 30}, {1714, 365}};
-
-        auto temperatures = multiDomain.nodes().properties(HygroThermFEM::Variable::temperature);
-        auto humidities = multiDomain.nodes().properties(HygroThermFEM::Variable::humidity);
-
-        int step{0};
-        for(const auto & [dTime, nSteps] : timeBlocks)
+        static void SetUpTestSuite()
         {
-            for(int blockStep = 0; blockStep < nSteps; ++blockStep)
+            // Every physical term in, plus the moisture-dependent conductivity branch:
+            // the annex specifies lambda(w), liquid transport and latent heat together.
+            HygroThermFEM::SimulationProperties::Instance().setCalculationParameters(
+              false, false, false, false, true);
+            HygroThermFEM::SimulationProperties::Instance().setIterationParameters(1.0, 1e-9, 500);
+
+            HygroThermFEM::MultiDomain multiDomain(
+              {.performThermal = true, .performMoisture = true});
+
+            // The material the annex actually specifies, resistance factor curve included.
+            const auto & material = multiDomain.materials().createSolidMaterial(
+              Annex::material(Annex::dryResistanceFactor, true));
+
+            // "Semi-infinite" in practice: Table A.2 reads temperature out to 5 m, and over
+            // 365 days the thermal front reaches roughly 12 m, so the far end must sit well
+            // beyond that to stay undisturbed. Cells grow geometrically from half a
+            // millimetre at the wetted surface, where the moisture gradient is steep.
+            coordinates = Annex::gradedCoordinates(5.0e-4, 1.06, 30.0);
+            const auto nColumns = coordinates.size();
+
+            TestHelper::SlabBuilder(multiDomain)
+              .gridXCoordinates(coordinates)
+              .height(0.05)
+              .material(material.name())
+              .state(
+                {.temperature = 20.0, .humidity = 0.5, .pressure = 101325.0, .liquidPercent = 1.0})
+              .build();
+
+            // A.2: uniform 20 C and phi = 0,5, then the surface steps to 30 C and phi = 0,95
+            // with no boundary resistance, so both fields are imposed directly on the edge.
+            multiDomain.thermal().createBC_FixedTemperature(1, 2, 30.0);
+            multiDomain.moisture().createBC_FixedHumidity(
+              1, 2, HygroThermFEM::TemperatureAndHumidity{30.0, 0.95});
+
+            // Backward Euler, refined through the first hour where the step change is
+            // sharpest, then six-hourly to a year. Block boundaries land exactly on the
+            // three days the annex asks for. Six-hourly is a cost choice, not an accuracy
+            // one: two-hourly steps move the worst Table A.1 miss by 0,007 kg/m3 and
+            // daily steps by 0,03, against bands 4,3 wide.
+            const std::vector<std::pair<double, int>> timeBlocks{
+              {30.0, 120}, {600.0, 138}, {21600.0, 24}, {21600.0, 92}, {21600.0, 1340}};
+            const std::map<int, int> captureAt{{282, 7}, {374, 30}, {1714, 365}};
+
+            auto temperatures =
+              multiDomain.nodes().properties(HygroThermFEM::Variable::temperature);
+            auto humidities = multiDomain.nodes().properties(HygroThermFEM::Variable::humidity);
+
+            int step{0};
+            for(const auto & [dTime, nSteps] : timeBlocks)
             {
-                const auto solution = multiDomain.transient(temperatures, humidities, dTime, step);
-                temperatures = solution.temperature;
-                humidities = solution.humidity;
-                ++step;
-                const auto capture = captureAt.find(step);
-                if(capture != captureAt.end())
+                for(int blockStep = 0; blockStep < nSteps; ++blockStep)
                 {
-                    waterByDay[capture->second] =
-                      TestHelper::bottomRow(solution.waterContent, nColumns, 2);
-                    temperatureByDay[capture->second] =
-                      TestHelper::bottomRow(temperatures, nColumns, 2);
+                    const auto solution =
+                      multiDomain.transient(temperatures, humidities, dTime, step);
+                    temperatures = solution.temperature;
+                    humidities = solution.humidity;
+                    ++step;
+                    const auto capture = captureAt.find(step);
+                    if(capture != captureAt.end())
+                    {
+                        waterByDay[capture->second] =
+                          TestHelper::bottomRow(solution.waterContent, nColumns, 2);
+                        temperatureByDay[capture->second] =
+                          TestHelper::bottomRow(temperatures, nColumns, 2);
+                    }
                 }
             }
+
+            HygroThermFEM::SimulationProperties::Instance().resetIterationParameters();
+            HygroThermFEM::SimulationProperties::Instance().resetCalculationParameters();
         }
 
-        HygroThermFEM::SimulationProperties::Instance().resetIterationParameters();
-        HygroThermFEM::SimulationProperties::Instance().resetCalculationParameters();
-    }
+        static void TearDownTestSuite()
+        {
+            coordinates.clear();
+            waterByDay.clear();
+            temperatureByDay.clear();
+        }
 
-    static void TearDownTestSuite()
-    {
-        coordinates.clear();
-        waterByDay.clear();
-        temperatureByDay.clear();
-    }
-
-    //! The computed value at one printed cell.
-    static double valueAt(const std::map<int, std::vector<double>> & field, const Limit & limit)
-    {
-        return profileAt(coordinates, field.at(limit.days), limit.position);
-    }
-};
+        //! The computed value at one printed cell.
+        static double valueAt(const std::map<int, std::vector<double>> & field, const Limit & limit)
+        {
+            return profileAt(coordinates, field.at(limit.days), limit.position);
+        }
+    };
+}   // namespace
 
 std::vector<double> EN15026_AnnexABenchmark::coordinates{};
 std::map<int, std::vector<double>> EN15026_AnnexABenchmark::waterByDay{};
