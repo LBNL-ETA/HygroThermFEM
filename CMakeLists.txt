@@ -220,6 +220,11 @@ if (BUILD_HTFEM_TESTING)
     target_compile_definitions(${target_name}_tests PRIVATE
         ERROREST_FIXTURE_DIR="${CMAKE_CURRENT_SOURCE_DIR}/tst/units/errorest/fixtures")
 
+    # HAMSTAD WP2 benchmark package: the climate file and the participants' result tables,
+    # read at runtime by tst/units/validation/HAMSTAD_*.unit.cxx (see the README there).
+    target_compile_definitions(${target_name}_tests PRIVATE
+        HAMSTAD_DATA_DIR="${CMAKE_CURRENT_SOURCE_DIR}/tst/units/validation/hamstad")
+
     # Register the suite with CTest so `ctest --preset <name>` and IDE test runners see it.
     # ADD_GOOGLE_TESTS_HTFEM above cannot do this: it scrapes TEST()/TEST_F() out of files
     # matching \.(cpp|cc)$, and every test here is .cxx, so it always registered nothing --

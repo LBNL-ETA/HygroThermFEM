@@ -2,10 +2,12 @@
 
 Tests in this folder assert VALIDATED NUMBERS -- values whose authority lies
 outside the engine: published analytic solutions (Carslaw & Jaeger), report
-tables (UCRL-ID-106550), normative standards (EN 15026:2007 Annex A), or
-values independently computed for the same case. Their purpose is regression
-tripwire: when coupled or conduction physics drifts, these fail HERE, in the
-engine's own suite.
+tables (UCRL-ID-106550), normative standards (EN 15026:2007 Annex A), the
+HAMSTAD WP2 benchmark package (its analytic case, its participants' profiles
+and its band of acceptance; data in hamstad/), or values independently
+computed for the same case. Their purpose is regression tripwire: when
+coupled or conduction physics drifts, these fail HERE, in the engine's own
+suite.
 
 Checkpoint tolerances are set at roughly twice the engine deviation measured
 at first capture, except where a standard sets the band itself.

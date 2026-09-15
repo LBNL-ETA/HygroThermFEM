@@ -109,6 +109,12 @@ namespace TestHelper
             return m_NumElementsY + 1;
         }
 
+        //! x-coordinate of every node column, left to right, as build() lays them out.
+        [[nodiscard]] std::vector<double> xCoordinates() const
+        {
+            return buildXCoordinates();
+        }
+
         //! 1-based node index at column `c` (0..numElementsX), row `r` (0..numElementsY).
         //! Column-major: nodes within a column are stored bottom-to-top.
         [[nodiscard]] std::size_t nodeIndex(const std::size_t c, const std::size_t r) const
