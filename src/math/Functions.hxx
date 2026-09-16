@@ -490,6 +490,9 @@ namespace HygroThermFEM
         double maxXFirstTable() const;
         double maxYFirstTable() const;
 
+        //! \brief The first table's points as given, for callers that inspect its axis.
+        [[nodiscard]] const std::vector<FenestrationCommon::point> & firstTable() const;
+
     private:
         //! First-table abscissa at a node, through the bound material when there is one.
         [[nodiscard]] double firstTableValue(const INode2D & node) const;

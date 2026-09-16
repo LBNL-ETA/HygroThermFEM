@@ -313,6 +313,11 @@ namespace HygroThermFEM
         return m_FirstTable.maxY();
     }
 
+    const std::vector<FenestrationCommon::point> & TabularFunction2D::firstTable() const
+    {
+        return m_FirstTable.getCurve();
+    }
+
     double TabularFunction2D::findValueAtPoint(const std::vector<FenestrationCommon::point> & table,
                                                const double value) const
     {

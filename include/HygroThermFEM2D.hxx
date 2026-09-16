@@ -27,6 +27,7 @@
 #include "../src/math/Functions.hxx"
 #include "../src/mesh/Interpolator.hxx"
 #include "../src/materials/Materials.hxx"
+#include "../src/materials/MaterialTableConsistency.hxx"
 #include "../src/math/FEMMath.hxx"
 #include "../src/domain/MultiDomain.hxx"
 #include "../src/common/Common.hxx"

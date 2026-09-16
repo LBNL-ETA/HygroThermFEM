@@ -1,5 +1,4 @@
 #include <cmath>
-#include <iostream>
 #include <utility>
 
 #include "Material.hxx"
@@ -378,29 +377,9 @@ namespace HygroThermFEM
                   sorptionCurve,
                   emissivity)
     {
-        try
-        {
-            if(m_ThermalConductivity2DTable->maxXFirstTable()
-               != m_SorptionCurve
-                    ->maxY())   // only moisture dependence must match to sorption curve
-            {
-                throw std::runtime_error("Thermal conductivity curve does not correspond to "
-                                         "sorption curve. Maximum water "
-                                         "content is not identical in both tables.");
-            }
-
-            if(m_LiquidTransportCoefficient->maxX() != m_SorptionCurve->maxY())
-            {
-                throw std::runtime_error(
-                  "Liquid transportation coefficient table does not correspond to sorption "
-                  "curve. "
-                  "Maximum water content is not identical in both tables.");
-            }
-        }
-        catch(const std::runtime_error & e)
-        {
-            std::cerr << "Material " << m_Name << ": " << e.what() << '\n';
-        }
+        // No table validation here: a table that stops short of the sorption curve's
+        // maximum still evaluates (its last segment is extrapolated), and whether to tell
+        // the user is the caller's decision -- see MaterialTableConsistency.hxx.
     }
 
     SolidMaterial::SolidMaterial(std::string name) : IMaterial(std::move(name))
