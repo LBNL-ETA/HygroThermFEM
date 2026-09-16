@@ -310,26 +310,28 @@ namespace TestHelper::HAMSTAD
         return table;
     }
 
-    //! The engine's resistance factor as (w, mu). No saturation endpoint: f(w) reaches
-    //! zero at w_sat so mu diverges there.
+    //! The engine's resistance factor as (w, mu). f(w) reaches zero at w_sat so mu diverges
+    //! there; the table is closed at free saturation with its last finite value repeated,
+    //! so that it spans the isotherm's range without carrying the singularity.
     [[nodiscard]] inline std::vector<FenestrationCommon::point>
       resistanceFactorTable(const Material & material, const std::vector<double> & suctions)
     {
         std::vector<FenestrationCommon::point> table;
-        table.reserve(suctions.size());
+        table.reserve(suctions.size() + 1u);
         for(const double suction : suctions)
         {
             const double water{waterContent(material, suction)};
             table.emplace_back(water, engineResistanceFactor(material, water));
         }
+        table.emplace_back(material.freeSaturation, table.back().y);
         return table;
     }
 
     //! Liquid transport as (w, D_w). A capillary non-active material (the report's
     //! K = 0 s) enters as a ZERO curve rather than no curve, the convention of the suite's
     //! other test materials: the engine's material constructor reads the liquid table
-    //! unconditionally. No saturation endpoint otherwise: dw/dP_suc vanishes there and
-    //! D_w diverges.
+    //! unconditionally. Otherwise dw/dP_suc vanishes at saturation and D_w diverges, so
+    //! the table is closed at free saturation with the last finite D_w repeated.
     [[nodiscard]] inline std::vector<FenestrationCommon::point>
       liquidTransportTable(const Material & material, const std::vector<double> & suctions)
     {
@@ -340,12 +342,13 @@ namespace TestHelper::HAMSTAD
             table.emplace_back(material.freeSaturation, 0.0);
             return table;
         }
-        table.reserve(suctions.size());
+        table.reserve(suctions.size() + 1u);
         for(const double suction : suctions)
         {
             table.emplace_back(waterContent(material, suction),
                                moistureDiffusivity(material, suction));
         }
+        table.emplace_back(material.freeSaturation, table.back().y);
         return table;
     }
 

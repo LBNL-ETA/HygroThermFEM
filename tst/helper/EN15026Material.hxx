@@ -281,33 +281,38 @@ namespace TestHelper::EN15026
 
     //! The annex's resistance factor as (w, mu). This is the table the engine reads when
     //! the material is built with the annex's real moisture dependence rather than the
-    //! dry-range scalar. No saturation endpoint: f(w) reaches zero at w_max so mu diverges
-    //! there, and the benchmark never gets closer than the last grid humidity.
+    //! dry-range scalar. f(w) reaches zero at w_max so mu diverges there; the table is
+    //! closed at free saturation with its last finite value repeated, so that it spans
+    //! the isotherm's range without carrying the singularity. The benchmark never gets
+    //! closer to saturation than the last grid humidity.
     [[nodiscard]] inline std::vector<FenestrationCommon::point>
       resistanceFactorTable(const std::vector<double> & humidities)
     {
         std::vector<FenestrationCommon::point> table;
-        table.reserve(humidities.size());
+        table.reserve(humidities.size() + 1u);
         for(const double humidity : humidities)
         {
             const double water{waterContent(humidity)};
             table.emplace_back(water, vapourResistanceFactor(water));
         }
+        table.emplace_back(freeSaturation, table.back().y);
         return table;
     }
 
-    //! Liquid transport as (w, D_w). No saturation endpoint: dp_suc/dw is singular at
-    //! w_max, so the curve stops at the last grid humidity.
+    //! Liquid transport as (w, D_w). dp_suc/dw is singular at w_max, so the last grid
+    //! humidity gives the last finite D_w; the table is closed at free saturation with
+    //! that value repeated, for the same reason as the resistance factor above.
     [[nodiscard]] inline std::vector<FenestrationCommon::point>
       liquidTransportTable(const std::vector<double> & humidities)
     {
         std::vector<FenestrationCommon::point> table;
-        table.reserve(humidities.size());
+        table.reserve(humidities.size() + 1u);
         for(const double humidity : humidities)
         {
             const double water{waterContent(humidity)};
             table.emplace_back(water, moistureDiffusivity(water));
         }
+        table.emplace_back(freeSaturation, table.back().y);
         return table;
     }
 
