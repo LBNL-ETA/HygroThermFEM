@@ -4,7 +4,7 @@ set(target_name HygroThermFEM)
 
 cmake_policy(SET CMP0048 NEW)
 
-project(${target_name} VERSION 1.0.74 LANGUAGES CXX)
+project(${target_name} VERSION 1.0.75 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 
@@ -83,10 +83,7 @@ endif()
 # Include KeffCavity. It also owns the Windows-CalcEngine pin, re-exported as a target
 # property and read back below, so the version is chosen in exactly one place.
 set(BUILD_KeffC_TESTING OFF CACHE BOOL "Build KeffCavity tests" FORCE)
-# Branch pin while the Windows/Clang -fPIC fix is under test. KeffCavity carries
-# the same fix and re-exports the Windows-CalcEngine pin. Re-pin to a released
-# tag once it lands.
-set(KeffCavity_Branch "Version_1.1.7")
+set(KeffCavity_Branch "Version_1.1.8")
 
 if(NOT TARGET KeffCavity)
     FetchContent_Declare(
