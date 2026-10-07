@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "Interpolator.hxx"
+#include "NodalArray.hxx"
 #include "Point.hxx"
 
 /// Functions interface is used to build function that are used for matrix
@@ -36,6 +37,12 @@ namespace HygroThermFEM
     //! \param temperature Temperature in Celsius
     //! \return water content [kg/m^3]
     double saturationConcentrationAtTemperature(double temperature);
+
+    //! \brief Analytic temperature derivative of the saturation concentration, dc_sat/dT.
+    //!
+    //! \param temperature Temperature in Celsius
+    //! \return derivative of water content with respect to temperature [kg/(m^3 K)]
+    double saturationConcentrationDerivativeAtTemperature(double temperature);
 
     //! Heat of evaporation
     //!
@@ -69,7 +76,7 @@ namespace HygroThermFEM
         //!
         //! \param nodes Array of nodes for which values are being requested
         //! \return Array of state variable values for requested nodes
-        virtual std::vector<double> values(const INodes & nodes) const;
+        virtual NodalValues values(const INodes & nodes) const;
 
         //! \brief Missing default destructor in abstract class can cause memory leaks.
         virtual ~IValue() = default;
@@ -107,6 +114,11 @@ namespace HygroThermFEM
 
         //! \brief Returns function evaluation for given node.
         //!
+        //! Reads only the current-timestep property: this runs once per tree leaf per node
+        //! on every assembly, and almost no function consumes the previous value. The few
+        //! secant-style functions that do (SorptionSecantCapacity, FusionSecantCapacity)
+        //! override value() to read both timesteps.
+        //!
         //! \param node
         //! \return Node at which function will be evaluated.
         virtual double value(const INode2D & node) const override;
@@ -124,6 +136,10 @@ namespace HygroThermFEM
         /// Variable that is used to calculate function value. It is extracted from current
         /// domain (material) point.
         const Variable m_Property;
+
+        //! Evaluates with both the current and previous timestep values of the property;
+        //! for the secant-style functions that override value() with this.
+        [[nodiscard]] double valueWithPreviousTimestep(const INode2D & node) const;
     };
 
     //////////////////////////////////////////////////////////////////
@@ -136,6 +152,9 @@ namespace HygroThermFEM
     {
     public:
         Constant(double value);
+
+        //! Direct override: a constant needs no node property lookup at all.
+        double value(const INode2D & node) const override;
 
     private:
         double evaluateFunction(double t_position, double t_previousTimestep) const override;
@@ -169,17 +188,27 @@ namespace HygroThermFEM
             m_Function1(std::move(t)),
             m_Function2(std::move(s)),
             m_Operation(op)
-        {
-            m_Operator[Operation::MULT] = [&](double a, double b) { return a * b; };
-            m_Operator[Operation::DIV] = [&](double a, double b) { return a / b; };
-            m_Operator[Operation::ADD] = [&](double a, double b) { return a + b; };
-            m_Operator[Operation::SUB] = [&](double a, double b) { return a - b; };
-        }
+        {}
 
         //! Returns value of operation.
         double value(const INode2D & node) const override
         {
-            return m_Operator.at(m_Operation)(m_Function1.value(node), m_Function2.value(node));
+            const auto lhs = m_Function1.value(node);
+            const auto rhs = m_Function2.value(node);
+
+            switch(m_Operation)
+            {
+                case Operation::MULT:
+                    return lhs * rhs;
+                case Operation::DIV:
+                    return lhs / rhs;
+                case Operation::ADD:
+                    return lhs + rhs;
+                case Operation::SUB:
+                    return lhs - rhs;
+            }
+
+            return 0.0;
         }
 
     private:
@@ -189,10 +218,6 @@ namespace HygroThermFEM
         const U m_Function2;
 
         const Operation m_Operation;
-
-        /// This hold four basic operators (+, -. *. /) which is used to determine
-        /// which function pointer is to be called
-        std::map<Operation, std::function<double(double, double)>> m_Operator;
     };
 
     //////////////////////////////////////////////////////////////////
@@ -568,6 +593,9 @@ namespace HygroThermFEM
         SorptionSecantCapacity(const std::vector<FenestrationCommon::point> & sorptionCurve,
                                Variable property);
 
+        //! Secant over the step: needs the previous-timestep value too.
+        double value(const INode2D & node) const override;
+
     protected:
         double evaluateFunction(double t_position, double t_previousTimestep) const override;
     };
@@ -644,9 +672,9 @@ namespace HygroThermFEM
 
     //! \brief Temperature derivative of the saturation concentration, dc_sat/dT.
     //!
-    //! Evaluated as a central finite difference of saturationConcentrationAtTemperature so
-    //! it stays consistent with the saturation formula by construction (it tracks any
-    //! future change to the vapour-pressure expression, e.g. the over-ice branch).
+    //! Evaluated analytically via saturationConcentrationDerivativeAtTemperature. Any
+    //! future change to the vapour-pressure expression (e.g. an over-ice branch) must be
+    //! mirrored in that derivative.
     class SaturationDerivative : public IFunction
     {
     public:
@@ -704,6 +732,9 @@ namespace HygroThermFEM
     public:
         PhaseChange();
 
+        //! Depends on the step history: needs the previous-timestep value too.
+        double value(const INode2D & node) const override;
+
     protected:
         double evaluateFunction(double t_position, double t_previousTimestep) const override;
     };
@@ -729,6 +760,9 @@ namespace HygroThermFEM
     {
     public:
         FusionSecantCapacity();
+
+        //! Secant over the step: needs the previous-timestep value too.
+        double value(const INode2D & node) const override;
 
     protected:
         double evaluateFunction(double t_position, double t_previousTimestep) const override;

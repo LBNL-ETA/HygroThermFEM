@@ -19,8 +19,8 @@ namespace HygroThermFEM
         explicit MaterialDataChecker(const MultiDomain & multiDomain);
 
         //! \brief Check all material properties against current engine settings. The
-        //! requirements follow the domain's thermal/moisture enables and the
-        //! SimulationProperties exclusion flags, so those must be applied before checking.
+        //! requirements follow the domain's thermal/moisture enables and its physics
+        //! options (exclusion flags), so those must be applied before checking.
         //!
         //! \param isTransientSimulation Transient additionally requires the storage
         //! properties (density, specific heat capacity).

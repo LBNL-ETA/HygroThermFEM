@@ -304,6 +304,11 @@ namespace HygroThermFEM
         [[nodiscard]] bool useResidualConvergence() const override;
 
     private:
+        //! The vapor-flux-energy state a convection BC is built with: the caller's request
+        //! gated by the domain's heat-of-evaporation physics flag. Collapsed here, at BC
+        //! creation, so the BCs themselves never read the physics options.
+        [[nodiscard]] bool vaporFluxEnergyOn(bool requested) const;
+
         //! Radiosity coordinators owned by the domain; the per-segment BCs reference them.
         std::vector<std::unique_ptr<EnclosureRadiation>> m_EnclosureRadiations;
     };

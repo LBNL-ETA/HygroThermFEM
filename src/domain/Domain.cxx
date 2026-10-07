@@ -13,7 +13,6 @@
 #include "VectorOperators.hxx"
 #include "Nodes.hxx"
 #include "Materials.hxx"
-#include "SimulationProperties.hxx"
 
 namespace HygroThermFEM
 {
@@ -244,35 +243,29 @@ namespace HygroThermFEM
 
     std::vector<double> IDomain::steadyStateRightHandSide() const
     {
-        return m_BCs.RVector(m_NodePool.maxIndex())
-               + m_Elements.volumetricSourceVector(m_NodePool.maxIndex());
+        auto vecR = m_BCs.RVector(m_NodePool.maxIndex());
+        vecR += m_Elements.volumetricSourceVector(m_NodePool.maxIndex());
+        return vecR;
     }
 
-    SquareMatrix IDomain::transientM_K_H_Matrix(const double t_DTime, const size_t timestepIndex)
+    IDomain::TransientSystem
+      IDomain::transientSystem(const std::vector<double> & t_PreviousSolution,
+                               const double t_DTime,
+                               const size_t timestepIndex)
     {
         const auto maxNodeIndex = m_NodePool.maxIndex();
         const auto MassVec = m_Elements.getLumpedMass(maxNodeIndex, t_DTime);
+
         auto M_K_H = m_Elements.conductanceMatrix(maxNodeIndex);
-        M_K_H = M_K_H.addDiagonal(MassVec);
+        M_K_H.addToDiagonal(MassVec);
         M_K_H += m_BCs.HMatrix(maxNodeIndex, timestepIndex);
 
-        return M_K_H;
-    }
+        auto vecR = m_BCs.RVector(maxNodeIndex, timestepIndex);
+        vecR += m_Elements.RVector(maxNodeIndex);
+        vecR += m_Elements.volumetricSourceVector(maxNodeIndex);
+        vecR += t_PreviousSolution * MassVec;
 
-    std::vector<double>
-      IDomain::transientMT_R_Vector(const std::vector<double> & t_PreviousSolution,
-                                    const double t_DTime,
-                                    const size_t timestepIndex)
-    {
-        const auto maxNodeIndex = m_NodePool.maxIndex();
-        const std::vector<double> MassVec{m_Elements.getLumpedMass(maxNodeIndex, t_DTime)};
-        const auto vecR = m_BCs.RVector(maxNodeIndex, timestepIndex)
-                          + m_Elements.RVector(maxNodeIndex)
-                          + m_Elements.volumetricSourceVector(maxNodeIndex);
-
-        auto vecB = t_PreviousSolution * MassVec + vecR;
-
-        return vecB;
+        return {std::move(M_K_H), std::move(vecR)};
     }
 
     std::vector<std::vector<double>> IDomain::transientMultiStep(const Variable variable,
@@ -557,8 +550,7 @@ namespace HygroThermFEM
             postProcess(trialSolution);
 
             updateNodes(trialSolution, m_AutomaticUpdatePreviousTimestep);
-            auto matA = transientM_K_H_Matrix(dTime, timestepIndex);
-            auto vecB = transientMT_R_Vector(currentStateValues, dTime, timestepIndex);
+            auto [matA, vecB] = transientSystem(currentStateValues, dTime, timestepIndex);
 
             const double trialResidualNorm = norm(vecB - matA * trialSolution);
 
@@ -718,14 +710,12 @@ namespace HygroThermFEM
         // contracts the fixed point slowly, so the iteration needs room to drive the
         // residual down before best-effort acceptance -- the user's usual budget (~25)
         // was tuned for the fast change-metric exits.
-        if(useResidualConvergence()
-           && !SimulationProperties::Instance().excludeLatentHeatOfFusion())
+        if(useResidualConvergence() && !physicsOptions().excludeLatentHeatOfFusion)
         {
             maxIterations = (std::max)(maxIterations, static_cast<std::size_t>(200));
         }
 
-        auto matA = transientM_K_H_Matrix(t_DTime, timestepIndex);
-        auto vecB = transientMT_R_Vector(currentStateValues, t_DTime, timestepIndex);
+        auto [matA, vecB] = transientSystem(currentStateValues, t_DTime, timestepIndex);
 
         if(isLinear())
         {
@@ -790,6 +780,16 @@ namespace HygroThermFEM
     SolverSettings IDomain::solverSettings() const
     {
         return m_SolverSettings ? *m_SolverSettings : SolverSettings::fromGlobals();
+    }
+
+    void IDomain::setPhysicsOptions(const PhysicsOptions & options)
+    {
+        m_PhysicsOptions = options;
+    }
+
+    PhysicsOptions IDomain::physicsOptions() const
+    {
+        return m_PhysicsOptions ? *m_PhysicsOptions : PhysicsOptions::fromGlobals();
     }
 
     IDomain::IDomain(Nodes & nodePool,

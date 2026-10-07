@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <numeric>
 #include <stdexcept>
 
@@ -15,52 +16,49 @@ namespace HygroThermFEM
         // sums duplicate (row, col) entries -- exactly the FE assembly semantics). Inserting element
         // contributions one at a time with coeffRef into an unreserved sparse matrix is ~O(nnz^2)
         // and dominated the steady-state solve.
+        //
+        // Every element owns a fixed slice of the triplet list, so the loop needs no locking and
+        // the triplet order -- and therefore the summation order inside setFromTriplets -- is the
+        // same however the work happens to be scheduled.
         constexpr size_t entriesPerElement{numOfQuadrilateralNodes * numOfQuadrilateralNodes};
-        std::vector<Eigen::Triplet<double>> tripletList;
-        tripletList.reserve(m_Elements.size() * entriesPerElement);
+        std::vector<Eigen::Triplet<double>> tripletList(m_Elements.size() * entriesPerElement);
 
-#ifdef STL_MULTITHREADING
-
-        std::mutex mtx;
-
-        std::for_each(std::execution::par_unseq,
-                      std::begin(m_Elements),
-                      std::end(m_Elements),
-                      [&](auto && aElement) {
-                          const auto indexes = aElement->nodeIndexes();
-                          const auto conductance = aElement->DDuMatrices();
-                          const auto condDer = aElement->DpDuMatrices();
-                          std::vector<Eigen::Triplet<double>> local;
-                          local.reserve(entriesPerElement);
-                          for(size_t i = 0; i < numOfQuadrilateralNodes; ++i)
-                          {
-                              for(size_t j = 0; j < numOfQuadrilateralNodes; ++j)
-                              {
-                                  local.emplace_back(static_cast<int>(indexes[i] - 1),
-                                                     static_cast<int>(indexes[j] - 1),
-                                                     conductance(i, j) + condDer(i, j));
-                              }
-                          }
-                          const std::lock_guard<std::mutex> guard{mtx};
-                          tripletList.insert(tripletList.end(), local.begin(), local.end());
-                      });
-
-#else
-        for(const auto & element : m_Elements)
-        {
+        const auto assembleElement = [&](const std::unique_ptr<IElementLinear2D> & element) {
+            // m_Elements is contiguous, so the element's slot gives its slice offset.
+            const auto elementIndex = static_cast<size_t>(&element - m_Elements.data());
             const auto indexes = element->nodeIndexes();
             const auto conductance = element->DDuMatrices();
             const auto condDer = element->DpDuMatrices();
-            for(size_t i = 0; i < numOfQuadrilateralNodes; ++i)
+
+            auto entry = elementIndex * entriesPerElement;
+            for(size_t row = 0; row < numOfQuadrilateralNodes; ++row)
             {
-                for(size_t j = 0; j < numOfQuadrilateralNodes; ++j)
+                for(size_t col = 0; col < numOfQuadrilateralNodes; ++col)
                 {
-                    tripletList.emplace_back(static_cast<int>(indexes[i] - 1),
-                                             static_cast<int>(indexes[j] - 1),
-                                             conductance(i, j) + condDer(i, j));
+                    tripletList[entry++] =
+                      Eigen::Triplet<double>{static_cast<int>(indexes[row] - 1),
+                                             static_cast<int>(indexes[col] - 1),
+                                             conductance(row, col) + condDer(row, col)};
                 }
             }
+        };
+
+#ifdef STL_MULTITHREADING
+        // par, not par_unseq: the element kernel allocates, which is not vectorisation-safe.
+        // Below the threshold the per-call parallel dispatch costs more than the element
+        // work itself (this runs once per Newton-Raphson iteration), so stay serial.
+        constexpr std::size_t parallelThreshold{512};
+        if(m_Elements.size() >= parallelThreshold)
+        {
+            std::for_each(
+              std::execution::par, std::begin(m_Elements), std::end(m_Elements), assembleElement);
         }
+        else
+        {
+            std::for_each(std::begin(m_Elements), std::end(m_Elements), assembleElement);
+        }
+#else
+        std::for_each(std::begin(m_Elements), std::end(m_Elements), assembleElement);
 #endif
 
         return SquareMatrix{maxNodeIndex, tripletList};
@@ -69,101 +67,50 @@ namespace HygroThermFEM
     std::vector<double> ElementsLinear2D::getLumpedMass(const size_t maxNodeIndex,
                                                         const double DTime) const
     {
-        const auto numOfNodes{maxNodeIndex};
-        std::vector<std::vector<double>> Capacitance(numOfNodes,
-                                                     std::vector<double>(numOfNodes, 0));
+        // Row-summed (lumped) capacitance, accumulated straight into the result. This used to
+        // scatter into a dense maxNodeIndex x maxNodeIndex scratch matrix and then sum each row,
+        // which cost O(maxNodeIndex^2) time and memory to carry the 16 values per element that
+        // actually contribute -- at 10k nodes that is ~800 MB and 10^8 additions per call.
+        std::vector<double> mass(maxNodeIndex, 0);
 
-#ifdef STL_MULTITHREADING
-        std::mutex mtx;
-
-        std::for_each(std::execution::par_unseq,
-                      std::begin(m_Elements),
-                      std::end(m_Elements),
-                      [&](auto && aElement) {
-                          auto indexes = aElement->nodeIndexes();
-                          auto capacitance = aElement->capacitanceMatrices();
-                          // auto capTest = capacitance.toVector();
-                          mtx.lock();
-                          for(size_t i = 0; i < numOfQuadrilateralNodes; ++i)
-                          {
-                              for(size_t j = 0; j < numOfQuadrilateralNodes; ++j)
-                              {
-                                  Capacitance[indexes[i] - 1][indexes[j] - 1] += capacitance(i, j);
-                              }
-                          }
-                          mtx.unlock();
-                      });
-#else
         for(const auto & element : m_Elements)
         {
-            auto indexes = element->nodeIndexes();
-            auto capacitance = element->capacitanceMatrices();
-            for(size_t i = 0; i < numOfQuadrilateralNodes; ++i)
+            const auto indexes = element->nodeIndexes();
+            const auto capacitance = element->capacitanceMatrices();
+            for(size_t row = 0; row < numOfQuadrilateralNodes; ++row)
             {
-                for(size_t j = 0; j < numOfQuadrilateralNodes; ++j)
+                for(size_t col = 0; col < numOfQuadrilateralNodes; ++col)
                 {
-                    Capacitance[indexes[i] - 1][indexes[j] - 1] += capacitance(i, j);
+                    mass[indexes[row] - 1] += capacitance(row, col);
                 }
             }
         }
-#endif
 
-        const auto size = Capacitance.size();
-
-        std::vector<double> M(size, 0);
-
-        // Creates lump matrix
-        for(size_t i = 0; i < size; ++i)
+        for(auto & nodalMass : mass)
         {
-            for(size_t j = 0; j < size; ++j)
-            {
-                M[i] += Capacitance[i][j];
-            }
-            M[i] /= DTime;
+            nodalMass /= DTime;
         }
 
-        return M;
+        return mass;
     }
 
     SquareMatrix ElementsLinear2D::getMassMatrix(const size_t maxNodeIndex, const double DTime) const
     {
         SquareMatrix Capacitance{maxNodeIndex};
 
-#ifdef STL_MULTITHREADING
-
-        std::mutex mtx;
-        std::for_each(std::execution::par_unseq,
-                      std::begin(m_Elements),
-                      std::end(m_Elements),
-                      [&](auto && aElement) {
-                          auto indexes = aElement->nodeIndexes();
-                          auto capacitance = aElement->capacitanceMatrices();
-                          mtx.lock();
-                          for(size_t i = 0; i < numOfQuadrilateralNodes; ++i)
-                          {
-                              for(size_t j = 0; j < numOfQuadrilateralNodes; ++j)
-                              {
-                                  Capacitance(indexes[i] - 1, indexes[j] - 1) +=
-                                    capacitance(i, j) / DTime;
-                              }
-                          }
-                          mtx.unlock();
-                      });
-
-#else
         for(const auto & element : m_Elements)
         {
-            auto indexes = element->nodeIndexes();
-            auto capacitance = element->capacitanceMatrices();
-            for(size_t i = 0; i < numOfQuadrilateralNodes; ++i)
+            const auto indexes = element->nodeIndexes();
+            const auto capacitance = element->capacitanceMatrices();
+            for(size_t row = 0; row < numOfQuadrilateralNodes; ++row)
             {
-                for(size_t j = 0; j < numOfQuadrilateralNodes; ++j)
+                for(size_t col = 0; col < numOfQuadrilateralNodes; ++col)
                 {
-                    Capacitance(indexes[i] - 1, indexes[j] - 1) += capacitance(i, j) / DTime;
+                    Capacitance(indexes[row] - 1, indexes[col] - 1) +=
+                      capacitance(row, col) / DTime;
                 }
             }
         }
-#endif
 
         return SquareMatrix{Capacitance};
     }
@@ -182,14 +129,43 @@ namespace HygroThermFEM
         return isLinear;
     }
 
+    void ElementsLinear2D::ensureNodeIndex()
+    {
+        if(m_NodeIndexValid)
+        {
+            return;
+        }
+
+        m_NodeToElements.clear();
+        for(size_t elementIndex = 0u; elementIndex < m_Elements.size(); ++elementIndex)
+        {
+            for(const auto nodeIndex : m_Elements[elementIndex]->nodeIndexes())
+            {
+                m_NodeToElements[nodeIndex].push_back(elementIndex);
+            }
+        }
+        m_NodeIndexValid = true;
+    }
+
     IElementLinear2D * ElementsLinear2D::findElement(const size_t index1, const size_t index2)
     {
-        IElementLinear2D * el = nullptr;
-        for(auto & element : m_Elements)
+        ensureNodeIndex();
+
+        const auto first{m_NodeToElements.find(index1)};
+        const auto second{m_NodeToElements.find(index2)};
+        if(first == m_NodeToElements.end() || second == m_NodeToElements.end())
         {
-            if(element->haveBothNodes(index1, index2))
+            return nullptr;
+        }
+
+        // Both lists are in ascending element order, so keeping the last common entry returns
+        // the same element the previous full scan did (it overwrote its result on every hit).
+        IElementLinear2D * el = nullptr;
+        for(const auto elementIndex : first->second)
+        {
+            if(std::binary_search(second->second.begin(), second->second.end(), elementIndex))
             {
-                el = element.get();
+                el = m_Elements[elementIndex].get();
             }
         }
         return el;
@@ -198,41 +174,22 @@ namespace HygroThermFEM
     void ElementsLinear2D::assignElement(std::unique_ptr<IElementLinear2D> && el)
     {
         m_Elements.push_back(std::move(el));
+        m_NodeIndexValid = false;
     }
 
     std::vector<double> ElementsLinear2D::RVector(const size_t maxNodeIndex) const
     {
         std::vector<double> result(maxNodeIndex, 0);
 
-#ifdef STL_MULTITHREADING
-
-        std::mutex mtx;
-
-        std::for_each(std::execution::par_unseq,
-                      std::begin(m_Elements),
-                      std::end(m_Elements),
-                      [&](auto && aElement) {
-                          const auto indexes = aElement->nodeIndexes();
-                          const auto vecR = aElement->rightSideVector();
-                          mtx.lock();
-                          for(size_t i = 0; i < numOfQuadrilateralNodes; ++i)
-                          {
-                              result[indexes[i] - 1] += vecR[i];
-                          }
-                          mtx.unlock();
-                      });
-
-#else
         for(const auto & element : m_Elements)
         {
             const auto indexes = element->nodeIndexes();
             const auto vecR = element->rightSideVector();
-            for(size_t i = 0; i < numOfQuadrilateralNodes; ++i)
+            for(size_t idx = 0; idx < numOfQuadrilateralNodes; ++idx)
             {
-                result[indexes[i] - 1] += vecR[i];
+                result[indexes[idx] - 1] += vecR[idx];
             }
         }
-#endif
 
         return result;
     }
@@ -263,6 +220,10 @@ namespace HygroThermFEM
         std::vector<double> result(maxNodeIndex, 0);
         for(const auto & element : m_Elements)
         {
+            if(!element->hasVolumetricSource())
+            {
+                continue;
+            }
             const auto indexes = element->nodeIndexes();
             const auto load = element->volumetricSourceVector();
             for(size_t i = 0; i < numOfQuadrilateralNodes; ++i)
@@ -279,40 +240,18 @@ namespace HygroThermFEM
 
         std::vector<std::vector<NodeFlux>> fluxes(maxNodeIndex, std::vector<NodeFlux>());
 
-#ifdef STL_MULTITHREADING
-        std::mutex mtx;
-
-        std::for_each(std::execution::par_unseq,
-                      std::begin(m_Elements),
-                      std::end(m_Elements),
-                      [&](auto && aElement) {
-                          const auto indexes = aElement->nodeIndexes();
-                          const auto flux = aElement->flux();
-                          mtx.lock();
-                          for(size_t i = 0; i < numOfQuadrilateralNodes; ++i)
-                          {
-                              if(i < flux.size() && indexes[i] >= 1 && indexes[i] <= maxNodeIndex)
-                              {
-                                  fluxes[indexes[i] - 1].push_back(flux[i]);
-                              }
-                          }
-                          mtx.unlock();
-                      });
-
-#else
         for(const auto & element : m_Elements)
         {
             const auto indexes = element->nodeIndexes();
-            const auto flux = element->flux();
-            for(size_t i = 0; i < numOfQuadrilateralNodes; ++i)
+            const auto elementFlux = element->flux();
+            for(size_t idx = 0; idx < numOfQuadrilateralNodes; ++idx)
             {
-                if(i < flux.size() && indexes[i] >= 1 && indexes[i] <= maxNodeIndex)
+                if(idx < elementFlux.size() && indexes[idx] >= 1 && indexes[idx] <= maxNodeIndex)
                 {
-                    fluxes[indexes[i] - 1].push_back(flux[i]);
+                    fluxes[indexes[idx] - 1].push_back(elementFlux[idx]);
                 }
             }
         }
-#endif
 
         // Now need to average them
         for(size_t j = 0; j < fluxes.size(); ++j)
@@ -348,6 +287,8 @@ namespace HygroThermFEM
     void ElementsLinear2D::clearElements()
     {
         m_Elements.clear();
+        m_NodeToElements.clear();
+        m_NodeIndexValid = false;
     }
 
 

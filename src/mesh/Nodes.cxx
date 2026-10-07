@@ -1,13 +1,37 @@
 #include <cassert>
 #include <algorithm>
+#include <ranges>
 
 #include "lbnl/algorithm.hxx"
 
 #include "Nodes.hxx"
 
 #ifdef STL_MULTITHREADING
+// par rather than par_unseq: every node update recomputes its water content, which allocates,
+// and allocation is not one of the vectorisation-safe operations par_unseq permits. Each node
+// writes only to itself, so the result does not depend on how the work is scheduled.
 #include <execution>
 #endif
+
+namespace
+{
+    template<typename NodeContainer, typename UpdateOne>
+    void updateEachNode(NodeContainer & nodes, UpdateOne && updateOne)
+    {
+#ifdef STL_MULTITHREADING
+        //! Serial below the threshold: node updates run several times per Newton-Raphson
+        //! iteration, and for small meshes the per-call parallel dispatch costs more than
+        //! the node work itself.
+        constexpr std::size_t parallelUpdateThreshold{512};
+        if(nodes.size() >= parallelUpdateThreshold)
+        {
+            std::for_each(std::execution::par, std::begin(nodes), std::end(nodes), updateOne);
+            return;
+        }
+#endif
+        std::for_each(std::begin(nodes), std::end(nodes), updateOne);
+    }
+}   // anonymous namespace
 
 namespace HygroThermFEM
 {
@@ -26,11 +50,12 @@ namespace HygroThermFEM
 
     size_t Nodes::maxIndex() const
     {
-        Node2D aNode =
-          *max_element(m_Nodes.begin(), m_Nodes.end(), [](const Node2D & a, const Node2D & b) {
-              return a.getNodeNumber() < b.getNodeNumber();
-          });
-        return aNode.getNodeNumber();
+        // Iterator, not a copy: Node2D owns several node-local containers, so materialising
+        // one here allocated on every call -- and this runs twice per matrix assembly.
+        const auto maxNode = std::ranges::max_element(
+          m_Nodes, {}, [](const Node2D & node) { return node.getNodeNumber(); });
+
+        return maxNode->getNodeNumber();
     }
 
     std::vector<double> Nodes::properties(const Variable t_Property) const
@@ -52,19 +77,10 @@ namespace HygroThermFEM
     {
         assert(m_Nodes.size() == values.size());
 
-#ifdef STL_MULTITHREADING
-        std::for_each(
-          std::execution::par_unseq, std::begin(m_Nodes), std::end(m_Nodes), [&](auto && aNode) {
-              const auto nodeNumber = aNode.getNodeNumber() - 1;
-              aNode.setTemperature(values[nodeNumber], updatePreviousTimestep);
-          });
-#else
-        for(auto & node : m_Nodes)
-        {
-            const auto nodeNumber = node.getNodeNumber() - 1;
-            node.setTemperature(values[nodeNumber], updatePreviousTimestep);
-        }
-#endif
+        updateEachNode(m_Nodes, [&](auto && aNode) {
+            const auto nodeNumber = aNode.getNodeNumber() - 1;
+            aNode.setTemperature(values[nodeNumber], updatePreviousTimestep);
+        });
     }
 
     void Nodes::updateNodeHumidities(const std::vector<double> & values,
@@ -72,19 +88,10 @@ namespace HygroThermFEM
     {
         assert(m_Nodes.size() == values.size());
 
-#ifdef STL_MULTITHREADING
-        std::for_each(
-          std::execution::par_unseq, std::begin(m_Nodes), std::end(m_Nodes), [&](auto && aNode) {
-              const auto nodeNumber = aNode.getNodeNumber() - 1;
-              aNode.setHumidity(values[nodeNumber], updatePreviousTimestep);
-          });
-#else
-        for(auto & node : m_Nodes)
-        {
-            const auto nodeNumber = node.getNodeNumber() - 1;
-            node.setHumidity(values[nodeNumber], updatePreviousTimestep);
-        }
-#endif
+        updateEachNode(m_Nodes, [&](auto && aNode) {
+            const auto nodeNumber = aNode.getNodeNumber() - 1;
+            aNode.setHumidity(values[nodeNumber], updatePreviousTimestep);
+        });
     }
 
     void Nodes::updateNodeLiquidPercents(const std::vector<double> & values,
@@ -92,19 +99,10 @@ namespace HygroThermFEM
     {
         assert(m_Nodes.size() == values.size());
 
-#ifdef STL_MULTITHREADING
-        std::for_each(
-          std::execution::par_unseq, std::begin(m_Nodes), std::end(m_Nodes), [&](auto && aNode) {
-              const auto nodeNumber = aNode.getNodeNumber() - 1;
-              aNode.setLiquidPercent(values[nodeNumber], updatePreviousTimestep);
-          });
-#else
-        for(auto & node : m_Nodes)
-        {
-            const auto nodeNumber = node.getNodeNumber() - 1;
-            node.setLiquidPercent(values[nodeNumber], updatePreviousTimestep);
-        }
-#endif
+        updateEachNode(m_Nodes, [&](auto && aNode) {
+            const auto nodeNumber = aNode.getNodeNumber() - 1;
+            aNode.setLiquidPercent(values[nodeNumber], updatePreviousTimestep);
+        });
     }
 
     void Nodes::clear()

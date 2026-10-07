@@ -26,7 +26,8 @@ TEST(TestQLEDpDuIntegrator2D, TestConductionMatrix)
 
     std::vector<double> conductance{2, 2, 3, 6};
 
-    integrator.setIndependentVariables({0.1, 0.2, 0.2, 0.7});
+    const std::vector<double> independentVariables{0.1, 0.2, 0.2, 0.7};
+    integrator.setIndependentVariables(independentVariables);
 
     auto integratedMatrix = integrator.integrate(conductance);
 

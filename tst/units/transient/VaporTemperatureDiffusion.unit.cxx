@@ -1,5 +1,5 @@
+#include <array>
 #include <cmath>
-#include <fstream>
 #include <functional>
 #include <string>
 #include <vector>
@@ -19,8 +19,9 @@ using HygroThermFEM::Variable;
 // temperature-gradient vapour term delta*phi*grad(c_sat) -- exactly the term D1 fixes.
 // So this isolates D1's behaviour, and being closed it also re-checks D6 conservation.
 //
-// The per-node humidity profile is written to CSV for comparison against the 1D Python
-// reference (hygrothermfem_python), which implements the consistent vapour term.
+// The full-profile comparison against the 1D reference solver lives in the validation
+// book (hygrothermfem_python, cases vapor_isothermal_cottaer and vapor_gradient_cottaer);
+// what is asserted here is the closed system's own invariant, its stored moisture.
 namespace
 {
     constexpr std::size_t nCols = 11;   // 10 elements along x
@@ -40,21 +41,19 @@ namespace
         return length * static_cast<double>(c) / static_cast<double>(nCols - 1);
     }
 
-    // Runs the closed-strip case for a given per-column temperature field and writes the
-    // bottom-row humidity profile per step to CSV. Returns the max relative drift of total
-    // stored moisture (should be ~0 for a closed system with the conservative capacity).
-    double runAndDump(const std::function<double(double)> & temperatureAt,
-                      const std::string & csvPath,
-                      const std::string & nrDiagPath = {})
+    struct StripRun
+    {
+        //! Max relative drift of total stored moisture over the run (should be ~0 for a
+        //! closed system with the conservative capacity).
+        double maxDrift;
+        //! Final bottom-row humidity profile, one value per column.
+        std::vector<double> finalBottomRow;
+    };
+
+    // Runs the closed-strip case for a given per-column temperature field.
+    StripRun runClosedStrip(const std::function<double(double)> & temperatureAt)
     {
         HygroThermFEM::MultiDomain multiDomain({.performThermal = false, .performMoisture = true});
-
-        std::ofstream nrDiag;
-        if(!nrDiagPath.empty())
-        {
-            nrDiag.open(nrDiagPath);
-            multiDomain.moisture().setDiagnosticStream(&nrDiag);
-        }
 
         for(std::size_t c = 0; c < nCols; ++c)
         {
@@ -79,14 +78,6 @@ namespace
                                        .material = material.name()});
         }
 
-        std::ofstream csv(csvPath);
-        csv << "step";
-        for(std::size_t c = 0; c < nCols; ++c)
-        {
-            csv << ",x" << c;
-        }
-        csv << "\n";
-
         auto humidities = multiDomain.nodes().properties(Variable::humidity);
 
         auto totalWater = [&]() {
@@ -106,17 +97,6 @@ namespace
         const double m0 = totalWater();
         double maxDrift = 0.0;
 
-        auto writeRow = [&](unsigned step) {
-            csv << step;
-            const auto phi = multiDomain.nodes().properties(Variable::humidity);
-            for(std::size_t c = 0; c < nCols; ++c)
-            {
-                csv << "," << phi[nodeIndex(c, 0) - 1];
-            }
-            csv << "\n";
-        };
-
-        writeRow(0);
         for(unsigned i = 0; i < nSteps; ++i)
         {
             humidities = multiDomain.moisture().transient(humidities, dTime).value().solution;
@@ -125,10 +105,16 @@ namespace
             // measuring against the INITIAL state instead of the previous step, which breaks
             // its mass-conservation telescoping for every step after the first.
             multiDomain.nodes().updateNodeHumidities(humidities, true);
-            writeRow(i + 1);
             maxDrift = std::max(maxDrift, std::abs(totalWater() - m0) / m0);
         }
-        return maxDrift;
+
+        std::vector<double> bottomRow;
+        bottomRow.reserve(nCols);
+        for(std::size_t col = 0; col < nCols; ++col)
+        {
+            bottomRow.push_back(humidities[nodeIndex(col, 0) - 1]);
+        }
+        return {.maxDrift = maxDrift, .finalBottomRow = std::move(bottomRow)};
     }
 }   // namespace
 
@@ -142,9 +128,8 @@ TEST(VaporTemperatureDiffusion, GradientVaporOnly)
     HygroThermFEM::SimulationProperties::Instance().setCalculationParameters(
       true, false, false, false, false);
 
-    const double vaporOnlyDrift = runAndDump(
-      [](double x) { return 40.0 - 20.0 * (x / length); }, "/tmp/htf_d1_vapor_only.csv",
-      "/tmp/htf_d1_vapor_only_nr.csv");
+    const double vaporOnlyDrift =
+      runClosedStrip([](double x) { return 40.0 - 20.0 * (x / length); }).maxDrift;
 
     HygroThermFEM::SimulationProperties::Instance().resetCalculationParameters();
 
@@ -161,23 +146,43 @@ TEST(VaporTemperatureDiffusion, GradientVaporOnly)
 TEST(VaporTemperatureDiffusion, IsothermalControlAndGradient)
 {
     // Control: uniform temperature -> the D1 term is inert, nothing should move.
-    const double isoDrift = runAndDump([](double) { return 20.0; }, "/tmp/htf_d1_isothermal.csv");
+    const auto isothermal = runClosedStrip([](double) { return 20.0; });
 
     // Test: linear temperature gradient 40 C (x=0) -> 20 C (x=L). Only the D1 vapour
     // temperature-gradient term can redistribute moisture.
-    const double gradDrift = runAndDump(
-      [](double x) { return 40.0 - 20.0 * (x / length); }, "/tmp/htf_d1_gradient.csv");
+    const auto gradient = runClosedStrip([](double x) { return 40.0 - 20.0 * (x / length); });
 
-    std::cout << "[D1] isothermal drift = " << isoDrift << ", gradient drift = " << gradDrift
-              << "\n";
+    std::cout << "[D1] isothermal drift = " << isothermal.maxDrift
+              << ", gradient drift = " << gradient.maxDrift << "\n";
 
     // Isothermal: the D1 term is inert, so nothing moves and mass is exactly conserved.
-    EXPECT_LT(isoDrift, 1e-9);
+    EXPECT_LT(isothermal.maxDrift, 1e-9);
+    for(std::size_t col = 0; col < nCols; ++col)
+    {
+        EXPECT_NEAR(isothermal.finalBottomRow[col], phi0, 1e-12) << "column " << col;
+    }
 
-    // Gradient: D1 drives moisture hot -> cold and the profile matches the 1D reference
-    // (hygrothermfem_python/examples/compare_d1.py) to ~2e-5. With Gauss-point-interpolated
-    // transport coefficients (conservative column sums for spatially varying coefficients)
-    // the closed-strip drift is bounded by the nonlinear-iteration residual only
-    // (measured 2.3e-8 over 24 steps).
-    EXPECT_LT(gradDrift, 1e-6);
+    // Gradient: the vapour temperature-gradient term drives moisture hot -> cold. The
+    // closed-strip drift is bounded by the nonlinear-iteration residual only (measured
+    // 2.3e-8 over 24 steps; the transport operator's column sums vanish).
+    EXPECT_LT(gradient.maxDrift, 1e-6);
+
+    // Day-end humidity checkpoints from the independently implemented 1D reference
+    // solver (hygrothermfem_python, case vapor_gradient_cottaer) on the same grid,
+    // steps and material tables. Tolerance ~2x the measured engine-reference
+    // deviation of 4.1e-6.
+    struct Checkpoint
+    {
+        std::size_t column;
+        double humidity;
+    };
+    constexpr std::array<Checkpoint, 5> checkpoints{{{.column = 0, .humidity = 0.576382171496771},
+                                                     {.column = 2, .humidity = 0.670102279072384},
+                                                     {.column = 5, .humidity = 0.712475961763427},
+                                                     {.column = 8, .humidity = 0.720351454778588},
+                                                     {.column = 10, .humidity = 0.799275067054584}}};
+    for(const auto & [column, humidity] : checkpoints)
+    {
+        EXPECT_NEAR(gradient.finalBottomRow[column], humidity, 1e-5) << "column " << column;
+    }
 }

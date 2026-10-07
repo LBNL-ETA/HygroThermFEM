@@ -108,7 +108,7 @@ TEST_F(SteadyState_2D_ExcludeLiquidTransport_1, TestExample_1)
     const auto temperature = solution.temperature;
     const auto humidity = solution.humidity;
 
-    std::vector<double> correctTemperature{-1.67840865827e-15, 8.39504475564e-16, 9.99763627935, 9.99763627935, 20, 20};
+    std::vector<double> correctTemperature{-1.67840865827e-15, 8.39504475561e-16, 9.99765006857, 9.99765006857, 20, 20};
 
     TestHelper::dumpGolden("correctTemperature", temperature);
     TestHelper::dumpGolden("correctHumidity", humidity);
@@ -119,7 +119,7 @@ TEST_F(SteadyState_2D_ExcludeLiquidTransport_1, TestExample_1)
         EXPECT_NEAR(temperature[i], correctTemperature[i], 1e-6);
     }
 
-    std::vector<double> correctHumidity{0.8, 0.8, 0.201496241691, 0.201496241691, 4.66011534404e-24, 4.66011534404e-24};
+    std::vector<double> correctHumidity{0.8, 0.8, 0.200305891636, 0.200305891636, 4.55907394455e-24, 4.55907394455e-24};
 
     EXPECT_EQ(humidity.size(), correctHumidity.size());
 

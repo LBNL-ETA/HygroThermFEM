@@ -34,12 +34,22 @@ endif()
 
 option(BUILD_FOR_CODE_COVERAGE "Build with code-coverage instrumentation" OFF)
 
+# Append rather than assign: a plain set() here dropped whatever the preset, the toolchain
+# file or CMAKE_BUILD_TYPE had already put in CMAKE_CXX_FLAGS. The linker needs the same
+# flag as the compiler, otherwise the instrumented objects fail to link against gcov/profile.
+# MATCHES "Clang" covers both Clang and AppleClang; plain Clang was not handled before.
 if (BUILD_FOR_CODE_COVERAGE)
-    if (CMAKE_COMPILER_IS_GNUCXX)
-        set(CMAKE_CXX_FLAGS "--coverage")
-    endif()
-    if (CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
-        set(CMAKE_CXX_FLAGS "-fprofile-instr-generate -fcoverage-mapping")
+    if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --coverage")
+        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --coverage")
+        set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} --coverage")
+    elseif (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-instr-generate -fcoverage-mapping")
+        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fprofile-instr-generate")
+        set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -fprofile-instr-generate")
+    else()
+        message(WARNING "BUILD_FOR_CODE_COVERAGE is ON but ${CMAKE_CXX_COMPILER_ID} has no "
+                        "coverage flags configured; building without instrumentation.")
     endif()
 endif()
 
@@ -70,7 +80,8 @@ if(NOT TARGET eigen)
     include_directories(${eigenexternal_SOURCE_DIR})
 endif()
 
-# Include KeffCavity
+# Include KeffCavity. It also owns the Windows-CalcEngine pin, re-exported as a target
+# property and read back below, so the version is chosen in exactly one place.
 set(BUILD_KeffC_TESTING OFF CACHE BOOL "Build KeffCavity tests" FORCE)
 set(KeffCavity_Branch "Version_1.1.8")
 
@@ -85,7 +96,7 @@ endif()
 
 # LBNLCPPCommon: ExpectedExt/OptionalExt etc. (the C++20 stand-ins for std::expected/
 # std::optional) used by the errorest component. Header-only; no C++ standard bump.
-set(LBNLCPPCommon_Branch "v0.18")
+set(LBNLCPPCommon_Branch "v0.19")
 if(NOT TARGET LBNLCPPCommon)
     FetchContent_Declare(
             LBNLCPPCommon
@@ -138,7 +149,25 @@ set(HTFEM_COMPONENT_DIRS
     ${CMAKE_CURRENT_SOURCE_DIR}/src/mesh
     ${CMAKE_CURRENT_SOURCE_DIR}/src/simulation
     ${CMAKE_CURRENT_SOURCE_DIR}/src/errorest)
-target_include_directories(${target_name} PUBLIC ${HTFEM_COMPONENT_DIRS})
+# Public header surface carried by the target itself, so consumers get it by linking:
+#   include/          the HygroThermFEM2D.hxx umbrella and the curated HygroThermFEM/ facades
+#   src/<component>/  the flat historical includes those facades resolve to
+#   Eigen             SquareMatrix.hxx includes <Eigen/SparseCore>, so Eigen is part of this
+#                     target's public headers and has to travel with them
+# Previously include/ was added with directory scope only, and only under BUILD_HTFEM_TESTING,
+# while Eigen was added with directory scope at all times. Neither reached a consumer, so every
+# consumer re-derived both paths by hand (Windows-Tools does exactly that in Products/Therm and
+# Products/Window). Those hand-wired entries stay harmless once this exports the same paths.
+FetchContent_GetProperties(EigenExternal)
+
+target_include_directories(${target_name} PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+    ${HTFEM_COMPONENT_DIRS})
+
+# SYSTEM so Eigen's own warnings do not land in consumers' builds.
+if(eigenexternal_SOURCE_DIR)
+    target_include_directories(${target_name} SYSTEM PUBLIC ${eigenexternal_SOURCE_DIR})
+endif()
 
 if (BUILD_HTFEM_TESTING)
     include_directories(include)
@@ -163,7 +192,7 @@ if (BUILD_HTFEM_TESTING)
     # HygroThermFEM library, so consumers (BUILD_HTFEM_TESTING off) never pull it.
     # FileParse PUBLIC-links xmlParser + nlohmann_json; in local mode the foreach above
     # points all three at their ../ siblings.
-    set(FileParse_Branch "Version_1.1.5")
+    set(FileParse_Branch "Version_1.1.6")
     set(BUILD_FileParse_tests OFF CACHE BOOL "Build FileParse tests" FORCE)
     if(NOT TARGET FileParse)
         FetchContent_Declare(
@@ -187,6 +216,14 @@ if (BUILD_HTFEM_TESTING)
     target_link_libraries(${target_name}_tests FileParse)
     target_compile_definitions(${target_name}_tests PRIVATE
         ERROREST_FIXTURE_DIR="${CMAKE_CURRENT_SOURCE_DIR}/tst/units/errorest/fixtures")
+
+    # Register the suite with CTest so `ctest --preset <name>` and IDE test runners see it.
+    # ADD_GOOGLE_TESTS_HTFEM above cannot do this: it scrapes TEST()/TEST_F() out of files
+    # matching \.(cpp|cc)$, and every test here is .cxx, so it always registered nothing --
+    # and without enable_testing() its add_test() calls would have been dropped anyway.
+    # One entry running the whole gtest binary, matching the HygroTherm sibling's setup.
+    enable_testing()
+    add_test(NAME ${target_name}_tests COMMAND ${target_name}_tests)
 
     #add_executable(${target_name}_test ${test_src})
 
@@ -225,6 +262,29 @@ if (BUILD_HTFEM_TESTING)
         $<TARGET_PROPERTY:LBNLCPPCommon,INTERFACE_INCLUDE_DIRECTORIES>
         $<TARGET_PROPERTY:Windows-CalcEngine,INTERFACE_INCLUDE_DIRECTORIES>)
 endif ()
+
+# Link-time optimization. The innermost element-assembly loop calls SquareMatrix accessors
+# and operators that live in a different translation unit, so those calls cannot be inlined
+# without it. Applied to this project's own targets only; the FetchContent dependencies keep
+# whatever settings they declare for themselves.
+option(HTFEM_ENABLE_LTO "Enable interprocedural optimization for Release builds" ON)
+
+if (HTFEM_ENABLE_LTO)
+    include(CheckIPOSupported)
+    # LANGUAGES CXX because the project enables only C++; the default check would
+    # probe the (unconfigured) C compiler and always report IPO as unavailable.
+    check_ipo_supported(RESULT HTFEM_IPO_SUPPORTED OUTPUT HTFEM_IPO_ERROR LANGUAGES CXX)
+    if (HTFEM_IPO_SUPPORTED)
+        foreach(ipo_target ${target_name} ${target_name}_tests ${target_name}_sweep)
+            if (TARGET ${ipo_target})
+                set_property(TARGET ${ipo_target}
+                             PROPERTY INTERPROCEDURAL_OPTIMIZATION_RELEASE ON)
+            endif()
+        endforeach()
+    else()
+        message(STATUS "[HTFEM] IPO unavailable, building without LTO: ${HTFEM_IPO_ERROR}")
+    endif()
+endif()
 
 config_compiler_and_linker_HTFEM()
 

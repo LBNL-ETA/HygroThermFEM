@@ -193,6 +193,29 @@ source. Quantify the current error against the Python 1D reference with an impos
 > terms (`C_l g_l·∇T`, `C_v g_v·∇T`), for which the strong-form `DpDu` treatment is the correct
 > discretization. Decision: keep the consistent form in the moisture element only.
 
+> **Resolved (2026-07-23): the vapor term is assembled on its product potential.** The split
+> into (A) and (B) is gone, and with it `QLEDpDuConsistentIntegrator2D`. The term is now one
+> matrix — the stiffness of `δ` with column `j` scaled by the nodal saturation `c_sat,j`,
+> `K_ij = S_ij(δ)·c_sat,j`, registered as the two-argument `DDu(delta, SaturationFunction())`
+> — which carries both halves of the divergence at once. Three consequences:
+>
+> - **equilibrium is exact.** The profile `φ = C/c_sat(T)`, on which the continuous flux
+>   vanishes everywhere, is annihilated on ANY mesh, because a stiffness matrix has vanishing
+>   row sums. The consistent split form left an O(h²) residual there: a sealed strip under
+>   40 → 20 °C settled 3.1e-5 off its closed form on 20 elements, falling at second order
+>   (`tst/units/validation/SealedStrip_SteadyGradient.unit.cxx`, now 1e-12 on every mesh).
+> - **conservation is unchanged.** Column sums vanish by the same argument, for any spatially
+>   varying coefficient — the property the Gauss-point interpolation of coefficients was
+>   introduced to secure.
+> - **heat and mass now move the same vapor.** The thermal element's advected-enthalpy term
+>   already used the nodal product `c_sat·φ` as its potential, so before this change the heat
+>   equation advected the enthalpy of a slightly different discrete flux than the moisture
+>   equation transported.
+>
+> Measured against the 1D reference solver under an imposed `∇T`, the deviation fell from
+> 2.18e-5 to 4.07e-6; where `c_sat` is uniform the two forms are identical, so isothermal
+> results are bitwise unchanged.
+
 ### D2. RH primary variable saturates (structural)
 `φ ∈ [0,1]` cannot represent moisture above `w(φ=1)`. Near saturation `ξ = dw/dφ` blows up
 (CottaerSandstone: `w` 63→180 kg/m³ over `φ` 0.99→1.0, `TestMaterials.hxx`), so `M` dominates
@@ -236,7 +259,7 @@ this change.
 | Defect | Status | Notes |
 |---|---|---|
 | **D6** capacity | **Implemented + verified** | `SorptionSecantCapacity` replaces the tangent `dw/dphi` in the moisture element. Engine closed-strip drift 6% → **1.5e-4**. Thermal green. New test: `tst/units/transient/MoistureMassConservation.unit.cxx`. |
-| **D1** vapor weak form | **Implemented (correct); convergence caveat** | `QLEDpDuConsistentIntegrator2D` gives the consistent by-parts form of the temperature-gradient vapour term; used in the moisture element only, thermal assembly byte-identical (thermal green). The term is non-symmetric, so very tight tolerances converge harder: `LowHumidity + TightTolerance` now needs the D3 convergence work to avoid a non-convergence throw in the diagnostic sweep (regular suite has no throws). Correctness is best shown against the 1D reference under an imposed ∇T (todo). |
+| **D1** vapor weak form | **Resolved (product potential)** | The term is one matrix, the stiffness of `δ` with columns scaled by the nodal `c_sat` (two-argument `DDu`); the split assembly and `QLEDpDuConsistentIntegrator2D` are removed. Exact on the equilibrium profile on any mesh, conservative for any varying coefficient, and consistent with the thermal element's advected-enthalpy flux. Against the 1D reference under an imposed ∇T: 2.18e-5 → 4.07e-6; against the closed form: 3.08e-5 → 1e-12. Isothermal results bitwise unchanged. |
 | **D3** convergence | **Implemented — relaxation-independent; tolerance/iteration + coupling residual** | Moisture converges on the **reduction of its free-DOF residual** to `1e-6 · ‖r₀‖` (relative to each problem's own initial residual, so it auto-scales — fixing the earlier fixed-threshold dead-end), with **best-effort acceptance** of the lowest-residual iterate instead of throwing, the change-metric oscillation exit disabled, and **adaptive under-relaxation** (halve damping when the residual grows; moisture ignores the user relaxation entirely and controls it itself). Moisture-only via `useResidualConvergence()`/`constrainedDofs()`; thermal byte-identical (green). **Sweep 14→9/42, 0 throws; LowHumidity/MediumHumidity fully consistent and HighHumidity consistent across all relaxation settings** — the relaxation-driven parameter-sensitivity is resolved. Remaining variability is in the tolerance / max-iteration knobs (best-effort accepts a less-converged iterate under `FewIterations`) and the staggered coupling for the extreme-ΔT `ExtremeHumidity` case → **D4**. The synthetic closed T-gradient diagnostic still leaks ~1% (iteration stalls there), so that residual-quality corner is open. |
 | **D4** coupling | Identified as remaining lever | The residual `ExtremeHumidity` (80→20 °C) variability with tolerance/iteration settings traces to the single-pass staggered coupling (`MultiDomain::transient`) interacting with per-domain convergence. A per-timestep coupling (Picard) iteration would close it. |
 | **D2** RH saturation | Smaller than thought — see diagnosis | Under D3's free-DOF residual convergence, `NearSaturation` went to **zero** violations across all settings — so it was a *convergence* problem (D3), not a representation problem. D2's real footprint is just the combined high-ΔT + near-saturation `ExtremeHumidity` case. |

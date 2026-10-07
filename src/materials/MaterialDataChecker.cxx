@@ -2,7 +2,6 @@
 #include "MultiDomain.hxx"
 #include "Materials.hxx"
 #include "Material.hxx"
-#include "SimulationProperties.hxx"
 
 namespace HygroThermFEM
 {
@@ -37,6 +36,8 @@ namespace HygroThermFEM
     {
         MaterialMissingProperties missing;
 
+        const auto physics{multiDomain.physicsOptions()};
+
         missing.materialName = material.name();
 
         // Used in thermal equation only in case of transient simulation
@@ -58,14 +59,13 @@ namespace HygroThermFEM
         // not required property.
         missing.ThermalConductivityDry =
           !material.hasThermalConductivityDry() && multiDomain.isThermalSimulationON()
-          && !SimulationProperties::Instance().thermalConductivityTemperatureAndMoistureDependent();
+          && !physics.thermalConductivityMoistureAndTemperatureDependent;
 
         // Water vapor diffusion is required in moisture always and in thermal only in case heat of
         // evaporation calculation is on
         missing.WaterVaporDiffusionResistanceFactor =
           (!material.hasDiffusionResistanceFactor() && multiDomain.isMoistureSimulationON())
-          || (!material.hasDiffusionResistanceFactor()
-              && !SimulationProperties::Instance().excludeHeatOfEvaporation()
+          || (!material.hasDiffusionResistanceFactor() && !physics.excludeHeatOfEvaporation
               && multiDomain.isThermalSimulationON());
 
         // Sorption curve: any moisture simulation needs it (the transient capacity term and
@@ -73,7 +73,7 @@ namespace HygroThermFEM
         // simulation needs it when capillary conduction is on.
         missing.MoistureStorageFunction =
           (!material.hasSorptionCurve() && multiDomain.isThermalSimulationON()
-           && !SimulationProperties::Instance().excludeCapillaryConduction())
+           && !physics.excludeCapillaryConduction)
           || (!material.hasSorptionCurve() && multiDomain.isMoistureSimulationON());
 
 
@@ -82,16 +82,16 @@ namespace HygroThermFEM
         //  2. Moisture simulation include capillary transportation.
         missing.LiquidTransportationSuction =
           (!material.hasLiquidTransportationCurve() && multiDomain.isThermalSimulationON()
-           && !SimulationProperties::Instance().excludeCapillaryConduction())
+           && !physics.excludeCapillaryConduction)
           || (!material.hasLiquidTransportationCurve() && multiDomain.isMoistureSimulationON()
-              && !SimulationProperties::Instance().excludeWaterLiquidTransportation());
+              && !physics.excludeWaterLiquidTransportation);
 
         // missing.LiquidTransportationRedistribution =
 
         missing.ThermalConductivityMoistureAndTemperatureDependent =
           !material.hasThermalConductivityMoistureAndTemperatureDependent()
           && multiDomain.isThermalSimulationON()
-          && SimulationProperties::Instance().thermalConductivityTemperatureAndMoistureDependent();
+          && physics.thermalConductivityMoistureAndTemperatureDependent;
 
         return missing;
     }

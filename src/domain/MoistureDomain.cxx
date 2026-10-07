@@ -11,8 +11,8 @@ namespace HygroThermFEM
                                        const size_t index4,
                                        const std::string & materialName)
     {
-        m_Elements.assignElement(
-          std::make_unique<ElementMoistureLinear2D>(m_NodePool, m_MaterialPool, index1, index2, index3, index4, materialName));
+        m_Elements.assignElement(std::make_unique<ElementMoistureLinear2D>(
+          m_NodePool, m_MaterialPool, index1, index2, index3, index4, materialName, physicsOptions()));
     }
 
     void MoistureDomain::createBC_TARPHc(const size_t index1,

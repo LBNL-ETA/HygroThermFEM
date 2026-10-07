@@ -130,12 +130,12 @@ namespace HygroThermFEM
     /////////////////////////////////////////////////////
     /// MoistureBCFixedHumidity
     /////////////////////////////////////////////////////
-    std::vector<double> MoistureBCFixedHumidity::R_Vector() const
+    BCVector MoistureBCFixedHumidity::R_Vector() const
     {
         // Node-temperature saturation concentration on BOTH sides of the penalty
         // row (the matrix side already uses it), so the pinned quantity is the
         // humidity itself -- see the class comment.
-        std::vector<double> concentration(numOfBCNodes, 0.0);
+        BCVector concentration{};
         for(std::size_t node = 0; node < numOfBCNodes; ++node)
         {
             concentration[node] = saturationConcentrationAtTemperature(

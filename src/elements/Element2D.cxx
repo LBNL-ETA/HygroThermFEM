@@ -8,7 +8,47 @@
 #include "Materials.hxx"
 #include "QuadrilateralLocal2D.hxx"
 #include "VectorOperators.hxx"
-#include "SimulationProperties.hxx"
+
+namespace
+{
+    //! Scales column j of a matrix by factor j, turning the stiffness matrix of a
+    //! coefficient into the transport matrix of a product potential (see the two-argument DDu).
+    HygroThermFEM::ElementMatrix2D scaleColumns(const HygroThermFEM::ElementMatrix2D & matrix,
+                                                std::span<const double> factors)
+    {
+        HygroThermFEM::ElementMatrix2D scaled{matrix};
+        for(std::size_t row = 0; row < HygroThermFEM::numOfQuadrilateralNodes; ++row)
+        {
+            for(std::size_t col = 0; col < HygroThermFEM::numOfQuadrilateralNodes; ++col)
+            {
+                scaled(row, col) *= factors[col];
+            }
+        }
+        return scaled;
+    }
+
+    //! Nodal volumes v_i = integral(psi_i), obtained as the row sums of the consistent mass
+    //! matrix integral(psi_i psi_j) integrated with a unit coefficient. These depend only on
+    //! the element geometry, so they are computed once per element rather than rebuilt on
+    //! every capacitance evaluation.
+    std::array<double, HygroThermFEM::numOfQuadrilateralNodes>
+      computeNodalVolumes(const HygroThermFEM::QLECapacitanceIntegrator2D & integrator)
+    {
+        constexpr std::array<double, HygroThermFEM::numOfQuadrilateralNodes> unitCoefficients{
+          1.0, 1.0, 1.0, 1.0};
+        const auto massMatrix = integrator.integrate(unitCoefficients);
+
+        std::array<double, HygroThermFEM::numOfQuadrilateralNodes> volumes{};
+        for(std::size_t row = 0; row < HygroThermFEM::numOfQuadrilateralNodes; ++row)
+        {
+            for(std::size_t col = 0; col < HygroThermFEM::numOfQuadrilateralNodes; ++col)
+            {
+                volumes[row] += massMatrix(row, col);
+            }
+        }
+        return volumes;
+    }
+}   // namespace
 
 namespace HygroThermFEM
 {
@@ -17,15 +57,14 @@ namespace HygroThermFEM
     //////////////////////////////////////////////////////////////////////////////
     IQLEIntegrator2D::IQLEIntegrator2D(const QuadrilateralLinearGlobal2D & t_Element) :
         m_Global2D{t_Element},
-        m_IntegrationMatrix{numOfQuadrilateralNodes, SquareMatrix{numOfQuadrilateralNodes}}
+        m_IntegrationMatrix{numOfQuadrilateralNodes, ElementMatrix2D{}}
     {}
 
-    SquareMatrix IQLEIntegrator2D::integrate(const std::vector<double> & t_Values) const
+    ElementMatrix2D IQLEIntegrator2D::integrate(std::span<const double> t_Values) const
     {
         const auto count = IntegrationPoints2D::Instance().count2D();
 
-        std::vector<std::vector<double>> aMatrix{numOfQuadrilateralNodes,
-                                                 std::vector<double>(numOfQuadrilateralNodes, 0)};
+        ElementMatrix2D aMatrix{};
         for(auto integrationPoint = 0u; integrationPoint < count; ++integrationPoint)
         {
             auto & intPointMatrix = m_IntegrationMatrix[integrationPoint];
@@ -34,23 +73,22 @@ namespace HygroThermFEM
             {
                 for(size_t col = 0; col < t_Values.size(); ++col)
                 {
-                    aMatrix[row][col] += intPointMatrix(row, col)
+                    aMatrix(row, col) += intPointMatrix(row, col)
                                          * 0.5 * (t_Values[row] + t_Values[col]);
                 }
             }
         }
 
-        return SquareMatrix{aMatrix};
+        return aMatrix;
     }
 
-    SquareMatrix
-      IQLEIntegrator2D::integrateInterpolated(const std::vector<double> & t_Values) const
+    ElementMatrix2D
+      IQLEIntegrator2D::integrateInterpolated(std::span<const double> t_Values) const
     {
         const auto count = IntegrationPoints2D::Instance().count2D();
         const auto & localElement = QuadrilateralLinearLocal2D::Instance();
 
-        std::vector<std::vector<double>> aMatrix{numOfQuadrilateralNodes,
-                                                 std::vector<double>(numOfQuadrilateralNodes, 0)};
+        ElementMatrix2D aMatrix{};
         for(auto integrationPoint = 0u; integrationPoint < count; ++integrationPoint)
         {
             const auto & psi = localElement.Psi(integrationPoint);
@@ -65,12 +103,12 @@ namespace HygroThermFEM
             {
                 for(size_t col = 0; col < t_Values.size(); ++col)
                 {
-                    aMatrix[row][col] += intPointMatrix(row, col) * coefficient;
+                    aMatrix(row, col) += intPointMatrix(row, col) * coefficient;
                 }
             }
         }
 
-        return SquareMatrix{aMatrix};
+        return aMatrix;
     }
 
     //////////////////////////////////////////////////////////////////////////////
@@ -90,9 +128,9 @@ namespace HygroThermFEM
             const auto det = m_Global2D.det(integrationPoint);
 
             auto & DPsiDxDyMatrix = m_IntegrationMatrix[integrationPoint];
-            for(auto row = 0u; row < DPsiDxDyMatrix.size(); ++row)
+            for(auto row = 0u; row < numOfQuadrilateralNodes; ++row)
             {
-                for(auto col = 0u; col < DPsiDxDyMatrix.size(); ++col)
+                for(auto col = 0u; col < numOfQuadrilateralNodes; ++col)
                 {
                     DPsiDxDyMatrix(row, col) =
                       (DPsiDx[row] * DPsiDx[col] + DPsiDy[row] * DPsiDy[col]) * det;
@@ -109,7 +147,7 @@ namespace HygroThermFEM
         IQLEIntegrator2D{t_Element}
     {}
 
-    void QLEDpDuIntegrator2D::setIndependentVariables(const std::vector<double> & t_Values)
+    void QLEDpDuIntegrator2D::setIndependentVariables(std::span<const double> t_Values)
     {
         const auto numOfIntegrationPoints = IntegrationPoints2D::Instance().count2D();
         auto & aElement = QuadrilateralLinearLocal2D::Instance();
@@ -132,68 +170,15 @@ namespace HygroThermFEM
                 gammaY += DPsiDy[idx] * t_Values[idx];
             }
 
-            std::vector<std::vector<double>> matrix{numOfIntegrationPoints,
-                                                    std::vector<double>(numOfIntegrationPoints, 0)};
-
+            auto & matrix = m_IntegrationMatrix[integrationPoint];
             for(auto row = 0u; row < numOfIntegrationPoints; ++row)
             {
                 for(auto col = 0u; col < numOfIntegrationPoints; ++col)
                 {
-                    matrix[row][col] =
+                    matrix(row, col) =
                       det * (psi[row] * DPsiDx[col] * gammaX + psi[row] * DPsiDy[col] * gammaY);
                 }
             }
-            m_IntegrationMatrix[integrationPoint] = SquareMatrix{matrix};
-        }
-    }
-
-    //////////////////////////////////////////////////////////////////////////////
-    ///  QLEDpDuConsistentIntegrator2D
-    //////////////////////////////////////////////////////////////////////////////
-
-    QLEDpDuConsistentIntegrator2D::QLEDpDuConsistentIntegrator2D(
-      const QuadrilateralLinearGlobal2D & t_Element) :
-        IQLEIntegrator2D{t_Element}
-    {}
-
-    void QLEDpDuConsistentIntegrator2D::setIndependentVariables(
-      const std::vector<double> & t_Values)
-    {
-        const auto numOfIntegrationPoints = IntegrationPoints2D::Instance().count2D();
-        auto & aElement = QuadrilateralLinearLocal2D::Instance();
-
-        assert(t_Values.size() == numOfIntegrationPoints);
-
-        for(std::size_t integrationPoint = 0; integrationPoint < numOfIntegrationPoints;
-            ++integrationPoint)
-        {
-            const auto & psi = aElement.Psi(integrationPoint);
-            const auto & DPsiDx = m_Global2D.DPsiDx(integrationPoint);
-            const auto & DPsiDy = m_Global2D.DPsiDy(integrationPoint);
-            const auto det = m_Global2D.det(integrationPoint);
-
-            auto gammaX = 0.0;
-            auto gammaY = 0.0;
-            for(auto idx = 0u; idx < numOfIntegrationPoints; ++idx)
-            {
-                gammaX += DPsiDx[idx] * t_Values[idx];
-                gammaY += DPsiDy[idx] * t_Values[idx];
-            }
-
-            std::vector<std::vector<double>> matrix{numOfIntegrationPoints,
-                                                    std::vector<double>(numOfIntegrationPoints, 0)};
-
-            for(auto row = 0u; row < numOfIntegrationPoints; ++row)
-            {
-                for(auto col = 0u; col < numOfIntegrationPoints; ++col)
-                {
-                    // Transpose of QLEDpDuIntegrator2D: the test function (row) is the one
-                    // that is differentiated -> integral( (grad psi_row . grad p) psi_col ).
-                    matrix[row][col] =
-                      det * (DPsiDx[row] * gammaX + DPsiDy[row] * gammaY) * psi[col];
-                }
-            }
-            m_IntegrationMatrix[integrationPoint] = SquareMatrix{matrix};
         }
     }
 
@@ -249,6 +234,9 @@ namespace HygroThermFEM
                    nodePool.getNode(index3),
                    nodePool.getNode(index4)},
         m_QLECapacitance2D{m_Global2D},
+        m_QLEDDu2D{m_Global2D},
+        m_QLEDpDu2D{m_Global2D},
+        m_NodalVolumes{computeNodalVolumes(m_QLECapacitance2D)},
         m_Linear{isLinear && m_Material.isLinear()}
     {
         /// Evaluating material influence in every node (This is important to know when
@@ -274,60 +262,47 @@ namespace HygroThermFEM
         }
     }
 
-    SquareMatrix IElementLinear2D::DDuMatrices() const
+    ElementMatrix2D IElementLinear2D::DDuMatrices() const
     {
-        SquareMatrix result{numOfQuadrilateralNodes};
+        ElementMatrix2D result{};
 
-        const QLEDDuIntegrator2D DDuIntegrator{m_Global2D};
-        for(const auto & cond : m_DDuFunctions)
+        for(const auto & term : m_DDuFunctions)
         {
-            const auto values = cond->values(m_Nodes);
-            result += m_InterpolateCoefficientsAtGaussPoints
-                        ? DDuIntegrator.integrateInterpolated(values)
-                        : DDuIntegrator.integrate(values);
+            const auto coefficients = term.coefficient->values(m_Nodes);
+            const auto stiffness = m_InterpolateCoefficientsAtGaussPoints
+                                     ? m_QLEDDu2D.integrateInterpolated(coefficients)
+                                     : m_QLEDDu2D.integrate(coefficients);
+            result += term.nodalFactor == nullptr
+                        ? stiffness
+                        : scaleColumns(stiffness, term.nodalFactor->values(m_Nodes));
         }
 
         return result;
     }
 
-    SquareMatrix IElementLinear2D::DpDuMatrices() const
+    ElementMatrix2D IElementLinear2D::DpDuMatrices() const
     {
-        SquareMatrix result{numOfQuadrilateralNodes};
+        ElementMatrix2D result{};
 
-        /// Integration matrix must be created every time because independent
-        /// variables changed as well.
-
-        QLEDpDuIntegrator2D qleDpDuIntegrator2D{m_Global2D};
+        /// The integration matrix has to be rebuilt for every term because the independent
+        /// variables change, but setIndependentVariables() replaces it wholesale, so the
+        /// integrator itself is reused.
         for(const auto & cond : m_DpDuFunctions)
         {
             const auto aDerivatives = cond.derivativeValue->values(m_Nodes);
-            qleDpDuIntegrator2D.setIndependentVariables(aDerivatives);
+            m_QLEDpDu2D.setIndependentVariables(aDerivatives);
             const auto values = cond.fixedValue->values(m_Nodes);
             result += m_InterpolateCoefficientsAtGaussPoints
-                        ? qleDpDuIntegrator2D.integrateInterpolated(values)
-                        : qleDpDuIntegrator2D.integrate(values);
-        }
-
-        // Consistent (integrated-by-parts) coupling terms. Only the moisture element
-        // registers these (for the vapour temperature-gradient term); thermal elements
-        // leave m_DpDuConsistentFunctions empty and are unaffected. See D1.
-        QLEDpDuConsistentIntegrator2D qleDpDuConsistentIntegrator2D{m_Global2D};
-        for(const auto & cond : m_DpDuConsistentFunctions)
-        {
-            const auto aDerivatives = cond.derivativeValue->values(m_Nodes);
-            qleDpDuConsistentIntegrator2D.setIndependentVariables(aDerivatives);
-            const auto values = cond.fixedValue->values(m_Nodes);
-            result += m_InterpolateCoefficientsAtGaussPoints
-                        ? qleDpDuConsistentIntegrator2D.integrateInterpolated(values)
-                        : qleDpDuConsistentIntegrator2D.integrate(values);
+                        ? m_QLEDpDu2D.integrateInterpolated(values)
+                        : m_QLEDpDu2D.integrate(values);
         }
 
         return result;
     }
 
-    SquareMatrix IElementLinear2D::capacitanceMatrices() const
+    ElementMatrix2D IElementLinear2D::capacitanceMatrices() const
     {
-        SquareMatrix result{numOfQuadrilateralNodes};
+        ElementMatrix2D result{};
         for(const auto & cap : m_CapacitanceFunctions)
         {
             const auto values = cap->values(m_Nodes);
@@ -341,23 +316,13 @@ namespace HygroThermFEM
         return result;
     }
 
-    SquareMatrix
-      IElementLinear2D::nodalLumpedCapacity(const std::vector<double> & nodalCapacity) const
+    ElementMatrix2D
+      IElementLinear2D::nodalLumpedCapacity(std::span<const double> nodalCapacity) const
     {
-        // Nodal volumes v_i = integral(psi_i) = row sums of the consistent mass matrix
-        // integral(psi_i psi_j) (obtained by integrating with a unit coefficient).
-        const auto massMatrix =
-          m_QLECapacitance2D.integrate(std::vector<double>(numOfQuadrilateralNodes, 1.0));
-
-        SquareMatrix result{numOfQuadrilateralNodes};
-        for(std::size_t i = 0; i < numOfQuadrilateralNodes; ++i)
+        ElementMatrix2D result{};
+        for(std::size_t idx = 0; idx < numOfQuadrilateralNodes; ++idx)
         {
-            double nodalVolume = 0.0;
-            for(std::size_t j = 0; j < numOfQuadrilateralNodes; ++j)
-            {
-                nodalVolume += massMatrix(i, j);
-            }
-            result(i, i) = nodalVolume * nodalCapacity[i];
+            result(idx, idx) = m_NodalVolumes[idx] * nodalCapacity[idx];
         }
         return result;
     }
@@ -514,14 +479,19 @@ namespace HygroThermFEM
         m_VolumetricSource = value;
     }
 
-    std::vector<double> IElementLinear2D::volumetricSourceVector() const
+    bool IElementLinear2D::hasVolumetricSource() const
+    {
+        return m_VolumetricSource != 0.0;
+    }
+
+    std::array<double, numOfQuadrilateralNodes> IElementLinear2D::volumetricSourceVector() const
     {
         // Consistent load vector for a constant source: q * integral(psi_i dA),
         // integrated with the same 2x2 Gauss rule as every other element matrix.
         // Kept separate from rightSideVector so the source enters the steady and
         // transient right hand sides symmetrically without altering what the
         // steady path takes from the elements otherwise.
-        std::vector<double> result(numOfQuadrilateralNodes, 0);
+        std::array<double, numOfQuadrilateralNodes> result{};
         if(m_VolumetricSource == 0.0)
         {
             return result;
@@ -541,11 +511,9 @@ namespace HygroThermFEM
         return result;
     }
 
-    std::vector<double> IElementLinear2D::rightSideVector() const
+    std::array<double, numOfQuadrilateralNodes> IElementLinear2D::rightSideVector() const
     {
-        std::vector<double> result(numOfQuadrilateralNodes, 0);
-
-        const QLEDDuIntegrator2D DDuIntegrator{m_Global2D};
+        std::array<double, numOfQuadrilateralNodes> result{};
 
         /// SquareMatrix M{numOfQuadrilateralNodes};
         for(const auto & item : m_Matrix_x_Vector)
@@ -553,13 +521,17 @@ namespace HygroThermFEM
             /// Calculate functions base on node properties
             const auto values = item.MatrixFunction->values(m_Nodes);
             /// And then integrate them
-            auto M = m_InterpolateCoefficientsAtGaussPoints
-                       ? DDuIntegrator.integrateInterpolated(values)
-                       : DDuIntegrator.integrate(values);
-            auto B = item.VectorFunction ? item.VectorFunction->values(m_Nodes)
-                                         : m_Nodes.properties(item.PropertyVector);
+            const auto M = m_InterpolateCoefficientsAtGaussPoints
+                             ? m_QLEDDu2D.integrateInterpolated(values)
+                             : m_QLEDDu2D.integrate(values);
+            const auto B = item.VectorFunction ? item.VectorFunction->values(m_Nodes)
+                                               : m_Nodes.properties(item.PropertyVector);
 
-            result = result + M * B;
+            const auto contribution = M * B;
+            for(std::size_t idx = 0; idx < numOfQuadrilateralNodes; ++idx)
+            {
+                result[idx] += contribution[idx];
+            }
         }
 
         return result;
@@ -584,6 +556,11 @@ namespace HygroThermFEM
         fixedValue(std::move(fixedValue)), derivativeValue(std::move(derivativeValue))
     {}
 
+    IElementLinear2D::NodalProductFunction::NodalProductFunction(iValue coefficient,
+                                                                 iValue nodalFactor) :
+        coefficient(std::move(coefficient)), nodalFactor(std::move(nodalFactor))
+    {}
+
     //////////////////////////////////////////////////////////////////////////////
     ///  ElementThermalLinear2D
     //////////////////////////////////////////////////////////////////////////////
@@ -594,7 +571,8 @@ namespace HygroThermFEM
                                                    const size_t index2,
                                                    const size_t index3,
                                                    const size_t index4,
-                                                   const std::string & materialName) :
+                                                   const std::string & materialName,
+                                                   const PhysicsOptions & physics) :
         IElementLinear2D(nodePool,
                          materialPool,
                          index1,
@@ -607,7 +585,7 @@ namespace HygroThermFEM
                          // the element must go through the Newton-Raphson path; the linear
                          // shortcut would freeze the secant at its step-start (tangent)
                          // value and drop the latent heat entirely.
-                         SimulationProperties::Instance().excludeLatentHeatOfFusion())
+                         physics.excludeLatentHeatOfFusion)
     {
         //////////////////////////////////////////////////////////////////////////////////////
         /// Capacitance functions
@@ -642,8 +620,7 @@ namespace HygroThermFEM
         // consistent pairwise-average integration would smear it onto neighbouring
         // rows, booking phantom storage energy there (observed as a stalled Stefan
         // front losing ~85 % of the incoming flux).
-        if(m_Material.hasDensity()
-           && !SimulationProperties::Instance().excludeLatentHeatOfFusion())
+        if(m_Material.hasDensity() && !physics.excludeLatentHeatOfFusion)
         {
             const StateValue liquidContent(Variable::liquid);
             const StateValue iceContent(Variable::ice);
@@ -659,7 +636,7 @@ namespace HygroThermFEM
         //  TabularFunction1D(m_Material.thermalConductivityMoistureAndTemperatureDependent(),
         //  Variable::water);
 
-        if(SimulationProperties::Instance().thermalConductivityTemperatureAndMoistureDependent()
+        if(physics.thermalConductivityMoistureAndTemperatureDependent
            && m_Material.hasThermalConductivityMoistureAndTemperatureDependent())
         {
             auto materialConductivity =
@@ -678,7 +655,7 @@ namespace HygroThermFEM
             // Same remedy the moisture element applies to its vapour coefficient.
             m_InterpolateCoefficientsAtGaussPoints = true;
         }
-        if(!SimulationProperties::Instance().thermalConductivityTemperatureAndMoistureDependent()
+        if(!physics.thermalConductivityMoistureAndTemperatureDependent
            && m_Material.hasThermalConductivityDry())
         {
             auto materialConductivity = Constant(m_Material.thermalConductivityDry());
@@ -695,7 +672,7 @@ namespace HygroThermFEM
         if(m_Material.hasDiffusionResistanceFactor())
         {
             const VaporPermeability delta{m_Material.diffusionResistanceFactor()};
-            if(!SimulationProperties::Instance().excludeHeatOfEvaporation())
+            if(!physics.excludeHeatOfEvaporation)
             {
                 // Interior latent term h_lg * div(g_v). Two corrections against the THERMM
                 // documents (see ThermSample_StuccoWall for the failure they caused):
@@ -746,8 +723,8 @@ namespace HygroThermFEM
         //////////////////////////////////////////////////////////////////////
         ///  Conduction from liquid
         //////////////////////////////////////////////////////////////////////
-        if(!SimulationProperties::Instance().excludeCapillaryConduction()
-           && m_Material.hasSorptionCurve() && m_Material.hasLiquidTransportationCurve())
+        if(!physics.excludeCapillaryConduction && m_Material.hasSorptionCurve()
+           && m_Material.hasLiquidTransportationCurve())
         {
             auto humidity = StateValue(Variable::humidity);
             const TabularDerivativeSmooth sorptionDerivative(m_Material.sorptionCurve(),
@@ -760,8 +737,7 @@ namespace HygroThermFEM
         //////////////////////////////////////////////////////////////////////
         ///  Conduction from vapor
         //////////////////////////////////////////////////////////////////////
-        if(!SimulationProperties::Instance().excludeVaporDiffusionConduction()
-           && m_Material.hasDiffusionResistanceFactor())
+        if(!physics.excludeVaporDiffusionConduction && m_Material.hasDiffusionResistanceFactor())
         {
             const VaporPermeability delta{m_Material.diffusionResistanceFactor()};
             auto vapCond = Constant(-1) * delta * Constants::Cp_Vapor;
@@ -784,7 +760,8 @@ namespace HygroThermFEM
                                                      const size_t index2,
                                                      const size_t index3,
                                                      const size_t index4,
-                                                     const std::string & materialName) :
+                                                     const std::string & materialName,
+                                                     const PhysicsOptions & physics) :
         IElementLinear2D(nodePool, materialPool, index1, index2, index3, index4, materialName, Variable::humidity, false)
     {
         // Lump the moisture capacity nodally (diag(v_i * xi_i)) so the secant capacity
@@ -805,20 +782,23 @@ namespace HygroThermFEM
         //////////////////////////////////////////////////////////////////////////////
         if(m_Material.hasDiffusionResistanceFactor())
         {
-            // Non-const: the DpDuConsistent template stores a copy through unique_ptr<IValue>,
+            // Non-const: the assembly templates store a copy through unique_ptr<IValue>,
             // which a const-deduced T cannot provide.
             VaporPermeability delta{m_Material.diffusionResistanceFactor()};
             auto conductance = delta * SaturationFunction();
 
-            // The vapour term grad.(delta grad(phi c_sat)) splits into a moisture-gradient
-            // half (delta c_sat grad phi) and a temperature-gradient half (delta phi grad
-            // c_sat). Both must be integrated by parts consistently: the first is the DDu
-            // (stiffness) term, the second is the *consistent* DpDu term (test function
-            // differentiated). Using the plain DpDu here assembled the transpose and dropped
-            // a term, which made results swing with the temperature field. See D1.
-            DDu(conductance);
-
-            DpDuConsistent(delta, SaturationFunction());
+            // The vapour term grad.(delta grad(phi c_sat)) is assembled on its PRODUCT
+            // potential: the stiffness matrix of delta with column j scaled by the nodal
+            // saturation c_sat,j. Splitting it instead into a moisture-gradient half
+            // (delta c_sat grad phi) and a temperature-gradient half (delta phi grad c_sat)
+            // integrates two matrices that sum to the same continuous term but do not cancel
+            // on the profile where the continuous flux vanishes: a sealed strip then settles
+            // near, rather than on, its closed-form equilibrium phi = C / c_sat(T) (second
+            // order in the element size, 3.1e-5 on a 20-element strip under 40 -> 20 C).
+            // The product form annihilates that profile exactly on any mesh and keeps the
+            // exact conservation of the split form. See D1 and
+            // tst/units/validation/SealedStrip_SteadyGradient.unit.cxx.
+            DDu(delta, SaturationFunction());
 
             // Function for flux calculations.
             CondFlux(conductance);
@@ -827,8 +807,8 @@ namespace HygroThermFEM
         //////////////////////////////////////////////////////////////////////////////
         /// Water liquid transportation
         //////////////////////////////////////////////////////////////////////////////
-        if(!SimulationProperties::Instance().excludeWaterLiquidTransportation()
-           && m_Material.hasSorptionCurve() && m_Material.hasLiquidTransportationCurve())
+        if(!physics.excludeWaterLiquidTransportation && m_Material.hasSorptionCurve()
+           && m_Material.hasLiquidTransportationCurve())
         {
             auto sorptionDerivative =
               TabularDerivativeSmooth(m_Material.sorptionCurve(), Variable::humidity);
@@ -855,8 +835,7 @@ namespace HygroThermFEM
         //////////////////////////////////////////////////////////////////////
         /// Functions for flux calculations
         //////////////////////////////////////////////////////////////////////
-        if(!SimulationProperties::Instance().excludeWaterLiquidTransportation()
-           && m_Material.hasLiquidTransportationCurve())
+        if(!physics.excludeWaterLiquidTransportation && m_Material.hasLiquidTransportationCurve())
         {
             CondFlux(LiquidTransportationCurve(m_Material.liquidTransportationCurve(), m_Material));
         }

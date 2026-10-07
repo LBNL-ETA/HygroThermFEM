@@ -32,9 +32,9 @@ namespace HygroThermFEM::errorest
 
         //! Translate one solved element into the estimator's plain-data element, recording its
         //! node coordinates into the shared node table along the way.
-        lbnl::errorest::Element toEstimatorElement(const IElementLinear2D & element,
-                                                   MaterialGrouping & grouping,
-                                                   std::vector<lbnl::errorest::Point> & nodes)
+        Element toEstimatorElement(const IElementLinear2D & element,
+                                   MaterialGrouping & grouping,
+                                   std::vector<Point> & nodes)
         {
             const auto nodeIds = element.nodeIndexes();
             const auto gaussCoords = element.gaussPointGlobalCoordinates();
@@ -42,7 +42,7 @@ namespace HygroThermFEM::errorest
             const auto conductivity = element.meanConductivity();
             const double inverse = conductivity == 0.0 ? 0.0 : 1.0 / conductivity;
 
-            lbnl::errorest::Element out;
+            Element out;
             out.inverseConstitutive = {inverse, 0.0, 0.0, inverse};
             out.subdomain = grouping.idOf(element.getMaterial().name());
 
@@ -70,7 +70,7 @@ namespace HygroThermFEM::errorest
 
     DomainEstimate estimateError(const IDomain & domain, const double targetPercent)
     {
-        lbnl::errorest::Input input;
+        Input input;
         input.targetPercent = targetPercent;
 
         MaterialGrouping grouping;
@@ -79,9 +79,8 @@ namespace HygroThermFEM::errorest
             input.elements.push_back(toEstimatorElement(*element, grouping, input.nodes));
         }
 
-        auto estimated = lbnl::errorest::estimate(input);
-        lbnl::errorest::Result result =
-          estimated.has_value() ? std::move(estimated).value() : lbnl::errorest::Result{};
+        auto estimated = estimate(input);
+        Result result = estimated.has_value() ? std::move(estimated).value() : Result{};
         return DomainEstimate{std::move(input), std::move(result)};
     }
 }

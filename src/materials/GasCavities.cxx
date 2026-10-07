@@ -90,7 +90,7 @@ namespace HygroThermFEM
             // without an emissivity; both cases fall back to 0.0.
             const auto emissivity =
               lbnl::extend(findCommonMaterial(node1, node2))
-                .map([](const std::reference_wrapper<const IMaterial> & common) {
+                .transform([](const std::reference_wrapper<const IMaterial> & common) {
                     const auto & material = common.get();
                     return material.hasEmissivity() ? material.emissivity() : 0.0;
                 })

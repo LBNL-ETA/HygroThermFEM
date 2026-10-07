@@ -15,7 +15,6 @@
 #include "Functions.hxx"
 #include "Nodes.hxx"
 #include "MaterialDataChecker.hxx"
-#include "SimulationProperties.hxx"
 
 namespace HygroThermFEM
 {
@@ -132,7 +131,7 @@ namespace HygroThermFEM
             currentTemperature = temperatureSolution.solution;
             m_Nodes.updateNodeTemperatures(currentTemperature, false);
             m_Nodes.updateNodeHumidities(currentHumidity, false);
-            if(!SimulationProperties::Instance().excludeLatentHeatOfFusion())
+            if(!physicsOptions().excludeLatentHeatOfFusion)
             {
                 // Roll the freezing bookkeeping with the accepted temperatures so the
                 // liquid/ice split the capacitance terms read stays consistent.
@@ -154,7 +153,7 @@ namespace HygroThermFEM
                 // were just set above, so a single previous-updating call rolls them.
                 m_Nodes.updateNodeTemperatures(currentTemperature, true);
                 m_Nodes.updateNodeHumidities(currentHumidity, true);
-                if(!SimulationProperties::Instance().excludeLatentHeatOfFusion())
+                if(!physicsOptions().excludeLatentHeatOfFusion)
                 {
                     m_Nodes.updateNodeLiquidPercents(
                       liquidPercentsFromTemperatures(currentTemperature), true);
@@ -220,7 +219,7 @@ namespace HygroThermFEM
         // Final update: advance the "previous timestep" values in nodes
         m_Nodes.updateNodeTemperatures(currentTemperature, true);
         m_Nodes.updateNodeHumidities(currentHumidity, true);
-        if(!SimulationProperties::Instance().excludeLatentHeatOfFusion())
+        if(!physicsOptions().excludeLatentHeatOfFusion)
         {
             m_Nodes.updateNodeLiquidPercents(
               liquidPercentsFromTemperatures(currentTemperature), true);
@@ -280,6 +279,18 @@ namespace HygroThermFEM
     SolverSettings MultiDomain::solverSettings() const
     {
         return m_SolverSettings ? *m_SolverSettings : SolverSettings::fromGlobals();
+    }
+
+    void MultiDomain::setPhysicsOptions(const PhysicsOptions & options)
+    {
+        m_PhysicsOptions = options;
+        m_ThermalDomain.setPhysicsOptions(options);
+        m_MoistureDomain.setPhysicsOptions(options);
+    }
+
+    PhysicsOptions MultiDomain::physicsOptions() const
+    {
+        return m_PhysicsOptions ? *m_PhysicsOptions : PhysicsOptions::fromGlobals();
     }
 
     Solution MultiDomain::steadyState()

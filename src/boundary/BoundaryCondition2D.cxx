@@ -5,7 +5,6 @@
 #include "Materials.hxx"
 #include "VectorOperators.hxx"
 #include "Common.hxx"
-#include "SimulationProperties.hxx"
 #include "ConvectiveCoefficient.hxx"
 
 namespace HygroThermFEM
@@ -41,19 +40,18 @@ namespace HygroThermFEM
         m_SimulateVaporFluxEnergy(simulateMoisture)
     {}
 
-    std::vector<double> IConvectionBC::R_Vector() const
+    BCVector IConvectionBC::R_Vector() const
     {
         auto rightHandSide = m_ConvectiveCoeffCalc->convectiveCoefficients() * m_AirTemperature;
 
-        const auto excludeHeatOfEvaporation =
-          SimulationProperties::Instance().excludeHeatOfEvaporation();
         // Moisture is dumping some energy into domain. However, it is possible that user
         // choose not to simulate moisture in which case energy should not be included in
-        // simulation
-        if(m_SimulateVaporFluxEnergy && !excludeHeatOfEvaporation)
+        // simulation. The flag arrives collapsed with the domain's heat-of-evaporation
+        // physics option (ThermalDomain::vaporFluxEnergyOn) at BC creation.
+        if(m_SimulateVaporFluxEnergy)
         {
             // Vapor leaking part is added here
-            std::vector<double> vaporLeak(numOfBCNodes, 0);
+            BCVector vaporLeak{};
             for(std::size_t j = 0; j < numOfBCNodes; ++j)
             {
                 const double nodeTemperature = m_Nodes[j].property(Variable::temperature);
@@ -71,9 +69,9 @@ namespace HygroThermFEM
         return m_PsiVector * rightHandSide;
     }
 
-    SquareMatrix IConvectionBC::H_Matrix() const
+    BCMatrix2D IConvectionBC::H_Matrix() const
     {
-        return m_PsiPsiMatrix.mmultRows(m_ConvectiveCoeffCalc->convectiveCoefficients());
+        return m_PsiPsiMatrix.mmultColumns(m_ConvectiveCoeffCalc->convectiveCoefficients());
     }
 
     /////////////////////////////////////////////////////
@@ -92,7 +90,7 @@ namespace HygroThermFEM
         m_Material(materialPool.material(materialName))
     {}
 
-    std::vector<double> IMoistureBC::R_Vector() const
+    BCVector IMoistureBC::R_Vector() const
     {
         const auto satOutside = saturationConcentrationAtTemperature(m_AirTemperature);
         const auto gconv =
@@ -100,9 +98,9 @@ namespace HygroThermFEM
         return m_PsiVector * gconv;
     }
 
-    SquareMatrix IMoistureBC::H_Matrix() const
+    BCMatrix2D IMoistureBC::H_Matrix() const
     {
-        std::vector<double> concentration(numOfBCNodes, 0);
+        BCVector concentration{};
         for(std::size_t j = 0; j < numOfBCNodes; ++j)
         {
             const double nodeTemperature = m_Nodes[j].property(Variable::temperature);
@@ -111,7 +109,7 @@ namespace HygroThermFEM
         const auto vaporFlux =
           concentration * m_ConvectiveCoeffCalc->waterVaporTransferCoefficient();
 
-        return m_PsiPsiMatrix.mmultRows(vaporFlux);
+        return m_PsiPsiMatrix.mmultColumns(vaporFlux);
     }
 
 }   // namespace HygroThermFEM

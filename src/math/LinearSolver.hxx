@@ -28,6 +28,18 @@ namespace HygroThermFEM
         static std::vector<double> solveEigen(const SquareMatrix & t_MatrixA,
                                               const std::vector<double> & t_VectorB);
 
+        //! Total symbolic factorizations performed by all solvers since process start.
+        //!
+        //! Mesh connectivity is fixed for a run, so this is expected to stay in the single
+        //! digits. A count that scales with the number of solves means the reuse guard is
+        //! missing and every solve is paying for a symbolic analysis it should not need.
+        [[nodiscard]] static std::size_t patternAnalysisCount();
+
+        //! Total solves performed by all solvers since process start. Divided by the number of
+        //! timesteps this gives the average Newton-Raphson iteration count, which is the figure
+        //! that decides whether a run is bound by per-iteration cost or by iteration count.
+        [[nodiscard]] static std::size_t solveCount();
+
     private:
         struct SolverState;
         std::unique_ptr<SolverState> m_State;

@@ -1,12 +1,17 @@
 #pragma once
 
 #include <cstddef>
+#include <span>
 #include <vector>
 
-#pragma warning(push, 0)
+#ifdef _MSC_VER
+#    pragma warning(push, 0)
+#endif
 //#include <Eigen/Core>
 #include <Eigen/SparseCore>
-#pragma warning(pop)
+#ifdef _MSC_VER
+#    pragma warning(pop)
+#endif
 
 namespace HygroThermFEM
 {
@@ -52,6 +57,10 @@ namespace HygroThermFEM
         	const std::vector<double> & tInput //!< Values that will be added to matrix diagonal
         	) const;
 
+        //! Adds values to the diagonal in place, without the matrix copy and sparse-addition
+        //! temporaries of addDiagonal. Existing diagonal entries are updated directly.
+        void addToDiagonal(std::span<const double> tInput);
+
         //! Calculates and returns inverse matrix
         SquareMatrix inverse() const;
 
@@ -91,8 +100,9 @@ namespace HygroThermFEM
         //! -= operator overload
         SquareMatrix & operator-=(const SquareMatrix & other);
 
-        //! Multiplication between matrix and vector (M x V)
-        std::vector<double> operator*(const std::vector<double> & tVec) const;
+        //! Multiplication between matrix and vector (M x V). Takes a span so that both a
+        //! std::vector solution and an inline NodalValues can be multiplied without conversion.
+        std::vector<double> operator*(std::span<const double> tVec) const;
 
         //! Multiplication between vector and matrix (V x M)
         friend std::vector<double> operator*(const std::vector<double> & first,

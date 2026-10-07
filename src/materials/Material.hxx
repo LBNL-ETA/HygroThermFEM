@@ -1,5 +1,6 @@
 #pragma once
 
+#include <array>
 #include <vector>
 #include <memory>
 #include <string>
@@ -34,7 +35,15 @@ namespace HygroThermFEM
         [[nodiscard]] double content(WaterContent content) const;
 
     private:
-        std::map<WaterContent, double> m_Content;
+        //! Indexed by WaterContent, which is a contiguous zero-based enumerator. An array rather
+        //! than a map because a Water is constructed for every contributing material every time a
+        //! node's state changes, so the map's four heap nodes were paid per node per iteration.
+        [[nodiscard]] static constexpr std::size_t contentIndex(const WaterContent content)
+        {
+            return static_cast<std::size_t>(content);
+        }
+
+        std::array<double, 4> m_Content;
     };
 
     //! \brief Standard used in thermal calculations of air pockets.

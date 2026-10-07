@@ -77,6 +77,33 @@ namespace TestHelper
         };
     }
 
+    //! Vapor-only material with a LINEAR isotherm w = phi, i.e. a constant storage
+    //! capacity xi = 1 kg/m^3. The linear isotherm is what makes the sealed-strip
+    //! zero-flux steady state solvable in closed form, and xi = 1 keeps the diffusion
+    //! time constant xi L^2 / (delta c_sat) near 2e5 s, so a sealed strip actually
+    //! reaches that steady state within a few simulated days.
+    //!
+    //! Non-porous and with a zero liquid transport curve: the closed form describes
+    //! vapor transport alone. Thermal properties are placeholders; the material is
+    //! used in moisture-only runs with an imposed, frozen temperature field.
+    inline HygroThermFEM::SolidMaterialParams LinearSorption()
+    {
+        return {
+            .name = "Linear sorption",
+            .thermalConductivityDry = 1.0,
+            .density = 2000.0,
+            .porosity = 0.0,
+            .heatCapacity = 850.0,
+            .diffusionResistanceFactor = 15.0,
+            .thermalConductivityMoistureDependent = {{0.0, 1.0}, {1.0, 1.0}},
+            .moistureDependentMeasurementTemperature = 0,
+            .thermalConductivityTemperatureDependent = {{0.0, 1.0}, {1.0, 1.0}},
+            .temperatureDependentMeasurementHumidity = 0,
+            .liquidTransportCurve = {{0.0, 0.0}, {1.0, 0.0}},
+            .sorptionCurve = {{0.0, 0.0}, {1.0, 1.0}}
+        };
+    }
+
     inline HygroThermFEM::SolidMaterialParams ConcreteWC05()
     {
         return {

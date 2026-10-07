@@ -12,7 +12,7 @@
 //! moisture, or any specific physics. The only physical input is the per-element
 //! inverse constitutive tensor that defines the energy norm. See the methodology
 //! document `D:\Documents\Error Estimator\error_estimation_methodology.typ`.
-namespace lbnl::errorest
+namespace HygroThermFEM::errorest
 {
     using Point = std::array<double, 2>;    //!< Global (x, y) coordinate.
     using Flux = std::array<double, 2>;     //!< Flux vector (sigma_x, sigma_y).

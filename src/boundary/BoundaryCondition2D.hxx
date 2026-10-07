@@ -56,10 +56,10 @@ namespace HygroThermFEM
                       bool simulateMoisture = true);
 
         //! Function that calculates right hand side vector.
-        [[nodiscard]] std::vector<double> R_Vector() const override;
+        [[nodiscard]] BCVector R_Vector() const override;
 
         //! Function that calculates H matrix.
-        [[nodiscard]] SquareMatrix H_Matrix() const override;
+        [[nodiscard]] BCMatrix2D H_Matrix() const override;
 
     protected:
         //! Need to include energy from vapor flux energy if moisture is present.
@@ -88,10 +88,10 @@ namespace HygroThermFEM
                     std::unique_ptr<IConvectiveCoefficient> convectiveCoeffCalc);
 
         //! Function that calculates right hand side vector.
-        [[nodiscard]] std::vector<double> R_Vector() const override;
+        [[nodiscard]] BCVector R_Vector() const override;
 
         //! Function that calculates matrix.
-        [[nodiscard]] SquareMatrix H_Matrix() const override;
+        [[nodiscard]] BCMatrix2D H_Matrix() const override;
 
     protected:
         const IMaterial & m_Material;

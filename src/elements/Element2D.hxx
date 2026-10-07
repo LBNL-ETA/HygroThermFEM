@@ -2,12 +2,16 @@
 
 #include <array>
 #include <memory>
+#include <span>
+#include <type_traits>
+#include <utility>
 
 #include "Functions.hxx"
 #include "Material.hxx"
 #include "Materials.hxx"
 #include "Node2D.hxx"
 #include "Nodes.hxx"
+#include "PhysicsOptions.hxx"
 #include "Quadrilateral2D.hxx"
 #include "SquareMatrix.hxx"
 
@@ -15,6 +19,51 @@ namespace HygroThermFEM
 {
     //! Constant that holds number of nodes in certain elementsCreator
     const std::size_t numOfQuadrilateralNodes = 4;
+
+    //! \brief Dense, inline 4x4 matrix for element-level integration.
+    //!
+    //! The integration matrices are read sixteen times per integration point on every call to
+    //! integrate(), which happens once per coefficient term per element per assembly. Holding
+    //! them in a sparse matrix meant every one of those reads was a binary search through an
+    //! index structure, to reach one of sixteen values that are almost all non-zero anyway.
+    struct ElementMatrix2D
+    {
+        double & operator()(const std::size_t row, const std::size_t col)
+        {
+            return values[row * numOfQuadrilateralNodes + col];
+        }
+
+        double operator()(const std::size_t row, const std::size_t col) const
+        {
+            return values[row * numOfQuadrilateralNodes + col];
+        }
+
+        ElementMatrix2D & operator+=(const ElementMatrix2D & other)
+        {
+            for(std::size_t idx = 0; idx < values.size(); ++idx)
+            {
+                values[idx] += other.values[idx];
+            }
+            return *this;
+        }
+
+        //! Matrix-vector product on the stack; no heap allocation.
+        [[nodiscard]] std::array<double, numOfQuadrilateralNodes>
+          operator*(std::span<const double> vec) const
+        {
+            std::array<double, numOfQuadrilateralNodes> product{};
+            for(std::size_t row = 0; row < numOfQuadrilateralNodes; ++row)
+            {
+                for(std::size_t col = 0; col < numOfQuadrilateralNodes; ++col)
+                {
+                    product[row] += (*this)(row, col) * vec[col];
+                }
+            }
+            return product;
+        }
+
+        std::array<double, numOfQuadrilateralNodes * numOfQuadrilateralNodes> values{};
+    };
 
     //////////////////////////////////////////////////////////////////////////////
     ///  IQLEMatrix2D
@@ -31,11 +80,14 @@ namespace HygroThermFEM
         virtual ~IQLEIntegrator2D() = default;
         IQLEIntegrator2D(const QuadrilateralLinearGlobal2D & t_Element);
 
-        //! Integrate matrix over all points of integration
-        virtual SquareMatrix
-          integrate(const std::vector<double> &
+        //! Integrate matrix over all points of integration.
+        //!
+        //! Not virtual: no integrator overrides it. The derived types differ only in the
+        //! integration matrix their constructors build.
+        ElementMatrix2D
+          integrate(std::span<const double>
                       t_Values   //!< Nodal values for which integration will be performed
-                    ) const final;
+                    ) const;
 
         //! \brief Integrate with the coefficient interpolated at each Gauss point via the
         //! shape functions (coeff_g = sum_l psi_l(g) * t_Values[l]) instead of the pairwise
@@ -48,7 +100,7 @@ namespace HygroThermFEM
         //! the Gauss-point-interpolated coefficient the column sums telescope to exactly
         //! zero for ANY spatially varying coefficient, because sum_row grad(psi_row) = 0
         //! pointwise. Used by the moisture element; thermal assembly keeps integrate().
-        SquareMatrix integrateInterpolated(const std::vector<double> & t_Values) const;
+        ElementMatrix2D integrateInterpolated(std::span<const double> t_Values) const;
 
     protected:
 
@@ -56,7 +108,7 @@ namespace HygroThermFEM
 
         //! This matrix will hold different forms of shape functions operations. This will mainly
         //! depend on what integrator will be used to integrate matrices.
-        std::vector<SquareMatrix> m_IntegrationMatrix;
+        std::vector<ElementMatrix2D> m_IntegrationMatrix;
     };
 
     //////////////////////////////////////////////////////////////////////////////
@@ -95,35 +147,7 @@ namespace HygroThermFEM
 
         //! Update independent variables (corresponds to variable p in above equation) and creates
         //! new integration matrix.
-        void setIndependentVariables(const std::vector<double> & t_Values);
-    };
-
-    //////////////////////////////////////////////////////////////////////////////
-    ///  QLEDpDuConsistentIntegrator2D
-    //////////////////////////////////////////////////////////////////////////////
-
-    //! \brief Consistent (integrated-by-parts) form of the (Dp/Dx)(Du/Dx) coupling term.
-    //!
-    //! QLEDpDuIntegrator2D assembles integral( psi_i (grad p . grad psi_j) ) -- the test
-    //! function psi_i is NOT differentiated, which is the strong-form Galerkin weighting of
-    //! grad(p).grad(u) and is inconsistent with the by-parts diffusion term it is paired
-    //! with. This integrator instead assembles the transpose,
-    //!     integral( (grad psi_i . grad p) psi_j ),
-    //! i.e. the test function IS differentiated. That is the correct weak form obtained by
-    //! integrating the vapour divergence grad.(delta grad(phi c_sat)) by parts once: the
-    //! moisture-gradient half (delta c_sat grad phi) is the DDu term and the
-    //! temperature-gradient half (delta phi grad c_sat) is this term. See
-    //! doc/Moisture Governing Equations.md (D1).
-    class QLEDpDuConsistentIntegrator2D : public IQLEIntegrator2D
-    {
-    public:
-        virtual ~QLEDpDuConsistentIntegrator2D() = default;
-
-        QLEDpDuConsistentIntegrator2D(const QuadrilateralLinearGlobal2D & t_Element);
-
-        //! Update independent variable p (whose gradient enters the term) and rebuild the
-        //! integration matrix.
-        void setIndependentVariables(const std::vector<double> & t_Values);
+        void setIndependentVariables(std::span<const double> t_Values);
     };
 
     //////////////////////////////////////////////////////////////////////////////
@@ -189,25 +213,29 @@ namespace HygroThermFEM
         );
 
         //! Integrates all matrices that are part of K * (D/Dx(Du/Dx) + D/Dy(Du/Dy)) equation.
-        SquareMatrix DDuMatrices() const;
+        ElementMatrix2D DDuMatrices() const;
 
         //! Integrates all matrices that are part of K * ((Dp/Dx)(Du/Dx) + (Dp/Dy)(Du/Dy)) equation.
-        SquareMatrix DpDuMatrices() const;
+        ElementMatrix2D DpDuMatrices() const;
 
         //! Integrates all matrices that are part of K * Du/Dt equation.
-        SquareMatrix capacitanceMatrices() const;
+        ElementMatrix2D capacitanceMatrices() const;
 
         //! Integrates right hand-side vector.
-        std::vector<double> rightSideVector() const;
+        std::array<double, numOfQuadrilateralNodes> rightSideVector() const;
 
         //! \brief Sets a constant volumetric source for this element [W/m^3 for the
         //! thermal domain]. Contributes the consistent load q * integral(psi_i dA) via
         //! volumetricSourceVector(); zero (the default) adds nothing.
         void setVolumetricSource(double value);
 
+        //! True when a nonzero volumetric source is set; lets the assembly skip the
+        //! element entirely in the common no-source case.
+        [[nodiscard]] bool hasVolumetricSource() const;
+
         //! \brief Consistent load vector of the element's volumetric source,
         //! q * integral(psi_i dA); all zeros when no source is set.
-        [[nodiscard]] std::vector<double> volumetricSourceVector() const;
+        [[nodiscard]] std::array<double, numOfQuadrilateralNodes> volumetricSourceVector() const;
 
         std::vector<NodeFlux> flux() const;
 
@@ -240,26 +268,23 @@ namespace HygroThermFEM
         //! Returns material that is assigned to the element.
         const IMaterial & getMaterial() const;
 
-        //! Returns if element satisfies linear problem.
-        virtual bool isLinear() const final;
+        //! Returns if element satisfies linear problem. Not virtual: neither element type
+        //! overrides it, they differ only in the terms their constructors register.
+        bool isLinear() const;
 
     protected:
-        //! Template function that will add DDu matrix into the system.
+        //! Template function that will add K*(D/Dx(Du/Dx) + D/Dy(Du/Dy)) matrix into the system,
+        //! i.e. transport of the state variable itself. The special case of the two-argument
+        //! DDu with a unit nodal factor, registered without one so the assembly skips the
+        //! scaling.
         template<typename T>
-        void
-          DDu(T & t,
-              const typename std::enable_if<std::is_base_of<IValue, T>::value, T>::type * = nullptr)
+        void DDu(T && coefficient)
         {
-            m_DDuFunctions.emplace_back(std::unique_ptr<T>(new T(t)));
-        }
-
-        //! Template function that will add K*(D/Dx(Du/Dx) + D/Dy(Du/Dy)) matrix into the system.
-        template<typename T>
-        void
-          DDu(T && t,
-              const typename std::enable_if<std::is_base_of<IValue, T>::value, T>::type * = nullptr)
-        {
-            m_DDuFunctions.emplace_back(std::unique_ptr<T>(new T(t)));
+            using CoefficientType = typename std::decay<T>::type;
+            static_assert(std::is_base_of<IValue, CoefficientType>::value,
+                          "DDu coefficient must derive from IValue");
+            m_DDuFunctions.emplace_back(
+              std::make_unique<CoefficientType>(std::forward<T>(coefficient)), nullptr);
         }
 
         //! Template function that will add K * Du/Dt matrix into the system.
@@ -329,44 +354,41 @@ namespace HygroThermFEM
                                          std::unique_ptr<U>(new U(u)));
         }
 
-        //! Consistent (integrated-by-parts) variant of DpDu. Same operands as DpDu -- a fixed
-        //! function and an independent function whose gradient enters the term -- but assembled
-        //! via QLEDpDuConsistentIntegrator2D (test function differentiated). Used for the
-        //! moisture vapour temperature-gradient term; see QLEDpDuConsistentIntegrator2D / D1.
+        //! Transport of a PRODUCT potential, div(coefficient grad(factor * u)), assembled as
+        //! the coefficient's stiffness matrix with column j scaled by the nodal factor at
+        //! node j:
+        //!
+        //!     K_ij = S_ij(coefficient) * factor_j
+        //!
+        //! The general form of the transport term; the one-argument DDu above is this with
+        //! factor = 1.
+        //!
+        //! Used for the moisture vapour term, where the transported potential is the vapour
+        //! content c_sat(T) * phi while the state variable is phi. Assembling it this way,
+        //! rather than as a stiffness in phi plus a separately integrated coupling term in
+        //! c_sat, gives two properties that the split form does not have together:
+        //!
+        //!   - equilibrium is exact: when the nodal products factor_j * u_j are all equal the
+        //!     result is factor * sum_j S_ij = 0, since a stiffness matrix has vanishing row
+        //!     sums (sum_j psi_j = 1). A sealed strip settles ON its closed-form profile on
+        //!     ANY mesh instead of converging to it as the mesh is refined;
+        //!   - moisture is conserved: sum_i K_ij = factor_j * sum_i S_ij = 0 by the same
+        //!     argument applied to the columns, for any spatially varying coefficient.
+        //!
+        //! See doc/Moisture Governing Equations.md (D1) and
+        //! tst/units/validation/SealedStrip_SteadyGradient.unit.cxx.
         template<typename T, typename U>
-        void DpDuConsistent(
-          T & t, U & u,
-          typename std::enable_if<std::is_base_of<IValue, T>::value, T>::type * = nullptr)
+        void DDu(T && coefficient, U && nodalFactor)
         {
-            m_DpDuConsistentFunctions.emplace_back(std::unique_ptr<T>(new T(t)),
-                                                   std::unique_ptr<U>(new U(u)));
-        }
-
-        template<typename T, typename U>
-        void DpDuConsistent(
-          T && t, U & u,
-          typename std::enable_if<std::is_base_of<IValue, T>::value, T>::type * = nullptr)
-        {
-            m_DpDuConsistentFunctions.emplace_back(std::unique_ptr<T>(new T(t)),
-                                                   std::unique_ptr<U>(new U(u)));
-        }
-
-        template<typename T, typename U>
-        void DpDuConsistent(
-          T & t, U && u,
-          typename std::enable_if<std::is_base_of<IValue, T>::value, T>::type * = nullptr)
-        {
-            m_DpDuConsistentFunctions.emplace_back(std::unique_ptr<T>(new T(t)),
-                                                   std::unique_ptr<U>(new U(u)));
-        }
-
-        template<typename T, typename U>
-        void DpDuConsistent(
-          T && t, U && u,
-          typename std::enable_if<std::is_base_of<IValue, T>::value, T>::type * = nullptr)
-        {
-            m_DpDuConsistentFunctions.emplace_back(std::unique_ptr<T>(new T(t)),
-                                                   std::unique_ptr<U>(new U(u)));
+            using CoefficientType = typename std::decay<T>::type;
+            using FactorType = typename std::decay<U>::type;
+            static_assert(std::is_base_of<IValue, CoefficientType>::value,
+                          "DDu coefficient must derive from IValue");
+            static_assert(std::is_base_of<IValue, FactorType>::value,
+                          "DDu nodal factor must derive from IValue");
+            m_DDuFunctions.emplace_back(
+              std::make_unique<CoefficientType>(std::forward<T>(coefficient)),
+              std::make_unique<FactorType>(std::forward<U>(nodalFactor)));
         }
 
         //! Template function that will create functions used in equivalent material conductivity
@@ -483,13 +505,27 @@ namespace HygroThermFEM
             std::unique_ptr<IValue> derivativeValue;
         };
 
-        std::vector<iValue> m_DDuFunctions;
+        //! \brief Coefficient and nodal factor of a product-form transport term, see the
+        //! two-argument DDu. The coefficient is integrated into a stiffness matrix; the nodal
+        //! factor scales its columns.
+        struct NodalProductFunction
+        {
+            NodalProductFunction(
+              std::unique_ptr<IValue> coefficient,   //!< Multiplies the gradient (e.g. delta)
+              std::unique_ptr<IValue> nodalFactor    //!< Turns the state into the transported
+                                                     //!< potential (e.g. c_sat)
+            );
+
+            std::unique_ptr<IValue> coefficient;
+            std::unique_ptr<IValue> nodalFactor;
+        };
+
+        std::vector<NodalProductFunction> m_DDuFunctions;
         std::vector<iValue> m_ConductanceFunctions;
         std::vector<iValue> m_CapacitanceFunctions;
         //! Capacitance functions that are always lumped nodally (see CapNodal).
         std::vector<iValue> m_NodalCapacitanceFunctions;
         std::vector<DerivativeFunction> m_DpDuFunctions;
-        std::vector<DerivativeFunction> m_DpDuConsistentFunctions;
 
         //! Vector of values that will simply be evaluated on right hand side.
         //! This is in form [M]*{V} (Matrix * vector). First property is simply set of functions
@@ -505,8 +541,8 @@ namespace HygroThermFEM
 
         //! Exact nodal-lumped capacity diag(v_i * nodalCapacity_i), v_i = integral(psi_i).
         //! Used when m_LumpCapacityNodally is set (moisture). See m_LumpCapacityNodally.
-        [[nodiscard]] SquareMatrix
-          nodalLumpedCapacity(const std::vector<double> & nodalCapacity) const;
+        [[nodiscard]] ElementMatrix2D
+          nodalLumpedCapacity(std::span<const double> nodalCapacity) const;
 
 
         //! Circular vector connects first and last node so that program can easily iterate
@@ -626,6 +662,19 @@ namespace HygroThermFEM
         QuadrilateralLinearGlobal2D m_Global2D;
         QLECapacitanceIntegrator2D m_QLECapacitance2D;
 
+        //! Integration matrix is derived purely from the (fixed) element geometry, so it is built
+        //! once here rather than on every assembly.
+        QLEDDuIntegrator2D m_QLEDDu2D;
+
+        //! setIndependentVariables() overwrites every entry before each use, so the integrator is
+        //! reused instead of reconstructed. Mutable because the assembly accessors are const.
+        mutable QLEDpDuIntegrator2D m_QLEDpDu2D;
+
+        //! Nodal volumes integral(psi_i). Geometry only, so computed once at construction --
+        //! nodalLumpedCapacity() previously rebuilt them on every call, which made it the single
+        //! most expensive thing in the assembly.
+        const std::array<double, numOfQuadrilateralNodes> m_NodalVolumes;
+
         const bool m_Linear;
     };
 
@@ -639,13 +688,14 @@ namespace HygroThermFEM
     {
     public:
         ElementThermalLinear2D(
-          Nodes & nodePool,               //!< Reference to NodePool for node lookup
-          Materials & materialPool,          //!< Reference to MaterialPool for material lookup
-          size_t index1,                     //!< Node 1 index
-          size_t index2,                     //!< Node 2 index
-          size_t index3,                     //!< Node 3 index
-          size_t index4,                     //!< Node 4 index
-          const std::string & materialName   //!< SolidMaterial name assigned to the element
+          Nodes & nodePool,                   //!< Reference to NodePool for node lookup
+          Materials & materialPool,           //!< Reference to MaterialPool for material lookup
+          size_t index1,                      //!< Node 1 index
+          size_t index2,                      //!< Node 2 index
+          size_t index3,                      //!< Node 3 index
+          size_t index4,                      //!< Node 4 index
+          const std::string & materialName,   //!< SolidMaterial name assigned to the element
+          const PhysicsOptions & physics      //!< Physics flags deciding which terms to register
         );
     };
 
@@ -658,13 +708,14 @@ namespace HygroThermFEM
     {
     public:
         ElementMoistureLinear2D(
-          Nodes & nodePool,               //!< Reference to NodePool for node lookup
-          Materials & materialPool,          //!< Reference to MaterialPool for material lookup
-          size_t index1,                     //!< Node 1 index
-          size_t index2,                     //!< Node 2 index
-          size_t index3,                     //!< Node 3 index
-          size_t index4,                     //!< Node 4 index
-          const std::string & materialName   //!< SolidMaterial name assigned to the element
+          Nodes & nodePool,                   //!< Reference to NodePool for node lookup
+          Materials & materialPool,           //!< Reference to MaterialPool for material lookup
+          size_t index1,                      //!< Node 1 index
+          size_t index2,                      //!< Node 2 index
+          size_t index3,                      //!< Node 3 index
+          size_t index4,                      //!< Node 4 index
+          const std::string & materialName,   //!< SolidMaterial name assigned to the element
+          const PhysicsOptions & physics      //!< Physics flags deciding which terms to register
         );
     };
 
