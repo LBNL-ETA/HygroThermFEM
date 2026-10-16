@@ -14,6 +14,39 @@ namespace HygroThermFEM
     namespace
     {
         constexpr double zeroCelsiusInKelvin = 273.15;
+
+        //! Inverse of the radiosity system matrix (I - (1 - eps) F).
+        std::vector<std::vector<double>> radiosityInverse(const std::vector<std::vector<double>> & viewFactors,
+                                                          const std::vector<double> & emissivity)
+        {
+            const auto count{viewFactors.size()};
+            std::vector<std::vector<double>> systemData(count, std::vector<double>(count, 0.0));
+            for(std::size_t row = 0; row < count; ++row)
+            {
+                const double oneMinusEmissivity = 1.0 - emissivity[row];
+                for(std::size_t col = 0; col < count; ++col)
+                {
+                    const double identity = (row == col) ? 1.0 : 0.0;
+                    systemData[row][col] = identity - oneMinusEmissivity * viewFactors[row][col];
+                }
+            }
+            const FenestrationCommon::SquareMatrix system{systemData};
+            return system.inverse().getMatrix();
+        }
+
+        std::vector<double> multiply(const std::vector<std::vector<double>> & matrix,
+                                     const std::vector<double> & vector)
+        {
+            std::vector<double> result(matrix.size(), 0.0);
+            for(std::size_t row = 0; row < matrix.size(); ++row)
+            {
+                for(std::size_t col = 0; col < vector.size(); ++col)
+                {
+                    result[row] += matrix[row][col] * vector[col];
+                }
+            }
+            return result;
+        }
     }
 
     EnclosureRadiation::EnclosureRadiation(Nodes & nodePool,
@@ -79,6 +112,7 @@ namespace HygroThermFEM
                   celsiusToKelvin(openEnclosureTemperatures.at(m_Segments[idx].enclosureId));
             }
         }
+        m_RadiosityInverse = radiosityInverse(m_ViewFactors, m_Emissivity);
     }
 
     std::size_t EnclosureRadiation::numberOfSegments() const
@@ -146,23 +180,16 @@ namespace HygroThermFEM
         }
 
         // Radiosity system  (I - (1 - eps) F) J = eps Eb + (1 - eps) Fenv Eb_env.
-        std::vector<std::vector<double>> systemData(count, std::vector<double>(count, 0.0));
         std::vector<double> rightHandSide(count, 0.0);
         for(std::size_t row = 0; row < count; ++row)
         {
             const double oneMinusEmissivity = 1.0 - m_Emissivity[row];
-            for(std::size_t col = 0; col < count; ++col)
-            {
-                const double identity = (row == col) ? 1.0 : 0.0;
-                systemData[row][col] = identity - oneMinusEmissivity * m_ViewFactors[row][col];
-            }
             rightHandSide[row] = m_Emissivity[row] * emissivePower[row]
                                  + oneMinusEmissivity * m_EnvironmentViewFactor[row]
                                      * environmentEmissivePower[row];
         }
 
-        const FenestrationCommon::SquareMatrix system{systemData};
-        const auto radiosity = system.inverse() * rightHandSide;
+        const auto radiosity = multiply(m_RadiosityInverse, rightHandSide);
 
         // Irradiation G_i and the effective radiant temperature T_rad,i = (G_i / sigma)^(1/4).
         m_RadiantTemperature.assign(count, 0.0);

@@ -103,6 +103,9 @@ namespace HygroThermFEM
         EnclosureSurfaceTemperature m_SurfaceTemperature;
 
         std::vector<std::vector<double>> m_ViewFactors;   //!< block-diagonal, [i][j]
+        //! Inverse of the radiosity system (I - (1 - eps) F): fixed by the geometry and the
+        //! emissivities, so it is inverted once here instead of on every solve.
+        std::vector<std::vector<double>> m_RadiosityInverse;
         std::vector<double> m_EnvironmentViewFactor;      //!< per segment (open-enclosure deficit)
         std::vector<double> m_Emissivity;                 //!< per segment
         std::vector<bool> m_IsOpen;                       //!< per segment: in an open enclosure
