@@ -614,6 +614,16 @@ namespace HygroThermFEM
         return boundedSolve(m_LinearSolver, lhsMatrix, rhsVector, bounds.value());
     }
 
+    double IDomain::steadyStateResidual(const double pseudoTimeStep)
+    {
+        constexpr double minimumScale = 1e-12;
+        constexpr std::size_t steadyBoundaryStep{0u};
+        const auto solution = m_NodePool.properties(stateVariable());
+        const auto [matA, vecB] = transientSystem(solution, pseudoTimeStep, steadyBoundaryStep);
+        const double scale = (std::max)(norm(vecB), minimumScale);
+        return freeDofResidualNorm(solution, matA, vecB) / scale;
+    }
+
     lbnl::ExpectedExt<SingleSolution, SolverError> IDomain::transient(
       const std::vector<double> & currentStateValues,
       const double t_DTime,

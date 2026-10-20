@@ -15,6 +15,7 @@
 #include "Functions.hxx"
 #include "Nodes.hxx"
 #include "MaterialDataChecker.hxx"
+#include "VectorOperators.hxx"
 
 namespace HygroThermFEM
 {
@@ -37,6 +38,32 @@ namespace HygroThermFEM
         {
             return lbnl::transform_to_vector(
               temps, [](const double temp) { return liquidFractionFromTemperature(temp); });
+        }
+
+        //! Relative L2 change between two steady coupled passes, ||current - previous|| /
+        //! ||current||. The difference of the two norms (normError) is blind to nodes moving in
+        //! opposite directions, which let the steady loop stop on a field that was still changing.
+        double relativeChange(const std::vector<double> & current,
+                              const std::vector<double> & previous)
+        {
+            constexpr double minimumNorm = 1e-10;
+            return norm(current - previous) / (std::max)(norm(current), minimumNorm);
+        }
+
+        //! Steady-pass error of one domain: the change since the previous pass and, once that is
+        //! within tolerance, the residual of the steady equations at the new field. A small change
+        //! alone does not prove the nonlinear system is solved; the residual check is skipped
+        //! while the change is still large because it costs a reassembly.
+        double steadyPassError(const double change,
+                               IDomain & domain,
+                               const double tolerance,
+                               const double pseudoTimeStep)
+        {
+            if(change > tolerance)
+            {
+                return change;
+            }
+            return (std::max)(change, domain.steadyStateResidual(pseudoTimeStep));
         }
     }   // namespace
 
@@ -331,10 +358,22 @@ namespace HygroThermFEM
             // may declare convergence.
             const bool steadyRegime{pseudoStep >= maxPseudoStep};
             const auto step = transient(temperature, humidity, pseudoStep, steadyBoundaryStep);
-            temperatureError = m_SimulateThermal ? normError(step.temperature, temperature) : 0.0;
-            humidityError = m_SimulateMoisture ? normError(step.humidity, humidity) : 0.0;
+            temperatureError = m_SimulateThermal ? relativeChange(step.temperature, temperature) : 0.0;
+            humidityError = m_SimulateMoisture ? relativeChange(step.humidity, humidity) : 0.0;
             temperature = step.temperature;
             humidity = step.humidity;
+            if(steadyRegime)
+            {
+                // transient() left the nodes at this step's field, which the residual is taken at.
+                temperatureError =
+                  m_SimulateThermal
+                    ? steadyPassError(temperatureError, m_ThermalDomain, tolerance, pseudoStep)
+                    : 0.0;
+                humidityError =
+                  m_SimulateMoisture
+                    ? steadyPassError(humidityError, m_MoistureDomain, tolerance, pseudoStep)
+                    : 0.0;
+            }
             converged = steadyRegime && temperatureError <= tolerance && humidityError <= tolerance;
             pseudoStep = (std::min)(pseudoStep * pseudoStepGrowth, maxPseudoStep);
         }

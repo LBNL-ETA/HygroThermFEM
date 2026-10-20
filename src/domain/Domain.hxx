@@ -68,6 +68,14 @@ namespace HygroThermFEM
         //! are free again under the next.
         std::vector<double> steadyState();
 
+        //! Relative residual of the steady equations the pseudo-time march solves, at the current
+        //! node state: the transient system is assembled with the previous values equal to the
+        //! current ones, so its storage terms cancel and ||R - (K + H) U|| over the free DOFs
+        //! (see constrainedDofs) remains, divided by ||vecB||. A large pseudoTimeStep keeps the
+        //! storage part of vecB out of that scale. A field that has not reached the steady state
+        //! shows a residual here even when it barely moved since the previous pass.
+        [[nodiscard]] double steadyStateResidual(double pseudoTimeStep);
+
         //! Physical range of the domain's solution variable, or nullopt when unbounded.
         //! Humidity is a fraction in [0, 1]: above saturation is condensation, which an
         //! unconstrained steady vapor solve otherwise reports as Glaser-style supersaturation
