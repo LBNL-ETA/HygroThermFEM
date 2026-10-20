@@ -16,6 +16,7 @@
 #include "Nodes.hxx"
 #include "MaterialDataChecker.hxx"
 #include "SimulationProperties.hxx"
+#include "VectorOperators.hxx"
 
 namespace HygroThermFEM
 {
@@ -38,6 +39,29 @@ namespace HygroThermFEM
         {
             return lbnl::transform_to_vector(
               temps, [](const double temp) { return liquidFractionFromTemperature(temp); });
+        }
+
+        //! Relative L2 change between two steady coupled passes, ||current - previous|| /
+        //! ||current||. The difference of the two norms (normError) is blind to nodes moving in
+        //! opposite directions, which let the steady loop stop on a field that was still changing.
+        double relativeChange(const std::vector<double> & current,
+                              const std::vector<double> & previous)
+        {
+            constexpr double minimumNorm = 1e-10;
+            return norm(current - previous) / (std::max)(norm(current), minimumNorm);
+        }
+
+        //! Steady-pass error of one domain: the change since the previous pass and, once that is
+        //! within tolerance, the residual of the steady equations at the new field. A small change
+        //! alone does not prove the nonlinear system is solved; the residual check is skipped
+        //! while the change is still large because it costs a reassembly.
+        double steadyPassError(const double change, IDomain & domain, const double tolerance)
+        {
+            if(change > tolerance)
+            {
+                return change;
+            }
+            return (std::max)(change, domain.steadyStateResidual());
         }
     }   // namespace
 
@@ -294,6 +318,8 @@ namespace HygroThermFEM
         auto previousHumidity = humidity;
         auto temperature = m_Nodes.properties(Variable::temperature);
         auto previousTemperature = temperature;
+        auto humidityChange{0.0};
+        auto temperatureChange{0.0};
         // Steady-state coupling loop: alternately solve moisture and thermal domains,
         // exchanging cross-domain data after each solve, until both domains converge.
         // Uses || (either unconverged) so the loop only exits when both are satisfied.
@@ -304,25 +330,26 @@ namespace HygroThermFEM
                 // steadyState() enforces the domain's solutionBounds: condensation zones pin at
                 // saturation instead of reporting Glaser-style supersaturation.
                 humidity = m_MoistureDomain.steadyState();
-                humidityError = normError(humidity, previousHumidity);
+                humidityChange = relativeChange(humidity, previousHumidity);
                 previousHumidity = humidity;
                 m_Nodes.updateNodeHumidities(humidity);
-            }
-            else
-            {
-                humidityError = 0;
             }
             if(m_SimulateThermal)
             {
                 temperature = m_ThermalDomain.steadyState();
-                temperatureError = normError(temperature, previousTemperature);
+                temperatureChange = relativeChange(temperature, previousTemperature);
                 previousTemperature = temperature;
                 m_Nodes.updateNodeTemperatures(temperature);
             }
-            else
-            {
-                temperatureError = 0;
-            }
+            // Both errors are taken after the full pass, so each residual sees the other domain's
+            // latest field.
+            humidityError = m_SimulateMoisture
+                              ? steadyPassError(humidityChange, m_MoistureDomain, ConvergenceError)
+                              : 0.0;
+            temperatureError =
+              m_SimulateThermal
+                ? steadyPassError(temperatureChange, m_ThermalDomain, ConvergenceError)
+                : 0.0;
             ++currentIteration;
         } while((temperatureError > ConvergenceError || humidityError > ConvergenceError)
                 && currentIteration < MaxIterations);

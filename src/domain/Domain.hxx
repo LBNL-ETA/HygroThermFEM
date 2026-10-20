@@ -67,6 +67,13 @@ namespace HygroThermFEM
         //! are free again under the next.
         std::vector<double> steadyState();
 
+        //! Relative residual of the steady-state equations at the current node state:
+        //! ||R - (K + H) U|| over the free DOFs (see constrainedDofs), divided by ||R||. The
+        //! system is reassembled at the current node values, so a coupled iterate that has not
+        //! reached the fixed point of the nonlinear (temperature-dependent) system shows a
+        //! residual here even when it barely moved since the previous pass.
+        [[nodiscard]] double steadyStateResidual();
+
         //! Physical range of the domain's solution variable, or nullopt when unbounded.
         //! Humidity is a fraction in [0, 1]: above saturation is condensation, which an
         //! unconstrained steady vapor solve otherwise reports as Glaser-style supersaturation

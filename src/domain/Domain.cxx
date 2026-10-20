@@ -436,6 +436,16 @@ namespace HygroThermFEM
         return solution;
     }
 
+    double IDomain::steadyStateResidual()
+    {
+        constexpr double minimumScale = 1e-12;
+        const auto solution = m_NodePool.properties(stateVariable());
+        const auto lhsMatrix = steadyStateLeftHandSide();
+        const auto rhsVector = steadyStateRightHandSide();
+        const double scale = (std::max)(norm(rhsVector), minimumScale);
+        return freeDofResidualNorm(solution, lhsMatrix, rhsVector) / scale;
+    }
+
     lbnl::ExpectedExt<SingleSolution, SolverError> IDomain::transient(
       const std::vector<double> & currentStateValues,
       const double t_DTime,
