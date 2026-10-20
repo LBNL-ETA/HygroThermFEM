@@ -63,6 +63,16 @@ namespace HygroThermFEM
             }
             return (std::max)(change, domain.steadyStateResidual());
         }
+
+        //! Status of the field the steady loop stopped at. A NaN error compares false and is
+        //! reported as not converged.
+        ConvergenceStatus steadyStateStatus(const double temperatureError,
+                                            const double humidityError,
+                                            const double tolerance)
+        {
+            const bool converged = temperatureError <= tolerance && humidityError <= tolerance;
+            return converged ? ConvergenceStatus::converged : ConvergenceStatus::notConverged;
+        }
     }   // namespace
 
     MultiDomain::MultiDomain() : MultiDomain(MultiDomainParams{})
@@ -378,7 +388,8 @@ namespace HygroThermFEM
                         heatFlux,
                         waterFlux,
                         temperatureError,
-                        humidityError};
+                        humidityError,
+                        steadyStateStatus(temperatureError, humidityError, ConvergenceError)};
     }
 
     Solution MultiDomain::currentStateSolution()
@@ -821,7 +832,8 @@ namespace HygroThermFEM
                        std::vector<NodeFlux> heatFlux,
                        std::vector<NodeFlux> waterFlux,
                        const double temperatureError,
-                       const double humidityError) :
+                       const double humidityError,
+                       const ConvergenceStatus status) :
         dTime(dtime),
         temperature(std::move(temperature)),
         humidity(std::move(humidity)),
@@ -832,6 +844,7 @@ namespace HygroThermFEM
         heatFlux(std::move(heatFlux)),
         waterFlux(std::move(waterFlux)),
         temperatureError(temperatureError),
-        humidityError(humidityError)
+        humidityError(humidityError),
+        status(status)
     {}
 }   // namespace HygroThermFEM

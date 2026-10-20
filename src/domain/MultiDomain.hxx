@@ -34,6 +34,15 @@ namespace HygroThermFEM
         std::string material;
 };
 
+    //! Whether a solve met its convergence tolerance. A steady-state solve that runs out of
+    //! iterations returns its last iterate as notConverged; that field must not be used as a
+    //! result. Transient steps either converge or throw, so they are always converged.
+    enum class ConvergenceStatus
+    {
+        converged,
+        notConverged
+    };
+
     //! \brief Keeps solution from current timestep for every node in the domain.
     struct Solution
     {
@@ -47,7 +56,8 @@ namespace HygroThermFEM
                  std::vector<NodeFlux> heatFlux,
                  std::vector<NodeFlux> waterFlux,
                  double temperatureError,
-                 double humidityError);
+                 double humidityError,
+                 ConvergenceStatus status = ConvergenceStatus::converged);
 
         double dTime;
         std::vector<double> temperature;
@@ -60,6 +70,7 @@ namespace HygroThermFEM
         std::vector<NodeFlux> waterFlux;
         double temperatureError;
         double humidityError;
+        ConvergenceStatus status;
     };
 
     //! Per-field results (values + errors) accumulated over multiple timesteps.
