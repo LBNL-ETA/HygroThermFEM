@@ -383,6 +383,14 @@ namespace HygroThermFEM
         //! @param gravityVector Direction of gravity
         void setGravityVector(const FenestrationCommon::GravityVector & gravityVector);
 
+        //! \brief Overrides the emissivity of one frame cavity boundary segment in both
+        //! domains. See IDomain::setCavitySurfaceEmissivity.
+        void setCavitySurfaceEmissivity(std::size_t node1, std::size_t node2, double emissivity);
+
+        //! \brief Result of the thermal domain's last frame cavity update. See
+        //! IDomain::gasCavityStates.
+        [[nodiscard]] std::vector<GasCavityState> gasCavityStates() const;
+
         //! \brief Assign observer to thermal part of the engine.
         //!
         //! @param observer observer that will be notified about each timestep

@@ -1,7 +1,12 @@
 #pragma once
 
-#include <optional>
+#include <cstddef>
 #include <functional>
+#include <map>
+#include <optional>
+#include <string>
+#include <utility>
+#include <vector>
 
 #include <KeffCavity.hxx>
 #include "Elements2D.hxx"
@@ -11,6 +16,33 @@
 namespace HygroThermFEM
 {
     class Nodes;
+
+    //! \brief Emissivity overrides for frame cavity boundary segments.
+    //!
+    //! Keyed by the segment's two node numbers in ascending order (see cavitySegmentKey). A
+    //! segment without an entry takes the emissivity of the solid material adjacent to it. A
+    //! host program uses this when the emissivity of a cavity surface is set independently of
+    //! the material behind it (THERM's Frame Cavity Surface boundary condition).
+    using CavitySurfaceEmissivities = std::map<std::pair<std::size_t, std::size_t>, double>;
+
+    //! \brief Key of a cavity boundary segment: its two node numbers in ascending order.
+    [[nodiscard]] std::pair<std::size_t, std::size_t> cavitySegmentKey(std::size_t node1,
+                                                                        std::size_t node2);
+
+    //! \brief Result of the last evaluation of one equivalent frame cavity.
+    //!
+    //! For a host program that displays the cavity. Side 1 is the warm side and side 2 the
+    //! cold side of the heat flow; temperatures are in Kelvin.
+    struct GasCavityState
+    {
+        std::string gasName;
+        KeffCavity::ScreenFlow heatFlow{KeffCavity::ScreenFlow::Right};
+        KeffCavity::CavitySide side1{0.0, 0.0};
+        KeffCavity::CavitySide side2{0.0, 0.0};
+        double conductivity{0.0};
+        double nusselt{0.0};
+    };
+
     ///////////////////////////////////////////////////////////////////////////////
     ///  EquivalentGasCavity
     ///////////////////////////////////////////////////////////////////////////////
@@ -27,10 +59,12 @@ namespace HygroThermFEM
         //! \param nodePool Reference to NodePool for node lookup
         //! \param nodes Nodes from which frame cavity has been created
         //! \param gas Frame cavity is filled with this gas
+        //! \param surfaceEmissivities Emissivity overrides for boundary segments
         //! \param gravityVector Gravity vector in (x, y, z) coordinate system
         explicit EquivalentGasCavity(Nodes & nodePool,
                                      const std::vector<size_t> & nodes,
                                      IGas & gas,
+                                     const CavitySurfaceEmissivities & surfaceEmissivities,
                                      const FenestrationCommon::GravityVector & gravityVector = {
                                          0, -1, 0});
 
@@ -42,7 +76,22 @@ namespace HygroThermFEM
         //! \param gravityVector Direction of gravity
         void setGravityVector(const FenestrationCommon::GravityVector & gravityVector);
 
+        //! \brief Result of the last update.
+        [[nodiscard]] const GasCavityState & state() const;
+
     private:
+        //! Effective properties of the cavity for the given heat flow and sides.
+        struct Evaluation
+        {
+            double conductivity{0.0};
+            double diffusionResistanceFactor{0.0};
+            double nusselt{0.0};
+        };
+
+        [[nodiscard]] Evaluation evaluate(KeffCavity::ScreenFlow heatFlow,
+                                          const KeffCavity::CavitySide & side1,
+                                          const KeffCavity::CavitySide & side2) const;
+
         //! \brief Local enumerator used to assign segment to certain side of rectangular frame
         //! cavity.
         enum class Side
@@ -130,7 +179,15 @@ namespace HygroThermFEM
         static std::optional<std::reference_wrapper<const IMaterial>>
             findCommonMaterial(const Node2D & node1, const Node2D & node2);
 
-        static std::vector<Segment> buildSegments(Nodes & nodePool, const std::vector<size_t> & nodes);
+        //! Emissivity of one boundary segment: the override for its node pair when present,
+        //! otherwise the adjacent solid material's emissivity, otherwise 0.
+        static double segmentEmissivity(const Node2D & node1,
+                                        const Node2D & node2,
+                                        const CavitySurfaceEmissivities & surfaceEmissivities);
+
+        static std::vector<Segment> buildSegments(Nodes & nodePool,
+                                                  const std::vector<size_t> & nodes,
+                                                  const CavitySurfaceEmissivities & surfaceEmissivities);
 
         [[nodiscard]] Size calcSize(double area) const;
 
@@ -155,6 +212,7 @@ namespace HygroThermFEM
 
         //! Structure to store every side and its properties.
         std::map<Side, KeffCavity::CavitySide> m_Side;
+        GasCavityState m_State;
         const double m_Area;
         const Size m_Size;
         IGas & m_Gas;
@@ -174,9 +232,11 @@ namespace HygroThermFEM
         //! \param nodePool: Reference to NodePool for node lookup
         //! \param materialPool: Reference to MaterialPool for gas lookups
         //! \param elements: All elements from the domain.
+        //! \param surfaceEmissivities: Emissivity overrides for cavity boundary segments.
         explicit EquivalentGasCavities(Nodes & nodePool,
                                        Materials & materialPool,
-                                       const ElementsLinear2D & elements);
+                                       const ElementsLinear2D & elements,
+                                       CavitySurfaceEmissivities surfaceEmissivities = {});
 
         //! \brief Updates frame cavities with new temperatures.
         void update();
@@ -185,6 +245,9 @@ namespace HygroThermFEM
         //!
         //! \param gravityVector Direction of gravity
         void setGravityVector(const FenestrationCommon::GravityVector & gravityVector);
+
+        //! \brief Result of the last update of every frame cavity, in creation order.
+        [[nodiscard]] std::vector<GasCavityState> states() const;
 
     private:
         //! Helper class used in algorithm to determine frame cavity boundaries
@@ -229,6 +292,7 @@ namespace HygroThermFEM
         Nodes & m_NodePool;
         Materials & m_MaterialPool;
         const ElementsLinear2D & m_Elements;
+        const CavitySurfaceEmissivities m_SurfaceEmissivities;
 
         //! Keeps boundary nodes for every frame cavity in the domain.
         std::map<std::string, std::vector<size_t>> m_BoundaryNodes;

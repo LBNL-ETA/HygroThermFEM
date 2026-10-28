@@ -343,6 +343,7 @@ namespace HygroThermFEM
                 humidityChange = relativeChange(humidity, previousHumidity);
                 previousHumidity = humidity;
                 m_Nodes.updateNodeHumidities(humidity);
+                m_MoistureDomain.updateGasCavities();
             }
             if(m_SimulateThermal)
             {
@@ -350,6 +351,10 @@ namespace HygroThermFEM
                 temperatureChange = relativeChange(temperature, previousTemperature);
                 previousTemperature = temperature;
                 m_Nodes.updateNodeTemperatures(temperature);
+                // Frame cavities take their conductivity from the temperatures just solved, so
+                // the next pass sees the updated cavities; the loop then runs until the
+                // temperature field and the cavities agree.
+                m_ThermalDomain.updateGasCavities();
             }
             // Both errors are taken after the full pass, so each residual sees the other domain's
             // latest field.
@@ -720,6 +725,19 @@ namespace HygroThermFEM
     void MultiDomain::setGravityVector(const FenestrationCommon::GravityVector & gravityVector)
     {
         m_ThermalDomain.setGravityVector(gravityVector);
+    }
+
+    std::vector<GasCavityState> MultiDomain::gasCavityStates() const
+    {
+        return m_ThermalDomain.gasCavityStates();
+    }
+
+    void MultiDomain::setCavitySurfaceEmissivity(const std::size_t node1,
+                                                 const std::size_t node2,
+                                                 const double emissivity)
+    {
+        m_ThermalDomain.setCavitySurfaceEmissivity(node1, node2, emissivity);
+        m_MoistureDomain.setCavitySurfaceEmissivity(node1, node2, emissivity);
     }
 
     void MultiDomain::subscribeThermal(Timesteps::TimestepObserver * observer)

@@ -138,6 +138,31 @@ namespace HygroThermFEM
         //! @param gravityVector Direction of gravity
         void setGravityVector(const FenestrationCommon::GravityVector & gravityVector);
 
+        //! \brief Overrides the emissivity of one frame cavity boundary segment.
+        //!
+        //! The segment is given by its two node numbers in either order. Segments without an
+        //! override take the emissivity of the solid material adjacent to them. Calling this
+        //! after a solve discards the cavities built so far; they are rebuilt with the new
+        //! overrides at the next post-process.
+        //!
+        //! @param node1 Node number at one end of the segment
+        //! @param node2 Node number at the other end of the segment
+        //! @param emissivity Emissivity of the cavity surface along the segment
+        void setCavitySurfaceEmissivity(std::size_t node1, std::size_t node2, double emissivity);
+
+        //! \brief Recomputes the equivalent conductivity of every frame cavity from the current
+        //! node temperatures, building the cavities on the first call.
+        //!
+        //! The transient solver does this through postProcess after each Newton step. The
+        //! steady-state coupling loop has no Newton step, so MultiDomain calls it after each
+        //! pass; the cavities then iterate together with the temperature field, as they do in
+        //! the transient solver.
+        void updateGasCavities();
+
+        //! \brief Result of the last frame cavity update, one entry per cavity in creation
+        //! order; empty before the first update.
+        [[nodiscard]] std::vector<GasCavityState> gasCavityStates() const;
+
         //! \brief Deletes geometry and clears up boundary conditions.
         //! Virtual so derived domains can also clear domain-specific state (e.g. ThermalDomain's
         //! enclosure-radiation coordinators) between consecutive runs on the same domain.
@@ -327,6 +352,10 @@ namespace HygroThermFEM
                                                 size_t timestepIndex);
 
         FenestrationCommon::GravityVector m_GravityVector{0, -1, 0};
+
+        //! Emissivity overrides for frame cavity boundary segments, handed to the gas cavities
+        //! when they are built.
+        CavitySurfaceEmissivities m_CavitySurfaceEmissivities;
 
         //! Storage for gas cavities recalculation. Empty until the first post-process builds it
         //! lazily; std::optional makes the "already created?" check and ownership explicit without
