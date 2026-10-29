@@ -10,6 +10,33 @@
 #include "VectorOperators.hxx"
 #include "SimulationProperties.hxx"
 
+namespace
+{
+    //! The material's dry conductivity, read at every evaluation. A Constant would copy the
+    //! value when the element is built; a gas cavity's effective conductivity changes
+    //! between solver passes and must reach the matrix as it is.
+    class MaterialDryConductivity : public HygroThermFEM::IFunction
+    {
+    public:
+        explicit MaterialDryConductivity(const HygroThermFEM::IMaterial & material) :
+            IFunction(HygroThermFEM::Variable::temperature), m_Material(material)
+        {}
+
+        double value(const HygroThermFEM::INode2D &) const override
+        {
+            return m_Material.thermalConductivityDry();
+        }
+
+    private:
+        double evaluateFunction(double, double) const override
+        {
+            return m_Material.thermalConductivityDry();
+        }
+
+        const HygroThermFEM::IMaterial & m_Material;
+    };
+}   // namespace
+
 namespace HygroThermFEM
 {
     //////////////////////////////////////////////////////////////////////////////
@@ -654,12 +681,12 @@ namespace HygroThermFEM
         /// Conductance
         //////////////////////////////////////////////////////////////////////////
 
-        /// material
-        // const auto materialConductivity =
-        //  TabularFunction1D(m_Material.thermalConductivityMoistureAndTemperatureDependent(),
-        //  Variable::water);
-
-        if(SimulationProperties::Instance().thermalConductivityTemperatureAndMoistureDependent()
+        // A gas cavity's effective conductivity is re-evaluated between solver passes; the
+        // element reads it at every assembly instead of copying a table at construction,
+        // which would freeze the gas default into the matrix for the whole solve.
+        const bool liveConductivity{m_Material.isGas()};
+        if(!liveConductivity
+           && SimulationProperties::Instance().thermalConductivityTemperatureAndMoistureDependent()
            && m_Material.hasThermalConductivityMoistureAndTemperatureDependent())
         {
             auto materialConductivity =
@@ -678,13 +705,13 @@ namespace HygroThermFEM
             // Same remedy the moisture element applies to its vapour coefficient.
             m_InterpolateCoefficientsAtGaussPoints = true;
         }
-        if(!SimulationProperties::Instance().thermalConductivityTemperatureAndMoistureDependent()
-           && m_Material.hasThermalConductivityDry())
+        if(liveConductivity
+           || (!SimulationProperties::Instance().thermalConductivityTemperatureAndMoistureDependent()
+               && m_Material.hasThermalConductivityDry()))
         {
-            auto materialConductivity = Constant(m_Material.thermalConductivityDry());
-            DDu(materialConductivity);
+            DDu(MaterialDryConductivity{m_Material});
 
-            Constant matCond{m_Material.thermalConductivityDry()};
+            MaterialDryConductivity matCond{m_Material};
             CondFlux(matCond);
         }
 

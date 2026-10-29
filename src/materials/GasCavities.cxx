@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <cmath>
 #include <utility>
 
 #include <KeffCavity.hxx>
@@ -28,7 +29,7 @@ namespace HygroThermFEM
       IGas & gas,
       const CavitySurfaceEmissivities & surfaceEmissivities,
       const FenestrationCommon::GravityVector & gravityVector) :
-        m_Segments(buildSegments(nodePool, nodes, surfaceEmissivities)),
+        m_Segments(buildSegments(nodePool, counterClockwise(nodePool, nodes), surfaceEmissivities)),
         m_SideSegments(groupSegmentSides(m_Segments)),
         m_Side{
           {Side::Top, {0, 0}}, {Side::Bottom, {0, 0}}, {Side::Left, {0, 0}}, {Side::Right, {0, 0}}},
@@ -266,6 +267,80 @@ namespace HygroThermFEM
                 m_Side.at(side).temperature = temperatureLength.at(side) / length.at(side);
             }
         }
+        fillEmptySides(length);
+    }
+
+    std::vector<size_t> EquivalentGasCavity::counterClockwise(Nodes & nodePool,
+                                                              const std::vector<size_t> & nodes)
+    {
+        double twiceArea{0.0};
+        for(size_t position = 0u; position < nodes.size(); ++position)
+        {
+            const auto & first = nodePool.getNode(nodes[position]);
+            const auto & second = nodePool.getNode(nodes[(position + 1u) % nodes.size()]);
+            twiceArea += first.X() * second.Y() - first.Y() * second.X();
+        }
+        if(twiceArea >= 0.0)
+        {
+            return nodes;
+        }
+        return {nodes.rbegin(), nodes.rend()};
+    }
+
+    EquivalentGasCavity::ExtremeNodes EquivalentGasCavity::extremeNodes() const
+    {
+        ExtremeNodes extreme;
+        for(const auto & segment : m_Segments)
+        {
+            const auto & node = segment.firstNode();
+            if(extreme.minX == nullptr || node.X() < extreme.minX->X())
+            {
+                extreme.minX = &node;
+            }
+            if(extreme.maxX == nullptr || node.X() > extreme.maxX->X())
+            {
+                extreme.maxX = &node;
+            }
+            if(extreme.minY == nullptr || node.Y() < extreme.minY->Y())
+            {
+                extreme.minY = &node;
+            }
+            if(extreme.maxY == nullptr || node.Y() > extreme.maxY->Y())
+            {
+                extreme.maxY = &node;
+            }
+        }
+        return extreme;
+    }
+
+    void EquivalentGasCavity::fillEmptySides(const std::map<Side, double> & lengths)
+    {
+        const auto extreme{extremeNodes()};
+        if(extreme.minX == nullptr)
+        {
+            return;
+        }
+        struct Fallback
+        {
+            const Node2D * node;
+            Side neighbour1;
+            Side neighbour2;
+        };
+        const std::map<Side, Fallback> rule{{Side::Left, {extreme.minX, Side::Top, Side::Bottom}},
+                                            {Side::Right, {extreme.maxX, Side::Top, Side::Bottom}},
+                                            {Side::Bottom, {extreme.minY, Side::Left, Side::Right}},
+                                            {Side::Top, {extreme.maxY, Side::Left, Side::Right}}};
+        for(const auto & [side, fallback] : rule)
+        {
+            if(lengths.at(side) == 0.0)
+            {
+                m_Side.at(side).temperature =
+                  celsiusToKelvin(fallback.node->property(Variable::temperature));
+                m_Side.at(side).emissivity = 0.5
+                                             * (m_Side.at(fallback.neighbour1).emissivity
+                                                + m_Side.at(fallback.neighbour2).emissivity);
+            }
+        }
     }
 
     KeffCavity::ScreenFlow EquivalentGasCavity::heatFlowDirection() const
@@ -274,24 +349,19 @@ namespace HygroThermFEM
         const auto rightTemp = m_Side.at(Side::Right).temperature;
         const auto topTemp = m_Side.at(Side::Top).temperature;
         const auto bottomTemp = m_Side.at(Side::Bottom).temperature;
-        KeffCavity::ScreenFlow result{KeffCavity::ScreenFlow::Right};
-        if(std::abs(topTemp - bottomTemp) > std::abs(leftTemp - rightTemp))
+        if(std::abs(leftTemp - rightTemp) > std::abs(bottomTemp - topTemp))
         {
-            if(topTemp > bottomTemp)
-            {
-                result = KeffCavity::ScreenFlow::Down;
-            }
-            else
-            {
-                result = KeffCavity::ScreenFlow::Up;
-            }
+            return leftTemp > rightTemp ? KeffCavity::ScreenFlow::Right : KeffCavity::ScreenFlow::Left;
         }
-        if(rightTemp > leftTemp)
+        if(bottomTemp > topTemp)
         {
-            result = KeffCavity::ScreenFlow::Left;
+            return KeffCavity::ScreenFlow::Up;
         }
-
-        return result;
+        if(topTemp > bottomTemp)
+        {
+            return KeffCavity::ScreenFlow::Down;
+        }
+        return KeffCavity::ScreenFlow::Right;
     }
 
     void

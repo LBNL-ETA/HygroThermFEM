@@ -72,6 +72,10 @@ namespace HygroThermFEM
 
         IMaterial(std::string name, bool isLinear = true);
 
+        //! A gas cavity's conductivity is re-evaluated between solver passes, so an element
+        //! must read it live instead of copying it at construction.
+        [[nodiscard]] virtual bool isGas() const;
+
         //! Material's name.
         [[nodiscard]] std::string name() const;
 
@@ -275,6 +279,8 @@ namespace HygroThermFEM
         virtual void updateSorptionCurve(double saturationTemperature) = 0;
 
         [[nodiscard]] CavityStandard standard() const;
+
+        [[nodiscard]] bool isGas() const override;
 
         [[nodiscard]] Gases::CGas & getGas();
 

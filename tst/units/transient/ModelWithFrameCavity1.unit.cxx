@@ -100,7 +100,10 @@ TEST(TestModelWithFrameCavity1, TestSingleFrameCavity)
     const auto solution = multiDomain.thermal().transientMultiStep(
       HygroThermFEM::Variable::temperature, dTime, nSteps);
 
-    const auto correctThermalConductivity{0.098654};
+    // Re-captured when the element started reading the cavity's conductivity live: the
+    // field then feels the cavity, its temperature difference narrows and keff settles
+    // slightly lower than the 0.098654 captured with the gas default frozen in the matrix.
+    const auto correctThermalConductivity{0.096346};
     const auto thermalCond =
       frameCavity.thermalConductivityMoistureAndTemperatureDependent().getCurve()[0].y;
     EXPECT_NEAR(correctThermalConductivity, thermalCond, 1e-6);
