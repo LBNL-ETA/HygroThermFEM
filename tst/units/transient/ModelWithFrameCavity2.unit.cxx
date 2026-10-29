@@ -105,11 +105,26 @@ TEST(TestModelWithFrameCavity2, TestDoubleFrameCavity)
     const auto solution = multiDomain.thermal().transientMultiStep(
       HygroThermFEM::Variable::temperature, dTime, nSteps);
 
-    const auto correctThermalConductivity1{0.163195};
+    // The left edge cools: cavity 1 is driven across its width, from the right to the
+    // cold left; cavity 2, the wide one under the adiabatic top, ends up warmer at the
+    // bottom than at the top by more than across its width, so its heat flows up, as
+    // Conrad's direction rule reads it.
+    const auto states{multiDomain.thermal().gasCavityStates()};
+    ASSERT_EQ(2u, states.size());
+    EXPECT_EQ(KeffCavity::ScreenFlow::Left, states[0].heatFlow);
+    EXPECT_EQ(KeffCavity::ScreenFlow::Up, states[1].heatFlow);
+
+    // Both re-captured when the element started reading the cavity's conductivity live:
+    // the field then feels the cavities, their temperature differences narrow and keff
+    // settles lower than the values captured with the gas default frozen in the matrix.
+    const auto correctThermalConductivity1{0.156054};
     const auto thermalCond1 = frameCavity1.thermalConductivityMoistureAndTemperatureDependent().getCurve()[0].y;
     EXPECT_NEAR(correctThermalConductivity1, thermalCond1, 1e-6);
 
-    const auto correctThermalConductivity2{0.025013};
+    // Upward flow; the original 0.025013 belonged to the horizontal evaluation a
+    // precedence slip in the direction rule produced for this cavity.
+    const auto correctThermalConductivity2{0.242558};
     const auto thermalCond2 = frameCavity2.thermalConductivityMoistureAndTemperatureDependent().getCurve()[0].y;
     EXPECT_NEAR(correctThermalConductivity2, thermalCond2, 1e-6);
+    EXPECT_NEAR(thermalCond2, frameCavity2.thermalConductivityDry(), 1e-12);
 }

@@ -1,4 +1,6 @@
 #include <gtest/gtest.h>
+#include <algorithm>
+#include <cmath>
 #include <memory>
 #include <optional>
 #include <set>
@@ -44,6 +46,8 @@ namespace
     {
         double conductivity{0.0};
         std::vector<HygroThermFEM::GasCavityState> states;
+        //! The solved temperature field of a steady run; empty for a transient run.
+        std::vector<double> temperatures;
     };
 
     ElementNodes elementNodes(const std::size_t xIndex, const std::size_t yIndex)
@@ -139,6 +143,7 @@ namespace
         createElements(multiDomain, solidMaterial.name(), surfaceEmissivity);
         createColumnConvection(multiDomain, 1u, 0.0);
 
+        std::vector<double> temperatures;
         if(solve == Solve::Transient)
         {
             constexpr auto dTime = 360;
@@ -148,11 +153,12 @@ namespace
         else
         {
             createColumnConvection(multiDomain, gridSize, 20.0);
-            multiDomain.steadyState();
+            temperatures = multiDomain.steadyState().temperature;
         }
 
         return {.conductivity = frameCavity.thermalConductivityMoistureAndTemperatureDependent().getCurve()[0].y,
-                .states = multiDomain.gasCavityStates()};
+                .states = multiDomain.gasCavityStates(),
+                .temperatures = temperatures};
     }
 
     double cavityConductivity(const std::optional<double> surfaceEmissivity, const Solve solve)
@@ -167,7 +173,9 @@ TEST(TestModelWithFrameCavitySurfaceEmissivity, NoOverrideMatchesModelWithFrameC
 
     const auto conductivity{cavityConductivity(std::nullopt, Solve::Transient)};
 
-    EXPECT_NEAR(0.098654, conductivity, 1e-6);
+    // The value ModelWithFrameCavity1 captures, since the element started reading the
+    // cavity's conductivity live.
+    EXPECT_NEAR(0.096346, conductivity, 1e-6);
 }
 
 TEST(TestModelWithFrameCavitySurfaceEmissivity, MaterialEmissivityOverrideEqualsNoOverride)
@@ -210,6 +218,26 @@ TEST(TestModelWithFrameCavitySurfaceEmissivity, SteadyStateHonoursOverride)
 
     EXPECT_DOUBLE_EQ(withoutOverride, withSameOverride);
     EXPECT_LT(withZeroOverride, withoutOverride);
+}
+
+TEST(TestModelWithFrameCavitySurfaceEmissivity, SteadyStateFieldFollowsTheCavityConductivity)
+{
+    SCOPED_TRACE("Begin Test: The solved field reacts to the cavity's effective conductivity.");
+
+    // Removing the radiation from the cavity lowers its conductivity; the temperature field
+    // around it must move with it, which it cannot if the element kept the conductivity it
+    // copied when it was built.
+    const auto withDefault{runCavityModel(solidDefaultEmissivity, Solve::Steady)};
+    const auto withZero{runCavityModel(0.0, Solve::Steady)};
+    ASSERT_EQ(withDefault.temperatures.size(), withZero.temperatures.size());
+    ASSERT_LT(withZero.conductivity, withDefault.conductivity);
+
+    double largestShift{0.0};
+    for(std::size_t node = 0u; node < withDefault.temperatures.size(); ++node)
+    {
+        largestShift = std::max(largestShift, std::abs(withDefault.temperatures[node] - withZero.temperatures[node]));
+    }
+    EXPECT_GT(largestShift, 0.01);
 }
 
 TEST(TestModelWithFrameCavitySurfaceEmissivity, SteadyStateReportsCavityState)

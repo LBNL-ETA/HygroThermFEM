@@ -200,7 +200,29 @@ namespace HygroThermFEM
         //! Update temperatures for each side of cavity
         void updateSideTemperatures();
 
-        //! \brief Calculates screen heat flow direction.
+        //! The node loop in counter-clockwise order, which the side classification assumes.
+        static std::vector<size_t> counterClockwise(Nodes & nodePool, const std::vector<size_t> & nodes);
+
+        //! The cavity nodes farthest in each screen direction.
+        struct ExtremeNodes
+        {
+            const Node2D * minX{nullptr};
+            const Node2D * maxX{nullptr};
+            const Node2D * minY{nullptr};
+            const Node2D * maxY{nullptr};
+        };
+
+        [[nodiscard]] ExtremeNodes extremeNodes() const;
+
+        //! Conrad's rule for a side the cavity has no wall on (a triangular or collapsed
+        //! cavity): its temperature is that of the cavity node farthest in that direction
+        //! and its emissivity the mean of the two neighbouring sides. Without it such a side
+        //! would be evaluated at absolute zero.
+        void fillEmptySides(const std::map<Side, double> & lengths);
+
+        //! \brief Calculates screen heat flow direction, as Conrad does: horizontal when the
+        //! left-right temperature difference exceeds the bottom-top one, else vertical, else
+        //! to the right.
         [[nodiscard]] KeffCavity::ScreenFlow heatFlowDirection() const;
 
 

@@ -322,6 +322,16 @@ namespace HygroThermFEM
           DefaultTemperatureDependentMeasurementMoisture);
     }
 
+    bool IMaterial::isGas() const
+    {
+        return false;
+    }
+
+    bool IGas::isGas() const
+    {
+        return true;
+    }
+
     CavityStandard IGas::standard() const
     {
         return m_CavityStandard;
@@ -475,6 +485,11 @@ namespace HygroThermFEM
 
     void Gas::updateThermalConductivity(double thermalConductivity)
     {
+        // The element reads the dry conductivity whenever the physics options turn the
+        // temperature dependence off, which the steady-state flags always do; the cavity's
+        // effective conductivity must reach both paths or a steady solve would run every
+        // frame cavity at the gas default.
+        setThermalConductivity(thermalConductivity);
         const auto minX = m_ThermalConductivity2DTable->minX();
         const auto maxX = m_ThermalConductivity2DTable->maxX();
         auto & curve = m_ThermalConductivity2DTable->getCurve();
