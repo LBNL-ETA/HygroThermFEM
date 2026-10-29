@@ -1057,12 +1057,30 @@ namespace HygroThermFEM
 
     void IDomain::postProcess(std::vector<double> &)
     {
+        updateGasCavities();
+    }
+
+    void IDomain::updateGasCavities()
+    {
         if(!gasCavities)
         {
-            gasCavities.emplace(m_NodePool, m_MaterialPool, m_Elements);
+            gasCavities.emplace(m_NodePool, m_MaterialPool, m_Elements, m_CavitySurfaceEmissivities);
             gasCavities->setGravityVector(m_GravityVector);
         }
         gasCavities->update();
+    }
+
+    std::vector<GasCavityState> IDomain::gasCavityStates() const
+    {
+        return gasCavities ? gasCavities->states() : std::vector<GasCavityState>{};
+    }
+
+    void IDomain::setCavitySurfaceEmissivity(const std::size_t node1,
+                                             const std::size_t node2,
+                                             const double emissivity)
+    {
+        m_CavitySurfaceEmissivities[cavitySegmentKey(node1, node2)] = emissivity;
+        gasCavities.reset();
     }
 
     void IDomain::setGravityVector(const FenestrationCommon::GravityVector & gravityVector)
@@ -1085,6 +1103,7 @@ namespace HygroThermFEM
         m_MaterialPool.clear();
         m_BCs.clear();
         m_Elements.clearElements();
-    }        
+        m_CavitySurfaceEmissivities.clear();
+    }
 
 }   // namespace HygroThermFEM

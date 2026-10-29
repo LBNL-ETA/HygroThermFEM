@@ -1,3 +1,6 @@
+#include <algorithm>
+#include <utility>
+
 #include <KeffCavity.hxx>
 
 #include "lbnl/optional.hxx"
@@ -9,6 +12,12 @@
 
 namespace HygroThermFEM
 {
+    std::pair<std::size_t, std::size_t> cavitySegmentKey(const std::size_t node1,
+                                                         const std::size_t node2)
+    {
+        return {std::min(node1, node2), std::max(node1, node2)};
+    }
+
     ///////////////////////////////////////////////////////////////////////////////
     ///  EquivalentGasCavity
     ///////////////////////////////////////////////////////////////////////////////
@@ -17,8 +26,9 @@ namespace HygroThermFEM
       Nodes & nodePool,
       const std::vector<size_t> & nodes,
       IGas & gas,
+      const CavitySurfaceEmissivities & surfaceEmissivities,
       const FenestrationCommon::GravityVector & gravityVector) :
-        m_Segments(buildSegments(nodePool, nodes)),
+        m_Segments(buildSegments(nodePool, nodes, surfaceEmissivities)),
         m_SideSegments(groupSegmentSides(m_Segments)),
         m_Side{
           {Side::Top, {0, 0}}, {Side::Bottom, {0, 0}}, {Side::Left, {0, 0}}, {Side::Right, {0, 0}}},
@@ -37,17 +47,31 @@ namespace HygroThermFEM
         const auto hfDirection = heatFlowDirection();
         const auto side1 = getSide1(hfDirection);
         const auto side2 = getSide2(hfDirection);
-        const auto standard = m_Gas.standard();
+        const auto evaluation{evaluate(hfDirection, side1, side2)};
+        m_Gas.updateThermalConductivity(evaluation.conductivity);
+        m_Gas.updateDiffusionResistanceFactor(evaluation.diffusionResistanceFactor);
+        m_Gas.updateSorptionCurve((side1.temperature + side2.temperature) / 2.0);
+        m_State = GasCavityState{.gasName = m_Gas.name(),
+                                 .heatFlow = hfDirection,
+                                 .side1 = side1,
+                                 .side2 = side2,
+                                 .conductivity = evaluation.conductivity,
+                                 .nusselt = evaluation.nusselt};
+    }
+
+    EquivalentGasCavity::Evaluation
+      EquivalentGasCavity::evaluate(const KeffCavity::ScreenFlow heatFlow,
+                                    const KeffCavity::CavitySide & side1,
+                                    const KeffCavity::CavitySide & side2) const
+    {
         const auto radCalc{KeffCavity::RadiationCalculation::Simplified};
-        auto thermalConductivity{0.0};
-        auto diffusionResistanceFactor{0.0};
-        switch(standard)
+        switch(m_Gas.standard())
         {
             case CavityStandard::ISO15099:
             {
                 const auto jambHeight{1.0};
                 const auto pressure{101325.0};
-                KeffCavity::CavityISO10599 cavity(hfDirection,
+                KeffCavity::CavityISO10599 cavity(heatFlow,
                                                   m_Size.L,
                                                   m_Size.H,
                                                   jambHeight,
@@ -57,27 +81,52 @@ namespace HygroThermFEM
                                                   m_GravityVector,
                                                   radCalc,
                                                   m_Gas.getGas());
-                thermalConductivity = cavity.effectiveConductivity();
-                diffusionResistanceFactor = cavity.effectiveDiffusionResistanceFactor();
-                break;
+                return {.conductivity = cavity.effectiveConductivity(),
+                        .diffusionResistanceFactor = cavity.effectiveDiffusionResistanceFactor(),
+                        .nusselt = cavity.nusselt()};
             }
             case CavityStandard::CEN:
             {
                 KeffCavity::CavityCEN cavity(
-                  hfDirection, m_Size.L, m_Size.H, m_Area, side1, side2, m_Gas.getGas(), radCalc);
-                thermalConductivity = cavity.effectiveConductivity();
-                diffusionResistanceFactor = cavity.effectiveDiffusionResistanceFactor();
-                break;
+                  heatFlow, m_Size.L, m_Size.H, m_Area, side1, side2, m_Gas.getGas(), radCalc);
+                return {.conductivity = cavity.effectiveConductivity(),
+                        .diffusionResistanceFactor = cavity.effectiveDiffusionResistanceFactor(),
+                        .nusselt = cavity.nusselt()};
             }
-            default:;
         }
-        m_Gas.updateThermalConductivity(thermalConductivity);
-        m_Gas.updateDiffusionResistanceFactor(diffusionResistanceFactor);
-        m_Gas.updateSorptionCurve((side1.temperature + side2.temperature) / 2.0);
+        return {};
+    }
+
+    const GasCavityState & EquivalentGasCavity::state() const
+    {
+        return m_State;
+    }
+
+    double EquivalentGasCavity::segmentEmissivity(const Node2D & node1,
+                                                  const Node2D & node2,
+                                                  const CavitySurfaceEmissivities & surfaceEmissivities)
+    {
+        const auto overridden{
+          surfaceEmissivities.find(cavitySegmentKey(node1.getNodeNumber(), node2.getNodeNumber()))};
+        if(overridden != surfaceEmissivities.end())
+        {
+            return overridden->second;
+        }
+
+        // A common material may be absent (two frame cavities next to each other) or present
+        // without an emissivity; both cases fall back to 0.0.
+        return lbnl::extend(findCommonMaterial(node1, node2))
+          .transform([](const std::reference_wrapper<const IMaterial> & common) {
+              const auto & material = common.get();
+              return material.hasEmissivity() ? material.emissivity() : 0.0;
+          })
+          .value_or(0.0);
     }
 
     std::vector<EquivalentGasCavity::Segment>
-      EquivalentGasCavity::buildSegments(Nodes & nodePool, const std::vector<size_t> & nodes)
+      EquivalentGasCavity::buildSegments(Nodes & nodePool,
+                                         const std::vector<size_t> & nodes,
+                                         const CavitySurfaceEmissivities & surfaceEmissivities)
     {
         std::vector<Segment> segments;
         for(size_t i = 0u; i < nodes.size(); ++i)
@@ -85,18 +134,7 @@ namespace HygroThermFEM
             const auto firstIndex = i == 0 ? nodes.size() - 1 : i - 1;
             const auto & node1 = nodePool.getNode(nodes[firstIndex]);
             const auto & node2 = nodePool.getNode(nodes[i]);
-
-            // A common material may be absent (two frame cavities next to each other) or present
-            // without an emissivity; both cases fall back to 0.0.
-            const auto emissivity =
-              lbnl::extend(findCommonMaterial(node1, node2))
-                .transform([](const std::reference_wrapper<const IMaterial> & common) {
-                    const auto & material = common.get();
-                    return material.hasEmissivity() ? material.emissivity() : 0.0;
-                })
-                .value_or(0.0);
-
-            segments.emplace_back(node1, node2, emissivity);
+            segments.emplace_back(node1, node2, segmentEmissivity(node1, node2, surfaceEmissivities));
         }
         return segments;
     }
@@ -340,10 +378,12 @@ namespace HygroThermFEM
 
     EquivalentGasCavities::EquivalentGasCavities(Nodes & nodePool,
                                                  Materials & materialPool,
-                                                 const ElementsLinear2D & elements) :
+                                                 const ElementsLinear2D & elements,
+                                                 CavitySurfaceEmissivities surfaceEmissivities) :
         m_NodePool(nodePool),
         m_MaterialPool(materialPool),
-        m_Elements(elements)
+        m_Elements(elements),
+        m_SurfaceEmissivities(std::move(surfaceEmissivities))
     {
         createEquivalentFrameCavities();
     }
@@ -364,7 +404,7 @@ namespace HygroThermFEM
             }
             auto edges = getEdges(elementNodes);
             auto & gas = m_MaterialPool.gas(frameCavity);
-            m_Cavities.emplace_back(m_NodePool, edgeNodesOrdered(edges), gas);
+            m_Cavities.emplace_back(m_NodePool, edgeNodesOrdered(edges), gas, m_SurfaceEmissivities);
         }
     }
 
@@ -432,6 +472,17 @@ namespace HygroThermFEM
         {
             cavity.update();
         }
+    }
+
+    std::vector<GasCavityState> EquivalentGasCavities::states() const
+    {
+        std::vector<GasCavityState> result;
+        result.reserve(m_Cavities.size());
+        for(const auto & cavity : m_Cavities)
+        {
+            result.push_back(cavity.state());
+        }
+        return result;
     }
 
     void EquivalentGasCavities::setGravityVector(

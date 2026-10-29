@@ -365,6 +365,9 @@ namespace HygroThermFEM
             if(steadyRegime)
             {
                 // transient() left the nodes at this step's field, which the residual is taken at.
+                // Each transient pass ends in postProcess(), which refreshes the frame cavities
+                // from the temperatures just solved, so the loop runs until the temperature
+                // field and the cavities agree.
                 temperatureError =
                   m_SimulateThermal
                     ? steadyPassError(temperatureError, m_ThermalDomain, tolerance, pseudoStep)
@@ -740,6 +743,19 @@ namespace HygroThermFEM
     void MultiDomain::setGravityVector(const FenestrationCommon::GravityVector & gravityVector)
     {
         m_ThermalDomain.setGravityVector(gravityVector);
+    }
+
+    std::vector<GasCavityState> MultiDomain::gasCavityStates() const
+    {
+        return m_ThermalDomain.gasCavityStates();
+    }
+
+    void MultiDomain::setCavitySurfaceEmissivity(const std::size_t node1,
+                                                 const std::size_t node2,
+                                                 const double emissivity)
+    {
+        m_ThermalDomain.setCavitySurfaceEmissivity(node1, node2, emissivity);
+        m_MoistureDomain.setCavitySurfaceEmissivity(node1, node2, emissivity);
     }
 
     void MultiDomain::subscribeThermal(Timesteps::TimestepObserver * observer)
