@@ -188,3 +188,57 @@ TEST(SealedStrip_SteadyGradient, ZeroFluxClosedForm)
         EXPECT_LT(deviations[idx], 1e-8) << meshSizes[idx] << " elements";
     }
 }
+
+/////////////////////////////////////////////////////////////////////////////////////
+/// The steady march on the same strip. Its passes are long against the moisture
+/// storage, and a sealed domain changes its water by the Newton's summed residual
+/// times the pass over the capacity, so the march must hold the residual below the
+/// storage terms and keep the passes within what double precision resolves against
+/// the fluxes (see MultiDomain::steadyState). Before it did (2026-11-02), the
+/// 20-element strip lost 4.9e-8 of its water over 13 passes and sat 3.2e-8 off the
+/// closed form; now 1.6e-12 and 2.2e-10 over 5 passes.
+/////////////////////////////////////////////////////////////////////////////////////
+
+namespace
+{
+    double totalWater(const std::vector<double> & humidities, const std::size_t nColumns)
+    {
+        const auto volumes = lumpedVolumes(nColumns);
+        const auto row = TestHelper::bottomRow(humidities, nColumns, 2);
+        double water = 0.0;
+        for(std::size_t col = 0; col < nColumns; ++col)
+        {
+            water += volumes[col] * row[col];
+        }
+        return water;
+    }
+}   // namespace
+
+TEST(SealedStrip_SteadyGradient, TheSteadyMarchConservesTheWater)
+{
+    SCOPED_TRACE("Begin Test: the steady march keeps the sealed strip's water.");
+
+    HygroThermFEM::SimulationProperties::Instance().setCalculationParameters(
+      true, false, false, false, false);
+
+    constexpr std::array<std::size_t, 3> meshSizes{10u, 20u, 40u};
+    for(const std::size_t nElements : meshSizes)
+    {
+        const std::size_t nColumns = nElements + 1;
+        HygroThermFEM::MultiDomain multiDomain(
+          {.performThermal = false, .performMoisture = true});
+        buildStrip(multiDomain, nColumns);
+        const double waterAtStart =
+          totalWater(multiDomain.nodes().properties(HygroThermFEM::Variable::humidity), nColumns);
+
+        const auto steady = multiDomain.steadyState();
+
+        EXPECT_TRUE(steady.converged) << nElements << " elements";
+        const double waterChange = (totalWater(steady.humidity, nColumns) - waterAtStart) / waterAtStart;
+        EXPECT_NEAR(waterChange, 0.0, 1e-10) << nElements << " elements";
+        const auto profile = TestHelper::bottomRow(steady.humidity, nColumns, 2);
+        EXPECT_LT(maxDeviationFromClosedForm(profile), 1e-8) << nElements << " elements";
+    }
+
+    HygroThermFEM::SimulationProperties::Instance().resetCalculationParameters();
+}

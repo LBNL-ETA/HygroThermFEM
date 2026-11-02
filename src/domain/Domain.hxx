@@ -76,6 +76,13 @@ namespace HygroThermFEM
         //! shows a residual here even when it barely moved since the previous pass.
         [[nodiscard]] double steadyStateResidual(double pseudoTimeStep);
 
+        //! Time scale of the storage against the conductance: the largest nodal capacity over
+        //! conductance diagonal, C_i / K_ii, in seconds. A step far longer than this puts the
+        //! storage terms below what the fluxes resolve in double precision, and the residual the
+        //! Newton leaves, scaled by the step over the capacity, becomes an error in the stored
+        //! quantity.
+        [[nodiscard]] double storageTimeScale();
+
         //! Physical range of the domain's solution variable, or nullopt when unbounded.
         //! Humidity is a fraction in [0, 1]: above saturation is condensation, which an
         //! unconstrained steady vapor solve otherwise reports as Glaser-style supersaturation
@@ -181,6 +188,15 @@ namespace HygroThermFEM
         //! When not set, the domain reads the process-global SimulationProperties / Timesteps
         //! singletons at solve time, preserving the historical behaviour.
         void setSolverSettings(const SolverSettings & settings);
+
+        //! \brief Bounds the residual-reduction target by the storage terms (moisture).
+        //!
+        //! A step changes the stored quantity of a sealed domain by the summed residual times the
+        //! step over the capacity, so a residual that is small against the fluxes still moves
+        //! the water when the step is long. With a tolerance set, the Newton also runs until the
+        //! free residual is below tolerance * ||storage vector||. Empty keeps the flux-scale rule
+        //! alone, the transient default; the steady march sets it for its passes.
+        void setStorageResidualTolerance(std::optional<double> tolerance);
 
         //! \brief Inject the physics-model flags for this domain.
         //!
@@ -307,8 +323,8 @@ namespace HygroThermFEM
             SquareMatrix matA;
             std::vector<double> vecB;
             double currentNorm;
-            double initialFreeResidual = 0.0;   //!< Free-DOF residual norm of the initial guess
-                                                //!< (residual-reduction convergence target, D3)
+            double residualTarget = 0.0;   //!< Free-DOF residual below which the residual-
+                                           //!< reduction domains (moisture) are converged (D3)
             std::vector<double> bestSolution{};   //!< Lowest-free-residual iterate seen so far,
                                                   //!< returned on best-effort acceptance (D3)
             double bestResidual = (std::numeric_limits<double>::max)();
@@ -411,6 +427,17 @@ namespace HygroThermFEM
 
         //! Optional injected solver configuration. Empty means "read the global singletons live".
         std::optional<SolverSettings> m_SolverSettings;
+
+        //! Residual target bound relative to the storage terms; see setStorageResidualTolerance.
+        std::optional<double> m_StorageResidualTolerance;
+
+        //! Residual below which a residual-reduction domain's Newton is converged for this step:
+        //! the reduction of the initial guess's residual, bounded by the storage terms when
+        //! a storage tolerance is set.
+        [[nodiscard]] double residualTarget(const std::vector<double> & currentStateValues,
+                                            const SquareMatrix & matA,
+                                            const std::vector<double> & vecB,
+                                            double dTime);
 
         //! Optional injected physics flags. Empty means "read the global singleton live".
         std::optional<PhysicsOptions> m_PhysicsOptions;

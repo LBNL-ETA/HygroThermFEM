@@ -340,8 +340,14 @@ namespace HygroThermFEM
         const std::size_t maxPasses{(std::max)(settings.maxNumberOfIterations, static_cast<std::size_t>(200))};
         constexpr double initialPseudoStep{1.0e5};   // seconds; about a day of storage damping
         constexpr double pseudoStepGrowth{4.0};
-        constexpr double maxPseudoStep{1.0e12};      // storage terms negligible: pure steady Newton
+        const double maxPseudoStep{steadyPseudoStepCap()};
         constexpr std::size_t steadyBoundaryStep{0u};   // steady boundary conditions carry one value
+        // The passes are long against the moisture storage, so the Newton must also drive the
+        // residual below the storage terms, or a sealed domain's water moves by the residual
+        // times the pass over the capacity (2026-11-02, sealed strip: 2.5e-7 of its water in one
+        // 1e7 s pass under the flux-scale rule alone, 5e-13 with the storage bound).
+        constexpr double storageResidualTolerance{1.0e-10};
+        m_MoistureDomain.setStorageResidualTolerance(storageResidualTolerance);
 
         auto temperature = m_Nodes.properties(Variable::temperature);
         auto humidity = m_Nodes.properties(Variable::humidity);
@@ -380,6 +386,7 @@ namespace HygroThermFEM
             converged = steadyRegime && temperatureError <= tolerance && humidityError <= tolerance;
             pseudoStep = (std::min)(pseudoStep * pseudoStepGrowth, maxPseudoStep);
         }
+        m_MoistureDomain.setStorageResidualTolerance(std::nullopt);
 
         m_Nodes.updateNodeHumidities(humidity, true);
         m_Nodes.updateNodeTemperatures(temperature, true);
@@ -413,6 +420,25 @@ namespace HygroThermFEM
         result.converged = converged;
         result.steadyPasses = passesTaken;
         return result;
+    }
+
+    double MultiDomain::steadyPseudoStepCap()
+    {
+        // At the ceiling the storage terms are negligible and a pass is a pure steady Newton.
+        // The moisture domain stops well short of it: a pass far longer than its storage time
+        // scale leaves the storage terms below what double precision resolves against the
+        // fluxes, and a sealed domain's water then drifts by the rounding of every pass
+        // (2026-11-02, sealed strip: 1e-8 of its water per 1e12 s pass, 1e-12 at 1e4 time
+        // scales). The thermal domain carries no such conserved level and goes to the ceiling.
+        constexpr double pseudoStepCeiling{1.0e12};
+        constexpr double pseudoStepFloor{1.0e5};
+        constexpr double pseudoStepsPerStorageTime{1.0e4};
+        if(!m_SimulateMoisture)
+        {
+            return pseudoStepCeiling;
+        }
+        const double cap = pseudoStepsPerStorageTime * m_MoistureDomain.storageTimeScale();
+        return std::clamp(cap, pseudoStepFloor, pseudoStepCeiling);
     }
 
     Solution MultiDomain::currentStateSolution()

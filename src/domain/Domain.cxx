@@ -162,7 +162,7 @@ namespace
       const double convergenceError,
       const bool useResidual,
       const double currentFreeResidual,
-      const double initialFreeResidual,
+      const double residualTarget,
       const size_t numOfIterations,
       const size_t minIterationsForOscillationCheck)
     {
@@ -170,12 +170,9 @@ namespace
           previousNorm, currentNorm, correctionDU, effectiveRelax, solution);
 
         // Thermal keeps the historical change-metric criterion; moisture converges when the
-        // free-DOF residual has been reduced by residualReductionFactor from the initial guess.
+        // free-DOF residual is below its target (see IDomain::residualTarget).
         const bool primaryConverged =
-          useResidual
-            ? (currentFreeResidual
-               <= residualReductionFactor * initialFreeResidual + residualAbsoluteFloor)
-            : (metric <= convergenceError);
+          useResidual ? (currentFreeResidual <= residualTarget) : (metric <= convergenceError);
 
         if(primaryConverged)
         {
@@ -893,7 +890,7 @@ namespace HygroThermFEM
         const auto result = evaluateConvergence(
           state.solution, prevIterSolution, correctionDU, lsResult.effectiveRelax,
           previousNorm, state.currentNorm, state.prevMetric, convergenceError,
-          useResidual, currentFreeResidual, state.initialFreeResidual,
+          useResidual, currentFreeResidual, state.residualTarget,
           state.numOfIterations, minIterationsForOscillationCheck);
 
         if(result.reason == ConvergeReason::oscillation)
@@ -943,17 +940,16 @@ namespace HygroThermFEM
             return {solution, true, 0.0};
         }
 
-        // Residual of the initial guess over the free DOFs -- the reference against which the
-        // residual-reduction convergence test measures progress (D3, moisture only).
-        const double initialFreeResidual =
-          useResidualConvergence() ? freeDofResidualNorm(currentStateValues, matA, vecB) : 0.0;
+        // The residual-reduction convergence target (D3, moisture only).
+        const double target =
+          useResidualConvergence() ? residualTarget(currentStateValues, matA, vecB, t_DTime) : 0.0;
 
         NRLoopState state{
           .solution = currentStateValues,
           .matA = std::move(matA),
           .vecB = std::move(vecB),
           .currentNorm = norm(currentStateValues),
-          .initialFreeResidual = initialFreeResidual,
+          .residualTarget = target,
           .damping = {}};
 
         while(state.numOfIterations <= maxIterations && !state.converged)
@@ -987,6 +983,50 @@ namespace HygroThermFEM
     bool IDomain::isLinear() const
     {
         return m_BCs.isLinear() && m_Elements.isLinear();
+    }
+
+    double IDomain::residualTarget(const std::vector<double> & currentStateValues,
+                                   const SquareMatrix & matA,
+                                   const std::vector<double> & vecB,
+                                   const double dTime)
+    {
+        // The reduction of the initial guess's residual over the free DOFs: relative to each
+        // problem's own scale, with a floor for a guess that already (nearly) solves the system.
+        const double initialFreeResidual = freeDofResidualNorm(currentStateValues, matA, vecB);
+        const double fluxScaleTarget =
+          residualReductionFactor * initialFreeResidual + residualAbsoluteFloor;
+        if(!m_StorageResidualTolerance.has_value())
+        {
+            return fluxScaleTarget;
+        }
+        // The storage vector of this step, M u_previous / dt: the summed residual over its sum is
+        // the step's relative change of the stored quantity in a sealed domain.
+        const auto storage =
+          currentStateValues * m_Elements.getLumpedMass(m_NodePool.maxIndex(), dTime);
+        return (std::min)(fluxScaleTarget, m_StorageResidualTolerance.value() * norm(storage));
+    }
+
+    double IDomain::storageTimeScale()
+    {
+        const auto maxNodeIndex = m_NodePool.maxIndex();
+        const auto capacity = m_Elements.getLumpedMass(maxNodeIndex, 1.0);
+        const auto conductance = m_Elements.conductanceMatrix(maxNodeIndex);
+        const std::size_t count = (std::min)(capacity.size(), conductance.size());
+        double scale = 0.0;
+        for(std::size_t idx = 0; idx < count; ++idx)
+        {
+            const double diagonal = conductance(idx, idx);
+            if(diagonal > 0.0)
+            {
+                scale = (std::max)(scale, capacity[idx] / diagonal);
+            }
+        }
+        return scale;
+    }
+
+    void IDomain::setStorageResidualTolerance(const std::optional<double> tolerance)
+    {
+        m_StorageResidualTolerance = tolerance;
     }
 
     void IDomain::setSolverSettings(const SolverSettings & settings)

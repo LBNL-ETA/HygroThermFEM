@@ -104,6 +104,9 @@ namespace HygroThermFEM
         //! Calculates steady state solution for multiple domains.
         Solution steadyState();
 
+        //! Longest pseudo-step the steady march may take, see steadyState().
+        [[nodiscard]] double steadyPseudoStepCap();
+
         //! Snapshot of the current node state as a zero-duration Solution. Called before the
         //! first transient step it captures the initial conditions -- the "timestep 0" frame
         //! of a transient result series. Water, liquid, vapor and ice contents come from the
