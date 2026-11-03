@@ -64,22 +64,8 @@ namespace HygroThermFEM
         //! still changing by more than the tolerance; the errors above say by how much.
         //! Transient steps always report true.
         bool converged{true};
-        //! Number of pseudo-time passes a steady-state solve took; zero for transient steps.
+        //! Number of coupled passes a steady-state solve took; zero for transient steps.
         std::size_t steadyPasses{0};
-    };
-
-    //! \brief How MultiDomain::steadyState finds the steady state.
-    enum class SteadyMethod
-    {
-        //! The steady equations solved as such: no time variable, no storage terms. One
-        //! steady Newton per domain per pass, thermal first, repeated until the fields and
-        //! the steady residuals settle. Fast and exact, but a sealed moisture domain has no
-        //! direct solution and is refused.
-        direct,
-        //! Transient passes under the steady boundary conditions with a pseudo-time step that
-        //! grows geometrically: the storage terms damp the early passes and vanish from the
-        //! late ones. Slower, and it fixes a sealed domain's water through the start.
-        march
     };
 
     //! Per-field results (values + errors) accumulated over multiple timesteps.
@@ -115,17 +101,18 @@ namespace HygroThermFEM
                            double t_DTime,
                            size_t timestepIndex = 0);
 
-        //! \brief The steady state of the coupled domains, by the given method.
+        //! \brief The steady state of the coupled domains: the steady equations solved as such,
+        //! no time variable, no storage terms.
         //!
-        //! Both methods solve the same equations and land on the same field; they differ in
-        //! how they get there and in what they can solve (see SteadyMethod). The fields start
-        //! from the current node values. A moisture domain with no exchange at any boundary
-        //! has no direct solution (its water is undetermined) and the direct method refuses
-        //! it with a runtime_error; the march handles that case.
-        Solution steadyState(SteadyMethod method);
-
-        //! Longest pseudo-step the steady march may take, see steadyStateMarch().
-        [[nodiscard]] double steadyPseudoStepCap();
+        //! Each pass is one steady Newton solve per domain (IDomain::steadyNewton), moisture
+        //! first and then thermal with the humidities just solved, starting from the current
+        //! node values. The solve is converged once neither field changes by more than the
+        //! tolerance between passes and both steady residuals are below it; the passes then
+        //! continue while each still halves the change, so the reported field sits at the
+        //! solvers' floor rather than at the tolerance. A moisture domain with no exchange at
+        //! any boundary has no steady solution of its own (its water is undetermined) and is
+        //! refused with a runtime_error.
+        Solution steadyState();
 
         //! Snapshot of the current node state as a zero-duration Solution. Called before the
         //! first transient step it captures the initial conditions -- the "timestep 0" frame
@@ -502,23 +489,10 @@ namespace HygroThermFEM
             double humidity{0.0};
         };
 
-        //! The steady state by the pseudo-time march, see SteadyMethod::march.
-        [[nodiscard]] Solution steadyStateMarch();
-
-        //! \brief The steady state solved directly, see SteadyMethod::direct.
-        //!
-        //! Each pass is one steady Newton solve per domain (IDomain::steadyNewton), thermal
-        //! first and then moisture with the temperatures just solved. The solve is converged
-        //! once neither field changes by more than the tolerance between passes and both
-        //! steady residuals are below it; the passes then continue while each still halves
-        //! the change, so the reported field sits at the solvers' floor rather than at the
-        //! tolerance.
-        [[nodiscard]] Solution steadyStateDirect();
-
-        //! One pass of the direct solve: a steady Newton per simulated domain, thermal first.
-        //! Each Newton leaves its domain's nodes at the returned field, so the moisture solve
-        //! that follows sees the temperatures just solved.
-        [[nodiscard]] SteadyFields directPass(const SteadyFields & fields);
+        //! One pass of the steady solve: a steady Newton per simulated domain, moisture first.
+        //! Each Newton leaves its domain's nodes at the returned field, so the thermal solve
+        //! that follows sees the humidities just solved.
+        [[nodiscard]] SteadyFields steadyPass(const SteadyFields & fields);
 
         //! Relative change of each simulated field over a pass; zero for a field not simulated.
         [[nodiscard]] SteadyErrors passChange(const SteadyFields & previous,

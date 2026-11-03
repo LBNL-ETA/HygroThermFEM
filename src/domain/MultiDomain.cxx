@@ -54,19 +54,16 @@ namespace HygroThermFEM
         //! within tolerance, the residual of the steady equations at the new field. A small change
         //! alone does not prove the nonlinear system is solved; the residual check is skipped
         //! while the change is still large because it costs a reassembly.
-        double steadyPassError(const double change,
-                               IDomain & domain,
-                               const double tolerance,
-                               const double pseudoTimeStep)
+        double steadyPassError(const double change, IDomain & domain, const double tolerance)
         {
             if(change > tolerance)
             {
                 return change;
             }
-            return (std::max)(change, domain.steadyStateResidual(pseudoTimeStep));
+            return (std::max)(change, domain.steadyStateResidual());
         }
 
-        //! True while a pass of the direct solve still shrinks the change geometrically, which
+        //! True while a pass of the steady solve still shrinks the change geometrically, which
         //! is the coupling iteration making progress worth one more pass. A change below the
         //! floor, or one that fell by less than half, has reached the inner solvers' noise.
         bool stillContracting(const double change, const double previousChange)
@@ -330,86 +327,7 @@ namespace HygroThermFEM
         return m_PhysicsOptions ? *m_PhysicsOptions : PhysicsOptions::fromGlobals();
     }
 
-    Solution MultiDomain::steadyState(const SteadyMethod method)
-    {
-        return method == SteadyMethod::direct ? steadyStateDirect() : steadyStateMarch();
-    }
-
-    Solution MultiDomain::steadyStateMarch()
-    {
-        // The steady state is the fixed point of the transient step, so it is found by
-        // marching the transient with a pseudo-time step that grows geometrically: the early
-        // passes keep the storage terms as natural damping while the fields are far off, the
-        // late passes are a Newton solve of the steady equations themselves. Every pass reuses
-        // the transient machinery - damped Newton with line search, the humidity clamp,
-        // adaptive subdivision - which is the path the validation suite exercises.
-        //
-        // The previous scheme alternated two LINEAR solves with coefficients re-evaluated
-        // between them. Once liquid transport near saturation entered, that alternation
-        // oscillated instead of converging (2026-09-03, stucco/fiberglass wall: exit change
-        // 0.012 in humidity at a tolerance of 1e-9 after 5000 passes), landed on a
-        // start-dependent field, and returned it as if converged. With capillary conduction
-        // it produced temperatures of 300 C; with every moisture option on, a singular matrix.
-        const auto settings = solverSettings();
-        const auto tolerance = settings.errorTolerance;
-        const std::size_t maxPasses{(std::max)(settings.maxNumberOfIterations, static_cast<std::size_t>(200))};
-        constexpr double initialPseudoStep{1.0e5};   // seconds; about a day of storage damping
-        constexpr double pseudoStepGrowth{4.0};
-        const double maxPseudoStep{steadyPseudoStepCap()};
-        constexpr std::size_t steadyBoundaryStep{0u};   // steady boundary conditions carry one value
-        // The passes are long against the moisture storage, so the Newton must also drive the
-        // residual below the storage terms, or a sealed domain's water moves by the residual
-        // times the pass over the capacity (2026-11-02, sealed strip: 2.5e-7 of its water in one
-        // 1e7 s pass under the flux-scale rule alone, 5e-13 with the storage bound).
-        constexpr double storageResidualTolerance{1.0e-10};
-        m_MoistureDomain.setStorageResidualTolerance(storageResidualTolerance);
-
-        auto temperature = m_Nodes.properties(Variable::temperature);
-        auto humidity = m_Nodes.properties(Variable::humidity);
-        auto temperatureError{std::numeric_limits<double>::max()};
-        auto humidityError{std::numeric_limits<double>::max()};
-        double pseudoStep{initialPseudoStep};
-        bool converged{false};
-        std::size_t passesTaken{0u};
-        for(std::size_t pass = 0u; pass < maxPasses && !converged; ++pass)
-        {
-            passesTaken = pass + 1u;
-            // A small change over a SHORT pseudo-step says nothing about the distance to the
-            // steady state; only a pass at the cap, a Newton iteration on the steady equations,
-            // may declare convergence.
-            const bool steadyRegime{pseudoStep >= maxPseudoStep};
-            const auto step = transient(temperature, humidity, pseudoStep, steadyBoundaryStep);
-            temperatureError = m_SimulateThermal ? relativeChange(step.temperature, temperature) : 0.0;
-            humidityError = m_SimulateMoisture ? relativeChange(step.humidity, humidity) : 0.0;
-            temperature = step.temperature;
-            humidity = step.humidity;
-            if(steadyRegime)
-            {
-                // transient() left the nodes at this step's field, which the residual is taken at.
-                // Each transient pass ends in postProcess(), which refreshes the frame cavities
-                // from the temperatures just solved, so the loop runs until the temperature
-                // field and the cavities agree.
-                temperatureError =
-                  m_SimulateThermal
-                    ? steadyPassError(temperatureError, m_ThermalDomain, tolerance, pseudoStep)
-                    : 0.0;
-                humidityError =
-                  m_SimulateMoisture
-                    ? steadyPassError(humidityError, m_MoistureDomain, tolerance, pseudoStep)
-                    : 0.0;
-            }
-            converged = steadyRegime && temperatureError <= tolerance && humidityError <= tolerance;
-            pseudoStep = (std::min)(pseudoStep * pseudoStepGrowth, maxPseudoStep);
-        }
-        m_MoistureDomain.setStorageResidualTolerance(std::nullopt);
-
-        return steadySolution({.temperature = temperature, .humidity = humidity},
-                              {.temperature = temperatureError, .humidity = humidityError},
-                              converged,
-                              passesTaken);
-    }
-
-    Solution MultiDomain::steadyStateDirect()
+    Solution MultiDomain::steadyState()
     {
         if(m_SimulateMoisture && !m_MoistureDomain.hasBoundaryExchange())
         {
@@ -433,7 +351,7 @@ namespace HygroThermFEM
         for(std::size_t pass = 0u; pass < maxPasses && !polished; ++pass)
         {
             passesTaken = pass + 1u;
-            const auto next = directPass(fields);
+            const auto next = steadyPass(fields);
             const auto change = passChange(fields, next);
             errors = withResiduals(change, tolerance);
             fields = next;
@@ -448,19 +366,25 @@ namespace HygroThermFEM
         return steadySolution(fields, errors, converged, passesTaken);
     }
 
-    MultiDomain::SteadyFields MultiDomain::directPass(const SteadyFields & fields)
+    MultiDomain::SteadyFields MultiDomain::steadyPass(const SteadyFields & fields)
     {
-        // Thermal first: the temperature field barely depends on the humidity, while the
-        // humidity field depends on the temperatures through the saturation pressure, so the
-        // moisture solve is better off seeing the temperatures of this pass than of the last.
+        // Moisture first. The temperatures enter the moisture equation smoothly, through the
+        // saturation pressure, so a moisture solve at any reasonable temperatures returns a
+        // humidity field that satisfies its own boundaries. The thermal equation reads the
+        // humidity GRADIENT, through the heat the liquid flux carries and through the latent
+        // terms, and the start humidities satisfy nothing. Solved first, at those humidities,
+        // the thermal field ran to the clamps (2026-11-03, two-element strip with liquid
+        // transport, a start of phi 1 / 0.5 / 0 against faces at 0 and 0.8: 1000 C and
+        // -273 C mid-strip, then a two-pass cycle); moisture first reaches the steady state
+        // in four passes.
         SteadyFields next{fields};
-        if(m_SimulateThermal)
-        {
-            next.temperature = m_ThermalDomain.steadyNewton(fields.temperature).solution;
-        }
         if(m_SimulateMoisture)
         {
             next.humidity = m_MoistureDomain.steadyNewton(fields.humidity).solution;
+        }
+        if(m_SimulateThermal)
+        {
+            next.temperature = m_ThermalDomain.steadyNewton(fields.temperature).solution;
         }
         return next;
     }
@@ -482,11 +406,11 @@ namespace HygroThermFEM
         // temperatures just solved, so the passes run until the fields and the cavities agree.
         return {.temperature =
                   m_SimulateThermal
-                    ? steadyPassError(change.temperature, m_ThermalDomain, tolerance, steadyStateStep)
+                    ? steadyPassError(change.temperature, m_ThermalDomain, tolerance)
                     : 0.0,
                 .humidity =
                   m_SimulateMoisture
-                    ? steadyPassError(change.humidity, m_MoistureDomain, tolerance, steadyStateStep)
+                    ? steadyPassError(change.humidity, m_MoistureDomain, tolerance)
                     : 0.0};
     }
 
@@ -527,25 +451,6 @@ namespace HygroThermFEM
         result.converged = converged;
         result.steadyPasses = passes;
         return result;
-    }
-
-    double MultiDomain::steadyPseudoStepCap()
-    {
-        // At the ceiling the storage terms are negligible and a pass is a pure steady Newton.
-        // The moisture domain stops well short of it: a pass far longer than its storage time
-        // scale leaves the storage terms below what double precision resolves against the
-        // fluxes, and a sealed domain's water then drifts by the rounding of every pass
-        // (2026-11-02, sealed strip: 1e-8 of its water per 1e12 s pass, 1e-12 at 1e4 time
-        // scales). The thermal domain carries no such conserved level and goes to the ceiling.
-        constexpr double pseudoStepCeiling{1.0e12};
-        constexpr double pseudoStepFloor{1.0e5};
-        constexpr double pseudoStepsPerStorageTime{1.0e4};
-        if(!m_SimulateMoisture)
-        {
-            return pseudoStepCeiling;
-        }
-        const double cap = pseudoStepsPerStorageTime * m_MoistureDomain.storageTimeScale();
-        return std::clamp(cap, pseudoStepFloor, pseudoStepCeiling);
     }
 
     Solution MultiDomain::currentStateSolution()

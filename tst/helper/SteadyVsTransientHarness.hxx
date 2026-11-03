@@ -84,8 +84,6 @@ namespace TestHelper::SteadyVsTransient
         //! needs a tighter tolerance than it currently earns.
         TransientSchedule schedule{.steps = 8760u, .stepSeconds = 10.0 * 3600.0};
         Tolerances tolerances{};
-        //! Which steady solve the case runs against the transient.
-        HygroThermFEM::SteadyMethod method{HygroThermFEM::SteadyMethod::march};
     };
 
     //! The engine takes these as EXCLUDE flags, so the inversion happens here, once. The
@@ -133,7 +131,7 @@ namespace TestHelper::SteadyVsTransient
     {
         HygroThermFEM::MultiDomain multiDomain;
         prepareWall(multiDomain, build, modellingCase);
-        const auto solution = multiDomain.steadyState(modellingCase.method);
+        const auto solution = multiDomain.steadyState();
         return {{perColumn(solution.temperature), perColumn(solution.humidity)},
                 solution.converged,
                 solution.steadyPasses};

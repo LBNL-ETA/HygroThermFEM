@@ -46,7 +46,7 @@ TEST(Topaz2DReport_SteadyConvection, LinearProfile)
     const HygroThermFEM::FixedBCHCCoefficients bcCoeff{tAir, hc};
     multiDomain.thermal().createBC_FixedHc(21, 22, bcCoeff);
 
-    const auto solution = multiDomain.steadyState(HygroThermFEM::SteadyMethod::march);
+    const auto solution = multiDomain.steadyState();
 
 
     // T(x) = Ts1 + h (Ta - Ts1) / (k + h L) * x = 1 - x / 2, exact for linear elements.

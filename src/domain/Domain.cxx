@@ -644,12 +644,12 @@ namespace HygroThermFEM
         return false;
     }
 
-    double IDomain::steadyStateResidual(const double pseudoTimeStep)
+    double IDomain::steadyStateResidual()
     {
         constexpr double minimumScale = 1e-12;
         constexpr std::size_t steadyBoundaryStep{0u};
         const auto solution = m_NodePool.properties(stateVariable());
-        const auto [matA, vecB] = transientSystem(solution, pseudoTimeStep, steadyBoundaryStep);
+        const auto [matA, vecB] = transientSystem(solution, steadyStateStep, steadyBoundaryStep);
         const double scale = (std::max)(norm(vecB), minimumScale);
         return freeDofResidualNorm(solution, matA, vecB) / scale;
     }
@@ -975,7 +975,7 @@ namespace HygroThermFEM
 
         // The residual-reduction convergence target (D3, moisture only).
         const double target =
-          useResidualConvergence() ? residualTarget(currentStateValues, matA, vecB, t_DTime) : 0.0;
+          useResidualConvergence() ? residualTarget(currentStateValues, matA, vecB) : 0.0;
 
         NRLoopState state{
           .solution = currentStateValues,
@@ -1020,47 +1020,12 @@ namespace HygroThermFEM
 
     double IDomain::residualTarget(const std::vector<double> & currentStateValues,
                                    const SquareMatrix & matA,
-                                   const std::vector<double> & vecB,
-                                   const double dTime)
+                                   const std::vector<double> & vecB)
     {
         // The reduction of the initial guess's residual over the free DOFs: relative to each
         // problem's own scale, with a floor for a guess that already (nearly) solves the system.
         const double initialFreeResidual = freeDofResidualNorm(currentStateValues, matA, vecB);
-        const double fluxScaleTarget =
-          residualReductionFactor * initialFreeResidual + residualAbsoluteFloor;
-        // The steady system has no storage vector to bound the target by.
-        if(!m_StorageResidualTolerance.has_value() || std::isinf(dTime))
-        {
-            return fluxScaleTarget;
-        }
-        // The storage vector of this step, M u_previous / dt: the summed residual over its sum is
-        // the step's relative change of the stored quantity in a sealed domain.
-        const auto storage =
-          currentStateValues * m_Elements.getLumpedMass(m_NodePool.maxIndex(), dTime);
-        return (std::min)(fluxScaleTarget, m_StorageResidualTolerance.value() * norm(storage));
-    }
-
-    double IDomain::storageTimeScale()
-    {
-        const auto maxNodeIndex = m_NodePool.maxIndex();
-        const auto capacity = m_Elements.getLumpedMass(maxNodeIndex, 1.0);
-        const auto conductance = m_Elements.conductanceMatrix(maxNodeIndex);
-        const std::size_t count = (std::min)(capacity.size(), conductance.size());
-        double scale = 0.0;
-        for(std::size_t idx = 0; idx < count; ++idx)
-        {
-            const double diagonal = conductance(idx, idx);
-            if(diagonal > 0.0)
-            {
-                scale = (std::max)(scale, capacity[idx] / diagonal);
-            }
-        }
-        return scale;
-    }
-
-    void IDomain::setStorageResidualTolerance(const std::optional<double> tolerance)
-    {
-        m_StorageResidualTolerance = tolerance;
+        return residualReductionFactor * initialFreeResidual + residualAbsoluteFloor;
     }
 
     void IDomain::setSolverSettings(const SolverSettings & settings)

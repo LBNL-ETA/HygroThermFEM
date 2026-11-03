@@ -39,7 +39,7 @@ TEST(ConvectionBC_2D_SteadyState, TestExample_1)
     multiDomain.createBC_FixedHc(1, 2, bcCoeff1);
     multiDomain.createBC_FixedHc(6, 5, bcCoeff2);
 
-    const auto solution = multiDomain.steadyState(HygroThermFEM::SteadyMethod::march);
+    const auto solution = multiDomain.steadyState();
     auto temperature = solution.temperature;
 
     std::vector<double> correctTemperature{

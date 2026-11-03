@@ -6,8 +6,8 @@
 #include "BeamBuilder.hxx"
 #include "TestMaterials.hxx"
 
-// The direct steady solve (MultiDomain::steadyState with SteadyMethod::direct) on the small
-// cases the march is pinned on, plus the cases it must refuse.
+// The steady solve (MultiDomain::steadyState) on a small case with a recorded field, plus the
+// cases it must refuse.
 namespace
 {
     //! The two-element conduction strip of ConvectionBC_2D_SteadyState, with the same films.
@@ -56,7 +56,7 @@ TEST(SteadyStateDirect, LinearConductionMatchesRecordedField)
     HygroThermFEM::MultiDomain multiDomain({.performThermal = true, .performMoisture = false});
     buildConductionStrip(multiDomain);
 
-    const auto solution = multiDomain.steadyState(HygroThermFEM::SteadyMethod::direct);
+    const auto solution = multiDomain.steadyState();
 
     EXPECT_TRUE(solution.converged);
     const std::vector<double> recorded{
@@ -68,7 +68,7 @@ TEST(SteadyStateDirect, LinearConductionMatchesRecordedField)
     }
 }
 
-//! A moisture domain with no boundary exchange has no direct steady solution: the equations
+//! A moisture domain with no boundary exchange has no steady solution of its own: the equations
 //! fix the humidity profile only up to the total water. The solve says so instead of
 //! factorising a singular system.
 TEST(SteadyStateDirect, SealedMoistureDomainIsRefused)
@@ -78,7 +78,7 @@ TEST(SteadyStateDirect, SealedMoistureDomainIsRefused)
     HygroThermFEM::MultiDomain multiDomain({.performThermal = false, .performMoisture = true});
     buildSandstoneStrip(multiDomain);
 
-    EXPECT_THROW(static_cast<void>(multiDomain.steadyState(HygroThermFEM::SteadyMethod::direct)),
+    EXPECT_THROW(static_cast<void>(multiDomain.steadyState()),
                  std::runtime_error);
 
     HygroThermFEM::SimulationProperties::Instance().resetCalculationParameters();
@@ -86,8 +86,8 @@ TEST(SteadyStateDirect, SealedMoistureDomainIsRefused)
 
 //! The same refusal when the thermal domain beside it is well posed: prescribed temperatures
 //! on both faces and no humidity anywhere. The thermal field has its answer, the moisture
-//! field has none, and the march still solves the pair from its start.
-TEST(SteadyStateDirect, SealedMoistureBesideThermalIsRefusedAndTheMarchIsNot)
+//! field has none.
+TEST(SteadyStateDirect, SealedMoistureBesideThermalIsRefused)
 {
     HygroThermFEM::SimulationProperties::Instance().setCalculationParameters(
       true, true, true, true, false);
@@ -98,11 +98,8 @@ TEST(SteadyStateDirect, SealedMoistureBesideThermalIsRefusedAndTheMarchIsNot)
 
     EXPECT_TRUE(multiDomain.thermal().hasBoundaryExchange());
     EXPECT_FALSE(multiDomain.moisture().hasBoundaryExchange());
-    EXPECT_THROW(static_cast<void>(multiDomain.steadyState(HygroThermFEM::SteadyMethod::direct)),
+    EXPECT_THROW(static_cast<void>(multiDomain.steadyState()),
                  std::runtime_error);
-
-    const auto march = multiDomain.steadyState(HygroThermFEM::SteadyMethod::march);
-    EXPECT_TRUE(march.converged);
 
     HygroThermFEM::SimulationProperties::Instance().resetCalculationParameters();
 }

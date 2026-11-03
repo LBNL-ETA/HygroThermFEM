@@ -6,8 +6,7 @@
 
 using namespace HygroThermFEM;
 
-// The steady pseudo-time march must stop only when the field satisfies the nonlinear steady
-// equations. The model is the two-bar radiating gap of EnclosureRadiation_2D_SteadyState: the
+// The steady solve must stop only when the field satisfies the nonlinear steady equations. The model is the two-bar radiating gap of EnclosureRadiation_2D_SteadyState: the
 // bars are coupled only by enclosure radiation, so every pass reassembles a temperature-dependent
 // system.
 namespace
@@ -56,11 +55,9 @@ TEST(SteadyStateConvergenceCheck, ConvergedFieldSatisfiesSteadyEquations)
     MultiDomain multiDomain({.performThermal = true, .performMoisture = false});
     buildTwoBarsRadiatingGap(multiDomain, 200);
 
-    const auto solution = multiDomain.steadyState(HygroThermFEM::SteadyMethod::march);
+    const auto solution = multiDomain.steadyState();
 
-    // The pseudo-time step of the march's steady regime.
-    constexpr double steadyPseudoStep = 1.0e12;
     EXPECT_TRUE(solution.converged);
     EXPECT_LE(solution.temperatureError, tolerance);
-    EXPECT_LE(multiDomain.thermal().steadyStateResidual(steadyPseudoStep), tolerance);
+    EXPECT_LE(multiDomain.thermal().steadyStateResidual(), tolerance);
 }

@@ -41,7 +41,7 @@ TEST(BoundaryHeatRates_SteadyState, ConvectionBothSides)
     // MultiDomain::steadyState (THERM's call path) pushes the solved temperatures into the node
     // pool; boundaryHeatRates reads the node properties, so the bare IDomain::steadyState (which
     // only returns the vector) is not enough here.
-    const auto solution = multiDomain.steadyState(HygroThermFEM::SteadyMethod::march).temperature;
+    const auto solution = multiDomain.steadyState().temperature;
 
     const auto heatRates =
       multiDomain.thermal().boundaryHeatRates(HygroThermFEM::Variable::temperature);

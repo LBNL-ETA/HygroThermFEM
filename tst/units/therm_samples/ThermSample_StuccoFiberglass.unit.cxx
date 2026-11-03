@@ -137,7 +137,7 @@ namespace
     {
         HygroThermFEM::MultiDomain multiDomain;
         build(multiDomain);
-        const auto solution = multiDomain.steadyState(HygroThermFEM::SteadyMethod::march);
+        const auto solution = multiDomain.steadyState();
         return {{solution.temperature, solution.humidity, solution.waterContent},
                 solution.converged,
                 solution.steadyPasses};

@@ -59,7 +59,7 @@ namespace
         multiDomain.createBC_FixedHc(1, 2, bcCoeff1);
         multiDomain.createBC_FixedHc(6, 5, bcCoeff2);
 
-        return multiDomain.steadyState(HygroThermFEM::SteadyMethod::march);
+        return multiDomain.steadyState();
     }
 
     void expectSameSolution(const HygroThermFEM::Solution & lhs,

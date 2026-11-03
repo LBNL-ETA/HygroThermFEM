@@ -81,7 +81,7 @@ TEST(SteadyState_2D_1, TestExample_1)
     multiDomain.createBC_FixedHc(1, 2, bcCoeff1);
     multiDomain.createBC_FixedHc(6, 5, bcCoeff2);
 
-    const auto solution = multiDomain.steadyState(HygroThermFEM::SteadyMethod::march);
+    const auto solution = multiDomain.steadyState();
     const auto temperature = solution.temperature;
     const auto humidity = solution.humidity;
 

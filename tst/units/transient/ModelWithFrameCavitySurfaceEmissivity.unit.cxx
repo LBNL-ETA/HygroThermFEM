@@ -153,7 +153,7 @@ namespace
         else
         {
             createColumnConvection(multiDomain, gridSize, 20.0);
-            temperatures = multiDomain.steadyState(HygroThermFEM::SteadyMethod::march).temperature;
+            temperatures = multiDomain.steadyState().temperature;
         }
 
         return {.conductivity = frameCavity.thermalConductivityMoistureAndTemperatureDependent().getCurve()[0].y,
