@@ -368,9 +368,14 @@ namespace HygroThermFEM
 
     std::vector<std::array<double, 2>> IElementLinear2D::stateGradientsAtGaussPoints() const
     {
+        return gradientsAtGaussPoints(m_Nodes.properties(m_FluxVariable));
+    }
+
+    std::vector<std::array<double, 2>>
+      IElementLinear2D::gradientsAtGaussPoints(const NodalValues & potential) const
+    {
         const auto numOfIntegrationPoints = IntegrationPoints2D::Instance().count2D();
-        const auto values = m_Nodes.properties(m_FluxVariable);
-        assert(values.size() == numOfQuadrilateralNodes);
+        assert(potential.size() == numOfQuadrilateralNodes);
 
         std::vector<std::array<double, 2>> gradients(numOfIntegrationPoints, {0.0, 0.0});
         for(size_t gpIdx = 0; gpIdx < numOfIntegrationPoints; ++gpIdx)
@@ -380,10 +385,10 @@ namespace HygroThermFEM
             assert(DPsiDx.size() == numOfIntegrationPoints);
             double DtDx{0};
             double DtDy{0};
-            for(size_t nodeIdx = 0; nodeIdx < values.size(); ++nodeIdx)
+            for(size_t nodeIdx = 0; nodeIdx < potential.size(); ++nodeIdx)
             {
-                DtDx += DPsiDx[nodeIdx] * values[nodeIdx];
-                DtDy += DPsiDy[nodeIdx] * values[nodeIdx];
+                DtDx += DPsiDx[nodeIdx] * potential[nodeIdx];
+                DtDy += DPsiDy[nodeIdx] * potential[nodeIdx];
             }
             gradients[gpIdx] = {DtDx, DtDy};
         }
@@ -392,11 +397,24 @@ namespace HygroThermFEM
 
     std::vector<NodeFlux> IElementLinear2D::flux() const
     {
-        const auto gradients = stateGradientsAtGaussPoints();
-        std::vector<NodeFlux> results;
-        for(const auto & cond : m_ConductanceFunctions)
+        // Every registered term adds to the one flux of the element: the vapour and the
+        // liquid flux of the moisture element are one water flux. Each term differentiates
+        // the potential it transports, the state scaled by its nodal factor when it has one.
+        const auto state = m_Nodes.properties(m_FluxVariable);
+        std::vector<NodeFlux> results(numOfQuadrilateralNodes, NodeFlux{0.0, 0.0});
+        for(const auto & term : m_ConductanceFunctions)
         {
-            const auto conductivityValues = cond->values(m_Nodes);
+            auto potential = state;
+            if(term.nodalFactor != nullptr)
+            {
+                const auto factors = term.nodalFactor->values(m_Nodes);
+                for(size_t nodeIdx = 0u; nodeIdx < numOfQuadrilateralNodes; ++nodeIdx)
+                {
+                    potential[nodeIdx] *= factors[nodeIdx];
+                }
+            }
+            const auto gradients = gradientsAtGaussPoints(potential);
+            const auto conductivityValues = term.coefficient->values(m_Nodes);
             assert(conductivityValues.size() == numOfQuadrilateralNodes);
 
             // Extrapolate flux from 2x2 Gauss points to corner nodes using the
@@ -414,14 +432,11 @@ namespace HygroThermFEM
 
             for(size_t nodeIdx = 0u; nodeIdx < numOfQuadrilateralNodes; ++nodeIdx)
             {
-                auto fluxX{0.0};
-                auto fluxY{0.0};
                 for(const auto coeff : extrapolationCoefficients[nodeIdx])
                 {
-                    fluxX -= conductivityValues[nodeIdx] * gradients[nodeIdx][0] * coeff;
-                    fluxY -= conductivityValues[nodeIdx] * gradients[nodeIdx][1] * coeff;
+                    results[nodeIdx].x -= conductivityValues[nodeIdx] * gradients[nodeIdx][0] * coeff;
+                    results[nodeIdx].y -= conductivityValues[nodeIdx] * gradients[nodeIdx][1] * coeff;
                 }
-                results.emplace_back(fluxX, fluxY);
             }
         }
         return results;
@@ -456,9 +471,9 @@ namespace HygroThermFEM
     {
         double total{0.0};
         std::size_t count{0};
-        for(const auto & cond : m_ConductanceFunctions)
+        for(const auto & term : m_ConductanceFunctions)
         {
-            for(const auto value : cond->values(m_Nodes))
+            for(const auto value : term.coefficient->values(m_Nodes))
             {
                 total += value;
                 ++count;
@@ -828,7 +843,6 @@ namespace HygroThermFEM
             // Non-const: the assembly templates store a copy through unique_ptr<IValue>,
             // which a const-deduced T cannot provide.
             VaporPermeability delta{vaporPermeabilityOf(m_Material)};
-            auto conductance = delta * SaturationFunction();
 
             // The vapour term grad.(delta grad(phi c_sat)) is assembled on its PRODUCT
             // potential: the stiffness matrix of delta with column j scaled by the nodal
@@ -843,8 +857,8 @@ namespace HygroThermFEM
             // tst/units/validation/SealedStrip_SteadyGradient.unit.cxx.
             DDu(delta, SaturationFunction());
 
-            // Function for flux calculations.
-            CondFlux(conductance);
+            // The reported flux differentiates the same product potential.
+            CondFlux(delta, SaturationFunction());
         }
 
         //////////////////////////////////////////////////////////////////////////////
@@ -859,6 +873,9 @@ namespace HygroThermFEM
               LiquidTransportationCurve(m_Material.liquidTransportationCurve(), m_Material)
               * sorptionDerivative;
             DDu(WaterLiquidTransport);
+            // The reported liquid flux is -D_l (dw/dphi) grad(phi), the term assembled above;
+            // reported as -D_l grad(phi) it was short by the sorption slope.
+            CondFlux(WaterLiquidTransport);
         }
 
         //////////////////////////////////////////////////////////////////////////////
@@ -873,14 +890,6 @@ namespace HygroThermFEM
             // SorptionSecantCapacity and doc/Moisture Governing Equations.md (D6).
             SorptionSecantCapacity secantCapacity(m_Material.sorptionCurve(), Variable::humidity);
             Cap(secantCapacity);
-        }
-
-        //////////////////////////////////////////////////////////////////////
-        /// Functions for flux calculations
-        //////////////////////////////////////////////////////////////////////
-        if(!physics.excludeWaterLiquidTransportation && m_Material.hasLiquidTransportationCurve())
-        {
-            CondFlux(LiquidTransportationCurve(m_Material.liquidTransportationCurve(), m_Material));
         }
     }
 

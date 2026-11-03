@@ -391,20 +391,37 @@ namespace HygroThermFEM
               std::make_unique<FactorType>(std::forward<U>(nodalFactor)));
         }
 
-        //! Template function that will create functions used in equivalent material conductivity
-        //! and therefore used in flux calculations.
+        //! Registers a transport term for the flux calculation, the single-coefficient DDu's
+        //! counterpart: the term contributes -coefficient * grad(u) to the element's flux, and
+        //! every registered term adds to the same flux.
         template<typename T>
-        void CondFlux(T & t,
-                  typename std::enable_if<std::is_base_of<IValue, T>::value, T>::type * = nullptr)
+        void CondFlux(T && coefficient)
         {
-            m_ConductanceFunctions.emplace_back(std::unique_ptr<T>(new T(t)));
+            using CoefficientType = typename std::decay<T>::type;
+            static_assert(std::is_base_of<IValue, CoefficientType>::value,
+                          "CondFlux coefficient must derive from IValue");
+            m_ConductanceFunctions.emplace_back(
+              std::make_unique<CoefficientType>(std::forward<T>(coefficient)), nullptr);
         }
 
-        template<typename T>
-        void CondFlux(T && t,
-                  typename std::enable_if<std::is_base_of<IValue, T>::value, T>::type * = nullptr)
+        //! The two-argument DDu's counterpart: the term contributes
+        //! -coefficient * grad(nodalFactor * u), the gradient of the transported potential.
+        //! The moisture element's vapour flux is -delta grad(c_sat phi); reported as
+        //! -delta c_sat grad(phi) it lacked the half the temperature gradient carries, which
+        //! dominates in a vapour-open layer and turned the flux at a warm face around
+        //! (2026-11-03, stucco/fiberglass beam: +2.4e-6 reported, -1.8e-6 kg/(s m2) in truth).
+        template<typename T, typename U>
+        void CondFlux(T && coefficient, U && nodalFactor)
         {
-            m_ConductanceFunctions.emplace_back(std::unique_ptr<T>(new T(t)));
+            using CoefficientType = typename std::decay<T>::type;
+            using FactorType = typename std::decay<U>::type;
+            static_assert(std::is_base_of<IValue, CoefficientType>::value,
+                          "CondFlux coefficient must derive from IValue");
+            static_assert(std::is_base_of<IValue, FactorType>::value,
+                          "CondFlux nodal factor must derive from IValue");
+            m_ConductanceFunctions.emplace_back(
+              std::make_unique<CoefficientType>(std::forward<T>(coefficient)),
+              std::make_unique<FactorType>(std::forward<U>(nodalFactor)));
         }
 
         //! \brief Supports multiplication of between matrix and vector in differential equations.
@@ -521,7 +538,9 @@ namespace HygroThermFEM
         };
 
         std::vector<NodalProductFunction> m_DDuFunctions;
-        std::vector<iValue> m_ConductanceFunctions;
+        //! The transport terms the flux is reported from, in the DDu's product form: the
+        //! coefficient multiplies the gradient of nodalFactor * u (of u alone without a factor).
+        std::vector<NodalProductFunction> m_ConductanceFunctions;
         std::vector<iValue> m_CapacitanceFunctions;
         //! Capacitance functions that are always lumped nodally (see CapNodal).
         std::vector<iValue> m_NodalCapacitanceFunctions;
@@ -538,6 +557,10 @@ namespace HygroThermFEM
         //! State-variable gradients (d/dx, d/dy) at each Gauss point. Shared building block of
         //! flux() and fluxAtGaussPoints().
         std::vector<std::array<double, 2>> stateGradientsAtGaussPoints() const;
+
+        //! The gradient of a nodal potential at each Gauss point, through the shape functions.
+        [[nodiscard]] std::vector<std::array<double, 2>>
+          gradientsAtGaussPoints(const NodalValues & potential) const;
 
         //! Exact nodal-lumped capacity diag(v_i * nodalCapacity_i), v_i = integral(psi_i).
         //! Used when m_LumpCapacityNodally is set (moisture). See m_LumpCapacityNodally.
