@@ -49,7 +49,7 @@ TEST(Topaz2DReport_GenerationSteady, ParabolicProfile)
     constexpr auto generation = 1.0;
     multiDomain.thermal().setVolumetricSource(generation);
 
-    const auto solution = multiDomain.steadyState();
+    const auto solution = multiDomain.steadyState(HygroThermFEM::SteadyMethod::march);
 
 
     for(std::size_t col = 0; col < 11; ++col)

@@ -65,7 +65,7 @@ TEST(Topaz2DReport_GenerationConductivity, MaterialType3)
         constexpr auto generation = 1.0;
         multiDomain.thermal().setVolumetricSource(generation);
 
-        const auto solution = multiDomain.steadyState();
+        const auto solution = multiDomain.steadyState(HygroThermFEM::SteadyMethod::march);
 
 
         // The report's published analytic column (p. 17), T(0) = sqrt(2) - 1.

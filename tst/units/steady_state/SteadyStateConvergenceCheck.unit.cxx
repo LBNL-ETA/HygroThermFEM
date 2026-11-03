@@ -56,7 +56,7 @@ TEST(SteadyStateConvergenceCheck, ConvergedFieldSatisfiesSteadyEquations)
     MultiDomain multiDomain({.performThermal = true, .performMoisture = false});
     buildTwoBarsRadiatingGap(multiDomain, 200);
 
-    const auto solution = multiDomain.steadyState();
+    const auto solution = multiDomain.steadyState(HygroThermFEM::SteadyMethod::march);
 
     // The pseudo-time step of the march's steady regime.
     constexpr double steadyPseudoStep = 1.0e12;

@@ -2,6 +2,7 @@
 
 #include <cmath>
 #include <cstddef>
+#include <string>
 #include <vector>
 #include <gtest/gtest.h>
 
@@ -77,23 +78,37 @@ namespace TestHelper::SteadyVsTransient
 
     struct ModellingCase
     {
-        const char * name{""};
+        std::string name;
         Options options{};
         //! Ten simulated years, the default march. Lengthening it is the lever when a case
         //! needs a tighter tolerance than it currently earns.
         TransientSchedule schedule{.steps = 8760u, .stepSeconds = 10.0 * 3600.0};
         Tolerances tolerances{};
+        //! Which steady solve the case runs against the transient.
+        HygroThermFEM::SteadyMethod method{HygroThermFEM::SteadyMethod::march};
     };
 
-    //! The engine takes these as EXCLUDE flags, so the inversion happens here, once.
-    inline void applyOptions(const Options & options)
+    //! The engine takes these as EXCLUDE flags, so the inversion happens here, once. The
+    //! options go to the domain before its geometry is built, since the elements register
+    //! their equation terms at creation; nothing is read from the process-global singleton.
+    inline HygroThermFEM::PhysicsOptions physicsOptions(const Options & options)
     {
-        HygroThermFEM::SimulationProperties::Instance().setCalculationParameters(
-          !options.liquidTransport,
-          !options.heatOfEvaporation,
-          !options.capillaryConduction,
-          !options.vaporDiffusionConduction,
-          false);
+        return {.excludeWaterLiquidTransportation = !options.liquidTransport,
+                .excludeHeatOfEvaporation = !options.heatOfEvaporation,
+                .excludeCapillaryConduction = !options.capillaryConduction,
+                .excludeVaporDiffusionConduction = !options.vaporDiffusionConduction};
+    }
+
+    //! The wall of a case: the case's physics into a fresh domain, then the test's builder.
+    //! The domain is the caller's, since its sub-domains reference its node pool and it must
+    //! not be moved.
+    template<typename BuildWall>
+    void prepareWall(HygroThermFEM::MultiDomain & multiDomain,
+                   const BuildWall & build,
+                   const ModellingCase & modellingCase)
+    {
+        multiDomain.setPhysicsOptions(physicsOptions(modellingCase.options));
+        build(multiDomain);
     }
 
     inline std::vector<double> perColumn(const std::vector<double> & nodal)
@@ -116,11 +131,9 @@ namespace TestHelper::SteadyVsTransient
     template<typename BuildWall>
     SteadyRun runSteady(const BuildWall & build, const ModellingCase & modellingCase)
     {
-        applyOptions(modellingCase.options);
         HygroThermFEM::MultiDomain multiDomain;
-        build(multiDomain);
-        const auto solution = multiDomain.steadyState();
-        HygroThermFEM::SimulationProperties::Instance().resetCalculationParameters();
+        prepareWall(multiDomain, build, modellingCase);
+        const auto solution = multiDomain.steadyState(modellingCase.method);
         return {{perColumn(solution.temperature), perColumn(solution.humidity)},
                 solution.converged,
                 solution.steadyPasses};
@@ -130,9 +143,8 @@ namespace TestHelper::SteadyVsTransient
     Fields runTransient(const BuildWall & build, const ModellingCase & modellingCase)
     {
         const auto & schedule = modellingCase.schedule;
-        applyOptions(modellingCase.options);
         HygroThermFEM::MultiDomain multiDomain;
-        build(multiDomain);
+        prepareWall(multiDomain, build, modellingCase);
         auto temperatures = multiDomain.nodes().properties(HygroThermFEM::Variable::temperature);
         auto humidities = multiDomain.nodes().properties(HygroThermFEM::Variable::humidity);
         for(std::size_t step = 0u; step < schedule.steps; ++step)
@@ -142,7 +154,6 @@ namespace TestHelper::SteadyVsTransient
             temperatures = solution.temperature;
             humidities = solution.humidity;
         }
-        HygroThermFEM::SimulationProperties::Instance().resetCalculationParameters();
         return {perColumn(temperatures), perColumn(humidities)};
     }
 
@@ -175,8 +186,8 @@ namespace TestHelper::SteadyVsTransient
     inline void expectDriftWithin(const std::vector<double> & steady,
                                   const std::vector<double> & transient,
                                   const double tolerance,
-                                  const char * caseName,
-                                  const char * quantity,
+                                  const std::string & caseName,
+                                  const std::string & quantity,
                                   const TransientSchedule & schedule)
     {
         ASSERT_EQ(steady.size(), transient.size()) << caseName << ", " << quantity;

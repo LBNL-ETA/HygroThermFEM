@@ -231,7 +231,7 @@ TEST(SealedStrip_SteadyGradient, TheSteadyMarchConservesTheWater)
         const double waterAtStart =
           totalWater(multiDomain.nodes().properties(HygroThermFEM::Variable::humidity), nColumns);
 
-        const auto steady = multiDomain.steadyState();
+        const auto steady = multiDomain.steadyState(HygroThermFEM::SteadyMethod::march);
 
         EXPECT_TRUE(steady.converged) << nElements << " elements";
         const double waterChange = (totalWater(steady.humidity, nColumns) - waterAtStart) / waterAtStart;

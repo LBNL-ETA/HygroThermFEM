@@ -54,7 +54,7 @@ TEST(Topaz2DReport_SteadyRadiation, LinearProfileFromRadiativeBalance)
     constexpr auto tRadiation = 100.0;
     multiDomain.thermal().createBC_BlackBodyRadiation(21, 22, emissivity, tRadiation);
 
-    const auto solution = multiDomain.steadyState();
+    const auto solution = multiDomain.steadyState(HygroThermFEM::SteadyMethod::march);
 
 
     constexpr double slope = 84.707885049305;

@@ -53,7 +53,7 @@ TEST(LayeredWall_SeriesResistance, TwoLayerSteadyConduction)
         multiDomain.thermal().createBC_FixedTemperature(index1, index2, tRight);
     }
 
-    const auto solution = multiDomain.steadyState();
+    const auto solution = multiDomain.steadyState(HygroThermFEM::SteadyMethod::march);
 
 
     // Series resistance: R1 = 0.06 / 1.8, R2 = 0.04 / 0.85.

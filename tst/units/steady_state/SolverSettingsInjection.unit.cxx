@@ -54,7 +54,7 @@ TEST(SolverSettingsInjection, SteadyStateWithInjectedDefaults)
     multiDomain.createBC_FixedHc(1, 2, bcCoeff1);
     multiDomain.createBC_FixedHc(6, 5, bcCoeff2);
 
-    const auto solution = multiDomain.steadyState();
+    const auto solution = multiDomain.steadyState(HygroThermFEM::SteadyMethod::march);
 
     const std::vector<double> correctTemperature{2.13589875986e-19, 2.13589875986e-19, 10.6810280535, 10.6810280535, 20, 20};
     TestHelper::dumpGolden("correctTemperature", solution.temperature);

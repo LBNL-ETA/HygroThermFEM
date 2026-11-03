@@ -34,7 +34,7 @@ TEST(SteadyStateIceContent, ColdFaceReportsIce)
     builder.applyBC_FixedHc(TestHelper::BeamBuilder::Edge::Left, coldSurface);
     builder.applyBC_FixedHc(TestHelper::BeamBuilder::Edge::Right, warmSurface);
 
-    const auto solution = multiDomain.steadyState();
+    const auto solution = multiDomain.steadyState(HygroThermFEM::SteadyMethod::march);
     ASSERT_TRUE(solution.converged);
     ASSERT_EQ(solution.iceContent.size(), solution.temperature.size());
 

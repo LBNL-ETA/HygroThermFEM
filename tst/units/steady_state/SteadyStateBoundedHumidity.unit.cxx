@@ -55,7 +55,7 @@ TEST(SteadyStateBoundedHumidity, CondensationZonePinsAtSaturation)
     multiDomain.createBC_FixedHc(1, 2, coldFace);
     multiDomain.createBC_FixedHc(6, 5, warmFace);
 
-    const auto solution = multiDomain.steadyState();
+    const auto solution = multiDomain.steadyState(HygroThermFEM::SteadyMethod::march);
     const auto & humidity = solution.humidity;
 
     TestHelper::dumpGolden("boundedHumidity", humidity);

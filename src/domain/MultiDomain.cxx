@@ -65,6 +65,16 @@ namespace HygroThermFEM
             }
             return (std::max)(change, domain.steadyStateResidual(pseudoTimeStep));
         }
+
+        //! True while a pass of the direct solve still shrinks the change geometrically, which
+        //! is the coupling iteration making progress worth one more pass. A change below the
+        //! floor, or one that fell by less than half, has reached the inner solvers' noise.
+        bool stillContracting(const double change, const double previousChange)
+        {
+            constexpr double changeFloor{1e-13};
+            constexpr double contractionRequired{0.5};
+            return change > changeFloor && change <= contractionRequired * previousChange;
+        }
     }   // namespace
 
     MultiDomain::MultiDomain() : MultiDomain(MultiDomainParams{})
@@ -320,7 +330,12 @@ namespace HygroThermFEM
         return m_PhysicsOptions ? *m_PhysicsOptions : PhysicsOptions::fromGlobals();
     }
 
-    Solution MultiDomain::steadyState()
+    Solution MultiDomain::steadyState(const SteadyMethod method)
+    {
+        return method == SteadyMethod::direct ? steadyStateDirect() : steadyStateMarch();
+    }
+
+    Solution MultiDomain::steadyStateMarch()
     {
         // The steady state is the fixed point of the transient step, so it is found by
         // marching the transient with a pseudo-time step that grows geometrically: the early
@@ -388,12 +403,104 @@ namespace HygroThermFEM
         }
         m_MoistureDomain.setStorageResidualTolerance(std::nullopt);
 
-        m_Nodes.updateNodeHumidities(humidity, true);
-        m_Nodes.updateNodeTemperatures(temperature, true);
+        return steadySolution({.temperature = temperature, .humidity = humidity},
+                              {.temperature = temperatureError, .humidity = humidityError},
+                              converged,
+                              passesTaken);
+    }
+
+    Solution MultiDomain::steadyStateDirect()
+    {
+        if(m_SimulateMoisture && !m_MoistureDomain.hasBoundaryExchange())
+        {
+            throw std::runtime_error(
+              "The moisture domain exchanges no moisture with its surroundings, so its steady "
+              "humidity is determined only up to the total water and has no direct solution.");
+        }
+        const auto settings = solverSettings();
+        const auto tolerance = settings.errorTolerance;
+        const std::size_t maxPasses{
+          (std::max)(settings.maxNumberOfIterations, static_cast<std::size_t>(200))};
+
+        SteadyFields fields{.temperature = m_Nodes.properties(Variable::temperature),
+                            .humidity = m_Nodes.properties(Variable::humidity)};
+        SteadyErrors errors{.temperature = std::numeric_limits<double>::max(),
+                            .humidity = std::numeric_limits<double>::max()};
+        double previousChange{std::numeric_limits<double>::max()};
+        bool converged{false};
+        bool polished{false};
+        std::size_t passesTaken{0u};
+        for(std::size_t pass = 0u; pass < maxPasses && !polished; ++pass)
+        {
+            passesTaken = pass + 1u;
+            const auto next = directPass(fields);
+            const auto change = passChange(fields, next);
+            errors = withResiduals(change, tolerance);
+            fields = next;
+            converged = converged || (errors.temperature <= tolerance && errors.humidity <= tolerance);
+            // The passes are a fixed-point iteration between the two domains, and the
+            // tolerance is met while that iteration is still contracting: a pass costs
+            // milliseconds, so the loop keeps polishing until the change stops shrinking.
+            const double largestChange{(std::max)(change.temperature, change.humidity)};
+            polished = converged && !stillContracting(largestChange, previousChange);
+            previousChange = largestChange;
+        }
+        return steadySolution(fields, errors, converged, passesTaken);
+    }
+
+    MultiDomain::SteadyFields MultiDomain::directPass(const SteadyFields & fields)
+    {
+        // Thermal first: the temperature field barely depends on the humidity, while the
+        // humidity field depends on the temperatures through the saturation pressure, so the
+        // moisture solve is better off seeing the temperatures of this pass than of the last.
+        SteadyFields next{fields};
+        if(m_SimulateThermal)
+        {
+            next.temperature = m_ThermalDomain.steadyNewton(fields.temperature).solution;
+        }
+        if(m_SimulateMoisture)
+        {
+            next.humidity = m_MoistureDomain.steadyNewton(fields.humidity).solution;
+        }
+        return next;
+    }
+
+    MultiDomain::SteadyErrors MultiDomain::passChange(const SteadyFields & previous,
+                                                      const SteadyFields & current) const
+    {
+        return {.temperature = m_SimulateThermal
+                                 ? relativeChange(current.temperature, previous.temperature)
+                                 : 0.0,
+                .humidity =
+                  m_SimulateMoisture ? relativeChange(current.humidity, previous.humidity) : 0.0};
+    }
+
+    MultiDomain::SteadyErrors MultiDomain::withResiduals(const SteadyErrors & change,
+                                                         const double tolerance)
+    {
+        // Each Newton ends in postProcess(), which refreshes the frame cavities from the
+        // temperatures just solved, so the passes run until the fields and the cavities agree.
+        return {.temperature =
+                  m_SimulateThermal
+                    ? steadyPassError(change.temperature, m_ThermalDomain, tolerance, steadyStateStep)
+                    : 0.0,
+                .humidity =
+                  m_SimulateMoisture
+                    ? steadyPassError(change.humidity, m_MoistureDomain, tolerance, steadyStateStep)
+                    : 0.0};
+    }
+
+    Solution MultiDomain::steadySolution(const SteadyFields & fields,
+                                         const SteadyErrors & errors,
+                                         const bool converged,
+                                         const std::size_t passes)
+    {
+        m_Nodes.updateNodeHumidities(fields.humidity, true);
+        m_Nodes.updateNodeTemperatures(fields.temperature, true);
         // The latent-heat capacity has no meaning at steady state and stays out of the
         // equations, but the equilibrium liquid/ice split of the condensed water is a
         // function of the final temperature alone, so the reported contents follow it.
-        m_Nodes.updateNodeLiquidPercents(liquidPercentsFromTemperatures(temperature), true);
+        m_Nodes.updateNodeLiquidPercents(liquidPercentsFromTemperatures(fields.temperature), true);
 
         const auto waterContent = m_Nodes.properties(Variable::water);
         const auto liquidContent = m_Nodes.properties(Variable::liquid);
@@ -407,18 +514,18 @@ namespace HygroThermFEM
         const auto waterFlux = m_SimulateMoisture ? m_MoistureDomain.flux() : std::vector<NodeFlux>{};
 
         Solution result{0,
-                        temperature,
-                        humidity,
+                        fields.temperature,
+                        fields.humidity,
                         waterContent,
                         liquidContent,
                         vaporContent,
                         iceContent,
                         heatFlux,
                         waterFlux,
-                        temperatureError,
-                        humidityError};
+                        errors.temperature,
+                        errors.humidity};
         result.converged = converged;
-        result.steadyPasses = passesTaken;
+        result.steadyPasses = passes;
         return result;
     }
 

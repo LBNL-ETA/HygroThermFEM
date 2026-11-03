@@ -41,6 +41,22 @@ namespace HygroThermFEM
         double lastResidual;   //!< Residual norm of the last (failed) attempt
     };
 
+    //! \brief The timestep at which the transient system is the steady system.
+    //!
+    //! The storage terms of the transient equations scale with the capacity over the step, so
+    //! at an infinite step they vanish and what remains is conductance, boundary exchange and
+    //! sources: the steady equations. The Newton machinery assembles that system when it is
+    //! given this step (see IDomain::transientSystem), which is how the direct steady solve
+    //! reuses the transient's Newton, line search, Jacobian and active set unchanged.
+    inline constexpr double steadyStateStep{std::numeric_limits<double>::infinity()};
+
+    //! \brief Result of one steady Newton solve of a single domain (see IDomain::steadyNewton).
+    struct SteadyNewtonResult
+    {
+        std::vector<double> solution;   //!< The last iterate, converged or not
+        bool converged{false};          //!< False when the iteration budget ran out first
+    };
+
     //! \brief Interface that will keep all elements and boundary conditions together.
     //!
     //! One domain will solve single differential equation and therefore, single domain will
@@ -67,6 +83,24 @@ namespace HygroThermFEM
         //! on every call (matrices are reassembled), so nodes pinned under one coupled iterate
         //! are free again under the next.
         std::vector<double> steadyState();
+
+        //! \brief Newton solve of this domain's steady equations from the given start.
+        //!
+        //! The system is the transient one at steadyStateStep: no storage terms, the other
+        //! fields frozen at their node values. Bounded domains (moisture) keep their exact
+        //! Jacobian and active set, unbounded ones (thermal) their lagged-coefficient
+        //! correction. There is no timestep to subdivide, so an exhausted iteration budget
+        //! returns the last iterate with converged = false; the caller's coupling loop decides
+        //! what to do with it.
+        [[nodiscard]] SteadyNewtonResult steadyNewton(const std::vector<double> & start);
+
+        //! \brief True when at least one boundary condition couples the domain's state to the
+        //! surroundings through a transfer coefficient (a non-zero boundary H matrix).
+        //!
+        //! Without such a coupling the steady equations fix the field only up to an additive
+        //! constant (a sealed moisture domain: its humidity profile up to the total water), and
+        //! a direct steady solve of them is singular.
+        [[nodiscard]] bool hasBoundaryExchange();
 
         //! Relative residual of the steady equations the pseudo-time march solves, at the current
         //! node state: the transient system is assembled with the previous values equal to the

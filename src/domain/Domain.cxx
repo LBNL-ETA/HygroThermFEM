@@ -253,16 +253,22 @@ namespace HygroThermFEM
                                const size_t timestepIndex)
     {
         const auto maxNodeIndex = m_NodePool.maxIndex();
-        const auto MassVec = m_Elements.getLumpedMass(maxNodeIndex, t_DTime);
 
         auto M_K_H = m_Elements.conductanceMatrix(maxNodeIndex);
-        M_K_H.addToDiagonal(MassVec);
         M_K_H += m_BCs.HMatrix(maxNodeIndex, timestepIndex);
 
         auto vecR = m_BCs.RVector(maxNodeIndex, timestepIndex);
         vecR += m_Elements.RVector(maxNodeIndex);
         vecR += m_Elements.volumetricSourceVector(maxNodeIndex);
-        vecR += t_PreviousSolution * MassVec;
+
+        // At steadyStateStep the storage terms are absent, not merely small: the steady
+        // system carries no capacity at all, so none is assembled.
+        if(!std::isinf(t_DTime))
+        {
+            const auto MassVec = m_Elements.getLumpedMass(maxNodeIndex, t_DTime);
+            M_K_H.addToDiagonal(MassVec);
+            vecR += t_PreviousSolution * MassVec;
+        }
 
         return {std::move(M_K_H), std::move(vecR)};
     }
@@ -609,6 +615,33 @@ namespace HygroThermFEM
             return m_LinearSolver.solve(lhsMatrix, rhsVector);
         }
         return boundedSolve(m_LinearSolver, lhsMatrix, rhsVector, bounds.value());
+    }
+
+    SteadyNewtonResult IDomain::steadyNewton(const std::vector<double> & start)
+    {
+        // One Newton solve at the infinite step: the transient's iteration on the steady
+        // system. No subdivision and no shock retry, both of which need a timestep to split.
+        constexpr std::size_t steadyBoundaryStep{0u};
+        const auto result = transientTimestep(start, steadyStateStep, steadyBoundaryStep);
+        return {.solution = result.solution, .converged = result.converged};
+    }
+
+    bool IDomain::hasBoundaryExchange()
+    {
+        constexpr std::size_t steadyBoundaryStep{0u};
+        const auto exchange = m_BCs.HMatrix(m_NodePool.maxIndex(), steadyBoundaryStep);
+        const auto & sparse = exchange.getSparseMatrix();
+        for(int outer = 0; outer < sparse.outerSize(); ++outer)
+        {
+            for(Eigen::SparseMatrix<double>::InnerIterator entry(sparse, outer); entry; ++entry)
+            {
+                if(entry.value() != 0.0)
+                {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     double IDomain::steadyStateResidual(const double pseudoTimeStep)
@@ -995,7 +1028,8 @@ namespace HygroThermFEM
         const double initialFreeResidual = freeDofResidualNorm(currentStateValues, matA, vecB);
         const double fluxScaleTarget =
           residualReductionFactor * initialFreeResidual + residualAbsoluteFloor;
-        if(!m_StorageResidualTolerance.has_value())
+        // The steady system has no storage vector to bound the target by.
+        if(!m_StorageResidualTolerance.has_value() || std::isinf(dTime))
         {
             return fluxScaleTarget;
         }

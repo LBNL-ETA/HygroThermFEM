@@ -46,7 +46,7 @@ TEST(EnclosureRadiation_2D_SteadyState, TwoBarsRadiatingGap)
        {.node1 = 8, .node2 = 5, .emissivity = 0.9, .enclosureId = 0}},
       {{0u, 30.0}});
 
-    const auto solution = multiDomain.steadyState();
+    const auto solution = multiDomain.steadyState(HygroThermFEM::SteadyMethod::march);
     const auto & temperature = solution.temperature;
 
     ASSERT_EQ(8u, temperature.size());
@@ -122,7 +122,7 @@ TEST(EnclosureRadiation_2D_SteadyState, ClosedFrameCavity)
        {.node1 = 5, .node2 = 6, .emissivity = 0.9, .enclosureId = 0},     // top wall
        {.node1 = 16, .node2 = 13, .emissivity = 0.9, .enclosureId = 0}}); // right wall
 
-    const auto solution = multiDomain.steadyState();
+    const auto solution = multiDomain.steadyState(HygroThermFEM::SteadyMethod::march);
     const auto & temperature = solution.temperature;
 
     ASSERT_EQ(16u, temperature.size());

@@ -68,6 +68,20 @@ namespace HygroThermFEM
         std::size_t steadyPasses{0};
     };
 
+    //! \brief How MultiDomain::steadyState finds the steady state.
+    enum class SteadyMethod
+    {
+        //! The steady equations solved as such: no time variable, no storage terms. One
+        //! steady Newton per domain per pass, thermal first, repeated until the fields and
+        //! the steady residuals settle. Fast and exact, but a sealed moisture domain has no
+        //! direct solution and is refused.
+        direct,
+        //! Transient passes under the steady boundary conditions with a pseudo-time step that
+        //! grows geometrically: the storage terms damp the early passes and vanish from the
+        //! late ones. Slower, and it fixes a sealed domain's water through the start.
+        march
+    };
+
     //! Per-field results (values + errors) accumulated over multiple timesteps.
     struct FieldResults
     {
@@ -101,10 +115,16 @@ namespace HygroThermFEM
                            double t_DTime,
                            size_t timestepIndex = 0);
 
-        //! Calculates steady state solution for multiple domains.
-        Solution steadyState();
+        //! \brief The steady state of the coupled domains, by the given method.
+        //!
+        //! Both methods solve the same equations and land on the same field; they differ in
+        //! how they get there and in what they can solve (see SteadyMethod). The fields start
+        //! from the current node values. A moisture domain with no exchange at any boundary
+        //! has no direct solution (its water is undetermined) and the direct method refuses
+        //! it with a runtime_error; the march handles that case.
+        Solution steadyState(SteadyMethod method);
 
-        //! Longest pseudo-step the steady march may take, see steadyState().
+        //! Longest pseudo-step the steady march may take, see steadyStateMarch().
         [[nodiscard]] double steadyPseudoStepCap();
 
         //! Snapshot of the current node state as a zero-duration Solution. Called before the
@@ -466,6 +486,54 @@ namespace HygroThermFEM
         [[nodiscard]] MaterialsErrorCheckVector checkMaterialsForSteadyStateSimulation() const;
 
         static double normError(const std::vector<double> & vec1, const std::vector<double> & vec2);
+
+        //! The two fields a steady pass carries between the domains.
+        struct SteadyFields
+        {
+            std::vector<double> temperature;
+            std::vector<double> humidity;
+        };
+
+        //! Per-field errors of a steady pass: the change since the previous pass, or the steady
+        //! residual once the change is within tolerance (see steadyPassError).
+        struct SteadyErrors
+        {
+            double temperature{0.0};
+            double humidity{0.0};
+        };
+
+        //! The steady state by the pseudo-time march, see SteadyMethod::march.
+        [[nodiscard]] Solution steadyStateMarch();
+
+        //! \brief The steady state solved directly, see SteadyMethod::direct.
+        //!
+        //! Each pass is one steady Newton solve per domain (IDomain::steadyNewton), thermal
+        //! first and then moisture with the temperatures just solved. The solve is converged
+        //! once neither field changes by more than the tolerance between passes and both
+        //! steady residuals are below it; the passes then continue while each still halves
+        //! the change, so the reported field sits at the solvers' floor rather than at the
+        //! tolerance.
+        [[nodiscard]] Solution steadyStateDirect();
+
+        //! One pass of the direct solve: a steady Newton per simulated domain, thermal first.
+        //! Each Newton leaves its domain's nodes at the returned field, so the moisture solve
+        //! that follows sees the temperatures just solved.
+        [[nodiscard]] SteadyFields directPass(const SteadyFields & fields);
+
+        //! Relative change of each simulated field over a pass; zero for a field not simulated.
+        [[nodiscard]] SteadyErrors passChange(const SteadyFields & previous,
+                                              const SteadyFields & current) const;
+
+        //! The pass errors: each field's change, or its steady residual at the nodes' current
+        //! state once the change is within tolerance (see steadyPassError).
+        [[nodiscard]] SteadyErrors withResiduals(const SteadyErrors & change, double tolerance);
+
+        //! Writes the final fields of a steady solve to the nodes and packs the Solution:
+        //! the equilibrium liquid/ice split, the contents and the fluxes at that state.
+        [[nodiscard]] Solution steadySolution(const SteadyFields & fields,
+                                              const SteadyErrors & errors,
+                                              bool converged,
+                                              std::size_t passes);
 
         //! Returns the injected solver settings, or a snapshot of the global singletons when none
         //! has been injected (preserving the historical live-read behaviour).
