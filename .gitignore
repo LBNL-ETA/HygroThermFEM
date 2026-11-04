@@ -27,3 +27,4 @@ Thumbs.db
 *.gcov
 *.profraw
 *.profdata
+doc/HygroThermFEM.md

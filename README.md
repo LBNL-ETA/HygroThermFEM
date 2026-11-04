@@ -29,6 +29,8 @@ Visual Studio) that inherit the same `local` behaviour.
 
 ### Dependencies
 
+[Dependency Chart](doc/DependencyChart.md)
+
 Fetched via `FetchContent`, pinned in `CMakeLists.txt`:
 
 | Dependency | Pin | Purpose |
