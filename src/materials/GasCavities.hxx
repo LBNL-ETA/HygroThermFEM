@@ -308,8 +308,12 @@ namespace HygroThermFEM
         //! cavity is processed at the time.
         //!
         //! \param allEdges Set of unordered lines that form frame cavity
+        //! \param cavityName Name the failure reports the cavity by
         //! \return Sorted vector of nodes that form frame cavity boundary
-        static std::vector<size_t> edgeNodesOrdered(std::set<line> & allEdges);
+        //! \throws std::runtime_error when the lines are not one closed outline: the mesh of the
+        //! cavity is in several pieces, or some of its elements overlap.
+        static std::vector<size_t> edgeNodesOrdered(std::set<line> allEdges,
+                                                    const std::string & cavityName);
 
         Nodes & m_NodePool;
         Materials & m_MaterialPool;

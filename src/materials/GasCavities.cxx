@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <cmath>
+#include <stdexcept>
 #include <utility>
 
 #include <KeffCavity.hxx>
@@ -472,9 +473,9 @@ namespace HygroThermFEM
                     elementNodes.push_back(element->nodeIndexes());
                 }
             }
-            auto edges = getEdges(elementNodes);
             auto & gas = m_MaterialPool.gas(frameCavity);
-            m_Cavities.emplace_back(m_NodePool, edgeNodesOrdered(edges), gas, m_SurfaceEmissivities);
+            m_Cavities.emplace_back(
+              m_NodePool, edgeNodesOrdered(getEdges(elementNodes), frameCavity), gas, m_SurfaceEmissivities);
         }
     }
 
@@ -515,8 +516,19 @@ namespace HygroThermFEM
         return allEdges;
     }
 
-    std::vector<size_t> EquivalentGasCavities::edgeNodesOrdered(std::set<line> & allEdges)
+    std::vector<size_t> EquivalentGasCavities::edgeNodesOrdered(std::set<line> allEdges,
+                                                                const std::string & cavityName)
     {
+        const auto notOneOutline = [&cavityName] {
+            return std::runtime_error("Frame cavity \"" + cavityName
+                                      + "\" does not form one closed outline in the mesh");
+        };
+
+        if(allEdges.empty())
+        {
+            throw notOneOutline();
+        }
+
         std::vector<size_t> boundaryLine;
 
         line first = *allEdges.begin();
@@ -525,9 +537,14 @@ namespace HygroThermFEM
 
         while(!allEdges.empty())
         {
-            auto second = std::find_if(allEdges.begin(), allEdges.end(), [&first](const line & l) {
-                return first.getN2() == l.getN1();
-            });
+            const auto second =
+              std::find_if(allEdges.begin(), allEdges.end(), [&first](const line & candidate) {
+                  return first.getN2() == candidate.getN1();
+              });
+            if(second == allEdges.end())
+            {
+                throw notOneOutline();
+            }
             first = *second;
             boundaryLine.push_back(first.getN1());
             allEdges.erase(first);
