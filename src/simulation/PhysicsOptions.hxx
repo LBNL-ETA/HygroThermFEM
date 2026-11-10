@@ -25,8 +25,9 @@ namespace HygroThermFEM
         bool excludeVaporDiffusionConduction{false};
         //! Includes moisture and temperature dependency of thermal conductivity.
         bool thermalConductivityMoistureAndTemperatureDependent{false};
-        //! Excludes the latent-heat-of-fusion (freezing) capacity from the heat equation.
-        //! Excluded by default, matching the engine's historical behaviour.
+        //! Excludes freezing: the latent-heat-of-fusion capacity stays out of the heat
+        //! equation and all condensed water is reported as liquid, in a transient and in a
+        //! steady solve alike. Excluded by default, matching the engine's historical behaviour.
         bool excludeLatentHeatOfFusion{true};
 
         //! \brief Builds the options from the process-global singleton (the historical source).

@@ -424,7 +424,12 @@ namespace HygroThermFEM
         // The latent-heat capacity has no meaning at steady state and stays out of the
         // equations, but the equilibrium liquid/ice split of the condensed water is a
         // function of the final temperature alone, so the reported contents follow it.
-        m_Nodes.updateNodeLiquidPercents(liquidPercentsFromTemperatures(fields.temperature), true);
+        // Only when freezing is modelled, as in a transient run: with the latent heat of
+        // fusion excluded all condensed water is reported as liquid in both modes.
+        if(!physicsOptions().excludeLatentHeatOfFusion)
+        {
+            m_Nodes.updateNodeLiquidPercents(liquidPercentsFromTemperatures(fields.temperature), true);
+        }
 
         const auto waterContent = m_Nodes.properties(Variable::water);
         const auto liquidContent = m_Nodes.properties(Variable::liquid);
