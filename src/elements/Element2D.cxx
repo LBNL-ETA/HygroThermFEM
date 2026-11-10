@@ -689,8 +689,13 @@ namespace HygroThermFEM
         // element reads it at every assembly instead of copying a table at construction,
         // which would freeze the gas default into the matrix for the whole solve.
         const bool liveConductivity{m_Material.isGas()};
-        if(!liveConductivity && physics.thermalConductivityMoistureAndTemperatureDependent
-           && m_Material.hasThermalConductivityMoistureAndTemperatureDependent())
+        // The option asks for the tables where a material carries them. A material without
+        // them (a metal, a glazing layer) has nothing that depends on moisture or
+        // temperature and conducts at its dry value; leaving it with no conduction term at
+        // all made the system matrix singular.
+        const bool conductivityFromTables{!liveConductivity && physics.thermalConductivityMoistureAndTemperatureDependent
+                                          && m_Material.hasThermalConductivityMoistureAndTemperatureDependent()};
+        if(conductivityFromTables)
         {
             auto materialConductivity =
               m_Material.thermalConductivityMoistureAndTemperatureDependent();
@@ -708,9 +713,7 @@ namespace HygroThermFEM
             // Same remedy the moisture element applies to its vapour coefficient.
             m_InterpolateCoefficientsAtGaussPoints = true;
         }
-        if(liveConductivity
-           || (!physics.thermalConductivityMoistureAndTemperatureDependent
-               && m_Material.hasThermalConductivityDry()))
+        if(liveConductivity || (!conductivityFromTables && m_Material.hasThermalConductivityDry()))
         {
             DDu(MaterialDryConductivity{m_Material});
 

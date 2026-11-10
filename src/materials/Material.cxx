@@ -213,6 +213,14 @@ namespace HygroThermFEM
         // it against; the element reads it through the material's own isotherm (see
         // thermalConductivityMoistureAndTemperatureDependent). It was keyed by relative
         // humidity for a while, which silently read every library table at 0 to 1 kg/m3.
+        // A material given no tables has none: an empty table is not a table, and one
+        // kept as such made the material look moisture and temperature dependent and
+        // evaluate to no conductivity at all.
+        if(thermalConductivityMoistureDependent.empty() || thermalConductivityTemperatureDependent.empty())
+        {
+            m_ThermalConductivity2DTable.reset();
+            return;
+        }
         m_ThermalConductivity2DTable.emplace(thermalConductivityMoistureDependent,
                                              moistureDependentMeasuredTemperature,
                                              Variable::water,

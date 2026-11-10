@@ -54,12 +54,13 @@ namespace HygroThermFEM
         missing.SpecificHeatCapacityDry = isTransientSimulation && !material.hasHeatCapacity()
                                           && multiDomain.isThermalSimulationON();
 
-        // Thermal conductivity dry (single value) is required only in thermal simulation. Also, in
-        // case when thermal conductivity moisture and temperature dependent is used, then this is
-        // not required property.
-        missing.ThermalConductivityDry =
-          !material.hasThermalConductivityDry() && multiDomain.isThermalSimulationON()
-          && !physics.thermalConductivityMoistureAndTemperatureDependent;
+        // A thermal simulation needs a conductivity for every material: its moisture and
+        // temperature tables when the option asks for them and the material carries them,
+        // its dry value otherwise. So the dry value is missing only when neither is there.
+        const bool conductivityFromTables{physics.thermalConductivityMoistureAndTemperatureDependent
+                                          && material.hasThermalConductivityMoistureAndTemperatureDependent()};
+        missing.ThermalConductivityDry = !material.hasThermalConductivityDry()
+                                         && multiDomain.isThermalSimulationON() && !conductivityFromTables;
 
         // Water vapor diffusion is required in moisture always and in thermal only in case heat of
         // evaporation calculation is on. Either form satisfies it: a material may carry the
@@ -90,10 +91,9 @@ namespace HygroThermFEM
 
         // missing.LiquidTransportationRedistribution =
 
-        missing.ThermalConductivityMoistureAndTemperatureDependent =
-          !material.hasThermalConductivityMoistureAndTemperatureDependent()
-          && multiDomain.isThermalSimulationON()
-          && physics.thermalConductivityMoistureAndTemperatureDependent;
+        // The tables are never required on their own: a material without them falls back
+        // to its dry conductivity, and a material with neither is reported above.
+        missing.ThermalConductivityMoistureAndTemperatureDependent = false;
 
         return missing;
     }
