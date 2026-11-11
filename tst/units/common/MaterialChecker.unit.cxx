@@ -1,9 +1,87 @@
 #include <memory>
+#include <vector>
 #include <gtest/gtest.h>
 
 #include "HygroThermFEM2D.hxx"
 
 using HygroThermFEM::State;
+
+namespace
+{
+    //! Physics in which nothing but latent heat of fusion reads a material's water:
+    //! capillary conduction, heat of evaporation and vapour diffusion are all off.
+    HygroThermFEM::PhysicsOptions onlyFusionReadsWater(const bool modelFusion)
+    {
+        return {.excludeHeatOfEvaporation = true,
+                .excludeCapillaryConduction = true,
+                .excludeVaporDiffusionConduction = true,
+                .excludeLatentHeatOfFusion = !modelFusion};
+    }
+
+    const HygroThermFEM::MultiDomainParams heatOnly{.performThermal = true, .performMoisture = false};
+
+    const std::vector<HygroThermFEM::SimulationType> bothModes{HygroThermFEM::SimulationType::Transient,
+                                                              HygroThermFEM::SimulationType::SteadyState};
+}   // namespace
+
+TEST(MaterialCheckerFusion, FusionNeedsSorptionCurveAndPorosity)
+{
+    HygroThermFEM::MultiDomain multiDomain(heatOnly);
+    multiDomain.setPhysicsOptions(onlyFusionReadsWater(true));
+    multiDomain.materials().createSolidMaterial("No water data");
+
+    for(const auto mode : bothModes)
+    {
+        const auto check{multiDomain.checkForMaterialsValidity(mode)};
+        ASSERT_EQ(1u, check.size());
+        EXPECT_TRUE(check[0].MoistureStorageFunction);
+        EXPECT_TRUE(check[0].Porosity);
+    }
+}
+
+TEST(MaterialCheckerFusion, WithoutFusionNeitherIsNeeded)
+{
+    HygroThermFEM::MultiDomain multiDomain(heatOnly);
+    multiDomain.setPhysicsOptions(onlyFusionReadsWater(false));
+    multiDomain.materials().createSolidMaterial("No water data");
+
+    for(const auto mode : bothModes)
+    {
+        const auto check{multiDomain.checkForMaterialsValidity(mode)};
+        ASSERT_EQ(1u, check.size());
+        EXPECT_FALSE(check[0].MoistureStorageFunction);
+        EXPECT_FALSE(check[0].Porosity);
+    }
+}
+
+TEST(MaterialCheckerFusion, CurveWithoutPorosityIsReported)
+{
+    HygroThermFEM::MultiDomain multiDomain(heatOnly);
+    multiDomain.setPhysicsOptions(onlyFusionReadsWater(true));
+    auto & material{multiDomain.materials().createSolidMaterial("Curve only")};
+    material.setSorptionCurve({{0.0, 0.0}, {0.5, 10.0}, {1.0, 100.0}});
+
+    const auto check{multiDomain.checkForMaterialsValidity(HygroThermFEM::SimulationType::Transient)};
+    ASSERT_EQ(1u, check.size());
+    EXPECT_FALSE(check[0].MoistureStorageFunction);
+    EXPECT_TRUE(check[0].Porosity);
+}
+
+//! A material that holds no water says so with a zero curve and zero porosity, and that
+//! satisfies the check: the data is there, and it is zero.
+TEST(MaterialCheckerFusion, ZeroCurveAndZeroPorosityAreData)
+{
+    HygroThermFEM::MultiDomain multiDomain(heatOnly);
+    multiDomain.setPhysicsOptions(onlyFusionReadsWater(true));
+    auto & material{multiDomain.materials().createSolidMaterial("Aluminum")};
+    material.setSorptionCurve({{0.0, 0.0}, {1.0, 0.0}});
+    material.setPorosity(0.0);
+
+    const auto check{multiDomain.checkForMaterialsValidity(HygroThermFEM::SimulationType::Transient)};
+    ASSERT_EQ(1u, check.size());
+    EXPECT_FALSE(check[0].MoistureStorageFunction);
+    EXPECT_FALSE(check[0].Porosity);
+}
 
 class TestMaterialChecker : public testing::Test
 {

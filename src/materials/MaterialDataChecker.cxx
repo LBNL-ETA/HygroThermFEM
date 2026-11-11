@@ -47,8 +47,16 @@ namespace HygroThermFEM
         // Emissivity will be required always
         missing.Emissivity = !material.hasEmissivity() && multiDomain.isThermalSimulationON();
 
+        // Latent heat of fusion is carried by the water a material holds. The water comes from
+        // the sorption curve, and porosity splits the vapour off it; a material lacking either
+        // is left out of the node water content and would silently freeze nothing. A material
+        // that holds no water states so with a zero sorption curve and zero porosity: missing
+        // data is not zero.
+        const bool fusionNeedsWater{multiDomain.isThermalSimulationON() && !physics.excludeLatentHeatOfFusion};
+
         // Porosity is indirectly required when calculating liquid content
-        missing.Porosity = !material.hasPorosity() && multiDomain.isMoistureSimulationON();
+        missing.Porosity =
+          !material.hasPorosity() && (multiDomain.isMoistureSimulationON() || fusionNeedsWater);
 
         // Used only in case of transient thermal simulation
         missing.SpecificHeatCapacityDry = isTransientSimulation && !material.hasHeatCapacity()
@@ -73,11 +81,12 @@ namespace HygroThermFEM
 
         // Sorption curve: any moisture simulation needs it (the transient capacity term and
         // the water-content evaluation both read it, steady included), and a thermal
-        // simulation needs it when capillary conduction is on.
+        // simulation needs it when capillary conduction or latent heat of fusion is on.
         missing.MoistureStorageFunction =
           (!material.hasSorptionCurve() && multiDomain.isThermalSimulationON()
            && !physics.excludeCapillaryConduction)
-          || (!material.hasSorptionCurve() && multiDomain.isMoistureSimulationON());
+          || (!material.hasSorptionCurve() && multiDomain.isMoistureSimulationON())
+          || (!material.hasSorptionCurve() && fusionNeedsWater);
 
 
         // Two options in case of Liquid Transportation Curve
