@@ -185,7 +185,10 @@ TEST(TestModelWithFrameCavitySurfaceEmissivity, MaterialEmissivityOverrideEquals
     const auto withoutOverride{cavityConductivity(std::nullopt, Solve::Transient)};
     const auto withSameOverride{cavityConductivity(solidDefaultEmissivity, Solve::Transient)};
 
-    EXPECT_DOUBLE_EQ(withoutOverride, withSameOverride);
+    // The cavity conductivity repeats to about fifteen digits between runs, not bit for bit,
+    // so the two are compared within a tolerance far below any physical meaning.
+    constexpr double tolerance{1e-12};
+    EXPECT_NEAR(withoutOverride, withSameOverride, tolerance);
 }
 
 TEST(TestModelWithFrameCavitySurfaceEmissivity, ZeroEmissivityLowersConductivity)
