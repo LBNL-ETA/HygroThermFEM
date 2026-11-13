@@ -128,6 +128,12 @@ namespace HygroThermFEM
         return SquareMatrix{A_inv};
     }
 
+    SquareMatrix SquareMatrix::absolute() const
+    {
+        Eigen::SparseMatrix<double> result{m_Matrix.cwiseAbs()};
+        return SquareMatrix{std::move(result)};
+    }
+
     double SquareMatrix::operator()(const std::size_t i, const std::size_t j) const
     {
         return m_Matrix.coeff(i, j);

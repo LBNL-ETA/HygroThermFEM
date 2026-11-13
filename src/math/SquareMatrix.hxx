@@ -73,6 +73,9 @@ namespace HygroThermFEM
         //! Every row in matrix is multiplied with values in vector (element by element).
         SquareMatrix mmultRows(const std::vector<double> & tInput) const;
 
+        //! The matrix of the absolute values of the entries.
+        [[nodiscard]] SquareMatrix absolute() const;
+
         //! Returns eigen sparse matrix
         const Eigen::SparseMatrix<double> & getSparseMatrix() const;
 

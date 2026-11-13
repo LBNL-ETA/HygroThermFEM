@@ -57,6 +57,17 @@ namespace HygroThermFEM
         bool converged{false};          //!< False when the iteration budget ran out first
     };
 
+    //! \brief A connected region of a domain that exchanges nothing with the surroundings
+    //! (see IDomain::sealedRegions).
+    struct SealedRegion
+    {
+        std::vector<std::size_t> dofs;   //!< Zero-based degrees of freedom of the region
+        std::size_t anchor{0u};          //!< The row that carries the stored-amount condition:
+                                         //!< the degree of freedom with the largest capacity
+        double capacity{0.0};            //!< Sum of the lumped storage capacities of the region
+        double rowScale{0.0};            //!< Brings the storage row to the size of the flux rows
+    };
+
     //! \brief Interface that will keep all elements and boundary conditions together.
     //!
     //! One domain will solve single differential equation and therefore, single domain will
@@ -94,13 +105,37 @@ namespace HygroThermFEM
         //! what to do with it.
         [[nodiscard]] SteadyNewtonResult steadyNewton(const std::vector<double> & start);
 
-        //! \brief True when at least one boundary condition couples the domain's state to the
-        //! surroundings through a transfer coefficient (a non-zero boundary H matrix).
+        //! \brief The connected regions of the domain that exchange nothing with the
+        //! surroundings: no boundary condition couples any of their nodes through a transfer
+        //! coefficient (no non-zero entry of the boundary H matrix).
         //!
-        //! Without such a coupling the steady equations fix the field only up to an additive
-        //! constant (a sealed moisture domain: its humidity profile up to the total water), and
-        //! a direct steady solve of them is singular.
-        [[nodiscard]] bool hasBoundaryExchange();
+        //! The flux equations of such a region sum to zero identically, so one of them is
+        //! redundant and the steady field is fixed only up to the amount the region stores
+        //! (a sealed moisture region: its humidity profile up to its water). Read at the
+        //! nodes' current state.
+        [[nodiscard]] std::vector<SealedRegion> sealedRegions();
+
+        //! \brief Makes the steady system hold the amount each given region stores at the
+        //! start field.
+        //!
+        //! In the system at steadyStateStep the redundant flux row of every region (its
+        //! anchor) is replaced by the sum of the region's storage rows,
+        //! sum_j M_jj (u_j - start_j) = 0, with M the lumped capacity of the transient
+        //! system. With the secant capacity that sum is the stored amount at u minus the
+        //! stored amount at the start, the quantity a transient step conserves. The nodes'
+        //! previous-timestep values are set to the start field, which is what the secant
+        //! is taken against. Stays in force until releaseSealedRegions().
+        void holdSealedRegions(const std::vector<SealedRegion> & regions,
+                               const std::vector<double> & start);
+
+        //! Back to the plain steady system.
+        void releaseSealedRegions();
+
+        //! \brief Largest relative difference, over the held regions, between the amount
+        //! stored at the nodes' current state and at the start field; zero when no region
+        //! is held. A region whose anchor is pinned at a physical bound loses its
+        //! stored-amount row to the pin, and shows here.
+        [[nodiscard]] double sealedStorageDrift() const;
 
         //! Relative residual of the steady equations at the current node state: the system at
         //! steadyStateStep, which carries no storage terms, so ||R - (K + H) U|| over the free
@@ -308,6 +343,22 @@ namespace HygroThermFEM
                                         double t_DTime,
                                         size_t timestepIndex);
 
+        //! The steady system with the anchor row of every held region replaced by the
+        //! region's stored-amount row (see holdSealedRegions).
+        [[nodiscard]] TransientSystem withStoredAmountRows(const SquareMatrix & matrix,
+                                                           std::vector<double> rhs) const;
+
+        //! True when the system assembled at this step carries stored-amount rows.
+        [[nodiscard]] bool holdsSealedRegions(double dTime) const;
+
+        //! Regions held by the steady system, empty outside a steady solve of a sealed region.
+        std::vector<SealedRegion> m_SealedRegions;
+        //! The field whose stored amount the held regions keep.
+        std::vector<double> m_SealedStart;
+        //! Per degree of freedom, the anchor row of its held region; noAnchor outside one.
+        std::vector<std::size_t> m_AnchorOfDof;
+        static constexpr std::size_t noAnchor{(std::numeric_limits<std::size_t>::max)()};
+
         //! Returns if domain problem is linear.
         [[nodiscard]] bool isLinear() const;
 
@@ -370,13 +421,18 @@ namespace HygroThermFEM
                                                             size_t timestepIndex,
                                                             const std::pair<double, double> & bounds);
 
-        //! Rebuilds the column groups when the pattern (size or non-zero count) changed.
-        void ensureJacobianColumnGroups(const SquareMatrix & pattern);
+        //! Rebuilds the column groups when the pattern (size or non-zero count) or the held
+        //! state changed. Stored-amount rows are dense over their region and stay out of the
+        //! grouping, or every column of a region would need a reassembly of its own; their
+        //! Jacobian entries are separable by column and are taken from the row itself
+        //! (finiteDifferenceJacobian).
+        void ensureJacobianColumnGroups(const SquareMatrix & pattern, bool held);
 
         std::vector<std::vector<std::size_t>> m_JacobianColumnGroups;
         std::vector<std::vector<std::size_t>> m_JacobianRowsOfColumn;
         std::size_t m_JacobianPatternSize{0};
         std::size_t m_JacobianPatternNonZeros{0};
+        bool m_JacobianPatternHeld{false};
 
         //! L2 norm of the residual (vecB - matA * solution) over the free DOFs only
         //! (constrainedDofs excluded). Used by the residual-reduction convergence test and
@@ -384,6 +440,16 @@ namespace HygroThermFEM
         [[nodiscard]] double freeDofResidualNorm(const std::vector<double> & solution,
                                                  const SquareMatrix & matA,
                                                  const std::vector<double> & vecB) const;
+
+        //! True when the residual of every free row is within a few rounding units of the
+        //! terms it is computed from, |b_i| + sum_j |A_ij| |u_j|. Such a residual is the
+        //! arithmetic's own and no iteration lowers it: a solve that starts on its solution
+        //! (a transient step from a steady state) has nothing to reduce, least of all on a
+        //! prescribed-value row, whose penalty multiplies the last bit of the nodal value.
+        //! The test is per row because those rows are many orders larger than the others.
+        [[nodiscard]] bool freeResidualAtRoundOff(const std::vector<double> & solution,
+                                                  const SquareMatrix & matA,
+                                                  const std::vector<double> & vecB) const;
 
         //! \brief Calling timestep calculations
         TimestepResult transientTimestep(

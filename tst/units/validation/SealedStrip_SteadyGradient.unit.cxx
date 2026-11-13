@@ -1,6 +1,7 @@
 #include <array>
 #include <cmath>
 #include <cstddef>
+#include <string>
 #include <vector>
 
 #include <gtest/gtest.h>
@@ -96,9 +97,12 @@ namespace
         return exact;
     }
 
-    //! Builds the sealed beam, one element high, with the temperature field written
-    //! into the initial nodal state. Moisture-only means that field stays frozen.
-    void buildStrip(HygroThermFEM::MultiDomain & multiDomain, std::size_t nColumns)
+    //! The nodes of a strip, one element high, with the temperature field written into the
+    //! initial nodal state. Moisture-only means that field stays frozen. The node indices
+    //! start after firstIndex, so two strips fit in one model.
+    void createStripNodes(HygroThermFEM::MultiDomain & multiDomain,
+                          const std::size_t nColumns,
+                          const std::size_t firstIndex = 0u)
     {
         for(std::size_t col = 0; col < nColumns; ++col)
         {
@@ -106,25 +110,59 @@ namespace
                                               .humidity = phiInitial,
                                               .pressure = 101325.0,
                                               .liquidPercent = 1.0});
-            const std::size_t bottom = col * 2 + 1;
+            const std::size_t bottom = firstIndex + col * 2 + 1;
             multiDomain.nodes().createNode(
               {.index = bottom, .x = xOf(col, nColumns), .y = 0.0, .state = state});
             multiDomain.nodes().createNode(
               {.index = bottom + 1, .x = xOf(col, nColumns), .y = height, .state = state});
         }
+    }
 
-        const auto & material =
-          multiDomain.materials().createSolidMaterial(TestHelper::LinearSorption());
+    //! The elements of a strip over nodes already created. Every node of the model must
+    //! exist before the first element does.
+    void createStripElements(HygroThermFEM::MultiDomain & multiDomain,
+                             const std::size_t nColumns,
+                             const std::string & materialName,
+                             const std::size_t firstIndex = 0u)
+    {
         for(std::size_t col = 0; col + 1 < nColumns; ++col)
         {
-            const std::size_t left = col * 2 + 1;
-            const std::size_t right = (col + 1) * 2 + 1;
+            const std::size_t left = firstIndex + col * 2 + 1;
+            const std::size_t right = firstIndex + (col + 1) * 2 + 1;
             multiDomain.createElement({.node1 = left,
                                        .node2 = right,
                                        .node3 = right + 1,
                                        .node4 = left + 1,
-                                       .material = material.name()});
+                                       .material = materialName});
         }
+    }
+
+    //! The strip's material, w = phi, added to the model; returns its name.
+    std::string addStripMaterial(HygroThermFEM::MultiDomain & multiDomain)
+    {
+        return multiDomain.materials().createSolidMaterial(TestHelper::LinearSorption()).name();
+    }
+
+    //! Builds the sealed strip of the closed form: its material, nodes and elements.
+    void buildStrip(HygroThermFEM::MultiDomain & multiDomain, const std::size_t nColumns)
+    {
+        createStripNodes(multiDomain, nColumns);
+        createStripElements(multiDomain, nColumns, addStripMaterial(multiDomain));
+    }
+
+    //! Water of a strip profile over the water of the uniform start, minus one. The
+    //! isotherm is w = phi, so the water is the humidity summed over the nodal volumes.
+    double relativeWaterChange(const std::vector<double> & profile)
+    {
+        const auto volumes = lumpedVolumes(profile.size());
+        double water = 0.0;
+        double startWater = 0.0;
+        for(std::size_t col = 0; col < profile.size(); ++col)
+        {
+            water += volumes[col] * profile[col];
+            startWater += volumes[col] * phiInitial;
+        }
+        return water / startWater - 1.0;
     }
 
     //! Runs the sealed strip to steady state and returns the bottom node row.
@@ -187,4 +225,74 @@ TEST(SealedStrip_SteadyGradient, ZeroFluxClosedForm)
     {
         EXPECT_LT(deviations[idx], 1e-8) << meshSizes[idx] << " elements";
     }
+}
+
+//! The steady solve on the same strip. Nothing enters or leaves it, so its flux equations
+//! fix the profile only up to the water; the solve keeps the water of the start field, and
+//! with it lands on the closed form the transient run settles to.
+TEST(SealedStrip_SteadyGradient, TheSteadySolveKeepsTheStartWater)
+{
+    SCOPED_TRACE("Begin Test: sealed strip solved as a steady state.");
+
+    HygroThermFEM::SimulationProperties::Instance().setCalculationParameters(
+      true, false, false, false, false);
+
+    constexpr std::array<std::size_t, 4> meshSizes{10u, 20u, 40u, 80u};
+    for(const std::size_t nElements : meshSizes)
+    {
+        HygroThermFEM::MultiDomain multiDomain({.performThermal = false, .performMoisture = true});
+        buildStrip(multiDomain, nElements + 1);
+
+        const auto solution = multiDomain.steadyState();
+        const auto profile = TestHelper::bottomRow(solution.humidity, nElements + 1, 2);
+
+        EXPECT_TRUE(solution.converged) << nElements << " elements";
+        EXPECT_LT(maxDeviationFromClosedForm(profile), 1e-8) << nElements << " elements";
+        EXPECT_LT(std::abs(relativeWaterChange(profile)), 1e-12) << nElements << " elements";
+    }
+
+    HygroThermFEM::SimulationProperties::Instance().resetCalculationParameters();
+}
+
+//! Two strips in one model, not connected. One is sealed and keeps its water; the other
+//! has a film at each end and goes to the humidity of the air there. The condition that
+//! holds the water belongs to the sealed strip alone.
+TEST(SealedStrip_SteadyGradient, ASealedStripBesideAnExchangingOne)
+{
+    SCOPED_TRACE("Begin Test: sealed strip beside a strip with films.");
+
+    HygroThermFEM::SimulationProperties::Instance().setCalculationParameters(
+      true, false, false, false, false);
+
+    constexpr std::size_t nColumns{21u};
+    constexpr std::size_t secondStrip{2u * nColumns};
+    constexpr double airHumidity{0.8};
+    HygroThermFEM::MultiDomain multiDomain({.performThermal = false, .performMoisture = true});
+    const auto materialName = addStripMaterial(multiDomain);
+    createStripNodes(multiDomain, nColumns);
+    createStripNodes(multiDomain, nColumns, secondStrip);
+    createStripElements(multiDomain, nColumns, materialName);
+    createStripElements(multiDomain, nColumns, materialName, secondStrip);
+    // Each film sees air at its own end's temperature, so the air's vapour pressure differs
+    // between the ends and the exchanging strip carries a flux: a state of its own.
+    multiDomain.createBC_FixedHc(secondStrip + 1, secondStrip + 2, {40.0, 5.0, airHumidity});
+    multiDomain.createBC_FixedHc(
+      secondStrip + 2 * nColumns, secondStrip + 2 * nColumns - 1, {20.0, 5.0, airHumidity});
+
+    const auto solution = multiDomain.steadyState();
+    const std::vector<double> sealed(solution.humidity.begin(), solution.humidity.begin() + secondStrip);
+    const std::vector<double> exchanging(solution.humidity.begin() + secondStrip, solution.humidity.end());
+    const auto sealedProfile = TestHelper::bottomRow(sealed, nColumns, 2);
+    const auto exchangingProfile = TestHelper::bottomRow(exchanging, nColumns, 2);
+
+    HygroThermFEM::SimulationProperties::Instance().resetCalculationParameters();
+
+    EXPECT_TRUE(solution.converged);
+    EXPECT_LT(maxDeviationFromClosedForm(sealedProfile), 1e-8);
+    EXPECT_LT(std::abs(relativeWaterChange(sealedProfile)), 1e-12);
+    // The films pull both ends of the other strip towards the air's humidity, far from the
+    // 0.4 it started with: its water is not kept.
+    EXPECT_NEAR(exchangingProfile.front(), airHumidity, 0.05);
+    EXPECT_NEAR(exchangingProfile.back(), airHumidity, 0.05);
+    EXPECT_GT(relativeWaterChange(exchangingProfile), 0.5);
 }

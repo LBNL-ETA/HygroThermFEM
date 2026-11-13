@@ -327,14 +327,25 @@ namespace HygroThermFEM
         return m_PhysicsOptions ? *m_PhysicsOptions : PhysicsOptions::fromGlobals();
     }
 
-    Solution MultiDomain::steadyState()
+    void MultiDomain::holdSealedMoisture(const std::vector<double> & humidity)
     {
-        if(m_SimulateMoisture && !m_MoistureDomain.hasBoundaryExchange())
+        const auto regions = m_MoistureDomain.sealedRegions();
+        if(std::ranges::any_of(regions, [](const SealedRegion & region) { return region.capacity <= 0.0; }))
         {
             throw std::runtime_error(
-              "The moisture domain exchanges no moisture with its surroundings, so its steady "
-              "humidity is determined only up to the total water and has no direct solution.");
+              "A part of the model exchanges no moisture with its surroundings and its materials "
+              "store none, so its steady humidity is not determined.");
         }
+        m_MoistureDomain.holdSealedRegions(regions, humidity);
+    }
+
+    bool MultiDomain::sealedMoistureHeld(const double tolerance) const
+    {
+        return !m_SimulateMoisture || m_MoistureDomain.sealedStorageDrift() <= tolerance;
+    }
+
+    Solution MultiDomain::steadyState()
+    {
         const auto settings = solverSettings();
         const auto tolerance = settings.errorTolerance;
         const std::size_t maxPasses{
@@ -342,6 +353,12 @@ namespace HygroThermFEM
 
         SteadyFields fields{.temperature = m_Nodes.properties(Variable::temperature),
                             .humidity = m_Nodes.properties(Variable::humidity)};
+        // A part of the model that exchanges no moisture keeps the water of these start
+        // humidities: its flux equations fix the profile only up to that water.
+        if(m_SimulateMoisture)
+        {
+            holdSealedMoisture(fields.humidity);
+        }
         SteadyErrors errors{.temperature = std::numeric_limits<double>::max(),
                             .humidity = std::numeric_limits<double>::max()};
         double previousChange{std::numeric_limits<double>::max()};
@@ -363,7 +380,11 @@ namespace HygroThermFEM
             polished = converged && !stillContracting(largestChange, previousChange);
             previousChange = largestChange;
         }
-        return steadySolution(fields, errors, converged, passesTaken);
+        // A sealed part that ran into a humidity bound cannot keep its water there, and the
+        // field returned is then not the steady state of that water.
+        const bool waterHeld{sealedMoistureHeld(tolerance)};
+        m_MoistureDomain.releaseSealedRegions();
+        return steadySolution(fields, errors, converged && waterHeld, passesTaken);
     }
 
     MultiDomain::SteadyFields MultiDomain::steadyPass(const SteadyFields & fields)

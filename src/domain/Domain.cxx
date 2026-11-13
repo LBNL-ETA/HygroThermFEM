@@ -2,7 +2,9 @@
 #include <cmath>
 #include <iomanip>
 #include <limits>
+#include <map>
 #include <memory>
+#include <numeric>
 #include <ostream>
 
 #include "lbnl/algorithm.hxx"
@@ -163,6 +165,7 @@ namespace
       const bool useResidual,
       const double currentFreeResidual,
       const double residualTarget,
+      const bool residualAtRoundOff,
       const size_t numOfIterations,
       const size_t minIterationsForOscillationCheck)
     {
@@ -170,9 +173,12 @@ namespace
           previousNorm, currentNorm, correctionDU, effectiveRelax, solution);
 
         // Thermal keeps the historical change-metric criterion; moisture converges when the
-        // free-DOF residual is below its target (see IDomain::residualTarget).
+        // free-DOF residual is below its target (see IDomain::residualTarget), or when every
+        // row of it is already at the rounding of its own terms and no iteration can lower it
+        // (see IDomain::freeResidualAtRoundOff).
         const bool primaryConverged =
-          useResidual ? (currentFreeResidual <= residualTarget) : (metric <= convergenceError);
+          useResidual ? (currentFreeResidual <= residualTarget || residualAtRoundOff)
+                      : (metric <= convergenceError);
 
         if(primaryConverged)
         {
@@ -269,8 +275,55 @@ namespace HygroThermFEM
             M_K_H.addToDiagonal(MassVec);
             vecR += t_PreviousSolution * MassVec;
         }
+        else if(!m_SealedRegions.empty())
+        {
+            return withStoredAmountRows(M_K_H, std::move(vecR));
+        }
 
         return {std::move(M_K_H), std::move(vecR)};
+    }
+
+    bool IDomain::holdsSealedRegions(const double dTime) const
+    {
+        return std::isinf(dTime) && !m_SealedRegions.empty();
+    }
+
+    IDomain::TransientSystem IDomain::withStoredAmountRows(const SquareMatrix & matrix,
+                                                           std::vector<double> rhs) const
+    {
+        // Capacity over a unit step: the lumped secant capacity itself.
+        constexpr double unitStep{1.0};
+        const auto size = matrix.size();
+        const auto capacity = m_Elements.getLumpedMass(size, unitStep);
+        const auto & sparse = matrix.getSparseMatrix();
+
+        std::vector<Eigen::Triplet<double>> triplets;
+        triplets.reserve(static_cast<std::size_t>(sparse.nonZeros()) + size);
+        for(int outer = 0; outer < sparse.outerSize(); ++outer)
+        {
+            for(Eigen::SparseMatrix<double>::InnerIterator entry(sparse, outer); entry; ++entry)
+            {
+                const auto row = static_cast<std::size_t>(entry.row());
+                if(m_AnchorOfDof[row] != row)
+                {
+                    triplets.emplace_back(entry.row(), entry.col(), entry.value());
+                }
+            }
+        }
+        for(const auto & region : m_SealedRegions)
+        {
+            // Every degree of freedom of the region gets an entry, a zero capacity included:
+            // the pattern must not depend on the state.
+            double startAmount{0.0};
+            for(const auto dof : region.dofs)
+            {
+                const double weight{region.rowScale * capacity[dof]};
+                triplets.emplace_back(static_cast<int>(region.anchor), static_cast<int>(dof), weight);
+                startAmount += weight * m_SealedStart[dof];
+            }
+            rhs[region.anchor] = startAmount;
+        }
+        return {SquareMatrix(size, triplets), std::move(rhs)};
     }
 
     std::vector<std::vector<double>> IDomain::transientMultiStep(const Variable variable,
@@ -499,16 +552,20 @@ namespace HygroThermFEM
         }
     }
 
-    void IDomain::ensureJacobianColumnGroups(const SquareMatrix & pattern)
+    void IDomain::ensureJacobianColumnGroups(const SquareMatrix & pattern, const bool held)
     {
         const auto & sparse = pattern.getSparseMatrix();
         const auto nonZeros = static_cast<std::size_t>(sparse.nonZeros());
         const auto size = pattern.size();
         if(!m_JacobianColumnGroups.empty() && m_JacobianPatternSize == size
-           && m_JacobianPatternNonZeros == nonZeros)
+           && m_JacobianPatternNonZeros == nonZeros && m_JacobianPatternHeld == held)
         {
             return;
         }
+        // A stored-amount row (the anchor of a held region) is left out of the grouping.
+        const auto isStoredAmountRow = [this, held](const std::size_t row) {
+            return held && m_AnchorOfDof[row] == row;
+        };
 
         // Rows a column touches: its pattern entries plus its own diagonal.
         std::vector<std::vector<std::size_t>> rowsOfColumn(size);
@@ -516,15 +573,21 @@ namespace HygroThermFEM
         {
             for(Eigen::SparseMatrix<double>::InnerIterator entry(sparse, outer); entry; ++entry)
             {
-                rowsOfColumn[static_cast<std::size_t>(entry.col())].push_back(
-                  static_cast<std::size_t>(entry.row()));
+                if(!isStoredAmountRow(static_cast<std::size_t>(entry.row())))
+                {
+                    rowsOfColumn[static_cast<std::size_t>(entry.col())].push_back(
+                      static_cast<std::size_t>(entry.row()));
+                }
             }
         }
         for(std::size_t column = 0u; column < size; ++column)
         {
             // Each row exactly once: the triplet constructor SUMS duplicates, and a doubled
             // diagonal halves every Newton step (found 2026-09-03 on the sealed strip).
-            rowsOfColumn[column].push_back(column);
+            if(!isStoredAmountRow(column))
+            {
+                rowsOfColumn[column].push_back(column);
+            }
             rowsOfColumn[column] = lbnl::sorted_unique(rowsOfColumn[column]);
         }
 
@@ -559,6 +622,7 @@ namespace HygroThermFEM
         m_JacobianRowsOfColumn = std::move(rowsOfColumn);
         m_JacobianPatternSize = size;
         m_JacobianPatternNonZeros = nonZeros;
+        m_JacobianPatternHeld = held;
     }
 
     SquareMatrix IDomain::finiteDifferenceJacobian(const std::vector<double> & solution,
@@ -570,7 +634,8 @@ namespace HygroThermFEM
                                                    const std::pair<double, double> & bounds)
     {
         constexpr double perturbation{1e-6};
-        ensureJacobianColumnGroups(matA);
+        const bool held{holdsSealedRegions(dTime)};
+        ensureJacobianColumnGroups(matA, held);
         const auto size = solution.size();
         const auto baseline = matA * solution - vecB;
 
@@ -599,6 +664,19 @@ namespace HygroThermFEM
                                           static_cast<int>(column),
                                           (shifted[row] - baseline[row]) / steps[column]);
                 }
+                if(held && m_AnchorOfDof[column] != noAnchor)
+                {
+                    // The stored-amount row is a sum of one term per column,
+                    // weight_j(u_j) (u_j - start_j), so the column's own term gives its
+                    // entry however many columns of the region the group perturbs.
+                    const auto anchor = m_AnchorOfDof[column];
+                    const double start{m_SealedStart[column]};
+                    const double before{matA(anchor, column) * (solution[column] - start)};
+                    const double after{matP(anchor, column) * (perturbed[column] - start)};
+                    triplets.emplace_back(static_cast<int>(anchor),
+                                          static_cast<int>(column),
+                                          (after - before) / steps[column]);
+                }
             }
         }
         updateNodes(solution, false);
@@ -626,22 +704,165 @@ namespace HygroThermFEM
         return {.solution = result.solution, .converged = result.converged};
     }
 
-    bool IDomain::hasBoundaryExchange()
+    namespace
     {
-        constexpr std::size_t steadyBoundaryStep{0u};
-        const auto exchange = m_BCs.HMatrix(m_NodePool.maxIndex(), steadyBoundaryStep);
-        const auto & sparse = exchange.getSparseMatrix();
-        for(int outer = 0; outer < sparse.outerSize(); ++outer)
+        //! Calls visit(row, column) for every non-zero entry of the matrix.
+        template<typename Visitor>
+        void forEachNonZero(const SquareMatrix & matrix, const Visitor & visit)
         {
-            for(Eigen::SparseMatrix<double>::InnerIterator entry(sparse, outer); entry; ++entry)
+            const auto & sparse = matrix.getSparseMatrix();
+            for(int outer = 0; outer < sparse.outerSize(); ++outer)
             {
-                if(entry.value() != 0.0)
+                for(Eigen::SparseMatrix<double>::InnerIterator entry(sparse, outer); entry; ++entry)
                 {
-                    return true;
+                    if(entry.value() != 0.0)
+                    {
+                        visit(static_cast<std::size_t>(entry.row()), static_cast<std::size_t>(entry.col()));
+                    }
                 }
             }
         }
-        return false;
+
+        //! Per degree of freedom, whether the matrix has a non-zero entry in its row or column.
+        std::vector<bool> touchedDofs(const SquareMatrix & matrix)
+        {
+            std::vector<bool> touched(matrix.size(), false);
+            forEachNonZero(matrix, [&touched](const std::size_t row, const std::size_t column) {
+                touched[row] = true;
+                touched[column] = true;
+            });
+            return touched;
+        }
+
+        //! Representative of a degree of freedom in a union-find forest, with path halving.
+        std::size_t rootOf(std::vector<std::size_t> & parent, std::size_t dof)
+        {
+            while(parent[dof] != dof)
+            {
+                parent[dof] = parent[parent[dof]];
+                dof = parent[dof];
+            }
+            return dof;
+        }
+
+        //! The degrees of freedom grouped by connection through the non-zero entries of the
+        //! matrix, each group in ascending order. A degree of freedom with no entry belongs to
+        //! no group.
+        std::vector<std::vector<std::size_t>> connectedRegions(const SquareMatrix & matrix)
+        {
+            const auto size = matrix.size();
+            std::vector<std::size_t> parent(size);
+            std::iota(parent.begin(), parent.end(), std::size_t{0u});
+            forEachNonZero(matrix, [&parent](const std::size_t row, const std::size_t column) {
+                parent[rootOf(parent, row)] = rootOf(parent, column);
+            });
+
+            const auto touched = touchedDofs(matrix);
+            std::map<std::size_t, std::vector<std::size_t>> byRoot;
+            for(std::size_t dof = 0u; dof < size; ++dof)
+            {
+                if(touched[dof])
+                {
+                    byRoot[rootOf(parent, dof)].push_back(dof);
+                }
+            }
+            return lbnl::transform_to_vector(byRoot, [](const auto & entry) { return entry.second; });
+        }
+
+        //! The sealed region over the given degrees of freedom: anchored at its largest
+        //! capacity, its storage row scaled to the region's conductances.
+        SealedRegion sealedRegion(std::vector<std::size_t> dofs,
+                                  const SquareMatrix & conductance,
+                                  const std::vector<double> & capacity)
+        {
+            const auto anchor = *std::ranges::max_element(
+              dofs, {}, [&capacity](const std::size_t dof) { return capacity[dof]; });
+            double capacitySum{0.0};
+            double conductanceSum{0.0};
+            for(const auto dof : dofs)
+            {
+                capacitySum += capacity[dof];
+                conductanceSum += std::abs(conductance(dof, dof));
+            }
+            return {.dofs = std::move(dofs),
+                    .anchor = anchor,
+                    .capacity = capacitySum,
+                    .rowScale = capacitySum > 0.0 ? conductanceSum / capacitySum : 0.0};
+        }
+    }   // namespace
+
+    std::vector<SealedRegion> IDomain::sealedRegions()
+    {
+        constexpr std::size_t steadyBoundaryStep{0u};
+        constexpr double unitStep{1.0};
+        const auto size = m_NodePool.maxIndex();
+        const auto conductance = m_Elements.conductanceMatrix(size);
+        const auto exchange = m_BCs.HMatrix(size, steadyBoundaryStep);
+        const auto capacity = m_Elements.getLumpedMass(size, unitStep);
+        const auto exchanging = touchedDofs(exchange);
+
+        std::vector<SealedRegion> regions;
+        for(auto & dofs : connectedRegions(conductance))
+        {
+            if(std::ranges::none_of(dofs, [&exchanging](const std::size_t dof) { return exchanging[dof]; }))
+            {
+                regions.push_back(sealedRegion(std::move(dofs), conductance, capacity));
+            }
+        }
+        return regions;
+    }
+
+    void IDomain::holdSealedRegions(const std::vector<SealedRegion> & regions,
+                                    const std::vector<double> & start)
+    {
+        m_SealedRegions = regions;
+        m_SealedStart = start;
+        m_AnchorOfDof.assign(start.size(), noAnchor);
+        for(const auto & region : regions)
+        {
+            for(const auto dof : region.dofs)
+            {
+                m_AnchorOfDof[dof] = region.anchor;
+            }
+        }
+        if(!regions.empty())
+        {
+            // Current, then previous: the secant capacity is taken against the start field.
+            updateNodes(start, false);
+            updateNodes(start, true);
+        }
+    }
+
+    void IDomain::releaseSealedRegions()
+    {
+        m_SealedRegions.clear();
+        m_SealedStart.clear();
+        m_AnchorOfDof.clear();
+    }
+
+    double IDomain::sealedStorageDrift() const
+    {
+        if(m_SealedRegions.empty())
+        {
+            return 0.0;
+        }
+        constexpr double unitStep{1.0};
+        constexpr double minimumScale{1e-300};
+        const auto capacity = m_Elements.getLumpedMass(m_NodePool.maxIndex(), unitStep);
+        const auto solution = m_NodePool.properties(stateVariable());
+        double drift{0.0};
+        for(const auto & region : m_SealedRegions)
+        {
+            double change{0.0};
+            double scale{minimumScale};
+            for(const auto dof : region.dofs)
+            {
+                change += capacity[dof] * (solution[dof] - m_SealedStart[dof]);
+                scale += capacity[dof] * (std::max)(std::abs(solution[dof]), std::abs(m_SealedStart[dof]));
+            }
+            drift = (std::max)(drift, std::abs(change) / scale);
+        }
+        return drift;
     }
 
     double IDomain::steadyStateResidual()
@@ -811,6 +1032,30 @@ namespace HygroThermFEM
         return std::sqrt(sumSq);
     }
 
+    bool IDomain::freeResidualAtRoundOff(const std::vector<double> & solution,
+                                         const SquareMatrix & matA,
+                                         const std::vector<double> & vecB) const
+    {
+        // A row's residual b_i - sum_j A_ij u_j is computed from terms of size
+        // |b_i| + sum_j |A_ij| |u_j|, and u itself is resolved to its last bit, so the row
+        // cannot be brought below a few rounding units of that size.
+        constexpr double roundingUnits{16.0};
+        constexpr double bound{roundingUnits * std::numeric_limits<double>::epsilon()};
+        const auto residual = vecB - matA * solution;
+        const auto magnitude = lbnl::transform_to_vector(
+          solution, [](const double value) { return std::abs(value); });
+        const auto termSize = matA.absolute() * magnitude;
+        const auto constrained = constrainedDofs(solution);
+        for(std::size_t row = 0u; row < residual.size(); ++row)
+        {
+            if(!constrained[row] && std::abs(residual[row]) > bound * (termSize[row] + std::abs(vecB[row])))
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
     void IDomain::performNRIteration(NRLoopState & state,
                                       const std::vector<double> & currentStateValues,
                                       const double relaxParameter,
@@ -887,6 +1132,8 @@ namespace HygroThermFEM
         const bool useResidual = useResidualConvergence();
         const double currentFreeResidual =
           useResidual ? freeDofResidualNorm(state.solution, state.matA, state.vecB) : 0.0;
+        const bool residualAtRoundOff{
+          useResidual && freeResidualAtRoundOff(state.solution, state.matA, state.vecB)};
 
         // Track the lowest-residual iterate so best-effort acceptance returns the best point
         // visited (not an oscillating last iterate) when the reduction target isn't met.
@@ -923,7 +1170,7 @@ namespace HygroThermFEM
         const auto result = evaluateConvergence(
           state.solution, prevIterSolution, correctionDU, lsResult.effectiveRelax,
           previousNorm, state.currentNorm, state.prevMetric, convergenceError,
-          useResidual, currentFreeResidual, state.residualTarget,
+          useResidual, currentFreeResidual, state.residualTarget, residualAtRoundOff,
           state.numOfIterations, minIterationsForOscillationCheck);
 
         if(result.reason == ConvergeReason::oscillation)

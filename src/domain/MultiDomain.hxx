@@ -109,9 +109,16 @@ namespace HygroThermFEM
         //! node values. The solve is converged once neither field changes by more than the
         //! tolerance between passes and both steady residuals are below it; the passes then
         //! continue while each still halves the change, so the reported field sits at the
-        //! solvers' floor rather than at the tolerance. A moisture domain with no exchange at
-        //! any boundary has no steady solution of its own (its water is undetermined) and is
-        //! refused with a runtime_error.
+        //! solvers' floor rather than at the tolerance.
+        //!
+        //! A part of the model that exchanges no moisture at any boundary has a steady
+        //! humidity profile only up to its water. It keeps the water of the start
+        //! humidities: one of its flux equations, which is redundant, gives way to that
+        //! condition (IDomain::holdSealedRegions), so the result is the state a transient
+        //! run from the same start settles to. If such a part reaches a humidity bound and
+        //! cannot keep its water, the solution is returned with converged = false. A sealed
+        //! part whose materials store no water has no such condition and is refused with a
+        //! runtime_error.
         Solution steadyState();
 
         //! Snapshot of the current node state as a zero-duration Solution. Called before the
@@ -488,6 +495,15 @@ namespace HygroThermFEM
             double temperature{0.0};
             double humidity{0.0};
         };
+
+        //! Makes the moisture solve keep, in every part of the model that exchanges no
+        //! moisture, the water of the given humidities (IDomain::holdSealedRegions). Throws
+        //! when such a part stores no water at all.
+        void holdSealedMoisture(const std::vector<double> & humidity);
+
+        //! True when every sealed part still holds its start water within the tolerance at
+        //! the nodes' current state.
+        [[nodiscard]] bool sealedMoistureHeld(double tolerance) const;
 
         //! One pass of the steady solve: a steady Newton per simulated domain, moisture first.
         //! Each Newton leaves its domain's nodes at the returned field, so the thermal solve
