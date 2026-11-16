@@ -117,14 +117,6 @@ namespace HygroThermFEM
 
         std::vector<std::string> getSolidMaterialNames() const;
 
-        //! \brief Finds a solid material that is common between this node and another node.
-        //!
-        //! Used for gas cavity calculations to find the adjacent solid material's emissivity.
-        //! \param other The other node to compare materials with.
-        //! \return Reference to the common material if found, std::nullopt otherwise.
-        [[nodiscard]] std::optional<std::reference_wrapper<const IMaterial>>
-            findCommonSolidMaterial(const Node2D & other) const;
-
         //! Returns back property of state variable. Variable can be from basic state (temperature,
         //! humidity or pressure) or water content
         double property(

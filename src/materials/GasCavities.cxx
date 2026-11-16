@@ -5,7 +5,7 @@
 
 #include <KeffCavity.hxx>
 
-#include "lbnl/optional.hxx"
+#include "lbnl/algorithm.hxx"
 
 #include "GasCavities.hxx"
 #include "Materials.hxx"
@@ -108,21 +108,11 @@ namespace HygroThermFEM
                                                   const Node2D & node2,
                                                   const CavitySurfaceEmissivities & surfaceEmissivities)
     {
-        const auto overridden{
-          surfaceEmissivities.find(cavitySegmentKey(node1.getNodeNumber(), node2.getNodeNumber()))};
-        if(overridden != surfaceEmissivities.end())
-        {
-            return overridden->second;
-        }
-
-        // A common material may be absent (two frame cavities next to each other) or present
-        // without an emissivity; both cases fall back to 0.0.
-        return lbnl::extend(findCommonMaterial(node1, node2))
-          .transform([](const std::reference_wrapper<const IMaterial> & common) {
-              const auto & material = common.get();
-              return material.hasEmissivity() ? material.emissivity() : 0.0;
-          })
-          .value_or(0.0);
+        // A segment with no wall on it opens into a neighbouring cavity. Radiation passes through
+        // it, so it counts as black, the value THERM gives Conrad for the same opening.
+        constexpr double openingEmissivity{1.0};
+        const auto wall{surfaceEmissivities.find(cavitySegmentKey(node1.getNodeNumber(), node2.getNodeNumber()))};
+        return wall != surfaceEmissivities.end() ? wall->second : openingEmissivity;
     }
 
     std::vector<EquivalentGasCavity::Segment>
@@ -163,12 +153,6 @@ namespace HygroThermFEM
         };
 
         return m_Side.at(flowMap.at(screenFlow));
-    }
-
-    std::optional<std::reference_wrapper<const IMaterial>>
-        EquivalentGasCavity::findCommonMaterial(const Node2D & node1, const Node2D & node2)
-    {
-        return node1.findCommonSolidMaterial(node2);
     }
 
     double EquivalentGasCavity::calcArea() const
@@ -459,8 +443,38 @@ namespace HygroThermFEM
         createEquivalentFrameCavities();
     }
 
+    CavitySurfaceEmissivities EquivalentGasCavities::wallEmissivities() const
+    {
+        const auto gases{m_MaterialPool.getGases()};
+        CavitySurfaceEmissivities walls;
+        for(const auto & element : m_Elements.elements())
+        {
+            const auto & material{element->getMaterial()};
+            if(lbnl::contains(gases, material.name()))
+            {
+                continue;
+            }
+            const double emissivity{material.hasEmissivity() ? material.emissivity() : 0.0};
+            const auto nodes{element->nodeIndexes()};
+            for(std::size_t index = 0u; index < nodes.size(); ++index)
+            {
+                const auto next{nodes[(index + 1u) % nodes.size()]};
+                if(nodes[index] != next)
+                {
+                    walls[cavitySegmentKey(nodes[index], next)] = emissivity;
+                }
+            }
+        }
+        for(const auto & [segment, emissivity] : m_SurfaceEmissivities)
+        {
+            walls[segment] = emissivity;
+        }
+        return walls;
+    }
+
     void EquivalentGasCavities::createEquivalentFrameCavities()
     {
+        const auto walls{wallEmissivities()};
         auto frameCavities = m_MaterialPool.getGases();
 
         for(const auto & frameCavity : frameCavities)
@@ -475,7 +489,7 @@ namespace HygroThermFEM
             }
             auto & gas = m_MaterialPool.gas(frameCavity);
             m_Cavities.emplace_back(
-              m_NodePool, edgeNodesOrdered(getEdges(elementNodes), frameCavity), gas, m_SurfaceEmissivities);
+              m_NodePool, edgeNodesOrdered(getEdges(elementNodes), frameCavity), gas, walls);
         }
     }
 

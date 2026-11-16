@@ -17,12 +17,14 @@ namespace HygroThermFEM
 {
     class Nodes;
 
-    //! \brief Emissivity overrides for frame cavity boundary segments.
+    //! \brief Emissivities of frame cavity walls.
     //!
-    //! Keyed by the segment's two node numbers in ascending order (see cavitySegmentKey). A
-    //! segment without an entry takes the emissivity of the solid material adjacent to it. A
-    //! host program uses this when the emissivity of a cavity surface is set independently of
-    //! the material behind it (THERM's Frame Cavity Surface boundary condition).
+    //! Keyed by the wall segment's two node numbers in ascending order (see cavitySegmentKey).
+    //! A host program passes the walls whose emissivity is set independently of the material
+    //! behind them (THERM's Frame Cavity Surface boundary condition); EquivalentGasCavities adds
+    //! the emissivity of the solid element on every other wall. A segment of a cavity outline
+    //! without an entry has no wall: it opens into a neighbouring cavity and counts as black
+    //! (emissivity 1), as it does in Conrad.
     using CavitySurfaceEmissivities = std::map<std::pair<std::size_t, std::size_t>, double>;
 
     //! \brief Key of a cavity boundary segment: its two node numbers in ascending order.
@@ -176,11 +178,8 @@ namespace HygroThermFEM
         //! Calculates frame cavity area out of segments
         [[nodiscard]] double calcArea() const;
 
-        static std::optional<std::reference_wrapper<const IMaterial>>
-            findCommonMaterial(const Node2D & node1, const Node2D & node2);
-
-        //! Emissivity of one boundary segment: the override for its node pair when present,
-        //! otherwise the adjacent solid material's emissivity, otherwise 0.
+        //! Emissivity of one boundary segment: the emissivity of the wall on it, or 1 when no
+        //! wall lies on it (the segment opens into a neighbouring cavity).
         static double segmentEmissivity(const Node2D & node1,
                                         const Node2D & node2,
                                         const CavitySurfaceEmissivities & surfaceEmissivities);
@@ -297,6 +296,11 @@ namespace HygroThermFEM
 
         //! Function to perform calculation of equivalent frame cavities over the entire domain.
         void createEquivalentFrameCavities();
+
+        //! Every wall a frame cavity can have: each edge of a solid element, with that element's
+        //! material emissivity (0 for a material without one), and over those the host's
+        //! surface emissivities. Edges of gas elements are not walls.
+        [[nodiscard]] CavitySurfaceEmissivities wallEmissivities() const;
 
         //! Calculate edges of frame cavity with lines in no specific order
         //!

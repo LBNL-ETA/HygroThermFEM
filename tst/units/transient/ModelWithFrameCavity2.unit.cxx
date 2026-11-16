@@ -117,13 +117,16 @@ TEST(TestModelWithFrameCavity2, TestDoubleFrameCavity)
     // Both re-captured when the element started reading the cavity's conductivity live:
     // the field then feels the cavities, their temperature differences narrow and keff
     // settles lower than the values captured with the gas default frozen in the matrix.
-    const auto correctThermalConductivity1{0.156054};
+    // Re-captured again when a cavity side with no solid on it started counting as black
+    // (emissivity 1): cavity 2's top side is the model's outer edge. It used to get 0, so
+    // cavity 2 lost its radiation across the cavity; cavity 1 moves only through the field.
+    const auto correctThermalConductivity1{0.155977};
     const auto thermalCond1 = frameCavity1.thermalConductivityMoistureAndTemperatureDependent().getCurve()[0].y;
     EXPECT_NEAR(correctThermalConductivity1, thermalCond1, 1e-6);
 
     // Upward flow; the original 0.025013 belonged to the horizontal evaluation a
     // precedence slip in the direction rule produced for this cavity.
-    const auto correctThermalConductivity2{0.242558};
+    const auto correctThermalConductivity2{0.782487};
     const auto thermalCond2 = frameCavity2.thermalConductivityMoistureAndTemperatureDependent().getCurve()[0].y;
     EXPECT_NEAR(correctThermalConductivity2, thermalCond2, 1e-6);
     EXPECT_NEAR(thermalCond2, frameCavity2.thermalConductivityDry(), 1e-12);
