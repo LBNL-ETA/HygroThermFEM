@@ -1,13 +1,15 @@
 ```mermaid
 graph TD
     %% Package definitions
-    HygroThermFEM[HygroThermFEM<br/><font color='red'>v_@PROJECT_VERSION@</font>]
+    HygroThermFEM[HygroThermFEM<br/><font color='red'>@Chart_Self@</font>]
     KeffCavity[KeffCavity<br/><font color='red'>@KeffCavity_Branch@</font>]
     Eigen[Eigen<br/><font color='red'>@Eigen_Branch@</font>]
     WindowsCalcEngine[Windows-CalcEngine<br/><font color='red'>@WindowsCalcEngine_Branch@</font>]
+    LBNLCPPCommon[LBNLCPPCommon<br/><font color='red'>@LBNLCPPCommon_Branch@</font>]
 
     %% Package relations
     HygroThermFEM --> KeffCavity
     HygroThermFEM --> Eigen
+    HygroThermFEM --> LBNLCPPCommon
     KeffCavity --> WindowsCalcEngine
 ```

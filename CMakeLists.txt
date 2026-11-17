@@ -86,7 +86,7 @@ set(BUILD_KeffC_TESTING OFF CACHE BOOL "Build KeffCavity tests" FORCE)
 # Branch pin while the Windows/Clang -fPIC fix is under test. KeffCavity carries
 # the same fix and re-exports the Windows-CalcEngine pin. Re-pin to a released
 # tag once it lands.
-set(KeffCavity_Branch "Version_1.1.9")
+set(KeffCavity_Branch "rework/bcs")
 
 if(NOT TARGET KeffCavity)
     FetchContent_Declare(
@@ -110,7 +110,22 @@ if(NOT TARGET LBNLCPPCommon)
 endif()
 
 get_property(WindowsCalcEngine_Branch TARGET KeffCavity PROPERTY WindowsCalcEngine_Branch)
-configure_file(doc/HygroThermFEM.md.in ${CMAKE_CURRENT_SOURCE_DIR}/doc/HygroThermFEM.md @ONLY)
+# This project's own box in the dependency chart: the checked-out branch while work is
+# in flight, the version when the checkout sits exactly on a release tag.
+set(Chart_Self "v_${PROJECT_VERSION}")
+execute_process(COMMAND git describe --tags --exact-match
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    RESULT_VARIABLE Chart_NotOnTag OUTPUT_QUIET ERROR_QUIET)
+execute_process(COMMAND git rev-parse --abbrev-ref HEAD
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    OUTPUT_VARIABLE Chart_Branch OUTPUT_STRIP_TRAILING_WHITESPACE ERROR_QUIET)
+if(Chart_Branch STREQUAL "HEAD" AND DEFINED ENV{GITHUB_REF_NAME})
+    set(Chart_Branch "$ENV{GITHUB_REF_NAME}")
+endif()
+if(Chart_NotOnTag AND Chart_Branch AND NOT Chart_Branch STREQUAL "HEAD")
+    set(Chart_Self "${Chart_Branch}")
+endif()
+configure_file(doc/HygroThermFEM.md.in ${CMAKE_CURRENT_SOURCE_DIR}/doc/DependencyChart.md @ONLY)
 
 # google test will not be created by this project if this is not main project. Main project is expected to handle google test.
 get_directory_property(hasParent PARENT_DIRECTORY)
@@ -138,6 +153,10 @@ add_library(${target_name} STATIC ${SOURCES})
 set_target_properties(${target_name} PROPERTIES LINKER_LANGUAGE CXX)
 
 target_link_libraries( ${target_name} PUBLIC KeffCavity LBNLCPPCommon)
+
+# Pins exported for the dependency charts of the projects that use this one
+set_property(TARGET ${target_name} PROPERTY KeffCavity_Branch ${KeffCavity_Branch})
+set_property(TARGET ${target_name} PROPERTY Eigen_Branch ${Eigen_Branch})
 
 # src/ is grouped into component subfolders; put each on the include path so the
 # existing flat #includes ("Foo.hxx") keep resolving across components. (Step 2 of

@@ -29,7 +29,7 @@ Visual Studio) that inherit the same `local` behaviour.
 
 ### Dependencies
 
-[Dependency Chart](doc/DependencyChart.md)
+The dependency chart is shown on the summary page of every [CI run](https://github.com/LBNL-ETA/HygroThermFEM/actions). A CMake configure writes the same chart locally to `doc/DependencyChart.md`, which git ignores.
 
 Fetched via `FetchContent`, pinned in `CMakeLists.txt`:
 
